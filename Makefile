@@ -1,7 +1,7 @@
 # Fullstack Monolith Makefile
 # Comprehensive commands for development, testing, and deployment
 
-.PHONY: help setup install build dev test lint clean deploy docker-build docker-up docker-down db-migrate db-seed db-reset db-studio format type-check
+.PHONY: help setup install build dev test lint clean deploy docker-build docker-up docker-down db-migrate db-seed db-reset db-studio format type-check dev-services quick-setup production-build database-ops
 
 # Default target
 help: ## Show this help message
@@ -207,9 +207,104 @@ backup-db: ## Backup database
 	@pg_dump $(DATABASE_URL) > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "✅ Database backup completed"
 
+# New Automation Scripts
+dev-services: ## Start all development services simultaneously
+	@echo "🚀 Starting all development services..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/dev-services.ps1 start
+else
+	@./tools/scripts/dev-services.sh start
+endif
+
+dev-services-stop: ## Stop all development services
+	@echo "🛑 Stopping all development services..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/dev-services.ps1 stop
+else
+	@./tools/scripts/dev-services.sh stop
+endif
+
+dev-services-status: ## Show development services status
+	@echo "📊 Checking development services status..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/dev-services.ps1 status
+else
+	@./tools/scripts/dev-services.sh status
+endif
+
+quick-setup: ## One-command setup for new developers
+	@echo "⚡ Running quick setup for new developers..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/quick-setup.ps1 full
+else
+	@echo "Please run: ./tools/scripts/quick-setup.ps1 full (PowerShell required)"
+endif
+
+quick-setup-minimal: ## Minimal setup (dependencies only)
+	@echo "⚡ Running minimal setup..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/quick-setup.ps1 minimal
+else
+	@echo "Please run: ./tools/scripts/quick-setup.ps1 minimal (PowerShell required)"
+endif
+
+production-build: ## Build for production
+	@echo "🏗️ Building for production..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/production-build.ps1 build
+else
+	@echo "Please run: ./tools/scripts/production-build.ps1 build (PowerShell required)"
+endif
+
+production-build-deploy: ## Build and deploy to production
+	@echo "🚀 Building and deploying to production..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/production-build.ps1 build -Deploy -Environment production
+else
+	@echo "Please run: ./tools/scripts/production-build.ps1 build -Deploy -Environment production (PowerShell required)"
+endif
+
+# Database Operations
+database-ops: ## Show database operations help
+	@echo "🗄️ Database operations:"
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/database.ps1 help
+else
+	@echo "Please run: ./tools/scripts/database.ps1 help (PowerShell required)"
+endif
+
+db-backup: ## Create database backup
+	@echo "💾 Creating database backup..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/database.ps1 backup
+else
+	@echo "Please run: ./tools/scripts/database.ps1 backup (PowerShell required)"
+endif
+
+db-restore: ## Restore database from backup (requires BACKUP_NAME)
+	@echo "🔄 Restoring database..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/database.ps1 restore -Name $(BACKUP_NAME)
+else
+	@echo "Please run: ./tools/scripts/database.ps1 restore -Name <backup-name> (PowerShell required)"
+endif
+
+db-status: ## Show database status
+	@echo "📊 Checking database status..."
+ifeq ($(OS),Windows_NT)
+	@powershell -ExecutionPolicy Bypass -File ./tools/scripts/database.ps1 status
+else
+	@echo "Please run: ./tools/scripts/database.ps1 status (PowerShell required)"
+endif
+
 # Quick Commands
 quick-start: install build db-migrate db-seed dev ## Quick start for new developers
 
 full-check: lint type-check test ## Run all quality checks
 
 ci-check: install build lint type-check test ## CI pipeline checks
+
+# All-in-one commands
+start-all: quick-setup dev-services ## Complete setup and start all services
+
+stop-all: dev-services-stop docker-down ## Stop all services and infrastructure
