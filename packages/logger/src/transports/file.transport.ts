@@ -1,8 +1,7 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { TransportStreamOptions } from 'winston-transport';
 
-export interface FileTransportOptions extends TransportStreamOptions {
+export interface FileTransportOptions {
   filename: string;
   maxSize?: string;
   maxFiles?: string | number;
@@ -20,7 +19,7 @@ export class FileTransport extends DailyRotateFile {
   constructor(options: FileTransportOptions) {
     const format = winston.format.combine(
       winston.format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss.SSS'
+        format: 'YYYY-MM-DD HH:mm:ss.SSS',
       }),
       winston.format.errors({ stack: true }),
       winston.format.json()
@@ -35,7 +34,7 @@ export class FileTransport extends DailyRotateFile {
       createSymlink: true,
       symlinkName: `${options.filename}-current.log`,
       ...options,
-      format
+      format,
     });
 
     // Handle rotation events
@@ -43,11 +42,11 @@ export class FileTransport extends DailyRotateFile {
       console.log(`Log rotated from ${oldFilename} to ${newFilename}`);
     });
 
-    this.on('archive', (zipFilename) => {
+    this.on('archive', zipFilename => {
       console.log(`Log archived to ${zipFilename}`);
     });
 
-    this.on('logRemoved', (removedFilename) => {
+    this.on('logRemoved', removedFilename => {
       console.log(`Old log file removed: ${removedFilename}`);
     });
   }
@@ -63,21 +62,25 @@ export const createFileTransport = (options: FileTransportOptions): FileTranspor
 /**
  * Create an error-only file transport
  */
-export const createErrorFileTransport = (filename: string, options: Partial<FileTransportOptions> = {}): FileTransport => {
+export const createErrorFileTransport = (
+  filename: string,
+  options: Partial<FileTransportOptions> = {}
+): FileTransport => {
   return new FileTransport({
     filename,
-    level: 'error',
-    ...options
+    ...options,
   });
 };
 
 /**
  * Create a combined log file transport
  */
-export const createCombinedFileTransport = (filename: string, options: Partial<FileTransportOptions> = {}): FileTransport => {
+export const createCombinedFileTransport = (
+  filename: string,
+  options: Partial<FileTransportOptions> = {}
+): FileTransport => {
   return new FileTransport({
     filename,
-    level: 'info',
-    ...options
+    ...options,
   });
 };

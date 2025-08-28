@@ -709,6 +709,13 @@ importers:
       winston-daily-rotate-file:
         specifier: ^4.7.1
         version: 4.7.1(winston@3.17.0)
+      winston-transport:
+        specifier: ^4.6.0
+        version: 4.9.0
+    optionalDependencies:
+      fastify:
+        specifier: ^4.24.0
+        version: 4.29.1
     devDependencies:
       '@types/node':
         specifier: ^20.10.0

@@ -59,7 +59,7 @@ export class LoggerFactory {
       enableFile: true,
       enableRemote: false,
       enableMetrics: true,
-      ...config
+      ...config,
     };
 
     this.rootLogger = this.createRootLogger();
@@ -79,47 +79,51 @@ export class LoggerFactory {
    * Create the root logger with all configured transports
    */
   private createRootLogger(): winston.Logger {
-    const transports: winston.Transport[] = [];
+    const transports: any[] = [];
     const formats: winston.Logform.Format[] = [];
 
     // Add sensitive data filter if enabled
     if (this.config.filters?.enableSensitiveDataFilter !== false) {
-      formats.push(createSensitiveDataFilter({
-        fields: this.config.filters?.sensitiveFields,
-        patterns: this.config.filters?.sensitivePatterns
-      }));
+      const filterOptions: any = {};
+      if (this.config.filters?.sensitiveFields) {
+        filterOptions.fields = this.config.filters.sensitiveFields;
+      }
+      if (this.config.filters?.sensitivePatterns) {
+        filterOptions.patterns = this.config.filters.sensitivePatterns;
+      }
+      formats.push(createSensitiveDataFilter(filterOptions));
     }
 
     // Console transport
     if (this.config.enableConsole) {
-      transports.push(createConsoleTransport({
-        level: this.config.level,
-        colorize: this.config.console?.colorize,
-        timestamp: this.config.console?.timestamp
-      }));
+      const consoleOptions: any = {};
+      if (this.config.level) consoleOptions.level = this.config.level;
+      if (this.config.console?.colorize !== undefined)
+        consoleOptions.colorize = this.config.console.colorize;
+      if (this.config.console?.timestamp !== undefined)
+        consoleOptions.timestamp = this.config.console.timestamp;
+      transports.push(createConsoleTransport(consoleOptions));
     }
 
     // File transports
     if (this.config.enableFile) {
       const directory = this.config.file?.directory || 'logs';
-      
-      transports.push(
-        createFileTransport({
-          filename: `${directory}/app.log`,
-          level: this.config.level,
-          maxSize: this.config.file?.maxSize,
-          maxFiles: this.config.file?.maxFiles,
-          datePattern: this.config.file?.datePattern
-        })
-      );
 
-      transports.push(
-        createErrorFileTransport(`${directory}/error.log`, {
-          maxSize: this.config.file?.maxSize,
-          maxFiles: this.config.file?.maxFiles,
-          datePattern: this.config.file?.datePattern
-        })
-      );
+      const fileOptions: any = {
+        filename: `${directory}/app.log`,
+      };
+      if (this.config.level) fileOptions.level = this.config.level;
+      if (this.config.file?.maxSize) fileOptions.maxSize = this.config.file.maxSize;
+      if (this.config.file?.maxFiles) fileOptions.maxFiles = this.config.file.maxFiles;
+      if (this.config.file?.datePattern) fileOptions.datePattern = this.config.file.datePattern;
+      transports.push(createFileTransport(fileOptions));
+
+      const errorFileOptions: any = {};
+      if (this.config.file?.maxSize) errorFileOptions.maxSize = this.config.file.maxSize;
+      if (this.config.file?.maxFiles) errorFileOptions.maxFiles = this.config.file.maxFiles;
+      if (this.config.file?.datePattern)
+        errorFileOptions.datePattern = this.config.file.datePattern;
+      transports.push(createErrorFileTransport(`${directory}/error.log`, errorFileOptions));
     }
 
     // Remote transport
@@ -134,26 +138,27 @@ export class LoggerFactory {
     }
 
     // Create logger
-    const logger = winston.createLogger({
-      level: this.config.level,
+    const loggerOptions: any = {
       format: winston.format.combine(...formats),
       transports,
-      exitOnError: false
-    });
+      exitOnError: false,
+    };
+    if (this.config.level) loggerOptions.level = this.config.level;
+    const logger = winston.createLogger(loggerOptions);
 
     // Handle uncaught exceptions and unhandled rejections
     if (this.config.environment !== 'test') {
       logger.exceptions.handle(
         new winston.transports.File({
           filename: `${this.config.file?.directory || 'logs'}/exceptions.log`,
-          format: createJsonFormatter()
+          format: createJsonFormatter(),
         })
       );
 
       logger.rejections.handle(
         new winston.transports.File({
           filename: `${this.config.file?.directory || 'logs'}/rejections.log`,
-          format: createJsonFormatter()
+          format: createJsonFormatter(),
         })
       );
     }
@@ -170,7 +175,7 @@ export class LoggerFactory {
       environment: this.config.environment,
       get correlationId() {
         return getCorrelationId();
-      }
+      },
     });
   }
 
@@ -181,7 +186,7 @@ export class LoggerFactory {
     return this.rootLogger.child({
       service: serviceName,
       environment: this.config.environment,
-      correlationId
+      correlationId,
     });
   }
 
@@ -218,7 +223,7 @@ export class LoggerFactory {
    * Shutdown logger gracefully
    */
   public async shutdown(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.rootLogger.end(() => {
         resolve();
       });
@@ -257,6 +262,9 @@ export const createLogger = (serviceName: string): winston.Logger => {
 /**
  * Create a logger with correlation ID (convenience function)
  */
-export const createLoggerWithCorrelation = (serviceName: string, correlationId: string): winston.Logger => {
+export const createLoggerWithCorrelation = (
+  serviceName: string,
+  correlationId: string
+): winston.Logger => {
   return getLoggerFactory().createLoggerWithCorrelation(serviceName, correlationId);
 };

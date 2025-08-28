@@ -1,5 +1,3 @@
-import winston from 'winston';
-
 export interface LogMetrics {
   totalLogs: number;
   logsByLevel: Record<string, number>;
@@ -25,7 +23,7 @@ export class LogMetricsCollector {
     logsByService: {},
     errorsPerMinute: 0,
     averageLogSize: 0,
-    lastLogTime: null
+    lastLogTime: null,
   };
 
   private errorTimestamps: Date[] = [];
@@ -37,7 +35,7 @@ export class LogMetricsCollector {
       trackSize: true,
       trackTiming: true,
       windowSizeMinutes: 5,
-      ...options
+      ...options,
     };
 
     // Clean up old error timestamps periodically
@@ -59,7 +57,8 @@ export class LogMetricsCollector {
 
     // Track by service
     if (info.service) {
-      this.metrics.logsByService[info.service] = (this.metrics.logsByService[info.service] || 0) + 1;
+      this.metrics.logsByService[info.service] =
+        (this.metrics.logsByService[info.service] || 0) + 1;
     }
 
     // Track errors
@@ -71,12 +70,12 @@ export class LogMetricsCollector {
     if (this.options.trackSize) {
       const logSize = JSON.stringify(info).length;
       this.logSizes.push(logSize);
-      
+
       // Keep only recent sizes for average calculation
       if (this.logSizes.length > 1000) {
         this.logSizes = this.logSizes.slice(-500);
       }
-      
+
       this.metrics.averageLogSize = this.logSizes.reduce((a, b) => a + b, 0) / this.logSizes.length;
     }
 
@@ -101,7 +100,7 @@ export class LogMetricsCollector {
       logsByService: {},
       errorsPerMinute: 0,
       averageLogSize: 0,
-      lastLogTime: null
+      lastLogTime: null,
     };
     this.errorTimestamps = [];
     this.logSizes = [];
@@ -133,14 +132,14 @@ Log Metrics Summary:
     const recentErrors = this.errorTimestamps.filter(
       timestamp => now.getTime() - timestamp.getTime() <= windowMs
     );
-    
+
     this.metrics.errorsPerMinute = recentErrors.length / this.options.windowSizeMinutes;
   }
 
   private cleanupOldTimestamps(): void {
     const now = new Date();
     const windowMs = this.options.windowSizeMinutes * 60 * 1000;
-    
+
     this.errorTimestamps = this.errorTimestamps.filter(
       timestamp => now.getTime() - timestamp.getTime() <= windowMs
     );
@@ -150,19 +149,14 @@ Log Metrics Summary:
 /**
  * Winston transport for collecting metrics
  */
-export class MetricsTransport extends winston.Transport {
+export class MetricsTransport {
   private collector: LogMetricsCollector;
 
   constructor(options: LogMetricsOptions = {}) {
-    super();
     this.collector = new LogMetricsCollector(options);
   }
 
   log(info: any, callback: () => void): void {
-    setImmediate(() => {
-      this.emit('logged', info);
-    });
-
     this.collector.recordLog(info);
     callback();
   }

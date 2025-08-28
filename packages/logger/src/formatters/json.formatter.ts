@@ -13,20 +13,20 @@ export interface JsonFormatterOptions {
 export const createJsonFormatter = (options: JsonFormatterOptions = {}) => {
   return winston.format.combine(
     winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss.SSS'
+      format: 'YYYY-MM-DD HH:mm:ss.SSS',
     }),
     winston.format.errors({ stack: options.includeStack !== false }),
     winston.format.json({
-      space: options.space,
-      replacer: options.replacer
+      ...(options.space !== undefined && { space: options.space }),
+      ...(options.replacer !== undefined && { replacer: options.replacer }),
     }),
-    winston.format.printf((info) => {
+    winston.format.printf(info => {
       const logEntry: any = {
         timestamp: info.timestamp,
         level: info.level,
         message: info.message,
         service: info.service,
-        correlationId: info.correlationId
+        correlationId: info.correlationId,
       };
 
       // Include stack trace if available

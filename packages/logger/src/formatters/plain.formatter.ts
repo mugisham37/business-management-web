@@ -21,7 +21,7 @@ export const createPlainFormatter = (options: PlainFormatterOptions = {}) => {
     includeCorrelationId = true,
     timestampFormat = 'YYYY-MM-DD HH:mm:ss.SSS',
     colorize = false,
-    separator = ' '
+    separator = ' ',
   } = options;
 
   const formats: winston.Logform.Format[] = [];
@@ -36,7 +36,7 @@ export const createPlainFormatter = (options: PlainFormatterOptions = {}) => {
 
   formats.push(
     winston.format.errors({ stack: true }),
-    winston.format.printf((info) => {
+    winston.format.printf(info => {
       const parts: string[] = [];
 
       if (includeTimestamp && info.timestamp) {
@@ -55,7 +55,7 @@ export const createPlainFormatter = (options: PlainFormatterOptions = {}) => {
         parts.push(`(${info.correlationId})`);
       }
 
-      parts.push(info.message);
+      parts.push(String(info.message));
 
       // Add metadata if present
       const { timestamp, level, message, service, correlationId, stack, ...meta } = info;

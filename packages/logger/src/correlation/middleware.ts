@@ -1,9 +1,7 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
-import {
-    CorrelationContext,
-    correlationStorage,
-    generateCorrelationId
-} from './correlation';
+// Optional Fastify types - only available if fastify is installed
+type FastifyRequest = any;
+type FastifyReply = any;
+import { CorrelationContext, correlationStorage, generateCorrelationId } from './correlation';
 
 export interface CorrelationMiddlewareOptions {
   headerName?: string;
@@ -22,13 +20,13 @@ export const correlationMiddleware = (options: CorrelationMiddlewareOptions = {}
     generateNew = false,
     includeInResponse = true,
     extractUserId,
-    extractSessionId
+    extractSessionId,
   } = options;
 
   return async (request: FastifyRequest, reply: FastifyReply) => {
     // Extract correlation ID from header or generate new one
     let correlationId = request.headers[headerName] as string;
-    
+
     if (!correlationId || generateNew) {
       correlationId = generateCorrelationId();
     }
@@ -39,14 +37,14 @@ export const correlationMiddleware = (options: CorrelationMiddlewareOptions = {}
       requestId: generateCorrelationId(),
       traceId: generateCorrelationId(),
       spanId: generateCorrelationId(),
-      userId: extractUserId?.(request),
-      sessionId: extractSessionId?.(request),
+      userId: extractUserId?.(request) || undefined,
+      sessionId: extractSessionId?.(request) || undefined,
       metadata: {
         method: request.method,
         url: request.url,
         userAgent: request.headers['user-agent'],
-        ip: request.ip
-      }
+        ip: request.ip,
+      },
     };
 
     // Add correlation ID to response headers
@@ -68,13 +66,13 @@ export const expressCorrelationMiddleware = (options: CorrelationMiddlewareOptio
   const {
     headerName = 'x-correlation-id',
     generateNew = false,
-    includeInResponse = true
+    includeInResponse = true,
   } = options;
 
   return (req: any, res: any, next: any) => {
     // Extract correlation ID from header or generate new one
     let correlationId = req.headers[headerName];
-    
+
     if (!correlationId || generateNew) {
       correlationId = generateCorrelationId();
     }
@@ -89,8 +87,8 @@ export const expressCorrelationMiddleware = (options: CorrelationMiddlewareOptio
         method: req.method,
         url: req.url,
         userAgent: req.headers['user-agent'],
-        ip: req.ip
-      }
+        ip: req.ip,
+      },
     };
 
     // Add correlation ID to response headers

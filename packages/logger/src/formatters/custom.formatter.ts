@@ -15,24 +15,24 @@ export const createCustomFormatter = (options: CustomFormatterOptions = {}) => {
     template = '{{timestamp}} [{{level}}] {{service}}: {{message}}',
     fields = {},
     dateFormat = 'YYYY-MM-DD HH:mm:ss.SSS',
-    includeStack = true
+    includeStack = true,
   } = options;
 
   return winston.format.combine(
     winston.format.timestamp({ format: dateFormat }),
     winston.format.errors({ stack: includeStack }),
-    winston.format.printf((info) => {
+    winston.format.printf(info => {
       let formatted = template;
 
       // Replace built-in placeholders
       const replacements: Record<string, string> = {
-        timestamp: info.timestamp || '',
-        level: info.level?.toUpperCase() || '',
-        message: info.message || '',
-        service: info.service || '',
-        correlationId: info.correlationId || '',
+        timestamp: String(info.timestamp || ''),
+        level: String(info.level?.toUpperCase() || ''),
+        message: String(info.message || ''),
+        service: String(info.service || ''),
+        correlationId: String(info.correlationId || ''),
         hostname: require('os').hostname(),
-        pid: process.pid.toString()
+        pid: process.pid.toString(),
       };
 
       // Add custom field replacements
@@ -69,7 +69,7 @@ export const createELKFormatter = () => {
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
     winston.format.json(),
-    winston.format.printf((info) => {
+    winston.format.printf(info => {
       return JSON.stringify({
         '@timestamp': info.timestamp,
         '@version': '1',
@@ -79,7 +79,7 @@ export const createELKFormatter = () => {
         correlationId: info.correlationId,
         host: require('os').hostname(),
         pid: process.pid,
-        ...info.meta
+        ...(info.meta && typeof info.meta === 'object' ? info.meta : {}),
       });
     })
   );

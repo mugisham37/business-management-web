@@ -1,10 +1,10 @@
 import winston from 'winston';
 
 export interface SensitiveDataFilterOptions {
-  patterns?: RegExp[];
-  fields?: string[];
-  replacement?: string;
-  caseSensitive?: boolean;
+  patterns?: RegExp[] | undefined;
+  fields?: string[] | undefined;
+  replacement?: string | undefined;
+  caseSensitive?: boolean | undefined;
 }
 
 /**
@@ -23,10 +23,10 @@ export const createSensitiveDataFilter = (options: SensitiveDataFilterOptions = 
     ],
     fields = ['password', 'token', 'secret', 'key', 'authorization', 'cookie'],
     replacement = '[REDACTED]',
-    caseSensitive = false
+    caseSensitive = false,
   } = options;
 
-  return winston.format((info) => {
+  return winston.format(info => {
     // Filter message
     if (typeof info.message === 'string') {
       info.message = filterString(info.message, patterns, replacement);
@@ -54,9 +54,9 @@ function filterString(str: string, patterns: RegExp[], replacement: string): str
  * Filter sensitive data from an object
  */
 function filterObject(
-  obj: any, 
-  sensitiveFields: string[], 
-  patterns: RegExp[], 
+  obj: any,
+  sensitiveFields: string[],
+  patterns: RegExp[],
   replacement: string,
   caseSensitive: boolean
 ): any {
@@ -65,14 +65,16 @@ function filterObject(
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => filterObject(item, sensitiveFields, patterns, replacement, caseSensitive));
+    return obj.map(item =>
+      filterObject(item, sensitiveFields, patterns, replacement, caseSensitive)
+    );
   }
 
   const filtered: any = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     const keyLower = caseSensitive ? key : key.toLowerCase();
-    const isSensitiveField = sensitiveFields.some(field => 
+    const isSensitiveField = sensitiveFields.some(field =>
       caseSensitive ? field === key : field.toLowerCase() === keyLower
     );
 
@@ -95,8 +97,8 @@ function filterObject(
  */
 export const createLevelFilter = (allowedLevels: string[]) => {
   const levels = allowedLevels.map(level => level.toLowerCase());
-  
-  return winston.format((info) => {
+
+  return winston.format(info => {
     return levels.includes(info.level.toLowerCase()) ? info : false;
   })();
 };
@@ -105,9 +107,9 @@ export const createLevelFilter = (allowedLevels: string[]) => {
  * Create a filter for specific services
  */
 export const createServiceFilter = (allowedServices: string[]) => {
-  return winston.format((info) => {
+  return winston.format(info => {
     if (!info.service) return info;
-    return allowedServices.includes(info.service) ? info : false;
+    return allowedServices.includes(String(info.service)) ? info : false;
   })();
 };
 
@@ -116,8 +118,8 @@ export const createServiceFilter = (allowedServices: string[]) => {
  */
 export const createSamplingFilter = (sampleRate: number) => {
   let counter = 0;
-  
-  return winston.format((info) => {
+
+  return winston.format(info => {
     counter++;
     return counter % sampleRate === 0 ? info : false;
   })();

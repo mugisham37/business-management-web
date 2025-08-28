@@ -1,23 +1,23 @@
-// Main logging module exports
-export { createChildLogger, createLogger, createLoggerWithCorrelation, logger } from './logger';
-export type { Logger } from './logger';
-export { LoggerFactory, getLoggerFactory, initializeLogger } from './logger-factory';
-export type { LoggerConfig } from './logger-factory';
+// Main exports
+export * from './correlation/correlation';
+export * from './correlation/middleware';
+export * from './logger-factory';
 
-// Export transports
-export * from './transports';
+// Filters
+export * from './filters/sensitive-data.filter';
 
-// Export formatters
-export * from './formatters';
+// Formatters
+export * from './formatters/custom.formatter';
+export * from './formatters/json.formatter';
+export * from './formatters/plain.formatter';
 
-// Export correlation utilities
-export * from './correlation';
+// Transports
+export * from './transports/console.transport';
+export * from './transports/file.transport';
+export * from './transports/remote.transport';
 
-// Export metrics
-export * from './metrics';
+// Metrics
+export * from './metrics/log-metrics';
 
-// Export filters
-export * from './filters';
-
-// Default export
-export { default } from './logger';
+// Types
+export * from './types/winston';
