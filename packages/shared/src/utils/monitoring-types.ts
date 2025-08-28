@@ -5,11 +5,10 @@
 
 /**
  * Extended Fastify Request interface with timing information
+ * Note: This augmentation will only work when fastify is available
  */
-declare module 'fastify' {
-  interface FastifyRequest {
-    startTime?: number;
-  }
+export interface ExtendedFastifyRequest {
+  startTime?: number | undefined;
 }
 
 /**
@@ -287,10 +286,12 @@ export interface AuditResource {
   id?: string | undefined;
   name?: string | undefined;
   attributes?: Record<string, any> | undefined;
-  parent?: {
-    type: string;
-    id: string;
-  } | undefined;
+  parent?:
+    | {
+        type: string;
+        id: string;
+      }
+    | undefined;
 }
 
 export interface AuditOutcome {
@@ -304,12 +305,14 @@ export interface AuditOutcome {
 export interface AuditChanges {
   before?: Record<string, any> | undefined;
   after?: Record<string, any> | undefined;
-  delta?: Array<{
-    field: string;
-    oldValue: any;
-    newValue: any;
-    operation: 'create' | 'update' | 'delete';
-  }> | undefined;
+  delta?:
+    | Array<{
+        field: string;
+        oldValue: any;
+        newValue: any;
+        operation: 'create' | 'update' | 'delete';
+      }>
+    | undefined;
 }
 
 export interface AuditContext {
@@ -320,11 +323,13 @@ export interface AuditContext {
   environment: string;
   requestId?: string | undefined;
   businessContext?: Record<string, any> | undefined;
-  complianceContext?: {
-    regulation: string;
-    requirement: string;
-    classification: string;
-  } | undefined;
+  complianceContext?:
+    | {
+        regulation: string;
+        requirement: string;
+        classification: string;
+      }
+    | undefined;
 }
 
 export interface AuditEvent {

@@ -3,7 +3,7 @@
  * Represents a password with validation and security rules
  */
 
-import * as argon2 from 'argon2';
+import * as argon2 from '../mocks/argon2';
 
 export class Password {
   private readonly _hashedValue: string;
@@ -124,9 +124,7 @@ export class Password {
 
     // Check for repeated characters
     if (this.hasRepeatedChars(password)) {
-      throw new Error(
-        'Password cannot contain more than 2 consecutive identical characters'
-      );
+      throw new Error('Password cannot contain more than 2 consecutive identical characters');
     }
   }
 
@@ -158,10 +156,7 @@ export class Password {
 
   private static hasRepeatedChars(password: string): boolean {
     for (let i = 0; i < password.length - 2; i++) {
-      if (
-        password[i] === password[i + 1] &&
-        password[i + 1] === password[i + 2]
-      ) {
+      if (password[i] === password[i + 1] && password[i + 1] === password[i + 2]) {
         return true;
       }
     }
@@ -171,7 +166,7 @@ export class Password {
   private static async hashPassword(plainText: string): Promise<string> {
     try {
       return await argon2.hash(plainText, {
-        type: argon2.argon2id,
+        type: argon2.argon2id.argon2id,
         memoryCost: 2 ** 16, // 64 MB
         timeCost: 3,
         parallelism: 1,

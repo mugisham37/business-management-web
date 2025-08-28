@@ -1,9 +1,9 @@
 // Base error classes
-export abstract class DomainError extends Error {
-  abstract readonly code: string;
+export abstract class DomainError<TCode extends string = string> extends Error {
+  abstract readonly code: TCode;
   abstract readonly statusCode: number;
   public readonly timestamp: string;
-  public readonly requestId?: string;
+  public readonly requestId: string | undefined;
 
   constructor(message: string, requestId?: string) {
     super(message);
@@ -27,34 +27,37 @@ export abstract class DomainError extends Error {
 }
 
 // Authentication errors
-export class AuthenticationError extends DomainError {
-  readonly code = 'AUTHENTICATION_FAILED';
+export class AuthenticationError extends DomainError<'AUTHENTICATION_FAILED'> {
+  readonly code = 'AUTHENTICATION_FAILED' as const;
   readonly statusCode = 401;
 }
 
-export class AuthorizationError extends DomainError {
-  readonly code = 'AUTHORIZATION_FAILED';
+export class AuthorizationError extends DomainError<'AUTHORIZATION_FAILED'> {
+  readonly code = 'AUTHORIZATION_FAILED' as const;
   readonly statusCode = 403;
 }
 
-export class InvalidCredentialsError extends AuthenticationError {
-  readonly code = 'INVALID_CREDENTIALS';
+export class InvalidCredentialsError extends DomainError<'INVALID_CREDENTIALS'> {
+  readonly code = 'INVALID_CREDENTIALS' as const;
+  readonly statusCode = 401;
 }
 
-export class TokenExpiredError extends AuthenticationError {
-  readonly code = 'TOKEN_EXPIRED';
+export class TokenExpiredError extends DomainError<'TOKEN_EXPIRED'> {
+  readonly code = 'TOKEN_EXPIRED' as const;
+  readonly statusCode = 401;
 }
 
-export class InvalidTokenError extends AuthenticationError {
-  readonly code = 'INVALID_TOKEN';
+export class InvalidTokenError extends DomainError<'INVALID_TOKEN'> {
+  readonly code = 'INVALID_TOKEN' as const;
+  readonly statusCode = 401;
 }
 
 // Validation errors
-export class ValidationError extends DomainError {
-  readonly code = 'VALIDATION_FAILED';
+export class ValidationError extends DomainError<'VALIDATION_FAILED'> {
+  readonly code = 'VALIDATION_FAILED' as const;
   readonly statusCode = 400;
-  public readonly field?: string;
-  public readonly details?: Record<string, any>;
+  public readonly field: string | undefined;
+  public readonly details: Record<string, any> | undefined;
 
   constructor(message: string, field?: string, details?: Record<string, any>, requestId?: string) {
     super(message, requestId);
@@ -64,44 +67,46 @@ export class ValidationError extends DomainError {
 }
 
 // Resource errors
-export class NotFoundError extends DomainError {
-  readonly code = 'RESOURCE_NOT_FOUND';
+export class NotFoundError extends DomainError<'RESOURCE_NOT_FOUND'> {
+  readonly code = 'RESOURCE_NOT_FOUND' as const;
   readonly statusCode = 404;
 }
 
-export class ConflictError extends DomainError {
-  readonly code = 'RESOURCE_CONFLICT';
+export class ConflictError extends DomainError<'RESOURCE_CONFLICT'> {
+  readonly code = 'RESOURCE_CONFLICT' as const;
   readonly statusCode = 409;
 }
 
-export class DuplicateResourceError extends ConflictError {
-  readonly code = 'DUPLICATE_RESOURCE';
+export class DuplicateResourceError extends DomainError<'DUPLICATE_RESOURCE'> {
+  readonly code = 'DUPLICATE_RESOURCE' as const;
+  readonly statusCode = 409;
 }
 
 // Business logic errors
-export class BusinessLogicError extends DomainError {
-  readonly code = 'BUSINESS_LOGIC_ERROR';
+export class BusinessLogicError extends DomainError<'BUSINESS_LOGIC_ERROR'> {
+  readonly code = 'BUSINESS_LOGIC_ERROR' as const;
   readonly statusCode = 422;
 }
 
-export class InsufficientPermissionsError extends AuthorizationError {
-  readonly code = 'INSUFFICIENT_PERMISSIONS';
+export class InsufficientPermissionsError extends DomainError<'INSUFFICIENT_PERMISSIONS'> {
+  readonly code = 'INSUFFICIENT_PERMISSIONS' as const;
+  readonly statusCode = 403;
 }
 
 // System errors
-export class InternalServerError extends DomainError {
-  readonly code = 'INTERNAL_SERVER_ERROR';
+export class InternalServerError extends DomainError<'INTERNAL_SERVER_ERROR'> {
+  readonly code = 'INTERNAL_SERVER_ERROR' as const;
   readonly statusCode = 500;
 }
 
-export class ServiceUnavailableError extends DomainError {
-  readonly code = 'SERVICE_UNAVAILABLE';
+export class ServiceUnavailableError extends DomainError<'SERVICE_UNAVAILABLE'> {
+  readonly code = 'SERVICE_UNAVAILABLE' as const;
   readonly statusCode = 503;
 }
 
 // Rate limiting errors
-export class RateLimitError extends DomainError {
-  readonly code = 'RATE_LIMIT_EXCEEDED';
+export class RateLimitError extends DomainError<'RATE_LIMIT_EXCEEDED'> {
+  readonly code = 'RATE_LIMIT_EXCEEDED' as const;
   readonly statusCode = 429;
 }
 
@@ -115,7 +120,12 @@ export class ErrorFactory {
     return new AuthorizationError(message, requestId);
   }
 
-  static validation(message: string, field?: string, details?: Record<string, any>, requestId?: string): ValidationError {
+  static validation(
+    message: string,
+    field?: string,
+    details?: Record<string, any>,
+    requestId?: string
+  ): ValidationError {
     return new ValidationError(message, field, details, requestId);
   }
 

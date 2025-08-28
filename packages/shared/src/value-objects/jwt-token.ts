@@ -3,7 +3,7 @@
  * Represents a JWT token with validation and utility methods
  */
 
-import * as jwt from 'jsonwebtoken';
+import * as jwt from '../mocks/jsonwebtoken';
 
 export interface JWTPayload {
   sub: string; // Subject (user ID)
@@ -110,13 +110,19 @@ export class JWTToken {
   static parseUnsafe(token: string): { header: any; payload: JWTPayload } {
     try {
       const decoded = jwt.decode(token, { complete: true });
-      if (!decoded) {
+      if (!decoded || typeof decoded === 'string') {
         throw new Error('Invalid token format');
       }
-      return {
-        header: decoded.header,
-        payload: decoded.payload as JWTPayload,
-      };
+
+      // Type guard to ensure we have the complete decoded object
+      if (typeof decoded === 'object' && 'header' in decoded && 'payload' in decoded) {
+        return {
+          header: decoded.header,
+          payload: decoded.payload as JWTPayload,
+        };
+      }
+
+      throw new Error('Invalid token format');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to parse token: ${errorMessage}`);
@@ -243,10 +249,7 @@ export class JWTToken {
     }
   }
 
-  private static calculateExpiration(
-    issuedAt: number,
-    expiresIn: string | number
-  ): number {
+  private static calculateExpiration(issuedAt: number, expiresIn: string | number): number {
     if (typeof expiresIn === 'number') {
       return issuedAt + expiresIn;
     }
@@ -254,9 +257,7 @@ export class JWTToken {
     // Parse string format like "1h", "30m", "7d"
     const match = expiresIn.match(/^(\d+)([smhd])$/);
     if (!match || !match[1] || !match[2]) {
-      throw new Error(
-        'Invalid expiresIn format. Use format like "1h", "30m", "7d"'
-      );
+      throw new Error('Invalid expiresIn format. Use format like "1h", "30m", "7d"');
     }
 
     const value = parseInt(match[1], 10);
@@ -301,7 +302,16 @@ export class JWTToken {
   getHeader(): any {
     try {
       const decoded = jwt.decode(this._token, { complete: true });
-      return decoded?.header;
+      if (!decoded || typeof decoded === 'string') {
+        throw new Error('Invalid token format');
+      }
+
+      // Type guard to ensure we have the complete decoded object
+      if (typeof decoded === 'object' && 'header' in decoded) {
+        return decoded.header;
+      }
+
+      throw new Error('Invalid token format');
     } catch (error) {
       throw new Error('Failed to decode token header');
     }
@@ -310,10 +320,7 @@ export class JWTToken {
   /**
    * Create a refresh token from this access token
    */
-  createRefreshToken(
-    secret: string,
-    expiresIn: string | number = '7d'
-  ): JWTToken {
+  createRefreshToken(secret: string, expiresIn: string | number = '7d'): JWTToken {
     return JWTToken.create(
       {
         sub: this._payload.sub,

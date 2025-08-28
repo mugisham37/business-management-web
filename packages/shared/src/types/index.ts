@@ -1,6 +1,7 @@
 // Re-export all type definitions
 export * from './environment';
 export * from './fastify';
+export * from './fastify-types';
 export * from './jest';
 export * from './prisma-json.types';
 
@@ -20,7 +21,12 @@ export type DeepPartial<T> = {
 
 // API types
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type ContentType = 'application/json' | 'application/xml' | 'text/plain' | 'text/html' | 'multipart/form-data';
+export type ContentType =
+  | 'application/json'
+  | 'application/xml'
+  | 'text/plain'
+  | 'text/html'
+  | 'multipart/form-data';
 
 // Database types
 export type DatabaseProvider = 'postgresql' | 'mysql' | 'sqlite' | 'mongodb';
@@ -31,7 +37,12 @@ export type TokenType = 'access' | 'refresh' | 'reset' | 'verification';
 export type AuthStrategy = 'local' | 'jwt' | 'oauth' | 'saml' | 'ldap';
 
 // Event types
-export type EventType = 'user.created' | 'user.updated' | 'user.deleted' | 'auth.login' | 'auth.logout';
+export type EventType =
+  | 'user.created'
+  | 'user.updated'
+  | 'user.deleted'
+  | 'auth.login'
+  | 'auth.logout';
 export type EventPayload<T = any> = {
   type: EventType;
   data: T;

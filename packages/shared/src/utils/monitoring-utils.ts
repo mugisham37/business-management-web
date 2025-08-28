@@ -3,40 +3,40 @@
  * Helper functions for monitoring and logging operations with strict type safety
  */
 
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { 
-  LogContext, 
-  ErrorLogContext, 
-  PerformanceLogContext,
-  SecurityLogContext,
-  AuditLogContext,
-  BusinessLogContext,
-  AuthLogContext,
-  SecurityEventType,
-  AlertSeverity,
-  SecurityEvent,
-  AuditActor,
-  AuditResource,
-  AuditOutcome,
-  AuditChanges,
-  AuditContext
-} from './monitoring-types';
-import { getSafeCorrelationId, getSafeRequestId, getUserAgent, getClientIP } from './request-utils';
+import { FastifyReply, FastifyRequest } from '../types/fastify-types';
 import { ENV } from './env-utils';
+import {
+  AlertSeverity,
+  AuditActor,
+  AuditChanges,
+  AuditContext,
+  AuditLogContext,
+  AuditOutcome,
+  AuditResource,
+  AuthLogContext,
+  BusinessLogContext,
+  ErrorLogContext,
+  LogContext,
+  PerformanceLogContext,
+  SecurityEvent,
+  SecurityEventType,
+  SecurityLogContext,
+} from './monitoring-types';
+import { getClientIP, getSafeCorrelationId, getSafeRequestId, getUserAgent } from './request-utils';
 import { isDefined } from './type-utils';
 
 /**
  * Generate unique identifier
  */
 export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
  * Generate span ID for tracing
  */
 export function generateSpanId(): string {
-  return Math.random().toString(36).substr(2, 16);
+  return Math.random().toString(36).substring(2, 18);
 }
 
 /**
@@ -50,12 +50,12 @@ export function safeGetProperty<T = any>(obj: Record<string, any>, key: string):
  * Safely get property with default value
  */
 export function safeGetPropertyWithDefault<T>(
-  obj: Record<string, any>, 
-  key: string, 
+  obj: Record<string, any>,
+  key: string,
   defaultValue: T
 ): T {
   const value = obj[key];
-  return value !== undefined ? value as T : defaultValue;
+  return value !== undefined ? (value as T) : defaultValue;
 }
 
 /**
@@ -67,7 +67,7 @@ export function getBasicProperty<T>(
   defaultValue: T
 ): T {
   const value = basicProps[key];
-  return value !== undefined ? value as T : defaultValue;
+  return value !== undefined ? (value as T) : defaultValue;
 }
 
 /**
@@ -91,9 +91,7 @@ export function createLogContext(
   }
 
   // Remove undefined values
-  return Object.fromEntries(
-    Object.entries(context).filter(([_, value]) => isDefined(value))
-  );
+  return Object.fromEntries(Object.entries(context).filter(([_, value]) => isDefined(value)));
 }
 
 /**
@@ -105,7 +103,7 @@ export function createErrorLogContext(
   additionalContext?: Partial<ErrorLogContext>
 ): ErrorLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   return {
     ...baseContext,
     errorType,
@@ -123,7 +121,7 @@ export function createSecurityLogContext(
   additionalContext?: Partial<SecurityLogContext>
 ): SecurityLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   const context: SecurityLogContext = {
     ...baseContext,
     securityEvent,
@@ -149,7 +147,7 @@ export function createAuthLogContext(
   additionalContext?: Partial<AuthLogContext>
 ): AuthLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   const context: AuthLogContext = {
     ...baseContext,
     authMethod,
@@ -175,7 +173,7 @@ export function createBusinessLogContext(
   additionalContext?: Partial<BusinessLogContext>
 ): BusinessLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   return {
     ...baseContext,
     eventType,
@@ -193,7 +191,7 @@ export function createPerformanceLogContext(
   additionalContext?: Partial<PerformanceLogContext>
 ): PerformanceLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   return {
     ...baseContext,
     operation,
@@ -210,7 +208,7 @@ export function createAuditLogContext(
   additionalContext?: Partial<AuditLogContext>
 ): AuditLogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   return {
     ...baseContext,
     action,
@@ -240,7 +238,7 @@ export function createHttpLogContext(
   responseSize?: number;
 } {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   const httpContext: LogContext & {
     method: string;
     url: string;
@@ -262,18 +260,18 @@ export function createHttpLogContext(
   if (request?.headers['user-agent']) {
     httpContext.userAgent = request.headers['user-agent'] as string;
   }
-  
+
   if (request?.ip) {
     httpContext.ipAddress = request.ip;
   }
-  
+
   if (request?.headers['content-length']) {
     const contentLength = parseInt(request.headers['content-length'] as string);
     if (!isNaN(contentLength)) {
       httpContext.requestSize = contentLength;
     }
   }
-  
+
   if (reply?.getHeader('content-length')) {
     const responseSize = reply.getHeader('content-length') as number;
     if (typeof responseSize === 'number') {
@@ -383,7 +381,7 @@ export function createAuditChanges(
   after?: Record<string, any>
 ): AuditChanges | undefined {
   if (!before && !after) return undefined;
-  
+
   return {
     ...(before !== undefined && { before }),
     ...(after !== undefined && { after }),
@@ -438,7 +436,7 @@ export function extractDetailsProperty<T>(
   defaultValue?: T
 ): T | undefined {
   const value = details[key];
-  return value !== undefined ? value as T : defaultValue;
+  return value !== undefined ? (value as T) : defaultValue;
 }
 
 /**
@@ -446,7 +444,7 @@ export function extractDetailsProperty<T>(
  */
 export function getResponseSize(reply?: FastifyReply): number | undefined {
   if (!reply) return undefined;
-  
+
   const contentLength = reply.getHeader('content-length');
   if (typeof contentLength === 'number') {
     return contentLength;
@@ -463,7 +461,7 @@ export function getResponseSize(reply?: FastifyReply): number | undefined {
  */
 export function calculatePercentile(values: number[], percentile: number): number {
   if (values.length === 0) return 0;
-  
+
   const sorted = [...values].sort((a, b) => a - b);
   const index = Math.ceil((percentile / 100) * sorted.length) - 1;
   const safeIndex = Math.max(0, index);
@@ -532,7 +530,9 @@ export function createAuditContext(
     environment,
     ...(options?.requestId !== undefined && { requestId: options.requestId }),
     ...(options?.businessContext !== undefined && { businessContext: options.businessContext }),
-    ...(options?.complianceContext !== undefined && { complianceContext: options.complianceContext }),
+    ...(options?.complianceContext !== undefined && {
+      complianceContext: options.complianceContext,
+    }),
   };
 }
 
@@ -546,7 +546,7 @@ export function createMonitoringContext(
   additionalContext?: Partial<LogContext>
 ): LogContext {
   const baseContext = createLogContext(request, additionalContext);
-  
+
   switch (type) {
     case 'error':
       return createErrorLogContext(
@@ -557,14 +557,21 @@ export function createMonitoringContext(
     case 'security':
       return createSecurityLogContext(
         getBasicProperty(basicProps, 'securityEvent', 'unknown_event'),
-        getBasicProperty(basicProps, 'severity', 'medium') as 'low' | 'medium' | 'high' | 'critical',
+        getBasicProperty(basicProps, 'severity', 'medium') as
+          | 'low'
+          | 'medium'
+          | 'high'
+          | 'critical',
         request,
         { ...additionalContext, ...basicProps }
       );
     case 'auth':
       return createAuthLogContext(
         getBasicProperty(basicProps, 'authMethod', 'unknown'),
-        getBasicProperty(basicProps, 'outcome', 'failure') as 'success' | 'failure' | 'mfa_required',
+        getBasicProperty(basicProps, 'outcome', 'failure') as
+          | 'success'
+          | 'failure'
+          | 'mfa_required',
         request,
         { ...additionalContext, ...basicProps }
       );
@@ -581,20 +588,15 @@ export function createMonitoringContext(
       const perfContext: Partial<PerformanceLogContext> = {
         ...additionalContext,
         ...basicProps,
-        operation
-      };
-      return createPerformanceLogContext(
         operation,
-        request,
-        perfContext
-      );
+      };
+      return createPerformanceLogContext(operation, request, perfContext);
     }
     case 'audit':
-      return createAuditLogContext(
-        getBasicProperty(basicProps, 'action', 'unknown'),
-        request,
-        { ...additionalContext, ...basicProps }
-      );
+      return createAuditLogContext(getBasicProperty(basicProps, 'action', 'unknown'), request, {
+        ...additionalContext,
+        ...basicProps,
+      });
     default:
       return { ...baseContext, ...basicProps };
   }

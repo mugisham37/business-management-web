@@ -4,15 +4,18 @@
  */
 
 import { IncomingHttpHeaders } from 'http';
-import { FastifyRequest } from 'fastify';
+import { FastifyRequest } from '../types/fastify-types';
 
 /**
  * Extract correlation ID from headers
  */
 export function getCorrelationId(headers: IncomingHttpHeaders): string {
   const correlationId = headers['x-correlation-id'] || headers['correlation-id'];
-  return typeof correlationId === 'string' ? correlationId : 
-         Array.isArray(correlationId) ? correlationId[0] || '' : '';
+  return typeof correlationId === 'string'
+    ? correlationId
+    : Array.isArray(correlationId)
+      ? correlationId[0] || ''
+      : '';
 }
 
 /**
@@ -20,8 +23,11 @@ export function getCorrelationId(headers: IncomingHttpHeaders): string {
  */
 export function getRequestId(headers: IncomingHttpHeaders): string {
   const requestId = headers['x-request-id'] || headers['request-id'];
-  return typeof requestId === 'string' ? requestId : 
-         Array.isArray(requestId) ? requestId[0] || '' : '';
+  return typeof requestId === 'string'
+    ? requestId
+    : Array.isArray(requestId)
+      ? requestId[0] || ''
+      : '';
 }
 
 /**

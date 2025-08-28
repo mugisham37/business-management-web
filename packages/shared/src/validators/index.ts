@@ -1,43 +1,65 @@
+/**
+ * Shared Validators
+ */
+
 import { z } from 'zod';
 
-// Common validation schemas
-export const emailSchema = z.string().email('Invalid email format');
+// Email validation
+export const emailSchema = z.string().email().max(254);
 
+// Password validation
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password must not exceed 128 characters')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  .max(128, 'Password must be no more than 128 characters')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/\d/, 'Password must contain at least one digit')
+  .regex(
+    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+    'Password must contain at least one special character'
+  );
 
-export const uuidSchema = z.string().uuid('Invalid UUID format');
+// ID validation
+export const idSchema = z.string().uuid();
 
+// Name validation
+export const nameSchema = z.string().min(1).max(100).trim();
+
+// URL validation
+export const urlSchema = z.string().url();
+
+// Pagination validation
 export const paginationSchema = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
 });
 
+// Sort validation
 export const sortSchema = z.object({
-  sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  field: z.string(),
+  direction: z.enum(['asc', 'desc']).default('asc'),
 });
 
-// Base entity validation
-export const baseEntitySchema = z.object({
-  id: uuidSchema,
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
+// Date range validation
+export const dateRangeSchema = z
+  .object({
+    startDate: z.date().optional(),
+    endDate: z.date().optional(),
+  })
+  .refine(data => !data.startDate || !data.endDate || data.startDate <= data.endDate, {
+    message: 'Start date must be before or equal to end date',
+  });
 
-// Validation utilities
-export const validateEmail = (email: string): boolean => {
+// Common validation helpers
+export function validateEmail(email: string): boolean {
   return emailSchema.safeParse(email).success;
-};
+}
 
-export const validatePassword = (password: string): boolean => {
+export function validatePassword(password: string): boolean {
   return passwordSchema.safeParse(password).success;
-};
+}
 
-export const validateUuid = (uuid: string): boolean => {
-  return uuidSchema.safeParse(uuid).success;
-};
+export function validateId(id: string): boolean {
+  return idSchema.safeParse(id).success;
+}
