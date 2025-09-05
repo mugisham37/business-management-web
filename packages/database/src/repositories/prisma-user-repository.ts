@@ -92,10 +92,7 @@ export class PrismaUserRepository {
     }
   }
 
-  async findById(
-    id: string,
-    includeRelations = false
-  ): Promise<UserWithRelations | null> {
+  async findById(id: string, includeRelations = false): Promise<UserWithRelations | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
@@ -131,10 +128,7 @@ export class PrismaUserRepository {
     }
   }
 
-  async findByEmail(
-    email: string,
-    includeRelations = false
-  ): Promise<UserWithRelations | null> {
+  async findByEmail(email: string, includeRelations = false): Promise<UserWithRelations | null> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
@@ -256,11 +250,7 @@ export class PrismaUserRepository {
     }
   }
 
-  async assignRole(
-    userId: string,
-    roleId: string,
-    assignedBy?: string
-  ): Promise<void> {
+  async assignRole(userId: string, roleId: string, assignedBy?: string): Promise<void> {
     try {
       await this.prisma.userRole.create({
         data: {
@@ -337,7 +327,7 @@ export class PrismaUserRepository {
   async bulkCreateUsers(users: CreateUserData[]): Promise<User[]> {
     try {
       const result = await this.prisma.$transaction(
-        users.map((userData) =>
+        users.map(userData =>
           this.prisma.user.create({
             data: {
               ...userData,
@@ -373,8 +363,7 @@ export class PrismaUserRepository {
 
       // Lock account if too many failed attempts
       if (user.failedLoginAttempts >= 5) {
-        const lockDuration =
-          Math.pow(2, Math.min(user.failedLoginAttempts - 5, 10)) * 60 * 1000; // Exponential backoff
+        const lockDuration = Math.pow(2, Math.min(user.failedLoginAttempts - 5, 10)) * 60 * 1000; // Exponential backoff
         const lockedUntil = new Date(Date.now() + lockDuration);
 
         return await this.prisma.user.update({
@@ -417,5 +406,18 @@ export class PrismaUserRepository {
       });
       throw error;
     }
+  }
+
+  // Additional methods required by tests
+  async create(data: CreateUserData): Promise<User> {
+    return this.createUser(data);
+  }
+
+  async update(id: string, data: UpdateUserData): Promise<User> {
+    return this.updateUser(id, data);
+  }
+
+  async delete(id: string): Promise<void> {
+    return this.deleteUser(id);
   }
 }

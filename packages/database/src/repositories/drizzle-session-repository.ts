@@ -1,18 +1,18 @@
+import { and, desc, eq, gt, lt } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, and, gt, lt, desc } from 'drizzle-orm';
 import { Logger } from 'winston';
-import {
-  activeSessions,
-  authAttempts,
-  userAuthCache,
-  ActiveSession,
-  NewActiveSession,
-  AuthAttempt,
-  NewAuthAttempt,
-  UserAuthCacheEntry,
-  NewUserAuthCacheEntry,
-} from '../drizzle/schema/auth-sessions';
 import * as authSessionsSchema from '../drizzle/schema/auth-sessions';
+import {
+  ActiveSession,
+  activeSessions,
+  AuthAttempt,
+  authAttempts,
+  NewActiveSession,
+  NewAuthAttempt,
+  NewUserAuthCacheEntry,
+  userAuthCache,
+  UserAuthCacheEntry,
+} from '../drizzle/schema/auth-sessions';
 import * as oauthCacheSchema from '../drizzle/schema/oauth-cache';
 
 export interface SessionCreateData {
@@ -36,9 +36,7 @@ export interface SessionValidationResult {
 
 export class DrizzleSessionRepository {
   constructor(
-    private db: NodePgDatabase<
-      typeof authSessionsSchema & typeof oauthCacheSchema
-    >,
+    private db: NodePgDatabase<typeof authSessionsSchema & typeof oauthCacheSchema>,
     private logger: Logger
   ) {}
 
@@ -60,10 +58,7 @@ export class DrizzleSessionRepository {
         lastActivity: new Date(),
       };
 
-      const [session] = await this.db
-        .insert(activeSessions)
-        .values(sessionData)
-        .returning();
+      const [session] = await this.db.insert(activeSessions).values(sessionData).returning();
 
       if (!session) {
         throw new Error('Failed to create session');
@@ -178,15 +173,9 @@ export class DrizzleSessionRepository {
     }
   }
 
-  async terminateUserSessions(
-    userId: string,
-    excludeSessionId?: string
-  ): Promise<number> {
+  async terminateUserSessions(userId: string, excludeSessionId?: string): Promise<number> {
     try {
-      const conditions = [
-        eq(activeSessions.userId, userId),
-        eq(activeSessions.isActive, true),
-      ];
+      const conditions = [eq(activeSessions.userId, userId), eq(activeSessions.isActive, true)];
 
       if (excludeSessionId) {
         conditions.push(eq(activeSessions.id, excludeSessionId));
@@ -237,12 +226,7 @@ export class DrizzleSessionRepository {
       const result = await this.db
         .update(activeSessions)
         .set({ isActive: false })
-        .where(
-          and(
-            eq(activeSessions.isActive, true),
-            lt(activeSessions.expiresAt, new Date())
-          )
-        );
+        .where(and(eq(activeSessions.isActive, true), lt(activeSessions.expiresAt, new Date())));
 
       const count = result.rowCount || 0;
       if (count > 0) {
@@ -260,16 +244,11 @@ export class DrizzleSessionRepository {
     try {
       const result = await this.db
         .update(activeSessions)
-        .set({ 
+        .set({
           expiresAt: newExpiresAt,
-          lastActivity: new Date()
+          lastActivity: new Date(),
         })
-        .where(
-          and(
-            eq(activeSessions.id, sessionId),
-            eq(activeSessions.isActive, true)
-          )
-        );
+        .where(and(eq(activeSessions.id, sessionId), eq(activeSessions.isActive, true)));
 
       if (result.rowCount === 0) {
         throw new Error('Session not found or inactive');
@@ -309,10 +288,7 @@ export class DrizzleSessionRepository {
         timestamp: new Date(),
       };
 
-      const [attempt] = await this.db
-        .insert(authAttempts)
-        .values(attemptData)
-        .returning();
+      const [attempt] = await this.db.insert(authAttempts).values(attemptData).returning();
 
       if (!attempt) {
         throw new Error('Failed to record auth attempt');
@@ -351,13 +327,7 @@ export class DrizzleSessionRepository {
       const attempts = await this.db
         .select()
         .from(authAttempts)
-        .where(
-          and(
-            condition,
-            eq(authAttempts.success, false),
-            gt(authAttempts.timestamp, since)
-          )
-        )
+        .where(and(condition, eq(authAttempts.success, false), gt(authAttempts.timestamp, since)))
         .orderBy(desc(authAttempts.timestamp));
 
       return attempts;
@@ -372,9 +342,7 @@ export class DrizzleSessionRepository {
   }
 
   // User auth cache operations for fast lookups
-  async cacheUserAuth(
-    data: NewUserAuthCacheEntry
-  ): Promise<UserAuthCacheEntry> {
+  async cacheUserAuth(data: NewUserAuthCacheEntry): Promise<UserAuthCacheEntry> {
     try {
       const [cached] = await this.db
         .insert(userAuthCache)
@@ -433,9 +401,7 @@ export class DrizzleSessionRepository {
 
   async invalidateUserAuthCache(userId: string): Promise<void> {
     try {
-      await this.db
-        .delete(userAuthCache)
-        .where(eq(userAuthCache.userId, userId));
+      await this.db.delete(userAuthCache).where(eq(userAuthCache.userId, userId));
 
       this.logger.debug('User auth cache invalidated', { userId });
     } catch (error) {
@@ -467,22 +433,84 @@ export class DrizzleSessionRepository {
       const activeSessionsCount = await this.db
         .select()
         .from(activeSessions)
-        .where(
-          and(
-            eq(activeSessions.isActive, true),
-            gt(activeSessions.expiresAt, new Date())
-          )
-        );
+        .where(and(eq(activeSessions.isActive, true), gt(activeSessions.expiresAt, new Date())));
 
       return {
         totalSessions: totalSessions.length,
         activeSessions: activeSessionsCount.length,
         averageSessionDuration: 0, // Would need more complex calculation
-        uniqueUsers: new Set(totalSessions.map((s) => s.userId)).size,
+        uniqueUsers: new Set(totalSessions.map(s => s.userId)).size,
       };
     } catch (error) {
       this.logger.error('Failed to get session stats', { error });
       throw error;
     }
+  }
+
+  // Additional methods required by tests
+  async create(data: {
+    userId: string;
+    deviceInfo: {
+      userAgent: string;
+      ipAddress: string;
+      deviceFingerprint: string;
+    };
+    expiresAt: Date;
+  }): Promise<ActiveSession> {
+    const sessionData: SessionCreateData = {
+      id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId: data.userId,
+      token: `token_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`,
+      refreshToken: `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`,
+      expiresAt: data.expiresAt,
+      refreshExpiresAt: new Date(data.expiresAt.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      ipAddress: data.deviceInfo.ipAddress,
+      deviceFingerprint: data.deviceInfo.deviceFingerprint,
+      userAgent: data.deviceInfo.userAgent,
+      riskScore: 0,
+    };
+
+    return this.createSession(sessionData);
+  }
+
+  async findById(id: string): Promise<ActiveSession | null> {
+    try {
+      const [session] = await this.db
+        .select()
+        .from(activeSessions)
+        .where(eq(activeSessions.id, id))
+        .limit(1);
+
+      return session || null;
+    } catch (error) {
+      this.logger.error('Failed to find session by ID', { error, id });
+      throw error;
+    }
+  }
+
+  async findByUserId(userId: string): Promise<ActiveSession[]> {
+    return this.getUserActiveSessions(userId);
+  }
+
+  async update(id: string, data: { expiresAt?: Date }): Promise<ActiveSession> {
+    try {
+      if (data.expiresAt) {
+        await this.extendSession(id, data.expiresAt);
+      }
+
+      const session = await this.findById(id);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      return session;
+    } catch (error) {
+      this.logger.error('Failed to update session', { error, id });
+      throw error;
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    return this.terminateSession(id);
   }
 }

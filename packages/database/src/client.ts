@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './drizzle/schema';
+import { PrismaClient } from './generated/prisma';
 
 export type DrizzleClient = NodePgDatabase<typeof schema>;
 
@@ -16,10 +16,7 @@ export class DatabaseClientFactory {
    */
   static createPrismaClient(): PrismaClient {
     if (!this.prismaClient) {
-      this.prismaClient = new PrismaClient({
-        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-        errorFormat: 'pretty',
-      });
+      this.prismaClient = new PrismaClient();
     }
     return this.prismaClient;
   }
@@ -43,9 +40,9 @@ export class DatabaseClientFactory {
   }
 
   /**
-   * Get repository instance based on type
+   * Get repository instance based on repositoryType
    */
-  static getRepository<T>(type: RepositoryType): T {
+  static getRepository<T>(repositoryType: RepositoryType): T {
     // This will be implemented based on the repository factory pattern
     throw new Error('Repository factory not implemented yet');
   }
@@ -58,7 +55,7 @@ export class DatabaseClientFactory {
       await this.prismaClient.$disconnect();
       this.prismaClient = null;
     }
-    
+
     if (this.pgPool) {
       await this.pgPool.end();
       this.pgPool = null;
@@ -74,7 +71,7 @@ export class DatabaseClientFactory {
 
     try {
       const prisma = this.createPrismaClient();
-      await prisma.$queryRaw`SELECT 1`;
+      await prisma.$queryRaw('SELECT 1');
       results.prisma = true;
     } catch (error) {
       console.error('Prisma health check failed:', error);
@@ -82,7 +79,7 @@ export class DatabaseClientFactory {
 
     try {
       const drizzle = this.createDrizzleClient();
-      await drizzle.execute('SELECT 1');
+      await drizzle.execute(sql`SELECT 1`);
       results.drizzle = true;
     } catch (error) {
       console.error('Drizzle health check failed:', error);
@@ -105,4 +102,4 @@ export enum RepositoryType {
 }
 
 // Re-export types for convenience
-export type { DrizzleClient, PrismaClient };
+export type { PrismaClient };

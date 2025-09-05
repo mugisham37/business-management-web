@@ -648,9 +648,15 @@ importers:
 
   packages/database:
     dependencies:
+      '@company/cache':
+        specifier: workspace:*
+        version: link:../cache
       '@company/config':
         specifier: workspace:*
         version: link:../config
+      '@company/logger':
+        specifier: workspace:*
+        version: link:../logger
       '@company/shared':
         specifier: workspace:*
         version: link:../shared
@@ -660,12 +666,18 @@ importers:
       '@types/pg':
         specifier: ^8.11.8
         version: 8.15.5
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
       drizzle-kit:
         specifier: ^0.24.0
         version: 0.24.2
       drizzle-orm:
         specifier: ^0.33.0
         version: 0.33.0(@prisma/client@5.22.0)(@types/pg@8.15.5)(pg@8.16.3)(prisma@5.22.0)
+      ioredis:
+        specifier: ^5.3.2
+        version: 5.7.0
       nanoid:
         specifier: ^5.0.7
         version: 5.1.5
@@ -675,6 +687,9 @@ importers:
       prisma:
         specifier: ^5.20.0
         version: 5.22.0
+      winston:
+        specifier: ^3.11.0
+        version: 3.17.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -11139,6 +11154,11 @@ packages:
   /commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
+    dev: false
+
+  /commander@11.1.0:
+    resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
+    engines: {node: '>=16'}
     dev: false
 
   /commander@13.1.0:
