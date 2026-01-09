@@ -26,7 +26,8 @@ import { FeatureFlagService } from '../services/feature-flag.service';
 import { TenantGuard } from '../guards/tenant.guard';
 import { TenantInterceptor } from '../interceptors/tenant.interceptor';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CurrentUser, CurrentTenantId } from '../decorators/tenant.decorators';
+import { CurrentUser } from '../../auth/decorators/auth.decorators';
+import { CurrentTenantId } from '../decorators/tenant.decorators';
 import { AuthenticatedUser } from '../guards/tenant.guard';
 import {
   CreateFeatureFlagDto,
@@ -66,7 +67,7 @@ export class FeatureFlagController {
       reason: hasAccess 
         ? 'Feature is available for your business tier' 
         : 'Feature requires a higher business tier or is disabled',
-      requiredTier: definition?.requiredTier,
+      ...(definition?.requiredTier && { requiredTier: definition.requiredTier }),
       upgradeRequired: !hasAccess && !!definition?.requiredTier,
     };
   }
@@ -93,7 +94,7 @@ export class FeatureFlagController {
         reason: hasAccess 
           ? 'Feature is available for your business tier' 
           : 'Feature requires a higher business tier or is disabled',
-        requiredTier: definition?.requiredTier,
+        ...(definition?.requiredTier && { requiredTier: definition.requiredTier }),
         upgradeRequired: !hasAccess && !!definition?.requiredTier,
       });
     }
@@ -188,9 +189,9 @@ export class FeatureFlagController {
       featureName,
       dto.isEnabled ?? true,
       {
-        rolloutPercentage: dto.rolloutPercentage,
-        customRules: dto.customRules,
-        status: dto.status,
+        ...(dto.rolloutPercentage !== undefined && { rolloutPercentage: dto.rolloutPercentage }),
+        ...(dto.customRules && { customRules: dto.customRules }),
+        ...(dto.status && { status: dto.status }),
       },
     );
   }

@@ -19,13 +19,15 @@ import {
   ApiQuery,
   ApiBearerAuth,
   ApiBody,
+  ApiProperty,
 } from '@nestjs/swagger';
 import { TenantMetricsTrackingService } from '../services/tenant-metrics-tracking.service';
 import { BusinessMetricsService } from '../services/business-metrics.service';
 import { TenantGuard } from '../guards/tenant.guard';
 import { TenantInterceptor } from '../interceptors/tenant.interceptor';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { CurrentUser, CurrentTenantId } from '../decorators/tenant.decorators';
+import { CurrentUser } from '../../auth/decorators/auth.decorators';
+import { CurrentTenantId } from '../decorators/tenant.decorators';
 import { AuthenticatedUser } from '../guards/tenant.guard';
 import { BusinessMetrics, BusinessTier } from '../entities/tenant.entity';
 
