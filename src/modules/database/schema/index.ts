@@ -7,4 +7,5 @@ export * from './product.schema';
 export * from './inventory.schema';
 export * from './customer.schema';
 export * from './employee.schema';
+export * from './financial.schema';
 export * from './enums';

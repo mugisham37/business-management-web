@@ -224,3 +224,4 @@ export class ProductService {
     await this.cacheService.invalidatePattern(`products:${tenantId}:*`);
     await this.cacheService.invalidatePattern(`product:${tenantId}:*`);
   }
+}
