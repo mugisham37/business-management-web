@@ -17,6 +17,7 @@ import { LoggerModule } from './modules/logger/logger.module';
 import { CacheConfigModule } from './modules/cache/cache.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { FinancialModule } from './modules/financial/financial.module';
@@ -73,6 +74,7 @@ import { appConfig } from './config/app.config';
     HealthModule,
     AuthModule,
     TenantModule,
+    RealtimeModule,
     CrmModule,
     EmployeeModule,
     FinancialModule,
