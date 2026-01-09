@@ -346,7 +346,7 @@ Each task must pass these quality gates before completion:
     - Add multi-currency reporting
     - _Requirements: 8.8, 8.9_
 
-- [-] 12. Supplier and Procurement Management
+- [x] 12. Supplier and Procurement Management
   - [x] 12.1 Build supplier management system
     - Create Supplier entity and profiles
     - Implement supplier performance tracking
@@ -361,14 +361,7 @@ Each task must pass these quality gates before completion:
     - Implement supplier payment processing
     - _Requirements: 9.2, 9.6_
 
-  - [ ] 12.3 Add procurement analytics
-    - Implement spend analysis
-    - Create supplier performance metrics
-    - Add cost optimization recommendations
-    - Set up procurement reporting
-    - _Requirements: 9.7_
-
-  - [ ] 12.4 Build EDI integration
+  - [x] 12.4 Build EDI integration
     - Implement EDI document processing
     - Add automated order processing
     - Create supplier portal integration

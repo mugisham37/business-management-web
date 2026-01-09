@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SupplierController } from './controllers/supplier.controller';
 import { PurchaseOrderController } from './controllers/purchase-order.controller';
+import { ProcurementAnalyticsController } from './controllers/procurement-analytics.controller';
+import { EDIIntegrationController } from './controllers/edi-integration.controller';
 import { SupplierService } from './services/supplier.service';
 import { PurchaseOrderService } from './services/purchase-order.service';
+import { ProcurementAnalyticsService } from './services/procurement-analytics.service';
+import { EDIIntegrationService } from './services/edi-integration.service';
 import { SupplierRepository } from './repositories/supplier.repository';
 import { SupplierContactRepository } from './repositories/supplier-contact.repository';
 import { SupplierCommunicationRepository } from './repositories/supplier-communication.repository';
@@ -21,10 +25,14 @@ import { TenantModule } from '../tenant/tenant.module';
   controllers: [
     SupplierController,
     PurchaseOrderController,
+    ProcurementAnalyticsController,
+    EDIIntegrationController,
   ],
   providers: [
     SupplierService,
     PurchaseOrderService,
+    ProcurementAnalyticsService,
+    EDIIntegrationService,
     SupplierRepository,
     SupplierContactRepository,
     SupplierCommunicationRepository,
@@ -34,6 +42,8 @@ import { TenantModule } from '../tenant/tenant.module';
   exports: [
     SupplierService,
     PurchaseOrderService,
+    ProcurementAnalyticsService,
+    EDIIntegrationService,
     SupplierRepository,
     SupplierContactRepository,
     SupplierCommunicationRepository,

@@ -712,7 +712,7 @@ export class PurchaseOrderRepository {
     endDate?: Date,
   ): Promise<{
     totalOrders: number;
-    totalValue: number;
+    totalSpend: number;
     averageOrderValue: number;
     onTimeDeliveryRate: number;
   }> {
@@ -748,9 +748,120 @@ export class PurchaseOrderRepository {
 
     return {
       totalOrders: result.totalOrders,
-      totalValue: result.totalValue || 0,
+      totalSpend: result.totalValue || 0,
       averageOrderValue: result.averageValue || 0,
       onTimeDeliveryRate: Math.round(onTimeDeliveryRate * 100) / 100,
     };
+  }
+
+  // Analytics methods for procurement analytics service
+  async getSpendBySupplier(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Array<{
+    supplierId: string;
+    supplierName: string;
+    totalSpend: number;
+    orderCount: number;
+  }>> {
+    const result = await this.drizzle.db
+      .select({
+        supplierId: purchaseOrders.supplierId,
+        supplierName: sql<string>`s.name`,
+        totalSpend: sql<number>`sum(${purchaseOrders.totalAmount}::numeric)`,
+        orderCount: sql<number>`count(*)`,
+      })
+      .from(purchaseOrders)
+      .leftJoin(sql`suppliers s`, sql`s.id = ${purchaseOrders.supplierId}`)
+      .where(
+        and(
+          eq(purchaseOrders.tenantId, tenantId),
+          gte(purchaseOrders.orderDate, startDate),
+          lte(purchaseOrders.orderDate, endDate),
+          isNull(purchaseOrders.deletedAt),
+        ),
+      )
+      .groupBy(purchaseOrders.supplierId, sql`s.name`)
+      .orderBy(desc(sql`sum(${purchaseOrders.totalAmount}::numeric)`));
+
+    return result.map(row => ({
+      supplierId: row.supplierId,
+      supplierName: row.supplierName || 'Unknown Supplier',
+      totalSpend: row.totalSpend || 0,
+      orderCount: row.orderCount || 0,
+    }));
+  }
+
+  async getSpendByCategory(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Array<{
+    category: string;
+    totalSpend: number;
+    orderCount: number;
+  }>> {
+    const result = await this.drizzle.db
+      .select({
+        category: sql<string>`s.supplier_type`,
+        totalSpend: sql<number>`sum(${purchaseOrders.totalAmount}::numeric)`,
+        orderCount: sql<number>`count(*)`,
+      })
+      .from(purchaseOrders)
+      .leftJoin(sql`suppliers s`, sql`s.id = ${purchaseOrders.supplierId}`)
+      .where(
+        and(
+          eq(purchaseOrders.tenantId, tenantId),
+          gte(purchaseOrders.orderDate, startDate),
+          lte(purchaseOrders.orderDate, endDate),
+          isNull(purchaseOrders.deletedAt),
+        ),
+      )
+      .groupBy(sql`s.supplier_type`)
+      .orderBy(desc(sql`sum(${purchaseOrders.totalAmount}::numeric)`));
+
+    return result.map(row => ({
+      category: row.category || 'Uncategorized',
+      totalSpend: row.totalSpend || 0,
+      orderCount: row.orderCount || 0,
+    }));
+  }
+
+  async getMonthlySpendTrends(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Array<{
+    month: string;
+    totalSpend: number;
+    orderCount: number;
+    averageOrderValue: number;
+  }>> {
+    const result = await this.drizzle.db
+      .select({
+        month: sql<string>`to_char(${purchaseOrders.orderDate}, 'YYYY-MM')`,
+        totalSpend: sql<number>`sum(${purchaseOrders.totalAmount}::numeric)`,
+        orderCount: sql<number>`count(*)`,
+        averageOrderValue: sql<number>`avg(${purchaseOrders.totalAmount}::numeric)`,
+      })
+      .from(purchaseOrders)
+      .where(
+        and(
+          eq(purchaseOrders.tenantId, tenantId),
+          gte(purchaseOrders.orderDate, startDate),
+          lte(purchaseOrders.orderDate, endDate),
+          isNull(purchaseOrders.deletedAt),
+        ),
+      )
+      .groupBy(sql`to_char(${purchaseOrders.orderDate}, 'YYYY-MM')`)
+      .orderBy(sql`to_char(${purchaseOrders.orderDate}, 'YYYY-MM')`);
+
+    return result.map(row => ({
+      month: row.month,
+      totalSpend: row.totalSpend || 0,
+      orderCount: row.orderCount || 0,
+      averageOrderValue: row.averageOrderValue || 0,
+    }));
   }
 }

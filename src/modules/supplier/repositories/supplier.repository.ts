@@ -359,4 +359,32 @@ export class SupplierRepository {
       .orderBy(asc(suppliers.name))
       .limit(limit);
   }
+
+  async findSuppliersNeedingEvaluation(tenantId: string): Promise<(typeof suppliers.$inferSelect)[]> {
+    // Find suppliers that haven't been evaluated in the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    return await this.drizzle.db
+      .select()
+      .from(suppliers)
+      .leftJoin(
+        supplierEvaluations,
+        and(
+          eq(supplierEvaluations.supplierId, suppliers.id),
+          eq(supplierEvaluations.tenantId, suppliers.tenantId),
+          isNull(supplierEvaluations.deletedAt),
+        ),
+      )
+      .where(
+        and(
+          eq(suppliers.tenantId, tenantId),
+          eq(suppliers.status, 'active'),
+          isNull(suppliers.deletedAt),
+          sql`(${supplierEvaluations.evaluationDate} IS NULL OR ${supplierEvaluations.evaluationDate} < ${sixMonthsAgo})`,
+        ),
+      )
+      .groupBy(suppliers.id)
+      .orderBy(asc(suppliers.name));
+  }
 }
