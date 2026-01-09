@@ -8,9 +8,11 @@ import {
 } from '@nestjs/terminus';
 import { DatabaseHealthIndicator } from './indicators/database-health.indicator';
 import { RedisHealthIndicator } from './indicators/redis-health.indicator';
+import { Public } from '../auth/decorators/auth.decorators';
 
 @ApiTags('Health')
 @Controller('health')
+@Public()
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,

@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 
 import { AppController } from './app.controller';
@@ -14,6 +15,8 @@ import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { LoggerModule } from './modules/logger/logger.module';
 import { CacheConfigModule } from './modules/cache/cache.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { configValidationSchema } from './config/config.validation';
 import { databaseConfig } from './config/database.config';
 import { redisConfig } from './config/redis.config';
@@ -67,8 +70,16 @@ import { appConfig } from './config/app.config';
     CacheConfigModule,
     LoggerModule,
     HealthModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Global JWT authentication guard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
