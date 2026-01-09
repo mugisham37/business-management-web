@@ -7,16 +7,21 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { APP_GUARD } from '@nestjs/core';
-import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ApiController } from './common/rest/controllers/api.controller';
 import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { LoggerModule } from './modules/logger/logger.module';
 import { CacheConfigModule } from './modules/cache/cache.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { TenantModule } from './modules/tenant/tenant.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { GraphQLCommonModule } from './common/graphql/graphql-common.module';
+import { RestCommonModule } from './common/rest/rest-common.module';
+import { ValidationModule } from './common/validation/validation.module';
+import { GraphQLConfigService } from './config/graphql.config';
 import { configValidationSchema } from './config/config.validation';
 import { databaseConfig } from './config/database.config';
 import { redisConfig } from './config/redis.config';
@@ -33,19 +38,10 @@ import { appConfig } from './config/app.config';
       cache: true,
     }),
 
-    // GraphQL module
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    // GraphQL module with enhanced configuration
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      sortSchema: true,
-      playground: process.env.NODE_ENV !== 'production',
-      introspection: process.env.NODE_ENV !== 'production',
-      context: ({ req, res }: { req: Request; res: Response }) => ({ req, res }),
-      formatError: (error) => ({
-        message: error.message,
-        code: error.extensions?.code,
-        timestamp: new Date().toISOString(),
-      }),
+      useClass: GraphQLConfigService,
     }),
 
     // Event emitter for domain events
@@ -71,10 +67,15 @@ import { appConfig } from './config/app.config';
     LoggerModule,
     HealthModule,
     AuthModule,
+    TenantModule,
+    ValidationModule,
+    GraphQLCommonModule,
+    RestCommonModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, ApiController],
   providers: [
     AppService,
+    GraphQLConfigService,
     // Global JWT authentication guard
     {
       provide: APP_GUARD,

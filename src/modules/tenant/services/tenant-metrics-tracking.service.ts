@@ -7,7 +7,7 @@ import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { TenantService } from './tenant.service';
 import { BusinessMetricsService } from './business-metrics.service';
 import { FeatureFlagService } from './feature-flag.service';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 import { tenants } from '../../database/schema';
 import { BusinessTier, BusinessMetrics } from '../entities/tenant.entity';
 
@@ -40,8 +40,10 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     private readonly businessMetricsService: BusinessMetricsService,
     private readonly featureFlagService: FeatureFlagService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly logger: LoggerService,
-  ) {}
+    private readonly logger: CustomLoggerService,
+  ) {
+    this.logger.setContext('TenantMetricsTrackingService');
+  }
 
   async onModuleInit() {
     // Initialize metrics cache for all active tenants
@@ -50,7 +52,7 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     // Start batch processing
     this.startBatchProcessing();
     
-    this.logger.log('Tenant metrics tracking service initialized', 'TenantMetricsTrackingService');
+    this.logger.log('Tenant metrics tracking service initialized');
   }
 
   /**
@@ -75,9 +77,8 @@ export class TenantMetricsTrackingService implements OnModuleInit {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to track metrics update: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Failed to track metrics update: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -90,15 +91,15 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     const cacheKey = `metrics:${tenantId}`;
     let metrics = await this.cacheService.get<BusinessMetrics>(cacheKey);
     
-    if (metrics) {
+    if (metrics !== null) {
       return metrics;
     }
 
     // Check in-memory cache
-    metrics = this.metricsCache.get(tenantId);
+    metrics = this.metricsCache.get(tenantId) || null;
     if (metrics) {
       // Update cache
-      await this.cacheService.set(cacheKey, metrics, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, metrics, { ttl: 300 }); // 5 minutes
       return metrics;
     }
 
@@ -107,7 +108,7 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     
     // Update caches
     this.metricsCache.set(tenantId, metrics);
-    await this.cacheService.set(cacheKey, metrics, 300);
+    await this.cacheService.set(cacheKey, metrics, { ttl: 300 });
 
     return metrics;
   }
@@ -121,20 +122,19 @@ export class TenantMetricsTrackingService implements OnModuleInit {
       
       // Update caches
       this.metricsCache.set(tenantId, metrics);
-      await this.cacheService.set(`metrics:${tenantId}`, metrics, 300);
+      await this.cacheService.set(`metrics:${tenantId}`, metrics, { ttl: 300 });
 
       // Update tenant record
       const currentTier = this.businessMetricsService.calculateBusinessTier(metrics);
       await this.updateTenantMetrics(tenantId, metrics, currentTier);
 
-      this.logger.log(`Metrics recalculated for tenant ${tenantId}`, 'TenantMetricsTrackingService');
+      this.logger.log(`Metrics recalculated for tenant ${tenantId}`);
 
       return metrics;
     } catch (error) {
       this.logger.error(
-        `Failed to recalculate metrics for tenant ${tenantId}: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Failed to recalculate metrics for tenant ${tenantId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }
@@ -248,7 +248,7 @@ export class TenantMetricsTrackingService implements OnModuleInit {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async hourlyMetricsUpdate(): Promise<void> {
-    this.logger.log('Starting hourly metrics update', 'TenantMetricsTrackingService');
+    this.logger.log('Starting hourly metrics update');
     
     try {
       // Process all pending updates
@@ -262,26 +262,24 @@ export class TenantMetricsTrackingService implements OnModuleInit {
           await this.recalculateMetrics(tenant.id);
         } catch (error) {
           this.logger.error(
-            `Failed to update metrics for tenant ${tenant.id}: ${error.message}`,
-            error.stack,
-            'TenantMetricsTrackingService',
+            `Failed to update metrics for tenant ${tenant.id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            error instanceof Error ? error.stack : undefined,
           );
         }
       }
       
-      this.logger.log(`Hourly metrics update completed for ${activeTenants.length} tenants`, 'TenantMetricsTrackingService');
+      this.logger.log(`Hourly metrics update completed for ${activeTenants.length} tenants`);
     } catch (error) {
       this.logger.error(
-        `Hourly metrics update failed: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Hourly metrics update failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async dailyMetricsCleanup(): Promise<void> {
-    this.logger.log('Starting daily metrics cleanup', 'TenantMetricsTrackingService');
+    this.logger.log('Starting daily metrics cleanup');
     
     try {
       // Clear old cache entries
@@ -293,12 +291,11 @@ export class TenantMetricsTrackingService implements OnModuleInit {
       // Reinitialize cache
       await this.initializeMetricsCache();
       
-      this.logger.log('Daily metrics cleanup completed', 'TenantMetricsTrackingService');
+      this.logger.log('Daily metrics cleanup completed');
     } catch (error) {
       this.logger.error(
-        `Daily metrics cleanup failed: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Daily metrics cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -315,18 +312,18 @@ export class TenantMetricsTrackingService implements OnModuleInit {
         this.metricsCache.set(tenant.id, metrics);
       }
       
-      this.logger.log(`Initialized metrics cache for ${activeTenants.length} tenants`, 'TenantMetricsTrackingService');
+      this.logger.log(`Initialized metrics cache for ${activeTenants.length} tenants`);
     } catch (error) {
       this.logger.error(
-        `Failed to initialize metrics cache: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Failed to initialize metrics cache: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
 
   private async getActiveTenants(): Promise<any[]> {
-    return this.drizzle.db
+    const db = this.drizzle.getDb();
+    return db
       .select()
       .from(tenants)
       .where(eq(tenants.isActive, true));
@@ -400,13 +397,11 @@ export class TenantMetricsTrackingService implements OnModuleInit {
 
       this.logger.log(
         `Tier changed for tenant ${tenantId}: ${previousTier} -> ${newTier}`,
-        'TenantMetricsTrackingService',
       );
     } catch (error) {
       this.logger.error(
-        `Failed to handle tier change for tenant ${tenantId}: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Failed to handle tier change for tenant ${tenantId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -416,7 +411,8 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     metrics: BusinessMetrics,
     tier: BusinessTier,
   ): Promise<void> {
-    await this.drizzle.db
+    const db = this.drizzle.getDb();
+    await db
       .update(tenants)
       .set({
         metrics,
@@ -450,9 +446,8 @@ export class TenantMetricsTrackingService implements OnModuleInit {
         }
       } catch (error) {
         this.logger.error(
-          `Failed to process batch updates for tenant ${tenantId}: ${error.message}`,
-          error.stack,
-          'TenantMetricsTrackingService',
+          `Failed to process batch updates for tenant ${tenantId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
         );
       }
     }
@@ -464,7 +459,8 @@ export class TenantMetricsTrackingService implements OnModuleInit {
     
     try {
       // Get current metrics from tenant record as baseline
-      const [tenant] = await this.drizzle.db
+      const db = this.drizzle.getDb();
+      const [tenant] = await db
         .select()
         .from(tenants)
         .where(eq(tenants.id, tenantId));
@@ -477,9 +473,8 @@ export class TenantMetricsTrackingService implements OnModuleInit {
       return tenant.metrics as BusinessMetrics;
     } catch (error) {
       this.logger.error(
-        `Failed to calculate metrics from database for tenant ${tenantId}: ${error.message}`,
-        error.stack,
-        'TenantMetricsTrackingService',
+        `Failed to calculate metrics from database for tenant ${tenantId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       
       // Return default metrics on error

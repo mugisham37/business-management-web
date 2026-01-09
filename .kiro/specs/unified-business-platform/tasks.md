@@ -125,8 +125,8 @@ Each task must pass these quality gates before completion:
     - Set up metrics caching and updates
     - _Requirements: 2.2, 2.5_
 
-- [ ] 4. Core API Infrastructure
-  - [ ] 4.1 Set up GraphQL with Apollo Server
+- [x] 4. Core API Infrastructure
+  - [x] 4.1 Set up GraphQL with Apollo Server
     - Configure GraphQL module with code-first approach
     - Set up schema generation and validation
     - Implement DataLoader for N+1 prevention
@@ -134,14 +134,14 @@ Each task must pass these quality gates before completion:
     - Configure GraphQL playground and introspection
     - _Requirements: 15.1, 15.2_
 
-  - [ ] 4.2 Implement REST API foundation
+  - [x] 4.2 Implement REST API foundation
     - Set up versioned REST controllers
     - Configure Swagger/OpenAPI documentation
     - Implement request validation with class-validator
     - Set up response serialization
     - _Requirements: 15.1, 15.6_
 
-  - [ ] 4.3 Build comprehensive validation system
+  - [x] 4.3 Build comprehensive validation system
     - Create custom validation pipes
     - Implement DTO classes with validation decorators
     - Set up transformation and sanitization

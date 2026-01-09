@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { setupSwagger } from './config/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
@@ -40,30 +40,8 @@ async function bootstrap(): Promise<void> {
       credentials: corsCredentials,
     });
 
-    // Swagger documentation
-    if (configService.get<string>('NODE_ENV') !== 'production') {
-      const config = new DocumentBuilder()
-        .setTitle('Unified Business Platform API')
-        .setDescription('Enterprise-level unified business platform API documentation')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .addTag('Authentication', 'User authentication and authorization')
-        .addTag('Point of Sale', 'POS transaction processing')
-        .addTag('Inventory', 'Inventory management')
-        .addTag('Customers', 'Customer relationship management')
-        .addTag('Employees', 'Employee and HR management')
-        .addTag('Financial', 'Financial management and reporting')
-        .addTag('Multi-Tenant', 'Multi-tenancy management')
-        .addTag('Health', 'Health checks and monitoring')
-        .build();
-
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('docs', app, document, {
-        swaggerOptions: {
-          persistAuthorization: true,
-        },
-      });
-    }
+    // Setup Swagger documentation
+    setupSwagger(app);
 
     await app.listen(port);
     
