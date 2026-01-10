@@ -13,6 +13,7 @@ import { PenetrationTestingService } from './services/penetration-testing.servic
 import { SecurityController } from './controllers/security.controller';
 import { AuditController } from './controllers/audit.controller';
 import { ComplianceController } from './controllers/compliance.controller';
+import { SecurityDashboardController } from './controllers/security-dashboard.controller';
 import { SecurityGuard } from './guards/security.guard';
 import { ThreatDetectionGuard } from './guards/threat-detection.guard';
 import { SecurityInterceptor } from './interceptors/security.interceptor';
@@ -22,7 +23,12 @@ import { LoggerService } from '../logger/logger.service';
 
 @Module({
   imports: [ConfigModule],
-  controllers: [SecurityController, AuditController, ComplianceController],
+  controllers: [
+    SecurityController, 
+    AuditController, 
+    ComplianceController,
+    SecurityDashboardController,
+  ],
   providers: [
     DrizzleService,
     LoggerService,
