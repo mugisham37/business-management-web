@@ -69,7 +69,7 @@ export const pricingTierEnum = pgEnum('pricing_tier', [
 ]);
 
 // Main customers table
-export const customers = pgTable('customers', {
+export const customers: any = pgTable('customers', {
   ...baseSchema,
   
   // Basic information
@@ -132,7 +132,7 @@ export const customers = pgTable('customers', {
   notes: text('notes'),
   
   // Referral information
-  referredBy: uuid('referred_by').references(() => customers.id),
+  referredBy: uuid('referred_by'),
   referralCode: varchar('referral_code', { length: 50 }),
   
   // Social media

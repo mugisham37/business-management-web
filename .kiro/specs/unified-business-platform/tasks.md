@@ -386,7 +386,7 @@ Before beginning implementation, these non-negotiable quality standards must be 
     - Set up location benchmarking
     - _Requirements: 10.4, 10.8_
 
-  - [ ] 13.5 Add franchise/dealer management
+  - [x] 13.5 Add franchise/dealer management
     - Implement territory management
     - Create franchise-specific features
     - Add dealer portal functionality
@@ -429,14 +429,14 @@ Before beginning implementation, these non-negotiable quality standards must be 
 ### Phase 4: Enterprise and Warehouse Features (Months 7-8)
 
 - [-] 16. Warehouse and Distribution Management
-  - [-] 16.1 Build warehouse management system
+  - [x] 16.1 Build warehouse management system
     - Create Warehouse entity with bin locations
     - Implement warehouse layout and zones
     - Add bin location management
     - Set up warehouse capacity tracking
     - _Requirements: 11.1, 11.2_
 
-  - [ ] 16.2 Implement advanced picking system
+  - [x] 16.2 Implement advanced picking system
     - Create optimized picking routes
     - Build wave planning functionality
     - Add pick list generation and tracking

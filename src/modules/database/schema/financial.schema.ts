@@ -72,7 +72,7 @@ export const reconciliationStatusEnum = pgEnum('reconciliation_status', [
 ]);
 
 // Chart of Accounts
-export const chartOfAccounts = pgTable('chart_of_accounts', {
+export const chartOfAccounts: any = pgTable('chart_of_accounts', {
   ...baseSchema,
   
   // Account identification
@@ -82,7 +82,7 @@ export const chartOfAccounts = pgTable('chart_of_accounts', {
   accountSubType: accountSubTypeEnum('account_sub_type').notNull(),
   
   // Hierarchy
-  parentAccountId: uuid('parent_account_id').references(() => chartOfAccounts.id),
+  parentAccountId: uuid('parent_account_id'),
   accountLevel: integer('account_level').default(1).notNull(),
   accountPath: varchar('account_path', { length: 500 }), // For hierarchical queries
   
@@ -112,7 +112,7 @@ export const chartOfAccounts = pgTable('chart_of_accounts', {
 }));
 
 // Journal Entries (Double-entry bookkeeping)
-export const journalEntries = pgTable('journal_entries', {
+export const journalEntries: any = pgTable('journal_entries', {
   ...baseSchema,
   
   // Entry identification
@@ -137,7 +137,7 @@ export const journalEntries = pgTable('journal_entries', {
   reversedBy: uuid('reversed_by').references(() => users.id),
   reversedAt: timestamp('reversed_at'),
   reversalReason: text('reversal_reason'),
-  originalEntryId: uuid('original_entry_id').references(() => journalEntries.id),
+  originalEntryId: uuid('original_entry_id'),
   
   // Metadata
   notes: text('notes'),

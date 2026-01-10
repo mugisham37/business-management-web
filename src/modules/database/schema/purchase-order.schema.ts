@@ -48,7 +48,7 @@ export const invoiceMatchStatusEnum = pgEnum('invoice_match_status', [
   'disputed',
 ]);
 
-export const paymentStatusEnum = pgEnum('payment_status', [
+export const purchaseOrderPaymentStatusEnum = pgEnum('purchase_order_payment_status', [
   'pending',
   'scheduled',
   'paid',
@@ -256,7 +256,7 @@ export const purchaseOrderInvoices = pgTable('purchase_order_invoices', {
   varianceAmount: decimal('variance_amount', { precision: 15, scale: 2 }).default('0').notNull(),
   
   // Payment Information
-  paymentStatus: paymentStatusEnum('payment_status').default('pending').notNull(),
+  paymentStatus: purchaseOrderPaymentStatusEnum('payment_status').default('pending').notNull(),
   paymentDate: timestamp('payment_date', { withTimezone: true }),
   paymentAmount: decimal('payment_amount', { precision: 15, scale: 2 }),
   

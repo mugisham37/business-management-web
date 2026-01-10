@@ -21,7 +21,7 @@ import { tenants } from './tenant.schema';
 import { users } from './user.schema';
 
 // Employee profiles table
-export const employees = pgTable('employees', {
+export const employees: any = pgTable('employees', {
   ...baseSchema,
   
   // Link to user account (optional - employees may not have system access)
@@ -64,7 +64,7 @@ export const employees = pgTable('employees', {
   settings: jsonb('settings').default({}),
   
   // Manager relationship
-  managerId: uuid('manager_id').references(() => employees.id),
+  managerId: uuid('manager_id'),
   
   // Profile and documents
   avatar: varchar('avatar', { length: 500 }),

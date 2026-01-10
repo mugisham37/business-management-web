@@ -1,4 +1,4 @@
-import { pgTable, varchar, text, jsonb, decimal, boolean, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, text, jsonb, decimal, boolean, uuid, index, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { baseSchema } from './base.schema';
 import { tenants } from './tenant.schema';
@@ -178,6 +178,3 @@ export const locationMetricsRelations = relations(locationMetrics, ({ one }) => 
     references: [locations.id],
   }),
 }));
-
-// Add missing import for timestamp
-import { timestamp } from 'drizzle-orm/pg-core';
