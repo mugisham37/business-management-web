@@ -7,13 +7,20 @@ import { RealtimeService } from './services/realtime.service';
 import { ConnectionManagerService } from './services/connection-manager.service';
 import { NotificationService } from './services/notification.service';
 import { NotificationWebhookService } from './services/notification-webhook.service';
+import { LiveInventoryService } from './services/live-inventory.service';
+import { LiveSalesDashboardService } from './services/live-sales-dashboard.service';
+import { LiveCustomerActivityService } from './services/live-customer-activity.service';
+import { LiveAnalyticsService } from './services/live-analytics.service';
 import { RealtimeController } from './controllers/realtime.controller';
 import { NotificationController } from './controllers/notification.controller';
+import { LiveDataController } from './controllers/live-data.controller';
+import { LiveDataResolver } from './resolvers/live-data.resolver';
 import { AuthModule } from '../auth/auth.module';
 import { TenantModule } from '../tenant/tenant.module';
 import { LoggerModule } from '../logger/logger.module';
 import { DatabaseModule } from '../database/database.module';
 import { QueueModule } from '../queue/queue.module';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
   imports: [
@@ -22,6 +29,7 @@ import { QueueModule } from '../queue/queue.module';
     LoggerModule,
     DatabaseModule,
     QueueModule,
+    CacheModule,
     HttpModule.register({
       timeout: 30000,
       maxRedirects: 5,
@@ -37,13 +45,18 @@ import { QueueModule } from '../queue/queue.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [RealtimeController, NotificationController],
+  controllers: [RealtimeController, NotificationController, LiveDataController],
   providers: [
     RealtimeGateway,
     RealtimeService,
     ConnectionManagerService,
     NotificationService,
     NotificationWebhookService,
+    LiveInventoryService,
+    LiveSalesDashboardService,
+    LiveCustomerActivityService,
+    LiveAnalyticsService,
+    LiveDataResolver,
   ],
   exports: [
     RealtimeService,
@@ -51,6 +64,10 @@ import { QueueModule } from '../queue/queue.module';
     ConnectionManagerService,
     NotificationService,
     NotificationWebhookService,
+    LiveInventoryService,
+    LiveSalesDashboardService,
+    LiveCustomerActivityService,
+    LiveAnalyticsService,
   ],
 })
 export class RealtimeModule {}
