@@ -443,7 +443,7 @@ Before beginning implementation, these non-negotiable quality standards must be 
     - Implement pick accuracy monitoring
     - _Requirements: 11.3_
 
-  - [ ] 16.3 Add inventory movement tracking
+  - [x] 16.3 Add inventory movement tracking
     - Implement detailed movement history
     - Create cycle counting system
     - Add perpetual inventory management

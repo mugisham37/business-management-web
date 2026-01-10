@@ -13,6 +13,9 @@ import { ReorderController } from './controllers/reorder.controller';
 import { BatchTrackingController } from './controllers/batch-tracking.controller';
 import { CycleCountingController } from './controllers/cycle-counting.controller';
 import { InventoryReportingController } from './controllers/inventory-reporting.controller';
+import { InventoryMovementTrackingController } from './controllers/inventory-movement-tracking.controller';
+import { PerpetualInventoryController } from './controllers/perpetual-inventory.controller';
+import { InventoryAccuracyReportingController } from './controllers/inventory-accuracy-reporting.controller';
 
 // Services
 import { ProductService } from './services/product.service';
@@ -24,6 +27,9 @@ import { BatchTrackingService } from './services/batch-tracking.service';
 import { CycleCountingService } from './services/cycle-counting.service';
 import { InventoryValuationService } from './services/inventory-valuation.service';
 import { InventoryReportingService } from './services/inventory-reporting.service';
+import { InventoryMovementTrackingService } from './services/inventory-movement-tracking.service';
+import { PerpetualInventoryService } from './services/perpetual-inventory.service';
+import { InventoryAccuracyReportingService } from './services/inventory-accuracy-reporting.service';
 
 // Repositories
 import { ProductRepository } from './repositories/product.repository';
@@ -56,6 +62,9 @@ import { ProductResolver } from './resolvers/product.resolver';
     BatchTrackingController,
     CycleCountingController,
     InventoryReportingController,
+    InventoryMovementTrackingController,
+    PerpetualInventoryController,
+    InventoryAccuracyReportingController,
   ],
   providers: [
     // Core services
@@ -70,6 +79,9 @@ import { ProductResolver } from './resolvers/product.resolver';
     CycleCountingService,
     InventoryValuationService,
     InventoryReportingService,
+    InventoryMovementTrackingService,
+    PerpetualInventoryService,
+    InventoryAccuracyReportingService,
     
     // Repositories
     ProductRepository,
@@ -96,6 +108,9 @@ import { ProductResolver } from './resolvers/product.resolver';
     CycleCountingService,
     InventoryValuationService,
     InventoryReportingService,
+    InventoryMovementTrackingService,
+    PerpetualInventoryService,
+    InventoryAccuracyReportingService,
   ],
 })
 export class InventoryModule {}
