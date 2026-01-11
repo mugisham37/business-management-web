@@ -205,6 +205,10 @@ export class EmployeeScheduleController {
     @Query('endDate') endDate?: string,
     @CurrentTenant() tenantId?: string,
   ): Promise<EmployeeSchedule[]> {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
+    }
+    
     return this.employeeService.findSchedulesByEmployee(
       tenantId,
       employeeId,

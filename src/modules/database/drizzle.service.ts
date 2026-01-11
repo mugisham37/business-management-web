@@ -155,6 +155,10 @@ export class DrizzleService implements OnModuleDestroy {
 
     // Round-robin load balancing
     const db = this.readReplicaDbs[this.currentReadReplicaIndex];
+    if (!db) {
+      // Fall back to primary if replica is not available
+      return this.getDb();
+    }
     this.currentReadReplicaIndex = (this.currentReadReplicaIndex + 1) % this.readReplicaDbs.length;
     
     return db;
@@ -175,6 +179,10 @@ export class DrizzleService implements OnModuleDestroy {
 
     // Round-robin load balancing
     const pool = this.readReplicaPools[this.currentReadReplicaIndex];
+    if (!pool) {
+      // Fall back to primary pool if replica is not available
+      return this.getPool();
+    }
     this.currentReadReplicaIndex = (this.currentReadReplicaIndex + 1) % this.readReplicaPools.length;
     
     return pool;
@@ -203,6 +211,8 @@ export class DrizzleService implements OnModuleDestroy {
     // Test read replica connections
     for (let i = 0; i < this.readReplicaPools.length; i++) {
       const pool = this.readReplicaPools[i];
+      if (!pool) continue;
+      
       const client = await pool.connect();
       try {
         const result = await client.query('SELECT NOW() as now');

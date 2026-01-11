@@ -2,22 +2,22 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class Employee {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiPropertyOptional()
   userId?: string;
 
   @ApiProperty()
-  employeeNumber: string;
+  employeeNumber!: string;
 
   @ApiProperty()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty()
-  lastName: string;
+  lastName!: string;
 
   @ApiPropertyOptional()
   middleName?: string;
@@ -50,16 +50,16 @@ export class Employee {
   department?: string;
 
   @ApiProperty()
-  position: string;
+  position!: string;
 
   @ApiProperty()
-  employmentType: string;
+  employmentType!: string;
 
   @ApiProperty()
-  employmentStatus: string;
+  employmentStatus!: string;
 
   @ApiProperty()
-  hireDate: Date;
+  hireDate!: Date;
 
   @ApiPropertyOptional()
   terminationDate?: Date;
@@ -113,10 +113,10 @@ export class Employee {
   deletedAt?: Date;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Computed properties
   @ApiPropertyOptional()
@@ -134,22 +134,22 @@ export class Employee {
 
 export class EmployeeSchedule {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  scheduleDate: Date;
+  scheduleDate!: Date;
 
   @ApiProperty()
-  startTime: Date;
+  startTime!: Date;
 
   @ApiProperty()
-  endTime: Date;
+  endTime!: Date;
 
   @ApiPropertyOptional()
   breakDuration?: number;
@@ -164,7 +164,7 @@ export class EmployeeSchedule {
   scheduleType?: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   locationId?: string;
@@ -210,16 +210,16 @@ export class EmployeeSchedule {
 
 export class TimeEntry {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  clockInTime: Date;
+  clockInTime!: Date;
 
   @ApiPropertyOptional()
   clockOutTime?: Date;
@@ -243,7 +243,7 @@ export class TimeEntry {
   totalBreakTime?: number;
 
   @ApiProperty()
-  entryType: string;
+  entryType!: string;
 
   @ApiPropertyOptional()
   locationId?: string;
@@ -266,7 +266,7 @@ export class TimeEntry {
   };
 
   @ApiProperty()
-  isApproved: boolean;
+  isApproved!: boolean;
 
   @ApiPropertyOptional()
   approvedBy?: string;

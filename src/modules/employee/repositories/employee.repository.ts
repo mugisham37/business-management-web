@@ -33,7 +33,7 @@ export class EmployeeRepository {
 
   // Employee CRUD operations
   async createEmployee(tenantId: string, data: CreateEmployeeDto, createdBy: string): Promise<Employee> {
-    const [employee] = await this.drizzle.getDb()
+    const result = await this.drizzle.getDb()
       .insert(employees)
       .values({
         tenantId,
@@ -67,6 +67,11 @@ export class EmployeeRepository {
         customFields: data.customFields,
       })
       .returning();
+
+    const employee = result[0];
+    if (!employee) {
+      throw new Error('Failed to create employee');
+    }
 
     return this.mapEmployeeEntity(employee);
   }
@@ -136,7 +141,7 @@ export class EmployeeRepository {
     const whereClause = and(...conditions);
 
     // Get total count
-    const [{ count: totalCount }] = await this.drizzle.db
+    const [{ count: totalCount }] = await this.drizzle.getDb()
       .select({ count: count() })
       .from(employees)
       .where(whereClause);
@@ -147,7 +152,7 @@ export class EmployeeRepository {
       ? desc(employees[query.sortBy as keyof typeof employees] || employees.lastName)
       : asc(employees[query.sortBy as keyof typeof employees] || employees.lastName);
 
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(employees)
       .where(whereClause)
@@ -162,7 +167,7 @@ export class EmployeeRepository {
   }
 
   async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeDto, updatedBy: string): Promise<Employee> {
-    const [employee] = await this.drizzle.db
+    const [employee] = await this.drizzle.getDb()
       .update(employees)
       .set({
         ...data,

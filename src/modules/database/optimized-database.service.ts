@@ -92,7 +92,10 @@ export class OptimizedDatabaseService {
     try {
       // Check cache first
       if (useCache) {
-        const cached = await this.cacheService.get<T[]>(cacheKey, { tenantId, ttl: cacheTTL });
+        const cached = await this.cacheService.get<T[]>(cacheKey, { 
+          ...(tenantId && { tenantId }), 
+          ttl: cacheTTL 
+        });
         if (cached) {
           this.queryStats.cacheHits++;
           this.customLogger.debug('Query cache hit', {
@@ -109,12 +112,19 @@ export class OptimizedDatabaseService {
       const result = await this.executeWithOptimizations<T>(
         query,
         params,
-        { tenantId, useReadReplica, timeout }
+        { 
+          ...(tenantId && { tenantId }), 
+          useReadReplica, 
+          timeout 
+        }
       );
 
       // Cache result if enabled
       if (useCache && result.length > 0) {
-        await this.cacheService.set(cacheKey, result, { tenantId, ttl: cacheTTL });
+        await this.cacheService.set(cacheKey, result, { 
+          ...(tenantId && { tenantId }), 
+          ttl: cacheTTL 
+        });
       }
 
       // Update performance statistics

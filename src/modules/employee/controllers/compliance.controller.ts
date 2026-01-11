@@ -243,7 +243,7 @@ export class ComplianceController {
     // For now, return success message since this would require additional implementation
     return {
       success: true,
-      data: { violationId, ...remediationDto, createdBy },
+      data: { ...remediationDto, violationId, createdBy },
       message: 'Remediation plan created successfully',
     };
   }

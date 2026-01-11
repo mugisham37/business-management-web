@@ -330,7 +330,7 @@ export class PayrollCalculationDto {
 export class CreateCommissionRecordDto {
   @ApiProperty()
   @IsUUID()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -340,16 +340,16 @@ export class CreateCommissionRecordDto {
   @ApiProperty()
   @IsDecimal({ decimal_digits: '2' })
   @Transform(({ value }) => parseFloat(value))
-  saleAmount: number;
+  saleAmount!: number;
 
   @ApiProperty()
   @IsDecimal({ decimal_digits: '4' })
   @Transform(({ value }) => parseFloat(value))
-  commissionRate: number;
+  commissionRate!: number;
 
   @ApiProperty()
   @IsDateString()
-  saleDate: string;
+  saleDate!: string;
 
   @ApiPropertyOptional({ enum: CommissionType })
   @IsOptional()
@@ -490,12 +490,12 @@ export class CommissionQueryDto {
 export class CalculatePayrollDto {
   @ApiProperty()
   @IsUUID()
-  payrollPeriodId: string;
+  payrollPeriodId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()
-  @IsUUID({}, { each: true })
+  @IsUUID('4', { each: true })
   employeeIds?: string[]; // If not provided, calculate for all active employees
 }
 

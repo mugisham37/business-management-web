@@ -408,7 +408,7 @@ export class UpdateTimeEntryDto extends PartialType(CreateTimeEntryDto) {
 export class ClockInDto {
   @ApiProperty()
   @IsUUID()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -429,7 +429,7 @@ export class ClockInDto {
 export class ClockOutDto {
   @ApiProperty()
   @IsUUID()
-  timeEntryId: string;
+  timeEntryId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
