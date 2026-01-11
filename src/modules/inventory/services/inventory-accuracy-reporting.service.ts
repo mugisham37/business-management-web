@@ -302,12 +302,12 @@ export class InventoryAccuracyReportingService {
         ((sessionItemsCounted - sessionVariances) / sessionItemsCounted) * 100 : 100;
 
       const locationId = session.locationId;
-      if (locationId && !locationAccuracies[locationId]) {
-        locationAccuracies[locationId] = { accuracy: 0, count: 0 };
-      }
       if (locationId) {
-        locationAccuracies[locationId].accuracy += sessionAccuracy;
-        locationAccuracies[locationId].count++;
+        if (!locationAccuracies[locationId]) {
+          locationAccuracies[locationId] = { accuracy: 0, count: 0 };
+        }
+        locationAccuracies[locationId]!.accuracy += sessionAccuracy;
+        locationAccuracies[locationId]!.count++;
       }
     }
 
@@ -438,10 +438,10 @@ export class InventoryAccuracyReportingService {
         if (!monthlyData[monthKey]) {
           monthlyData[monthKey] = { sessions: [], totalItems: 0, totalVariances: 0, totalValue: 0 };
         }
-        monthlyData[monthKey].sessions.push(session);
-        monthlyData[monthKey].totalItems += totalItemsCounted;
-        monthlyData[monthKey].totalVariances += totalVariances;
-        monthlyData[monthKey].totalValue += totalAdjustmentValue;
+        monthlyData[monthKey]!.sessions.push(session);
+        monthlyData[monthKey]!.totalItems += totalItemsCounted;
+        monthlyData[monthKey]!.totalVariances += totalVariances;
+        monthlyData[monthKey]!.totalValue += totalAdjustmentValue;
       }
 
       // Weekly - ensure weekKey is valid
@@ -449,9 +449,9 @@ export class InventoryAccuracyReportingService {
         if (!weeklyData[weekKey]) {
           weeklyData[weekKey] = { sessions: [], totalItems: 0, totalVariances: 0 };
         }
-        weeklyData[weekKey].sessions.push(session);
-        weeklyData[weekKey].totalItems += totalItemsCounted;
-        weeklyData[weekKey].totalVariances += totalVariances;
+        weeklyData[weekKey]!.sessions.push(session);
+        weeklyData[weekKey]!.totalItems += totalItemsCounted;
+        weeklyData[weekKey]!.totalVariances += totalVariances;
       }
 
       // Daily - ensure dateKey is valid
@@ -459,8 +459,8 @@ export class InventoryAccuracyReportingService {
         if (!dailyData[dateKey]) {
           dailyData[dateKey] = { sessions: [], varianceCount: 0 };
         }
-        dailyData[dateKey].sessions.push(session);
-        dailyData[dateKey].varianceCount += totalVariances;
+        dailyData[dateKey]!.sessions.push(session);
+        dailyData[dateKey]!.varianceCount += totalVariances;
       }
     }
 
@@ -797,8 +797,8 @@ export class InventoryAccuracyReportingService {
       if (!magnitudeCounts[range]) {
         magnitudeCounts[range] = { count: 0, totalValue: 0 };
       }
-      magnitudeCounts[range].count++;
-      magnitudeCounts[range].totalValue += Math.abs(item.variance * (item.product?.averageCost || 0));
+      magnitudeCounts[range]!.count++;
+      magnitudeCounts[range]!.totalValue += Math.abs(item.variance * (item.product?.averageCost || 0));
 
       // By product
       if (!productCounts[item.productId]) {
@@ -808,15 +808,15 @@ export class InventoryAccuracyReportingService {
           productName: item.product?.name || 'Unknown',
         };
       }
-      productCounts[item.productId].count++;
-      productCounts[item.productId].totalVariance += Math.abs(item.variance);
+      productCounts[item.productId]!.count++;
+      productCounts[item.productId]!.totalVariance += Math.abs(item.variance);
 
       // By user
       if (item.countedBy) {
         if (!userCounts[item.countedBy]) {
           userCounts[item.countedBy] = { counts: 0, variances: 0 };
         }
-        userCounts[item.countedBy].variances++;
+        userCounts[item.countedBy]!.variances++;
       }
     }
 
@@ -826,7 +826,7 @@ export class InventoryAccuracyReportingService {
         if (!userCounts[item.countedBy]) {
           userCounts[item.countedBy] = { counts: 0, variances: 0 };
         }
-        userCounts[item.countedBy].counts++;
+        userCounts[item.countedBy]!.counts++;
       }
     }
 
@@ -950,8 +950,8 @@ export class InventoryAccuracyReportingService {
         const accuracy = session.totalItemsCounted > 0 ? 
           ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
         
-        locationData[locationId].currentAccuracy += accuracy;
-        locationData[locationId].currentCount++;
+        locationData[locationId]!.currentAccuracy += accuracy;
+        locationData[locationId]!.currentCount++;
       }
     }
 
@@ -972,8 +972,8 @@ export class InventoryAccuracyReportingService {
         const accuracy = session.totalItemsCounted > 0 ? 
           ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
         
-        locationData[locationId].previousAccuracy += accuracy;
-        locationData[locationId].previousCount++;
+        locationData[locationId]!.previousAccuracy += accuracy;
+        locationData[locationId]!.previousCount++;
       }
     }
 

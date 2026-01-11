@@ -36,7 +36,7 @@ export interface StockLevelItem {
   availableLevel: number;
   reservedLevel: number;
   reorderPoint: number;
-  maxStockLevel?: number;
+  maxStockLevel: number;
   unitCost: number;
   totalValue: number;
   status: 'normal' | 'low_stock' | 'out_of_stock' | 'overstock';
@@ -64,8 +64,8 @@ export interface MovementItem {
   locationId: string;
   movementType: string;
   quantity: number;
-  unitCost?: number;
-  totalCost?: number;
+  unitCost: number;
+  totalCost: number;
   previousLevel: number;
   newLevel: number;
   referenceType?: string;
@@ -200,24 +200,34 @@ export class InventoryReportingService {
           Math.floor((new Date().getTime() - level.lastMovementAt.getTime()) / (1000 * 60 * 60 * 24)) : 
           null;
 
-        products.push({
+        const stockLevelItem: StockLevelItem = {
           productId: level.productId,
           productName: level.product?.name || 'Unknown',
           sku: level.product?.sku || '',
-          variantId: level.variantId || undefined,
           variantName: level.variant?.name,
           locationId: level.locationId,
           currentLevel: level.currentLevel,
           availableLevel: level.availableLevel,
           reservedLevel: level.reservedLevel,
           reorderPoint: level.reorderPoint,
-          maxStockLevel: level.maxStockLevel,
+          maxStockLevel: level.maxStockLevel ?? 0,
           unitCost: level.averageCost,
           totalValue: totalItemValue,
           status,
-          lastMovementAt: level.lastMovementAt || undefined,
-          daysWithoutMovement: daysWithoutMovement || undefined,
-        });
+        };
+
+        // Only add optional properties if they exist
+        if (level.variantId) {
+          stockLevelItem.variantId = level.variantId;
+        }
+        if (level.lastMovementAt) {
+          stockLevelItem.lastMovementAt = level.lastMovementAt;
+        }
+        if (daysWithoutMovement !== null) {
+          stockLevelItem.daysWithoutMovement = daysWithoutMovement;
+        }
+
+        products.push(stockLevelItem);
       }
 
       const data: StockLevelReport = {
@@ -280,27 +290,45 @@ export class InventoryReportingService {
           valueChange += movement.totalCost;
         }
 
-        movementItems.push({
+        const movementItem: MovementItem = {
           id: movement.id,
           productId: movement.productId,
           productName: movement.product?.name || 'Unknown',
           sku: movement.product?.sku || '',
-          variantId: movement.variantId || undefined,
           locationId: movement.locationId,
           movementType: movement.movementType,
           quantity: movement.quantity,
-          unitCost: movement.unitCost,
-          totalCost: movement.totalCost,
+          unitCost: movement.unitCost ?? 0,
+          totalCost: movement.totalCost ?? 0,
           previousLevel: movement.previousLevel,
           newLevel: movement.newLevel,
-          referenceType: movement.referenceType || undefined,
-          referenceId: movement.referenceId || undefined,
-          batchNumber: movement.batchNumber || undefined,
-          reason: movement.reason || undefined,
-          notes: movement.notes || undefined,
           createdAt: movement.createdAt,
-          createdBy: movement.createdBy || undefined,
-        });
+        };
+
+        // Only add optional properties if they exist
+        if (movement.variantId) {
+          movementItem.variantId = movement.variantId;
+        }
+        if (movement.referenceType) {
+          movementItem.referenceType = movement.referenceType;
+        }
+        if (movement.referenceId) {
+          movementItem.referenceId = movement.referenceId;
+        }
+        if (movement.batchNumber) {
+          movementItem.batchNumber = movement.batchNumber;
+        }
+        if (movement.reason) {
+          movementItem.reason = movement.reason;
+        }
+        if (movement.notes) {
+          movementItem.notes = movement.notes;
+        }
+        if (movement.createdBy) {
+          movementItem.createdBy = movement.createdBy;
+        }
+
+        movementItems.push(movementItem);
       }
 
       const data: MovementReport = {
@@ -394,7 +422,7 @@ export class InventoryReportingService {
           Math.floor((batch.expiryDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 
           undefined;
 
-        items.push({
+        const agingItem: AgingItem = {
           productId: batch.productId,
           productName: batch.product?.name || 'Unknown',
           sku: batch.product?.sku || '',
@@ -407,9 +435,17 @@ export class InventoryReportingService {
           receivedDate: batch.receivedDate,
           ageInDays,
           ageGroup,
-          expiryDate: batch.expiryDate,
-          daysUntilExpiry,
-        });
+        };
+
+        // Only add optional properties if they exist
+        if (batch.expiryDate) {
+          agingItem.expiryDate = batch.expiryDate;
+        }
+        if (daysUntilExpiry !== undefined) {
+          agingItem.daysUntilExpiry = daysUntilExpiry;
+        }
+
+        items.push(agingItem);
       }
 
       const averageAge = items.length > 0 ? totalAgeInDays / items.length : 0;
@@ -494,20 +530,30 @@ export class InventoryReportingService {
 
         totalTurnover += turnoverData.turnoverRatio;
 
-        products.push({
+        const turnoverItem: TurnoverItem = {
           productId: level.productId,
           productName: level.product?.name || 'Unknown',
           sku: level.product?.sku || '',
-          variantId: level.variantId || undefined,
           locationId: level.locationId,
           averageInventory: turnoverData.averageInventory,
           costOfGoodsSold: turnoverData.costOfGoodsSold,
           turnoverRatio: turnoverData.turnoverRatio,
           turnoverCategory,
           daysOfSupply: turnoverData.daysOfSupply,
-          lastSaleDate: turnoverData.lastSaleDate,
-          daysSinceLastSale: turnoverData.daysSinceLastSale,
-        });
+        };
+
+        // Only add optional properties if they exist
+        if (level.variantId) {
+          turnoverItem.variantId = level.variantId;
+        }
+        if (turnoverData.lastSaleDate) {
+          turnoverItem.lastSaleDate = turnoverData.lastSaleDate;
+        }
+        if (turnoverData.daysSinceLastSale !== undefined) {
+          turnoverItem.daysSinceLastSale = turnoverData.daysSinceLastSale;
+        }
+
+        products.push(turnoverItem);
       }
 
       const averageTurnover = products.length > 0 ? totalTurnover / products.length : 0;
@@ -617,13 +663,28 @@ export class InventoryReportingService {
       Math.floor((new Date().getTime() - lastSaleDate.getTime()) / (1000 * 60 * 60 * 24)) : 
       undefined;
 
-    return {
+    const result: {
+      averageInventory: number;
+      costOfGoodsSold: number;
+      turnoverRatio: number;
+      daysOfSupply: number;
+      lastSaleDate?: Date;
+      daysSinceLastSale?: number;
+    } = {
       averageInventory,
       costOfGoodsSold,
       turnoverRatio,
       daysOfSupply,
-      lastSaleDate: lastSaleDate || undefined,
-      daysSinceLastSale: daysSinceLastSale || undefined,
     };
+
+    // Only add optional properties if they exist
+    if (lastSaleDate) {
+      result.lastSaleDate = lastSaleDate;
+    }
+    if (daysSinceLastSale !== undefined) {
+      result.daysSinceLastSale = daysSinceLastSale;
+    }
+
+    return result;
   }
 }

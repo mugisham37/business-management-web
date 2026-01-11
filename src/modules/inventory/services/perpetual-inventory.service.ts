@@ -222,25 +222,45 @@ export class PerpetualInventoryService {
       quantity: data.movementType === 'adjustment' ? data.quantity : 
         (['sale', 'transfer_out', 'damage', 'theft', 'expired', 'consumption'].includes(data.movementType) ? 
           -Math.abs(data.quantity) : Math.abs(data.quantity)),
-      unitCost: data.unitCost,
-      totalCost: data.unitCost ? data.unitCost * Math.abs(data.quantity) : undefined,
       previousLevel,
       newLevel,
-      referenceType: data.referenceType,
-      referenceId: data.referenceId,
-      referenceNumber: data.referenceNumber,
-      batchNumber: data.batchNumber,
-      lotNumber: data.lotNumber,
-      expiryDate: data.expiryDate,
-      reason: data.reason as any,
-      notes: data.notes,
       requiresApproval: data.requiresApproval || false,
       metadata: data.metadata,
     };
 
-    // Only add variantId if it's defined
+    // Only add optional properties if they exist
     if (data.variantId !== undefined) {
       movementData.variantId = data.variantId;
+    }
+    if (data.unitCost !== undefined) {
+      movementData.unitCost = data.unitCost;
+    }
+    if (data.unitCost && data.unitCost > 0) {
+      movementData.totalCost = data.unitCost * Math.abs(data.quantity);
+    }
+    if (data.referenceType !== undefined) {
+      movementData.referenceType = data.referenceType;
+    }
+    if (data.referenceId !== undefined) {
+      movementData.referenceId = data.referenceId;
+    }
+    if (data.referenceNumber !== undefined) {
+      movementData.referenceNumber = data.referenceNumber;
+    }
+    if (data.batchNumber !== undefined) {
+      movementData.batchNumber = data.batchNumber;
+    }
+    if (data.lotNumber !== undefined) {
+      movementData.lotNumber = data.lotNumber;
+    }
+    if (data.expiryDate !== undefined) {
+      movementData.expiryDate = data.expiryDate;
+    }
+    if (data.reason !== undefined) {
+      movementData.reason = data.reason as 'manual_count' | 'cycle_count' | 'damaged_goods' | 'expired_goods' | 'theft_loss' | 'supplier_error' | 'system_error' | 'return_to_vendor' | 'promotional_use' | 'internal_use' | 'other';
+    }
+    if (data.notes !== undefined) {
+      movementData.notes = data.notes;
     }
 
     const movement = await this.movementRepository.create(tenantId, movementData, userId);
@@ -377,12 +397,14 @@ export class PerpetualInventoryService {
           newLevel: actualQuantity,
           reason: data.reconciliationType === 'cycle' ? 'cycle_count' : 'manual_count',
           notes: `Reconciliation adjustment: ${reconciliationId}. ${data.notes || ''}`,
-          batchNumber: expectedCount.batchNumber,
         };
 
-        // Only add variantId if it's defined
+        // Only add optional properties if they exist
         if (expectedCount.variantId !== undefined) {
           adjustmentData.variantId = expectedCount.variantId;
+        }
+        if (expectedCount.batchNumber !== undefined) {
+          adjustmentData.batchNumber = expectedCount.batchNumber;
         }
 
         const adjustmentMovement = await this.movementRepository.create(tenantId, adjustmentData, userId);
@@ -537,7 +559,7 @@ export class PerpetualInventoryService {
       });
 
       const lastReconciliation = recentMovements.length > 0 ? 
-        recentMovements[0]?.createdAt ?? new Date(0) : 
+        (recentMovements[0]?.createdAt ?? new Date(0)) : 
         new Date(0); // Epoch if no reconciliation found
 
       // Calculate accuracy score based on recent adjustments
@@ -633,8 +655,8 @@ export class PerpetualInventoryService {
       if (!reasonCounts[reason]) {
         reasonCounts[reason] = { count: 0, totalValue: 0 };
       }
-      reasonCounts[reason].count++;
-      reasonCounts[reason].totalValue += varianceValue;
+      reasonCounts[reason]!.count++;
+      reasonCounts[reason]!.totalValue += varianceValue;
 
       // By product
       if (!productVariances[adjustment.productId]) {
@@ -645,9 +667,9 @@ export class PerpetualInventoryService {
           productName: adjustment.product?.name || 'Unknown',
         };
       }
-      productVariances[adjustment.productId].count++;
-      productVariances[adjustment.productId].totalVariance += Math.abs(adjustment.quantity);
-      productVariances[adjustment.productId].totalValue += varianceValue;
+      productVariances[adjustment.productId]!.count++;
+      productVariances[adjustment.productId]!.totalVariance += Math.abs(adjustment.quantity);
+      productVariances[adjustment.productId]!.totalValue += varianceValue;
 
       // By day
       const dateKey = adjustment.createdAt?.toISOString().split('T')[0];
@@ -655,8 +677,8 @@ export class PerpetualInventoryService {
         if (!dailyVariances[dateKey]) {
           dailyVariances[dateKey] = { count: 0, value: 0 };
         }
-        dailyVariances[dateKey].count++;
-        dailyVariances[dateKey].value += varianceValue;
+        dailyVariances[dateKey]!.count++;
+        dailyVariances[dateKey]!.value += varianceValue;
       }
     }
 

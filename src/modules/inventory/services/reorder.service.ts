@@ -146,9 +146,8 @@ export class ReorderService {
       const unitCost = inventory.averageCost || inventory.product?.costPrice || 0;
       const totalCost = suggestedQuantity * unitCost;
 
-      return {
+      const reorderSuggestion: ReorderSuggestion = {
         productId: inventory.productId,
-        variantId: inventory.variantId,
         locationId: inventory.locationId,
         currentLevel: inventory.currentLevel,
         reorderPoint: inventory.reorderPoint,
@@ -157,12 +156,21 @@ export class ReorderService {
         unitCost,
         totalCost,
         priority,
-        daysUntilStockout: daysUntilStockout ?? undefined,
         averageDailySales,
         leadTimeDays,
         product: inventory.product,
         variant: inventory.variant,
       };
+
+      // Only add optional properties if they exist
+      if (inventory.variantId) {
+        reorderSuggestion.variantId = inventory.variantId;
+      }
+      if (daysUntilStockout !== null) {
+        reorderSuggestion.daysUntilStockout = daysUntilStockout;
+      }
+
+      return reorderSuggestion;
     } catch (error) {
       console.error(`Error calculating reorder quantity for product ${inventory.productId}:`, error);
       return null;
@@ -188,7 +196,7 @@ export class ReorderService {
         supplierSuggestions[productSupplierId] = [];
       }
 
-      supplierSuggestions[productSupplierId].push(suggestion);
+      supplierSuggestions[productSupplierId]!.push(suggestion);
     }
 
     // Emit events for each supplier
@@ -263,7 +271,7 @@ export class ReorderService {
         const optimalReorderPoint = await this.calculateOptimalReorderPoint(
           tenantId,
           inventory.productId,
-          inventory.variantId === null ? undefined : inventory.variantId,
+          inventory.variantId || null,
           inventory.locationId,
         );
 
@@ -272,7 +280,7 @@ export class ReorderService {
           await this.inventoryRepository.updateLevel(
             tenantId,
             inventory.productId,
-            inventory.variantId === null ? undefined : inventory.variantId,
+            inventory.variantId || null,
             inventory.locationId,
             inventory.currentLevel, // Keep current level same
             'system', // System user
@@ -291,7 +299,7 @@ export class ReorderService {
     locationId: string,
   ): Promise<number> {
     // Get sales history
-    const salesHistory = await this.getSalesHistory(tenantId, productId, variantId, locationId);
+    const salesHistory = await this.getSalesHistory(tenantId, productId, variantId || undefined, locationId);
     
     // Calculate average daily sales
     const averageDailySales = this.calculateAverageDailySales(salesHistory);

@@ -195,16 +195,24 @@ export class InventoryValuationService {
         break;
     }
 
-    return {
+    const result: ValuationResult = {
       productId,
-      variantId: variantId || undefined,
       locationId,
       currentQuantity: inventoryLevel.currentLevel,
       valuationMethod,
       unitCost,
       totalValue,
-      batches: batches.length > 0 ? batches : undefined,
     };
+
+    // Only add optional properties if they exist
+    if (variantId) {
+      result.variantId = variantId;
+    }
+    if (batches.length > 0) {
+      result.batches = batches;
+    }
+
+    return result;
   }
 
   async getValuationSummary(tenantId: string, query: ValuationQueryDto = {}): Promise<ValuationSummary> {
@@ -359,15 +367,21 @@ export class InventoryValuationService {
       totalValue += batchValue;
       remainingQuantity -= quantityToUse;
 
-      valuationBatches.push({
+      const batchValuation: BatchValuation = {
         batchId: batch.id,
         batchNumber: batch.batchNumber,
         quantity: quantityToUse,
         unitCost: batch.unitCost,
         totalValue: batchValue,
         receivedDate: batch.receivedDate,
-        expiryDate: batch.expiryDate || new Date(), // Provide default date if undefined
-      });
+      };
+
+      // Only add expiryDate if it exists
+      if (batch.expiryDate) {
+        batchValuation.expiryDate = batch.expiryDate;
+      }
+
+      valuationBatches.push(batchValuation);
     }
 
     const unitCost = currentQuantity > 0 ? totalValue / currentQuantity : 0;
@@ -403,15 +417,21 @@ export class InventoryValuationService {
       totalValue += batchValue;
       remainingQuantity -= quantityToUse;
 
-      valuationBatches.push({
+      const batchValuation: BatchValuation = {
         batchId: batch.id,
         batchNumber: batch.batchNumber,
         quantity: quantityToUse,
         unitCost: batch.unitCost,
         totalValue: batchValue,
         receivedDate: batch.receivedDate,
-        expiryDate: batch.expiryDate || new Date(), // Provide default date if undefined
-      });
+      };
+
+      // Only add expiryDate if it exists
+      if (batch.expiryDate) {
+        batchValuation.expiryDate = batch.expiryDate;
+      }
+
+      valuationBatches.push(batchValuation);
     }
 
     const unitCost = currentQuantity > 0 ? totalValue / currentQuantity : 0;
@@ -475,15 +495,21 @@ export class InventoryValuationService {
       const batchValue = batch.currentQuantity * batch.unitCost;
       totalValue += batchValue;
 
-      valuationBatches.push({
+      const batchValuation: BatchValuation = {
         batchId: batch.id,
         batchNumber: batch.batchNumber,
         quantity: batch.currentQuantity,
         unitCost: batch.unitCost,
         totalValue: batchValue,
         receivedDate: batch.receivedDate,
-        expiryDate: batch.expiryDate,
-      });
+      };
+
+      // Only add expiryDate if it exists
+      if (batch.expiryDate) {
+        batchValuation.expiryDate = batch.expiryDate;
+      }
+
+      valuationBatches.push(batchValuation);
     }
 
     const unitCost = currentQuantity > 0 ? totalValue / currentQuantity : 0;

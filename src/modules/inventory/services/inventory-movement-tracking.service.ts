@@ -317,7 +317,7 @@ export class InventoryMovementTrackingService {
       const sortedDays = Object.entries(dailyMovements).sort((a, b) => b[1] - a[1]);
       const peakMovementDay = sortedDays.length > 0 && sortedDays[0] ? new Date(sortedDays[0][0]) : startDate;
       const slowestMovementDay = sortedDays.length > 0 && sortedDays[sortedDays.length - 1] ? 
-        new Date(sortedDays[sortedDays.length - 1][0]) : startDate;
+        new Date(sortedDays[sortedDays.length - 1]![0]) : startDate;
 
       // Find most common movement type
       const mostCommonMovementType = Object.entries(movementTypes)
@@ -436,8 +436,7 @@ export class InventoryMovementTrackingService {
         return Math.abs(count - avg) > avg * 0.3; // 30% deviation indicates seasonality
       });
 
-      analysis = {
-        locationId: locationId || undefined,
+      const analysis: MovementPatternAnalysis = {
         period: {
           startDate,
           endDate,
@@ -456,6 +455,11 @@ export class InventoryMovementTrackingService {
           peakDays,
         },
       };
+
+      // Only add locationId if it's defined
+      if (locationId !== undefined) {
+        analysis.locationId = locationId;
+      }
 
       await this.cacheService.set(cacheKey, analysis, { ttl: 600 }); // 10 minutes
     }
@@ -507,9 +511,9 @@ export class InventoryMovementTrackingService {
         if (!adjustmentReasons[reason]) {
           adjustmentReasons[reason] = { count: 0, totalValue: 0 };
         }
-        adjustmentReasons[reason].count++;
+        adjustmentReasons[reason]!.count++;
         if (adjustment.totalCost) {
-          adjustmentReasons[reason].totalValue += Math.abs(adjustment.totalCost);
+          adjustmentReasons[reason]!.totalValue += Math.abs(adjustment.totalCost);
         }
       }
 
