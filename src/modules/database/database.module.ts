@@ -2,6 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseService } from './database.service';
 import { DrizzleService, DRIZZLE_TOKEN } from './drizzle.service';
+import { OptimizedDatabaseService } from './optimized-database.service';
 import { MigrationService } from './migration.service';
 import { SeedService } from './seed.service';
 
@@ -24,9 +25,17 @@ import { SeedService } from './seed.service';
       inject: [DrizzleService],
     },
     DatabaseService,
+    OptimizedDatabaseService,
     MigrationService,
     SeedService,
   ],
-  exports: [DrizzleService, DatabaseService, MigrationService, SeedService, DRIZZLE_TOKEN],
+  exports: [
+    DrizzleService, 
+    DatabaseService, 
+    OptimizedDatabaseService,
+    MigrationService, 
+    SeedService, 
+    DRIZZLE_TOKEN
+  ],
 })
 export class DatabaseModule {}
