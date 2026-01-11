@@ -18,7 +18,7 @@ export class AccountBalanceRepository {
     fiscalPeriod: number;
     isAdjusted?: boolean;
   }, userId: string) {
-    const [balance] = await this.drizzle.db
+    const [balance] = await this.drizzle.getDb()
       .insert(accountBalances)
       .values({
         tenantId,
@@ -33,7 +33,7 @@ export class AccountBalanceRepository {
   }
 
   async findByAccountAndDate(tenantId: string, accountId: string, balanceDate: Date) {
-    const [balance] = await this.drizzle.db
+    const [balance] = await this.drizzle.getDb()
       .select()
       .from(accountBalances)
       .where(and(
@@ -47,7 +47,7 @@ export class AccountBalanceRepository {
   }
 
   async findByAccountAndPeriod(tenantId: string, accountId: string, fiscalYear: number, fiscalPeriod: number) {
-    const [balance] = await this.drizzle.db
+    const [balance] = await this.drizzle.getDb()
       .select()
       .from(accountBalances)
       .where(and(
@@ -62,7 +62,7 @@ export class AccountBalanceRepository {
   }
 
   async findByPeriod(tenantId: string, fiscalYear: number, fiscalPeriod: number) {
-    const balances = await this.drizzle.db
+    const balances = await this.drizzle.getDb()
       .select()
       .from(accountBalances)
       .where(and(
@@ -77,7 +77,7 @@ export class AccountBalanceRepository {
   }
 
   async findByDateRange(tenantId: string, accountId: string, startDate: Date, endDate: Date) {
-    const balances = await this.drizzle.db
+    const balances = await this.drizzle.getDb()
       .select()
       .from(accountBalances)
       .where(and(
@@ -99,7 +99,7 @@ export class AccountBalanceRepository {
     closingBalance?: string;
     isAdjusted?: boolean;
   }, userId: string) {
-    const [balance] = await this.drizzle.db
+    const [balance] = await this.drizzle.getDb()
       .update(accountBalances)
       .set({
         ...data,
@@ -133,13 +133,18 @@ export class AccountBalanceRepository {
 
     if (existing) {
       // Update existing
-      return await this.update(tenantId, existing.id, {
+      const updateData: any = {
         openingBalance: data.openingBalance,
         debitMovements: data.debitMovements,
         creditMovements: data.creditMovements,
         closingBalance: data.closingBalance,
-        isAdjusted: data.isAdjusted,
-      }, userId);
+      };
+
+      if (data.isAdjusted !== undefined) {
+        updateData.isAdjusted = data.isAdjusted;
+      }
+
+      return await this.update(tenantId, existing.id, updateData, userId);
     } else {
       // Create new
       return await this.create(tenantId, data, userId);
@@ -147,7 +152,7 @@ export class AccountBalanceRepository {
   }
 
   async getLatestBalance(tenantId: string, accountId: string) {
-    const [balance] = await this.drizzle.db
+    const [balance] = await this.drizzle.getDb()
       .select()
       .from(accountBalances)
       .where(and(

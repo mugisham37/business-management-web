@@ -15,7 +15,7 @@ export class FiscalPeriodRepository {
     endDate: Date;
     isYearEnd?: boolean;
   }, userId: string) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .insert(fiscalPeriods)
       .values({
         tenantId,
@@ -33,7 +33,7 @@ export class FiscalPeriodRepository {
   }
 
   async findById(tenantId: string, id: string) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -46,7 +46,7 @@ export class FiscalPeriodRepository {
   }
 
   async findByYearAndPeriod(tenantId: string, fiscalYear: number, periodNumber: number) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -60,7 +60,7 @@ export class FiscalPeriodRepository {
   }
 
   async findByYear(tenantId: string, fiscalYear: number) {
-    const periods = await this.drizzle.db
+    const periods = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -74,7 +74,7 @@ export class FiscalPeriodRepository {
   }
 
   async findByDateRange(tenantId: string, startDate: Date, endDate: Date) {
-    const periods = await this.drizzle.db
+    const periods = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -91,7 +91,7 @@ export class FiscalPeriodRepository {
   async findCurrentPeriod(tenantId: string, asOfDate?: Date) {
     const date = asOfDate || new Date();
     
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -106,7 +106,7 @@ export class FiscalPeriodRepository {
   }
 
   async findOpenPeriods(tenantId: string) {
-    const periods = await this.drizzle.db
+    const periods = await this.drizzle.getDb()
       .select()
       .from(fiscalPeriods)
       .where(and(
@@ -126,7 +126,7 @@ export class FiscalPeriodRepository {
     endDate?: Date;
     isActive?: boolean;
   }, userId: string) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .update(fiscalPeriods)
       .set({
         ...data,
@@ -144,7 +144,7 @@ export class FiscalPeriodRepository {
   }
 
   async closePeriod(tenantId: string, id: string, userId: string) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .update(fiscalPeriods)
       .set({
         isClosed: true,
@@ -165,7 +165,7 @@ export class FiscalPeriodRepository {
   }
 
   async processYearEnd(tenantId: string, id: string, userId: string) {
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .update(fiscalPeriods)
       .set({
         yearEndProcessed: true,
@@ -216,7 +216,7 @@ export class FiscalPeriodRepository {
     // This would require joining with journal entries
     // For now, we'll allow deletion if not closed
 
-    const [period] = await this.drizzle.db
+    const [period] = await this.drizzle.getDb()
       .update(fiscalPeriods)
       .set({
         deletedAt: new Date(),

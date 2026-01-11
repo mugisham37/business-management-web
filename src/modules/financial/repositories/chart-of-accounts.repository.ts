@@ -12,7 +12,7 @@ export class ChartOfAccountsRepository {
     const accountPath = await this.generateAccountPath(tenantId, dto.parentAccountId, dto.accountNumber);
     const accountLevel = dto.parentAccountId ? await this.getAccountLevel(dto.parentAccountId) + 1 : 1;
 
-    const [account] = await this.drizzle.db
+    const accounts = await this.drizzle.getDb()
       .insert(chartOfAccounts)
       .values({
         tenantId,
@@ -37,11 +37,12 @@ export class ChartOfAccountsRepository {
       })
       .returning();
 
+    const account = Array.isArray(accounts) ? accounts[0] : (accounts as any);
     return account;
   }
 
   async findById(tenantId: string, id: string) {
-    const [account] = await this.drizzle.db
+    const [account] = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(
@@ -54,7 +55,7 @@ export class ChartOfAccountsRepository {
   }
 
   async findByAccountNumber(tenantId: string, accountNumber: string) {
-    const [account] = await this.drizzle.db
+    const [account] = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(
@@ -97,7 +98,7 @@ export class ChartOfAccountsRepository {
       conditions.push(eq(chartOfAccounts.isActive, true));
     }
 
-    const accounts = await this.drizzle.db
+    const accounts = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(...conditions))
@@ -136,7 +137,7 @@ export class ChartOfAccountsRepository {
   }
 
   async update(tenantId: string, id: string, dto: UpdateChartOfAccountDto, userId: string) {
-    const [account] = await this.drizzle.db
+    const [account] = await this.drizzle.getDb()
       .update(chartOfAccounts)
       .set({
         ...dto,
@@ -154,7 +155,7 @@ export class ChartOfAccountsRepository {
   }
 
   async updateBalance(tenantId: string, accountId: string, newBalance: string) {
-    const [account] = await this.drizzle.db
+    const [account] = await this.drizzle.getDb()
       .update(chartOfAccounts)
       .set({
         currentBalance: newBalance,
@@ -172,7 +173,7 @@ export class ChartOfAccountsRepository {
 
   async delete(tenantId: string, id: string, userId: string) {
     // Check if account has children
-    const children = await this.drizzle.db
+    const children = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(
@@ -186,7 +187,7 @@ export class ChartOfAccountsRepository {
     }
 
     // Soft delete
-    const [account] = await this.drizzle.db
+    const [account] = await this.drizzle.getDb()
       .update(chartOfAccounts)
       .set({
         deletedAt: new Date(),
@@ -204,7 +205,7 @@ export class ChartOfAccountsRepository {
   }
 
   async getAccountsByType(tenantId: string, accountTypes: AccountType[]) {
-    const accounts = await this.drizzle.db
+    const accounts = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(
@@ -219,7 +220,7 @@ export class ChartOfAccountsRepository {
   }
 
   async searchAccounts(tenantId: string, searchTerm: string, limit = 20) {
-    const accounts = await this.drizzle.db
+    const accounts = await this.drizzle.getDb()
       .select()
       .from(chartOfAccounts)
       .where(and(
@@ -248,11 +249,12 @@ export class ChartOfAccountsRepository {
   }
 
   private async getAccountLevel(accountId: string): Promise<number> {
-    const [account] = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select({ accountLevel: chartOfAccounts.accountLevel })
       .from(chartOfAccounts)
       .where(eq(chartOfAccounts.id, accountId));
-
+    
+    const account = results[0];
     return account?.accountLevel || 0;
   }
 
@@ -267,16 +269,17 @@ export class ChartOfAccountsRepository {
       conditions.push(sql`${chartOfAccounts.id} != ${excludeId}`);
     }
 
-    const [existing] = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select({ id: chartOfAccounts.id })
       .from(chartOfAccounts)
       .where(and(...conditions));
 
+    const existing = results[0];
     return !existing; // Returns true if account number is available
   }
 
   async getAccountBalance(tenantId: string, accountId: string): Promise<string> {
-    const [account] = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select({ currentBalance: chartOfAccounts.currentBalance })
       .from(chartOfAccounts)
       .where(and(
@@ -285,6 +288,7 @@ export class ChartOfAccountsRepository {
         isNull(chartOfAccounts.deletedAt)
       ));
 
+    const account = results[0];
     return account?.currentBalance || '0.00';
   }
 }

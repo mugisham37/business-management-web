@@ -19,7 +19,7 @@ export class ReconciliationRepository {
     notes?: string;
     attachments?: any[];
   }, userId: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .insert(accountReconciliations)
       .values({
         tenantId,
@@ -37,7 +37,7 @@ export class ReconciliationRepository {
   }
 
   async findById(tenantId: string, id: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .select()
       .from(accountReconciliations)
       .where(and(
@@ -70,10 +70,10 @@ export class ReconciliationRepository {
     }
 
     if (options?.status) {
-      conditions.push(eq(accountReconciliations.status, options.status));
+      conditions.push(eq(accountReconciliations.status, options.status as any));
     }
 
-    const query = this.drizzle.db
+    const query = this.drizzle.getDb()
       .select()
       .from(accountReconciliations)
       .where(and(...conditions))
@@ -111,10 +111,10 @@ export class ReconciliationRepository {
     }
 
     if (options?.status) {
-      conditions.push(eq(accountReconciliations.status, options.status));
+      conditions.push(eq(accountReconciliations.status, options.status as any));
     }
 
-    const reconciliations = await this.drizzle.db
+    const reconciliations = await this.drizzle.getDb()
       .select()
       .from(accountReconciliations)
       .where(and(...conditions))
@@ -134,7 +134,7 @@ export class ReconciliationRepository {
     notes?: string;
     attachments?: any[];
   }, userId: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .update(accountReconciliations)
       .set({
         ...data,
@@ -152,10 +152,10 @@ export class ReconciliationRepository {
   }
 
   async markAsReconciled(tenantId: string, id: string, userId: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .update(accountReconciliations)
       .set({
-        status: 'reconciled',
+        status: 'reconciled' as any,
         reconciledBy: userId,
         updatedBy: userId,
         updatedAt: new Date(),
@@ -172,7 +172,7 @@ export class ReconciliationRepository {
 
   async markAsDisputed(tenantId: string, id: string, userId: string, notes?: string) {
     const updateData: any = {
-      status: 'disputed',
+      status: 'disputed' as any,
       updatedBy: userId,
       updatedAt: new Date(),
     };
@@ -181,7 +181,7 @@ export class ReconciliationRepository {
       updateData.notes = notes;
     }
 
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .update(accountReconciliations)
       .set(updateData)
       .where(and(
@@ -195,7 +195,7 @@ export class ReconciliationRepository {
   }
 
   async getLatestReconciliation(tenantId: string, accountId: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .select()
       .from(accountReconciliations)
       .where(and(
@@ -210,7 +210,7 @@ export class ReconciliationRepository {
   }
 
   async delete(tenantId: string, id: string, userId: string) {
-    const [reconciliation] = await this.drizzle.db
+    const [reconciliation] = await this.drizzle.getDb()
       .update(accountReconciliations)
       .set({
         deletedAt: new Date(),
@@ -242,7 +242,7 @@ export class ReconciliationRepository {
       conditions.push(lte(accountReconciliations.reconciliationDate, dateTo));
     }
 
-    const reconciliations = await this.drizzle.db
+    const reconciliations = await this.drizzle.getDb()
       .select()
       .from(accountReconciliations)
       .where(and(...conditions))

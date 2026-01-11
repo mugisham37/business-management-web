@@ -16,7 +16,7 @@ export class BudgetRepository {
     description?: string;
     notes?: string;
   }, userId: string) {
-    const [budget] = await this.drizzle.db
+    const [budget] = await this.drizzle.getDb()
       .insert(budgets)
       .values({
         tenantId,
@@ -32,7 +32,7 @@ export class BudgetRepository {
   }
 
   async findById(tenantId: string, id: string) {
-    const [budget] = await this.drizzle.db
+    const [budget] = await this.drizzle.getDb()
       .select()
       .from(budgets)
       .where(and(
@@ -66,7 +66,7 @@ export class BudgetRepository {
       conditions.push(eq(budgets.budgetType, options.budgetType));
     }
 
-    const budgetList = await this.drizzle.db
+    const budgetList = await this.drizzle.getDb()
       .select()
       .from(budgets)
       .where(and(...conditions))
@@ -83,7 +83,7 @@ export class BudgetRepository {
     approvedBy?: string;
     approvedAt?: Date;
   }, userId: string) {
-    const [budget] = await this.drizzle.db
+    const [budget] = await this.drizzle.getDb()
       .update(budgets)
       .set({
         ...data,
@@ -101,7 +101,7 @@ export class BudgetRepository {
   }
 
   async delete(tenantId: string, id: string, userId: string) {
-    const [budget] = await this.drizzle.db
+    const [budget] = await this.drizzle.getDb()
       .update(budgets)
       .set({
         deletedAt: new Date(),
@@ -133,7 +133,7 @@ export class BudgetRepository {
     locationId?: string;
     notes?: string;
   }, userId: string) {
-    const [budgetLine] = await this.drizzle.db
+    const [budgetLine] = await this.drizzle.getDb()
       .insert(budgetLines)
       .values({
         tenantId,
@@ -152,7 +152,7 @@ export class BudgetRepository {
   }
 
   async findBudgetLines(tenantId: string, budgetId: string) {
-    const lines = await this.drizzle.db
+    const lines = await this.drizzle.getDb()
       .select()
       .from(budgetLines)
       .where(and(
@@ -174,7 +174,7 @@ export class BudgetRepository {
     monthlyAmounts?: Record<string, any>;
     notes?: string;
   }, userId: string) {
-    const [budgetLine] = await this.drizzle.db
+    const [budgetLine] = await this.drizzle.getDb()
       .update(budgetLines)
       .set({
         ...data,
@@ -192,7 +192,7 @@ export class BudgetRepository {
   }
 
   async deleteBudgetLine(tenantId: string, lineId: string, userId: string) {
-    const [budgetLine] = await this.drizzle.db
+    const [budgetLine] = await this.drizzle.getDb()
       .update(budgetLines)
       .set({
         deletedAt: new Date(),

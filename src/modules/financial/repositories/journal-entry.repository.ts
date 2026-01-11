@@ -20,9 +20,9 @@ export class JournalEntryRepository {
       throw new Error('Total debits must equal total credits');
     }
 
-    return await this.drizzle.db.transaction(async (tx) => {
+    return await this.drizzle.getDb().transaction(async (tx) => {
       // Create journal entry
-      const [journalEntry] = await tx
+      const journalEntries_result = await tx
         .insert(journalEntries)
         .values({
           tenantId,
@@ -42,10 +42,12 @@ export class JournalEntryRepository {
         })
         .returning();
 
+      const journalEntry = Array.isArray(journalEntries_result) ? journalEntries_result[0] : (journalEntries_result as any);
+
       // Create journal entry lines
       const lines = await Promise.all(
         dto.lines.map(async (line) => {
-          const [entryLine] = await tx
+          const entryLines_result = await tx
             .insert(journalEntryLines)
             .values({
               tenantId,
@@ -66,6 +68,7 @@ export class JournalEntryRepository {
               updatedBy: userId,
             })
             .returning();
+          const entryLine = Array.isArray(entryLines_result) ? entryLines_result[0] : (entryLines_result as any);
           return entryLine;
         })
       );
@@ -75,7 +78,7 @@ export class JournalEntryRepository {
   }
 
   async findById(tenantId: string, id: string) {
-    const [journalEntry] = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(journalEntries)
       .where(and(
@@ -84,12 +87,14 @@ export class JournalEntryRepository {
         isNull(journalEntries.deletedAt)
       ));
 
+    const journalEntry = Array.isArray(results) ? results[0] : (results as any);
+
     if (!journalEntry) {
       return null;
     }
 
     // Get lines
-    const lines = await this.drizzle.db
+    const lines = await this.drizzle.getDb()
       .select()
       .from(journalEntryLines)
       .where(and(
@@ -131,7 +136,7 @@ export class JournalEntryRepository {
           like(journalEntries.description, `%${query.search}%`),
           like(journalEntries.reference, `%${query.search}%`),
           like(journalEntries.entryNumber, `%${query.search}%`)
-        )
+        ) as any
       );
     }
 
@@ -139,7 +144,7 @@ export class JournalEntryRepository {
     const limit = query.limit || 20;
     const offset = (page - 1) * limit;
 
-    const entries = await this.drizzle.db
+    const entries = await this.drizzle.getDb()
       .select()
       .from(journalEntries)
       .where(and(...conditions))
@@ -150,7 +155,7 @@ export class JournalEntryRepository {
     // Get lines for each entry
     const entriesWithLines = await Promise.all(
       entries.map(async (entry) => {
-        const lines = await this.drizzle.db
+        const lines = await this.drizzle.getDb()
           .select()
           .from(journalEntryLines)
           .where(and(
@@ -192,7 +197,7 @@ export class JournalEntryRepository {
       conditions.push(eq(journalEntries.status, options.status));
     }
 
-    const query = this.drizzle.db
+    const query = this.drizzle.getDb()
       .select({
         journalEntry: journalEntries,
         line: journalEntryLines,
@@ -225,9 +230,9 @@ export class JournalEntryRepository {
   }
 
   async update(tenantId: string, id: string, dto: UpdateJournalEntryDto, userId: string) {
-    return await this.drizzle.db.transaction(async (tx) => {
+    return await this.drizzle.getDb().transaction(async (tx) => {
       // Check if entry can be updated (only draft entries)
-      const [existing] = await tx
+      const existingResults = await tx
         .select({ status: journalEntries.status })
         .from(journalEntries)
         .where(and(
@@ -235,6 +240,8 @@ export class JournalEntryRepository {
           eq(journalEntries.id, id),
           isNull(journalEntries.deletedAt)
         ));
+
+      const existing = Array.isArray(existingResults) ? existingResults[0] : (existingResults as any);
 
       if (!existing) {
         throw new Error('Journal entry not found');
@@ -309,7 +316,7 @@ export class JournalEntryRepository {
         );
       }
 
-      const [updatedEntry] = await tx
+      const updatedEntryResults = await tx
         .update(journalEntries)
         .set(updateData)
         .where(and(
@@ -319,12 +326,14 @@ export class JournalEntryRepository {
         ))
         .returning();
 
+      const updatedEntry = Array.isArray(updatedEntryResults) ? updatedEntryResults[0] : (updatedEntryResults as any);
+
       return updatedEntry;
     });
   }
 
   async post(tenantId: string, id: string, userId: string, postingDate?: Date) {
-    const [entry] = await this.drizzle.db
+    const entryResults = await this.drizzle.getDb()
       .update(journalEntries)
       .set({
         status: JournalEntryStatus.POSTED,
@@ -340,18 +349,21 @@ export class JournalEntryRepository {
       ))
       .returning();
 
+    const entry = Array.isArray(entryResults) ? entryResults[0] : (entryResults as any);
+
     return entry;
   }
 
   async reverse(tenantId: string, id: string, userId: string, reason: string, reversalDate?: Date) {
-    return await this.drizzle.db.transaction(async (tx) => {
+    return await this.drizzle.getDb().transaction(async (tx) => {
       // Get original entry
       const original = await this.findById(tenantId, id);
       if (!original) {
         throw new Error('Journal entry not found');
       }
 
-      if (original.status !== JournalEntryStatus.POSTED) {
+      const originalEntry = original as any;
+      if (originalEntry.status !== JournalEntryStatus.POSTED) {
         throw new Error('Only posted journal entries can be reversed');
       }
 
@@ -370,30 +382,32 @@ export class JournalEntryRepository {
 
       // Create reversal entry
       const reversalEntryNumber = await this.generateEntryNumber(tenantId);
-      const [reversalEntry] = await tx
+      const reversalEntryResults = await tx
         .insert(journalEntries)
         .values({
           tenantId,
           entryNumber: reversalEntryNumber,
           entryDate: reversalDate || new Date(),
           postingDate: reversalDate || new Date(),
-          description: `REVERSAL: ${original.description}`,
-          reference: original.reference,
+          description: `REVERSAL: ${originalEntry.description}`,
+          reference: originalEntry.reference,
           status: JournalEntryStatus.POSTED,
           sourceType: 'reversal',
-          sourceId: original.id,
-          originalEntryId: original.id,
-          notes: `Reversal of entry ${original.entryNumber}: ${reason}`,
-          totalDebits: original.totalCredits, // Swap debits and credits
-          totalCredits: original.totalDebits,
+          sourceId: originalEntry.id,
+          originalEntryId: originalEntry.id,
+          notes: `Reversal of entry ${originalEntry.entryNumber}: ${reason}`,
+          totalDebits: originalEntry.totalCredits, // Swap debits and credits
+          totalCredits: originalEntry.totalDebits,
           createdBy: userId,
           updatedBy: userId,
         })
         .returning();
 
+      const reversalEntry = Array.isArray(reversalEntryResults) ? reversalEntryResults[0] : (reversalEntryResults as any);
+
       // Create reversal lines (swap debits and credits)
       await Promise.all(
-        original.lines.map(async (line) => {
+        originalEntry.lines.map(async (line: any) => {
           await tx
             .insert(journalEntryLines)
             .values({
@@ -423,7 +437,7 @@ export class JournalEntryRepository {
 
   async delete(tenantId: string, id: string, userId: string) {
     // Check if entry can be deleted (only draft entries)
-    const [existing] = await this.drizzle.db
+    const existingResults = await this.drizzle.getDb()
       .select({ status: journalEntries.status })
       .from(journalEntries)
       .where(and(
@@ -431,6 +445,8 @@ export class JournalEntryRepository {
         eq(journalEntries.id, id),
         isNull(journalEntries.deletedAt)
       ));
+
+    const existing = Array.isArray(existingResults) ? existingResults[0] : (existingResults as any);
 
     if (!existing) {
       throw new Error('Journal entry not found');
@@ -440,7 +456,7 @@ export class JournalEntryRepository {
       throw new Error('Only draft journal entries can be deleted');
     }
 
-    return await this.drizzle.db.transaction(async (tx) => {
+    return await this.drizzle.getDb().transaction(async (tx) => {
       // Soft delete lines
       await tx
         .update(journalEntryLines)
@@ -456,7 +472,7 @@ export class JournalEntryRepository {
         ));
 
       // Soft delete entry
-      const [deletedEntry] = await tx
+      const deletedEntryResults = await tx
         .update(journalEntries)
         .set({
           deletedAt: new Date(),
@@ -470,6 +486,8 @@ export class JournalEntryRepository {
         ))
         .returning();
 
+      const deletedEntry = Array.isArray(deletedEntryResults) ? deletedEntryResults[0] : (deletedEntryResults as any);
+
       return deletedEntry;
     });
   }
@@ -479,7 +497,7 @@ export class JournalEntryRepository {
     const prefix = `JE${year}`;
 
     // Get the last entry number for this year
-    const [lastEntry] = await this.drizzle.db
+    const lastEntryResults = await this.drizzle.getDb()
       .select({ entryNumber: journalEntries.entryNumber })
       .from(journalEntries)
       .where(and(
@@ -488,6 +506,8 @@ export class JournalEntryRepository {
       ))
       .orderBy(desc(journalEntries.entryNumber))
       .limit(1);
+
+    const lastEntry = Array.isArray(lastEntryResults) ? lastEntryResults[0] : (lastEntryResults as any);
 
     let nextNumber = 1;
     if (lastEntry) {
@@ -522,7 +542,7 @@ export class JournalEntryRepository {
       conditions.push(lte(journalEntries.entryDate, options.dateTo));
     }
 
-    const ledgerEntries = await this.drizzle.db
+    const ledgerEntries = await this.drizzle.getDb()
       .select({
         entryDate: journalEntries.entryDate,
         entryNumber: journalEntries.entryNumber,
