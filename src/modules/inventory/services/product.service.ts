@@ -86,7 +86,7 @@ export class ProductService {
 
   async findById(tenantId: string, id: string): Promise<ProductWithVariants> {
     const cacheKey = `product:${tenantId}:${id}`;
-    let product = await this.cacheService.get(cacheKey);
+    let product = await this.cacheService.get<ProductWithVariants>(cacheKey);
 
     if (!product) {
       product = await this.productRepository.findById(tenantId, id);
@@ -94,7 +94,7 @@ export class ProductService {
         throw new NotFoundException('Product not found');
       }
 
-      await this.cacheService.set(cacheKey, product, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, product, { ttl: 300 }); // 5 minutes
     }
 
     return product;
@@ -102,7 +102,7 @@ export class ProductService {
 
   async findBySku(tenantId: string, sku: string): Promise<ProductWithVariants> {
     const cacheKey = `product:${tenantId}:sku:${sku}`;
-    let product = await this.cacheService.get(cacheKey);
+    let product = await this.cacheService.get<ProductWithVariants>(cacheKey);
 
     if (!product) {
       product = await this.productRepository.findBySku(tenantId, sku);
@@ -110,7 +110,7 @@ export class ProductService {
         throw new NotFoundException('Product not found');
       }
 
-      await this.cacheService.set(cacheKey, product, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, product, { ttl: 300 }); // 5 minutes
     }
 
     return product;
@@ -124,11 +124,17 @@ export class ProductService {
     totalPages: number;
   }> {
     const cacheKey = `products:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      products: ProductWithVariants[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.productRepository.findMany(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -136,11 +142,11 @@ export class ProductService {
 
   async searchProducts(tenantId: string, searchTerm: string, limit: number = 10): Promise<ProductWithVariants[]> {
     const cacheKey = `products:${tenantId}:search:${searchTerm}:${limit}`;
-    let products = await this.cacheService.get(cacheKey);
+    let products = await this.cacheService.get<ProductWithVariants[]>(cacheKey);
 
     if (!products) {
       products = await this.productRepository.searchProducts(tenantId, searchTerm, limit);
-      await this.cacheService.set(cacheKey, products, 120); // 2 minutes
+      await this.cacheService.set(cacheKey, products, { ttl: 120 }); // 2 minutes
     }
 
     return products;
@@ -148,11 +154,11 @@ export class ProductService {
 
   async findLowStockProducts(tenantId: string, locationId?: string): Promise<ProductWithVariants[]> {
     const cacheKey = `products:${tenantId}:low-stock:${locationId || 'all'}`;
-    let products = await this.cacheService.get(cacheKey);
+    let products = await this.cacheService.get<ProductWithVariants[]>(cacheKey);
 
     if (!products) {
       products = await this.productRepository.findLowStockProducts(tenantId, locationId);
-      await this.cacheService.set(cacheKey, products, 60); // 1 minute
+      await this.cacheService.set(cacheKey, products, { ttl: 60 }); // 1 minute
     }
 
     return products;
@@ -179,6 +185,10 @@ export class ProductService {
     }
 
     const updatedProduct = await this.productRepository.update(tenantId, id, data, userId);
+
+    if (!updatedProduct) {
+      throw new NotFoundException('Product not found or could not be updated');
+    }
 
     // Emit domain event
     this.eventEmitter.emit('product.updated', new ProductUpdatedEvent(

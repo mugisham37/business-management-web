@@ -176,21 +176,39 @@ export class InventoryMovementTrackingService {
     };
   }> {
     const cacheKey = `movement-tracking:${tenantId}:detailed:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      movements: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      summary: {
+        totalInbound: number;
+        totalOutbound: number;
+        netMovement: number;
+        uniqueProducts: number;
+        movementTypes: { [type: string]: number };
+        valueImpact: number;
+      };
+    }>(cacheKey);
 
     if (!result) {
       // Get movements with enhanced filtering
-      const movements = await this.movementRepository.findMany(tenantId, {
-        ...(query.productId && { productId: query.productId }),
-        ...(query.locationId && { locationId: query.locationId }),
-        ...(query.movementType && { movementType: query.movementType }),
-        ...(query.dateFrom && { dateFrom: query.dateFrom }),
-        ...(query.dateTo && { dateTo: query.dateTo }),
+      const movementQuery: any = {
         page: query.page || 1,
         limit: query.limit || 100,
         sortBy: query.sortBy || 'createdAt',
         sortOrder: query.sortOrder || 'desc',
-      });
+      };
+
+      // Only add optional properties if they are defined
+      if (query.productId !== undefined) movementQuery.productId = query.productId;
+      if (query.locationId !== undefined) movementQuery.locationId = query.locationId;
+      if (query.movementType !== undefined) movementQuery.movementType = query.movementType;
+      if (query.dateFrom !== undefined) movementQuery.dateFrom = query.dateFrom;
+      if (query.dateTo !== undefined) movementQuery.dateTo = query.dateTo;
+
+      const movements = await this.movementRepository.findMany(tenantId, movementQuery);
 
       // Calculate summary statistics
       let totalInbound = 0;
@@ -269,8 +287,10 @@ export class InventoryMovementTrackingService {
       const movementTypes: { [type: string]: number } = {};
 
       for (const movement of movements) {
-        const dateKey = movement.createdAt.toISOString().split('T')[0];
-        dailyMovements[dateKey] = (dailyMovements[dateKey] || 0) + 1;
+        const dateKey = movement.createdAt?.toISOString().split('T')[0];
+        if (dateKey) {
+          dailyMovements[dateKey] = (dailyMovements[dateKey] || 0) + 1;
+        }
 
         if (movement.quantity > 0) {
           totalInbound += movement.quantity;
@@ -352,12 +372,18 @@ export class InventoryMovementTrackingService {
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - periodDays * 24 * 60 * 60 * 1000);
 
-      const movements = await this.movementRepository.findMany(tenantId, {
-        locationId,
+      const movementQuery: any = {
         dateFrom: startDate,
         dateTo: endDate,
         limit: 50000,
-      });
+      };
+
+      // Only add locationId if it's defined
+      if (locationId !== undefined) {
+        movementQuery.locationId = locationId;
+      }
+
+      const movements = await this.movementRepository.findMany(tenantId, movementQuery);
 
       // Initialize distribution objects
       const hourlyDistribution: { [hour: string]: number } = {};
@@ -410,7 +436,7 @@ export class InventoryMovementTrackingService {
       });
 
       analysis = {
-        locationId,
+        locationId: locationId || undefined,
         period: {
           startDate,
           endDate,
@@ -562,33 +588,48 @@ export class InventoryMovementTrackingService {
     };
   }> {
     const cacheKey = `movement-tracking:${tenantId}:audit:${productId}:${locationId || 'all'}:${dateFrom?.getTime()}:${dateTo?.getTime()}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      movements: any[];
+      summary: {
+        totalMovements: number;
+        periodStart: Date;
+        periodEnd: Date;
+        startingLevel: number;
+        endingLevel: number;
+        netChange: number;
+        adjustmentCount: number;
+      };
+    }>(cacheKey);
 
     if (!result) {
-      const movements = await this.movementRepository.findMany(tenantId, {
+      const movementQuery: any = {
         productId,
-        locationId,
-        dateFrom,
-        dateTo,
         sortBy: 'createdAt',
         sortOrder: 'asc',
         limit: 10000,
-      });
+      };
+
+      // Only add optional properties if they are defined
+      if (locationId !== undefined) movementQuery.locationId = locationId;
+      if (dateFrom !== undefined) movementQuery.dateFrom = dateFrom;
+      if (dateTo !== undefined) movementQuery.dateTo = dateTo;
+
+      const movements = await this.movementRepository.findMany(tenantId, movementQuery);
 
       let startingLevel = 0;
       let endingLevel = 0;
       let adjustmentCount = 0;
 
       if (movements.length > 0) {
-        startingLevel = movements[0].previousLevel;
-        endingLevel = movements[movements.length - 1].newLevel;
+        startingLevel = movements[0]?.previousLevel ?? 0;
+        endingLevel = movements[movements.length - 1]?.newLevel ?? 0;
         adjustmentCount = movements.filter(m => m.movementType === 'adjustment').length;
       }
 
       const summary = {
         totalMovements: movements.length,
-        periodStart: dateFrom || (movements.length > 0 ? movements[0].createdAt : new Date()),
-        periodEnd: dateTo || (movements.length > 0 ? movements[movements.length - 1].createdAt : new Date()),
+        periodStart: dateFrom || (movements.length > 0 ? movements[0]?.createdAt ?? new Date() : new Date()),
+        periodEnd: dateTo || (movements.length > 0 ? movements[movements.length - 1]?.createdAt ?? new Date() : new Date()),
         startingLevel,
         endingLevel,
         netChange: endingLevel - startingLevel,
@@ -621,12 +662,18 @@ export class InventoryMovementTrackingService {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
 
-    const movements = await this.movementRepository.findMany(tenantId, {
-      locationId,
+    const movementQuery: any = {
       dateFrom: startDate,
       dateTo: endDate,
       limit: 10000,
-    });
+    };
+
+    // Only add locationId if it's defined
+    if (locationId !== undefined) {
+      movementQuery.locationId = locationId;
+    }
+
+    const movements = await this.movementRepository.findMany(tenantId, movementQuery);
 
     const anomalies: any[] = [];
     const severityDistribution: { [severity: string]: number } = {};

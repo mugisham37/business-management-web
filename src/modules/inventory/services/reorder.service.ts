@@ -91,7 +91,7 @@ export class ReorderService {
         return priorityOrder[b.priority] - priorityOrder[a.priority];
       });
 
-      await this.cacheService.set(cacheKey, suggestions, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, suggestions, { ttl: 300 }); // 5 minutes
     }
 
     return suggestions;
@@ -156,7 +156,7 @@ export class ReorderService {
         unitCost,
         totalCost,
         priority,
-        daysUntilStockout,
+        daysUntilStockout: daysUntilStockout ?? undefined,
         averageDailySales,
         leadTimeDays,
         product: inventory.product,

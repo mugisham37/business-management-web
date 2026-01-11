@@ -120,7 +120,7 @@ export class CycleCountingService {
 
   async findSessionById(tenantId: string, sessionId: string): Promise<any> {
     const cacheKey = `stock-count:${tenantId}:session:${sessionId}`;
-    let session = await this.cacheService.get(cacheKey);
+    let session = await this.cacheService.get<any>(cacheKey);
 
     if (!session) {
       session = await this.cycleCountRepository.findSessionById(tenantId, sessionId);
@@ -128,7 +128,7 @@ export class CycleCountingService {
         throw new NotFoundException('Stock count session not found');
       }
 
-      await this.cacheService.set(cacheKey, session, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, session, { ttl: 300 }); // 5 minutes
     }
 
     return session;
@@ -142,11 +142,17 @@ export class CycleCountingService {
     totalPages: number;
   }> {
     const cacheKey = `stock-count:${tenantId}:sessions:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      sessions: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.cycleCountRepository.findSessions(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -244,19 +250,29 @@ export class CycleCountingService {
     const variance = data.countedQuantity - item.expectedQuantity;
 
     // Update count item
+    const updateData: any = {
+      countedQuantity: data.countedQuantity,
+      variance,
+      countedBy: userId,
+      countedAt: new Date(),
+      status: 'counted',
+    };
+
+    // Only include optional fields if they are defined
+    if (data.batchNumber !== undefined) {
+      updateData.batchNumber = data.batchNumber;
+    }
+    if (data.binLocation !== undefined) {
+      updateData.binLocation = data.binLocation;
+    }
+    if (data.notes !== undefined) {
+      updateData.notes = data.notes;
+    }
+
     const updatedItem = await this.cycleCountRepository.updateCountItem(
       tenantId,
       itemId,
-      {
-        countedQuantity: data.countedQuantity,
-        variance,
-        batchNumber: data.batchNumber,
-        binLocation: data.binLocation,
-        notes: data.notes,
-        countedBy: userId,
-        countedAt: new Date(),
-        status: 'counted',
-      },
+      updateData,
       userId,
     );
 
@@ -290,7 +306,7 @@ export class CycleCountingService {
       throw new NotFoundException('Count item not found');
     }
 
-    if (item.status !== 'counted' || item.variance === 0) {
+    if (item.status !== 'counted' || (item.variance === null || item.variance === 0)) {
       throw new BadRequestException('Item must be counted with variance to adjust');
     }
 
@@ -298,9 +314,9 @@ export class CycleCountingService {
     await this.inventoryService.updateInventoryLevel(
       tenantId,
       item.productId,
-      item.variantId,
-      item.sessionLocationId,
-      item.countedQuantity,
+      item.variantId || null, // Convert undefined to null
+      item.sessionLocationId || '', // Provide default value
+      item.countedQuantity || 0, // Provide default value
       'cycle_count',
       userId,
       `Cycle count adjustment - Session: ${item.sessionNumber}`,
@@ -328,11 +344,17 @@ export class CycleCountingService {
     totalPages: number;
   }> {
     const cacheKey = `stock-count:${tenantId}:items:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      items: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.cycleCountRepository.findCountItems(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -340,11 +362,11 @@ export class CycleCountingService {
 
   async getSessionSummary(tenantId: string, sessionId: string): Promise<any> {
     const cacheKey = `stock-count:${tenantId}:summary:${sessionId}`;
-    let summary = await this.cacheService.get(cacheKey);
+    let summary = await this.cacheService.get<any>(cacheKey);
 
     if (!summary) {
       summary = await this.calculateSessionSummary(tenantId, sessionId);
-      await this.cacheService.set(cacheKey, summary, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, summary, { ttl: 300 }); // 5 minutes
     }
 
     return summary;
@@ -352,11 +374,11 @@ export class CycleCountingService {
 
   async getVarianceReport(tenantId: string, sessionId: string): Promise<any[]> {
     const cacheKey = `stock-count:${tenantId}:variances:${sessionId}`;
-    let variances = await this.cacheService.get(cacheKey);
+    let variances = await this.cacheService.get<any[]>(cacheKey);
 
     if (!variances) {
       variances = await this.cycleCountRepository.findVariances(tenantId, sessionId);
-      await this.cacheService.set(cacheKey, variances, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, variances, { ttl: 300 }); // 5 minutes
     }
 
     return variances;
@@ -384,14 +406,18 @@ export class CycleCountingService {
         });
 
         for (const level of inventoryLevels.inventoryLevels) {
-          await this.cycleCountRepository.createCountItem(tenantId, {
+          const createItemData: any = {
             sessionId,
             productId: level.productId,
             variantId: level.variantId,
             expectedQuantity: level.currentLevel,
-            batchNumber: null,
             binLocation: level.binLocation,
-          }, userId);
+          };
+
+          // Only include batchNumber if it has a value
+          // (omit it entirely if undefined to satisfy exactOptionalPropertyTypes)
+
+          await this.cycleCountRepository.createCountItem(tenantId, createItemData, userId);
         }
       }
     } else {
@@ -406,14 +432,18 @@ export class CycleCountingService {
           }
         }
 
-        await this.cycleCountRepository.createCountItem(tenantId, {
+        const createItemData2: any = {
           sessionId,
           productId: level.productId,
           variantId: level.variantId,
           expectedQuantity: level.currentLevel,
-          batchNumber: null,
           binLocation: level.binLocation,
-        }, userId);
+        };
+
+        // Only include batchNumber if it has a value
+        // (omit it entirely if undefined to satisfy exactOptionalPropertyTypes)
+
+        await this.cycleCountRepository.createCountItem(tenantId, createItemData2, userId);
       }
     }
   }
@@ -433,7 +463,7 @@ export class CycleCountingService {
       if (item.status === 'counted' || item.status === 'adjusted') {
         totalItemsCounted++;
         
-        if (item.variance !== 0) {
+        if (item.variance !== null && item.variance !== 0) {
           totalVariances++;
           // Calculate adjustment value (variance * average cost)
           totalAdjustmentValue += item.variance * (item.product?.averageCost || 0);

@@ -244,7 +244,7 @@ export class InventoryAccuracyReportingService {
         data,
       };
 
-      await this.cacheService.set(cacheKey, report, 600); // 10 minutes
+      await this.cacheService.set(cacheKey, report, { ttl: 600 }); // 10 minutes
     }
 
     return report;
@@ -256,13 +256,19 @@ export class InventoryAccuracyReportingService {
     period: { startDate: Date; endDate: Date },
   ): Promise<{ summary: AccuracySummary }> {
     // Get all count sessions in period
-    const sessions = await this.cycleCountRepository.findSessions(tenantId, {
-      locationId: query.locationId,
+    const sessionQuery: StockCountSessionQueryDto = {
       scheduledDateFrom: period.startDate,
       scheduledDateTo: period.endDate,
-      status: 'completed',
+      status: 'completed' as const,
       limit: 1000,
-    });
+    };
+
+    // Only add locationId if it's defined and not undefined
+    if (query.locationId !== undefined) {
+      sessionQuery.locationId = query.locationId;
+    }
+
+    const sessions = await this.cycleCountRepository.findSessions(tenantId, sessionQuery);
 
     let totalVariances = 0;
     let totalVarianceValue = 0;
@@ -270,19 +276,26 @@ export class InventoryAccuracyReportingService {
     const locationAccuracies: { [locationId: string]: { accuracy: number; count: number } } = {};
 
     for (const session of sessions.sessions) {
-      totalVariances += session.totalVariances;
-      totalVarianceValue += session.totalAdjustmentValue;
-      totalProducts += session.totalItemsCounted;
+      const sessionVariances = session.totalVariances ?? 0;
+      const sessionItemsCounted = session.totalItemsCounted ?? 0;
+      const sessionAdjustmentValue = session.totalAdjustmentValue ?? 0;
+
+      totalVariances += sessionVariances;
+      totalVarianceValue += sessionAdjustmentValue;
+      totalProducts += sessionItemsCounted;
 
       // Calculate session accuracy
-      const sessionAccuracy = session.totalItemsCounted > 0 ? 
-        ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
+      const sessionAccuracy = sessionItemsCounted > 0 ? 
+        ((sessionItemsCounted - sessionVariances) / sessionItemsCounted) * 100 : 100;
 
-      if (!locationAccuracies[session.locationId]) {
-        locationAccuracies[session.locationId] = { accuracy: 0, count: 0 };
+      const locationId = session.locationId;
+      if (locationId) {
+        if (!locationAccuracies[locationId]) {
+          locationAccuracies[locationId] = { accuracy: 0, count: 0 };
+        }
+        locationAccuracies[locationId].accuracy += sessionAccuracy;
+        locationAccuracies[locationId].count++;
       }
-      locationAccuracies[session.locationId].accuracy += sessionAccuracy;
-      locationAccuracies[session.locationId].count++;
     }
 
     // Calculate overall accuracy
@@ -326,13 +339,19 @@ export class InventoryAccuracyReportingService {
     period: { startDate: Date; endDate: Date },
   ): Promise<DetailedAccuracyData> {
     // Get count sessions
-    const sessions = await this.cycleCountRepository.findSessions(tenantId, {
-      locationId: query.locationId,
+    const sessionQuery2: StockCountSessionQueryDto = {
       scheduledDateFrom: period.startDate,
       scheduledDateTo: period.endDate,
-      status: 'completed',
+      status: 'completed' as const,
       limit: 1000,
-    });
+    };
+
+    // Only add locationId if it's defined and not undefined
+    if (query.locationId !== undefined) {
+      sessionQuery2.locationId = query.locationId;
+    }
+
+    const sessions = await this.cycleCountRepository.findSessions(tenantId, sessionQuery2);
 
     // Get all count items for variance analysis
     const allCountItems: any[] = [];
@@ -372,13 +391,19 @@ export class InventoryAccuracyReportingService {
     // Get extended period for trend analysis (6 months)
     const extendedStartDate = new Date(period.startDate.getTime() - 180 * 24 * 60 * 60 * 1000);
 
-    const sessions = await this.cycleCountRepository.findSessions(tenantId, {
-      locationId: query.locationId,
+    const sessionQuery: StockCountSessionQueryDto = {
       scheduledDateFrom: extendedStartDate,
       scheduledDateTo: period.endDate,
       status: 'completed',
       limit: 2000,
-    });
+    };
+
+    // Only add locationId if it's defined and not undefined
+    if (query.locationId !== undefined) {
+      sessionQuery.locationId = query.locationId;
+    }
+
+    const sessions = await this.cycleCountRepository.findSessions(tenantId, sessionQuery);
 
     // Group sessions by time periods
     const monthlyData: { [month: string]: { sessions: any[]; totalItems: number; totalVariances: number; totalValue: number } } = {};
@@ -386,34 +411,38 @@ export class InventoryAccuracyReportingService {
     const dailyData: { [date: string]: { sessions: any[]; varianceCount: number } } = {};
 
     for (const session of sessions.sessions) {
-      const date = new Date(session.completedAt || session.scheduledDate);
+      const date = new Date(session.completedAt || session.scheduledDate || new Date());
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const weekKey = this.getWeekKey(date);
       const dateKey = date.toISOString().split('T')[0];
+
+      const totalItemsCounted = session.totalItemsCounted ?? 0;
+      const totalVariances = session.totalVariances ?? 0;
+      const totalAdjustmentValue = session.totalAdjustmentValue ?? 0;
 
       // Monthly
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { sessions: [], totalItems: 0, totalVariances: 0, totalValue: 0 };
       }
       monthlyData[monthKey].sessions.push(session);
-      monthlyData[monthKey].totalItems += session.totalItemsCounted;
-      monthlyData[monthKey].totalVariances += session.totalVariances;
-      monthlyData[monthKey].totalValue += session.totalAdjustmentValue;
+      monthlyData[monthKey].totalItems += totalItemsCounted;
+      monthlyData[monthKey].totalVariances += totalVariances;
+      monthlyData[monthKey].totalValue += totalAdjustmentValue;
 
       // Weekly
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = { sessions: [], totalItems: 0, totalVariances: 0 };
       }
       weeklyData[weekKey].sessions.push(session);
-      weeklyData[weekKey].totalItems += session.totalItemsCounted;
-      weeklyData[weekKey].totalVariances += session.totalVariances;
+      weeklyData[weekKey].totalItems += totalItemsCounted;
+      weeklyData[weekKey].totalVariances += totalVariances;
 
       // Daily
       if (!dailyData[dateKey]) {
         dailyData[dateKey] = { sessions: [], varianceCount: 0 };
       }
       dailyData[dateKey].sessions.push(session);
-      dailyData[dateKey].varianceCount += session.totalVariances;
+      dailyData[dateKey].varianceCount += totalVariances;
     }
 
     // Calculate trends
@@ -461,26 +490,38 @@ export class InventoryAccuracyReportingService {
     period: { startDate: Date; endDate: Date },
   ): Promise<ComparativeAccuracyData> {
     // Get current period data
-    const currentSessions = await this.cycleCountRepository.findSessions(tenantId, {
-      locationId: query.locationId,
+    const currentSessionQuery: StockCountSessionQueryDto = {
       scheduledDateFrom: period.startDate,
       scheduledDateTo: period.endDate,
       status: 'completed',
       limit: 1000,
-    });
+    };
+
+    // Only add locationId if it's defined and not undefined
+    if (query.locationId !== undefined) {
+      currentSessionQuery.locationId = query.locationId;
+    }
+
+    const currentSessions = await this.cycleCountRepository.findSessions(tenantId, currentSessionQuery);
 
     // Get previous period data (same duration)
     const periodDuration = period.endDate.getTime() - period.startDate.getTime();
     const previousPeriodEnd = period.startDate;
     const previousPeriodStart = new Date(previousPeriodEnd.getTime() - periodDuration);
 
-    const previousSessions = await this.cycleCountRepository.findSessions(tenantId, {
-      locationId: query.locationId,
+    const previousSessionQuery: StockCountSessionQueryDto = {
       scheduledDateFrom: previousPeriodStart,
       scheduledDateTo: previousPeriodEnd,
       status: 'completed',
       limit: 1000,
-    });
+    };
+
+    // Only add locationId if it's defined and not undefined
+    if (query.locationId !== undefined) {
+      previousSessionQuery.locationId = query.locationId;
+    }
+
+    const previousSessions = await this.cycleCountRepository.findSessions(tenantId, previousSessionQuery);
 
     // Calculate location comparisons
     const locationComparison = await this.calculateLocationComparisons(
@@ -667,8 +708,9 @@ export class InventoryAccuracyReportingService {
         item.variance && Math.abs(item.variance) > 0.001
       ).length;
 
-      const accuracyPercentage = session.totalItemsCounted > 0 ? 
-        ((session.totalItemsCounted - itemsWithVariances) / session.totalItemsCounted) * 100 : 100;
+      const totalItemsCounted = session.totalItemsCounted ?? 0;
+      const accuracyPercentage = totalItemsCounted > 0 ? 
+        ((totalItemsCounted - itemsWithVariances) / totalItemsCounted) * 100 : 100;
 
       // Calculate count duration
       const countDuration = session.startedAt && session.completedAt ? 
@@ -681,18 +723,18 @@ export class InventoryAccuracyReportingService {
       )];
 
       // Calculate completion rate
-      const completionRate = session.totalItemsCounted > 0 ? 
-        (sessionItems.filter(item => item.status === 'counted' || item.status === 'adjusted').length / session.totalItemsCounted) * 100 : 0;
+      const completionRate = totalItemsCounted > 0 ? 
+        (sessionItems.filter(item => item.status === 'counted' || item.status === 'adjusted').length / totalItemsCounted) * 100 : 0;
 
       return {
         sessionId: session.id,
         sessionNumber: session.sessionNumber,
         locationId: session.locationId,
         countDate: session.completedAt || session.scheduledDate,
-        totalItems: session.totalItemsCounted,
+        totalItems: totalItemsCounted,
         itemsWithVariances,
         accuracyPercentage,
-        totalVarianceValue: session.totalAdjustmentValue,
+        totalVarianceValue: session.totalAdjustmentValue ?? 0,
         countDuration,
         countersInvolved,
         completionRate,

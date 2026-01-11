@@ -204,7 +204,7 @@ export class InventoryReportingService {
           productId: level.productId,
           productName: level.product?.name || 'Unknown',
           sku: level.product?.sku || '',
-          variantId: level.variantId,
+          variantId: level.variantId || undefined,
           variantName: level.variant?.name,
           locationId: level.locationId,
           currentLevel: level.currentLevel,
@@ -215,7 +215,7 @@ export class InventoryReportingService {
           unitCost: level.averageCost,
           totalValue: totalItemValue,
           status,
-          lastMovementAt: level.lastMovementAt,
+          lastMovementAt: level.lastMovementAt || undefined,
           daysWithoutMovement,
         });
       }
@@ -239,7 +239,7 @@ export class InventoryReportingService {
         summary: data.summary,
       };
 
-      await this.cacheService.set(cacheKey, report, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, report, { ttl: 300 }); // 5 minutes
     }
 
     return report;
@@ -251,14 +251,18 @@ export class InventoryReportingService {
 
     if (!report) {
       // Get movements based on query
-      const movements = await this.movementRepository.findMany(tenantId, {
-        productId: query.productId,
-        locationId: query.locationId,
-        dateFrom: query.dateFrom,
-        dateTo: query.dateTo,
+      const movementQuery: any = {
         page: 1,
         limit: 10000,
-      });
+      };
+
+      // Only add optional properties if they are defined
+      if (query.productId !== undefined) movementQuery.productId = query.productId;
+      if (query.locationId !== undefined) movementQuery.locationId = query.locationId;
+      if (query.dateFrom !== undefined) movementQuery.dateFrom = query.dateFrom;
+      if (query.dateTo !== undefined) movementQuery.dateTo = query.dateTo;
+
+      const movements = await this.movementRepository.findMany(tenantId, movementQuery);
 
       const movementItems: MovementItem[] = [];
       let totalInbound = 0;
@@ -281,7 +285,7 @@ export class InventoryReportingService {
           productId: movement.productId,
           productName: movement.product?.name || 'Unknown',
           sku: movement.product?.sku || '',
-          variantId: movement.variantId,
+          variantId: movement.variantId || undefined,
           locationId: movement.locationId,
           movementType: movement.movementType,
           quantity: movement.quantity,
@@ -289,13 +293,13 @@ export class InventoryReportingService {
           totalCost: movement.totalCost,
           previousLevel: movement.previousLevel,
           newLevel: movement.newLevel,
-          referenceType: movement.referenceType,
-          referenceId: movement.referenceId,
-          batchNumber: movement.batchNumber,
-          reason: movement.reason,
-          notes: movement.notes,
+          referenceType: movement.referenceType || undefined,
+          referenceId: movement.referenceId || undefined,
+          batchNumber: movement.batchNumber || undefined,
+          reason: movement.reason || undefined,
+          notes: movement.notes || undefined,
           createdAt: movement.createdAt,
-          createdBy: movement.createdBy,
+          createdBy: movement.createdBy || undefined,
         });
       }
 
@@ -318,7 +322,7 @@ export class InventoryReportingService {
         summary: data.summary,
       };
 
-      await this.cacheService.set(cacheKey, report, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, report, { ttl: 300 }); // 5 minutes
     }
 
     return report;
@@ -383,8 +387,8 @@ export class InventoryReportingService {
           ageGroup = '180+ days';
         }
 
-        ageGroups[ageGroup]++;
-        valueByAgeGroup[ageGroup] += totalItemValue;
+        (ageGroups as any)[ageGroup]++;
+        (valueByAgeGroup as any)[ageGroup] += totalItemValue;
 
         const daysUntilExpiry = batch.expiryDate ? 
           Math.floor((batch.expiryDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 
@@ -429,7 +433,7 @@ export class InventoryReportingService {
         summary: data.summary,
       };
 
-      await this.cacheService.set(cacheKey, report, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, report, { ttl: 300 }); // 5 minutes
     }
 
     return report;
@@ -467,7 +471,7 @@ export class InventoryReportingService {
         const turnoverData = await this.calculateTurnoverMetrics(
           tenantId,
           level.productId,
-          level.variantId,
+          level.variantId || null,
           level.locationId,
           query.dateFrom,
           query.dateTo,
@@ -494,7 +498,7 @@ export class InventoryReportingService {
           productId: level.productId,
           productName: level.product?.name || 'Unknown',
           sku: level.product?.sku || '',
-          variantId: level.variantId,
+          variantId: level.variantId || undefined,
           locationId: level.locationId,
           averageInventory: turnoverData.averageInventory,
           costOfGoodsSold: turnoverData.costOfGoodsSold,
@@ -526,18 +530,21 @@ export class InventoryReportingService {
         summary: data.summary,
       };
 
-      await this.cacheService.set(cacheKey, report, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, report, { ttl: 300 }); // 5 minutes
     }
 
     return report;
   }
 
   async generateValuationReport(tenantId: string, query: ReportQueryDto = {}): Promise<InventoryReport> {
-    const valuationSummary = await this.valuationService.getValuationSummary(tenantId, {
-      locationId: query.locationId,
-      productId: query.productId,
-      asOfDate: query.dateTo,
-    });
+    const valuationQuery: any = {};
+
+    // Only add optional properties if they are defined
+    if (query.locationId !== undefined) valuationQuery.locationId = query.locationId;
+    if (query.productId !== undefined) valuationQuery.productId = query.productId;
+    if (query.dateTo !== undefined) valuationQuery.asOfDate = query.dateTo;
+
+    const valuationSummary = await this.valuationService.getValuationSummary(tenantId, valuationQuery);
 
     const report: InventoryReport = {
       reportType: 'valuation',
@@ -615,8 +622,8 @@ export class InventoryReportingService {
       costOfGoodsSold,
       turnoverRatio,
       daysOfSupply,
-      lastSaleDate,
-      daysSinceLastSale,
+      lastSaleDate: lastSaleDate || undefined,
+      daysSinceLastSale: daysSinceLastSale || undefined,
     };
   }
 }

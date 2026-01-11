@@ -70,7 +70,7 @@ export class ProductBrandService {
 
   async findById(tenantId: string, id: string): Promise<any> {
     const cacheKey = `brand:${tenantId}:${id}`;
-    let brand = await this.cacheService.get(cacheKey);
+    let brand = await this.cacheService.get<any>(cacheKey);
 
     if (!brand) {
       brand = await this.brandRepository.findById(tenantId, id);
@@ -78,7 +78,7 @@ export class ProductBrandService {
         throw new NotFoundException('Brand not found');
       }
 
-      await this.cacheService.set(cacheKey, brand, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, brand, { ttl: 300 }); // 5 minutes
     }
 
     return brand;
@@ -86,7 +86,7 @@ export class ProductBrandService {
 
   async findBySlug(tenantId: string, slug: string): Promise<any> {
     const cacheKey = `brand:${tenantId}:slug:${slug}`;
-    let brand = await this.cacheService.get(cacheKey);
+    let brand = await this.cacheService.get<any>(cacheKey);
 
     if (!brand) {
       brand = await this.brandRepository.findBySlug(tenantId, slug);
@@ -94,7 +94,7 @@ export class ProductBrandService {
         throw new NotFoundException('Brand not found');
       }
 
-      await this.cacheService.set(cacheKey, brand, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, brand, { ttl: 300 }); // 5 minutes
     }
 
     return brand;
@@ -108,11 +108,17 @@ export class ProductBrandService {
     totalPages: number;
   }> {
     const cacheKey = `brands:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      brands: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.brandRepository.findMany(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;

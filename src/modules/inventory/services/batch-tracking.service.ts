@@ -120,7 +120,7 @@ export class BatchTrackingService {
 
   async findById(tenantId: string, id: string): Promise<any> {
     const cacheKey = `batch:${tenantId}:${id}`;
-    let batch = await this.cacheService.get(cacheKey);
+    let batch = await this.cacheService.get<any>(cacheKey);
 
     if (!batch) {
       batch = await this.batchRepository.findById(tenantId, id);
@@ -128,7 +128,7 @@ export class BatchTrackingService {
         throw new NotFoundException('Batch not found');
       }
 
-      await this.cacheService.set(cacheKey, batch, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, batch, { ttl: 300 }); // 5 minutes
     }
 
     return batch;
@@ -136,7 +136,7 @@ export class BatchTrackingService {
 
   async findByBatchNumber(tenantId: string, batchNumber: string, locationId: string): Promise<any> {
     const cacheKey = `batch:${tenantId}:${batchNumber}:${locationId}`;
-    let batch = await this.cacheService.get(cacheKey);
+    let batch = await this.cacheService.get<any>(cacheKey);
 
     if (!batch) {
       batch = await this.batchRepository.findByBatchNumber(tenantId, batchNumber, locationId);
@@ -144,7 +144,7 @@ export class BatchTrackingService {
         throw new NotFoundException('Batch not found');
       }
 
-      await this.cacheService.set(cacheKey, batch, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, batch, { ttl: 300 }); // 5 minutes
     }
 
     return batch;
@@ -158,11 +158,17 @@ export class BatchTrackingService {
     totalPages: number;
   }> {
     const cacheKey = `batches:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      batches: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.batchRepository.findMany(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -201,14 +207,14 @@ export class BatchTrackingService {
 
   async getExpiringBatches(tenantId: string, daysAhead: number = 30, locationId?: string): Promise<any[]> {
     const cacheKey = `batches:${tenantId}:expiring:${daysAhead}:${locationId || 'all'}`;
-    let expiringBatches = await this.cacheService.get(cacheKey);
+    let expiringBatches = await this.cacheService.get<any[]>(cacheKey);
 
     if (!expiringBatches) {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + daysAhead);
 
       expiringBatches = await this.batchRepository.findExpiringBatches(tenantId, expiryDate, locationId);
-      await this.cacheService.set(cacheKey, expiringBatches, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, expiringBatches, { ttl: 300 }); // 5 minutes
     }
 
     return expiringBatches;
@@ -229,7 +235,7 @@ export class BatchTrackingService {
         batch.batchNumber,
         batch.locationId,
         batch.currentQuantity,
-        batch.expiryDate,
+        batch.expiryDate!, // We know it exists since we found expired batches
       ));
     }
 
@@ -288,11 +294,11 @@ export class BatchTrackingService {
 
   async getFIFOBatches(tenantId: string, productId: string, variantId: string | null, locationId: string): Promise<any[]> {
     const cacheKey = `batches:${tenantId}:fifo:${productId}:${variantId || 'null'}:${locationId}`;
-    let fifoBatches = await this.cacheService.get(cacheKey);
+    let fifoBatches = await this.cacheService.get<any[]>(cacheKey);
 
     if (!fifoBatches) {
       fifoBatches = await this.batchRepository.findFIFOBatches(tenantId, productId, variantId, locationId);
-      await this.cacheService.set(cacheKey, fifoBatches, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, fifoBatches, { ttl: 180 }); // 3 minutes
     }
 
     return fifoBatches;
@@ -300,11 +306,11 @@ export class BatchTrackingService {
 
   async getLIFOBatches(tenantId: string, productId: string, variantId: string | null, locationId: string): Promise<any[]> {
     const cacheKey = `batches:${tenantId}:lifo:${productId}:${variantId || 'null'}:${locationId}`;
-    let lifoBatches = await this.cacheService.get(cacheKey);
+    let lifoBatches = await this.cacheService.get<any[]>(cacheKey);
 
     if (!lifoBatches) {
       lifoBatches = await this.batchRepository.findLIFOBatches(tenantId, productId, variantId, locationId);
-      await this.cacheService.set(cacheKey, lifoBatches, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, lifoBatches, { ttl: 180 }); // 3 minutes
     }
 
     return lifoBatches;
@@ -312,11 +318,11 @@ export class BatchTrackingService {
 
   async getFEFOBatches(tenantId: string, productId: string, variantId: string | null, locationId: string): Promise<any[]> {
     const cacheKey = `batches:${tenantId}:fefo:${productId}:${variantId || 'null'}:${locationId}`;
-    let fefoBatches = await this.cacheService.get(cacheKey);
+    let fefoBatches = await this.cacheService.get<any[]>(cacheKey);
 
     if (!fefoBatches) {
       fefoBatches = await this.batchRepository.findFEFOBatches(tenantId, productId, variantId, locationId);
-      await this.cacheService.set(cacheKey, fefoBatches, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, fefoBatches, { ttl: 180 }); // 3 minutes
     }
 
     return fefoBatches;
@@ -346,11 +352,11 @@ export class BatchTrackingService {
 
   async getBatchHistory(tenantId: string, batchId: string): Promise<any[]> {
     const cacheKey = `batch:${tenantId}:${batchId}:history`;
-    let history = await this.cacheService.get(cacheKey);
+    let history = await this.cacheService.get<any[]>(cacheKey);
 
     if (!history) {
       history = await this.batchRepository.getBatchHistory(tenantId, batchId);
-      await this.cacheService.set(cacheKey, history, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, history, { ttl: 300 }); // 5 minutes
     }
 
     return history;

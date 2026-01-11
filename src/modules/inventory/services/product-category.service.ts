@@ -78,7 +78,7 @@ export class ProductCategoryService {
 
   async findById(tenantId: string, id: string): Promise<any> {
     const cacheKey = `category:${tenantId}:${id}`;
-    let category = await this.cacheService.get(cacheKey);
+    let category = await this.cacheService.get<any>(cacheKey);
 
     if (!category) {
       category = await this.categoryRepository.findById(tenantId, id);
@@ -86,7 +86,7 @@ export class ProductCategoryService {
         throw new NotFoundException('Category not found');
       }
 
-      await this.cacheService.set(cacheKey, category, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, category, { ttl: 300 }); // 5 minutes
     }
 
     return category;
@@ -94,7 +94,7 @@ export class ProductCategoryService {
 
   async findBySlug(tenantId: string, slug: string): Promise<any> {
     const cacheKey = `category:${tenantId}:slug:${slug}`;
-    let category = await this.cacheService.get(cacheKey);
+    let category = await this.cacheService.get<any>(cacheKey);
 
     if (!category) {
       category = await this.categoryRepository.findBySlug(tenantId, slug);
@@ -102,7 +102,7 @@ export class ProductCategoryService {
         throw new NotFoundException('Category not found');
       }
 
-      await this.cacheService.set(cacheKey, category, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, category, { ttl: 300 }); // 5 minutes
     }
 
     return category;
@@ -116,11 +116,17 @@ export class ProductCategoryService {
     totalPages: number;
   }> {
     const cacheKey = `categories:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      categories: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.categoryRepository.findMany(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -128,11 +134,11 @@ export class ProductCategoryService {
 
   async findTree(tenantId: string): Promise<any[]> {
     const cacheKey = `categories:${tenantId}:tree`;
-    let tree = await this.cacheService.get(cacheKey);
+    let tree = await this.cacheService.get<any[]>(cacheKey);
 
     if (!tree) {
       tree = await this.categoryRepository.findTree(tenantId);
-      await this.cacheService.set(cacheKey, tree, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, tree, { ttl: 300 }); // 5 minutes
     }
 
     return tree;
@@ -140,11 +146,11 @@ export class ProductCategoryService {
 
   async findChildren(tenantId: string, parentId: string): Promise<any[]> {
     const cacheKey = `categories:${tenantId}:children:${parentId}`;
-    let children = await this.cacheService.get(cacheKey);
+    let children = await this.cacheService.get<any[]>(cacheKey);
 
     if (!children) {
       children = await this.categoryRepository.findChildren(tenantId, parentId);
-      await this.cacheService.set(cacheKey, children, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, children, { ttl: 300 }); // 5 minutes
     }
 
     return children;
@@ -232,7 +238,7 @@ export class ProductCategoryService {
   }
 
   private async checkCircularReference(tenantId: string, categoryId: string, parentId: string): Promise<boolean> {
-    let currentParentId = parentId;
+    let currentParentId: string | null = parentId;
     const visited = new Set<string>();
 
     while (currentParentId) {
@@ -251,7 +257,7 @@ export class ProductCategoryService {
         break;
       }
 
-      currentParentId = parent.parentId;
+      currentParentId = parent.parentId || null;
     }
 
     return false;

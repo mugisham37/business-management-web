@@ -103,7 +103,7 @@ export class InventoryValuationService {
         const valuation = await this.calculateProductValuation(
           tenantId,
           level.productId,
-          level.variantId,
+          level.variantId || null, // Convert undefined to null
           level.locationId,
           query.valuationMethod || level.valuationMethod as any,
           query.asOfDate,
@@ -114,7 +114,7 @@ export class InventoryValuationService {
         }
       }
 
-      await this.cacheService.set(cacheKey, valuations, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, valuations, { ttl: 300 }); // 5 minutes
     }
 
     return valuations;
@@ -197,7 +197,7 @@ export class InventoryValuationService {
 
     return {
       productId,
-      variantId,
+      variantId: variantId || undefined,
       locationId,
       currentQuantity: inventoryLevel.currentLevel,
       valuationMethod,
@@ -280,7 +280,7 @@ export class InventoryValuationService {
         valuationsByProduct: Array.from(productMap.values()),
       };
 
-      await this.cacheService.set(cacheKey, summary, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, summary, { ttl: 300 }); // 5 minutes
     }
 
     return summary;
@@ -366,7 +366,7 @@ export class InventoryValuationService {
         unitCost: batch.unitCost,
         totalValue: batchValue,
         receivedDate: batch.receivedDate,
-        expiryDate: batch.expiryDate,
+        expiryDate: batch.expiryDate || new Date(), // Provide default date if undefined
       });
     }
 
@@ -410,7 +410,7 @@ export class InventoryValuationService {
         unitCost: batch.unitCost,
         totalValue: batchValue,
         receivedDate: batch.receivedDate,
-        expiryDate: batch.expiryDate,
+        expiryDate: batch.expiryDate || new Date(), // Provide default date if undefined
       });
     }
 
