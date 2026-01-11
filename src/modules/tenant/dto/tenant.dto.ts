@@ -23,25 +23,25 @@ export class BusinessMetricsDto {
   @ApiProperty({ description: 'Number of employees', minimum: 0 })
   @IsNumber()
   @Min(0)
-  employeeCount: number;
+  employeeCount!: number;
 
   @Field()
   @ApiProperty({ description: 'Number of locations', minimum: 1 })
   @IsNumber()
   @Min(1)
-  locationCount: number;
+  locationCount!: number;
 
   @Field()
   @ApiProperty({ description: 'Monthly transaction volume', minimum: 0 })
   @IsNumber()
   @Min(0)
-  monthlyTransactionVolume: number;
+  monthlyTransactionVolume!: number;
 
   @Field()
   @ApiProperty({ description: 'Monthly revenue in cents', minimum: 0 })
   @IsNumber()
   @Min(0)
-  monthlyRevenue: number;
+  monthlyRevenue!: number;
 }
 
 @InputType()
@@ -86,7 +86,7 @@ export class CreateTenantDto {
   @ApiProperty({ description: 'Tenant name', minLength: 1, maxLength: 255 })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @Field()
   @ApiProperty({ 
@@ -99,7 +99,7 @@ export class CreateTenantDto {
   @Matches(/^[a-z0-9-]+$/, { 
     message: 'Slug must contain only lowercase letters, numbers, and hyphens' 
   })
-  slug: string;
+  slug!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Contact email' })

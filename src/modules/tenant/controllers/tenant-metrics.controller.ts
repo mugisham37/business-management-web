@@ -33,18 +33,18 @@ import { BusinessMetrics, BusinessTier } from '../entities/tenant.entity';
 
 export class MetricsUpdateDto {
   @ApiProperty({ description: 'Event type', enum: ['transaction', 'employee', 'location', 'revenue'] })
-  eventType: 'transaction' | 'employee' | 'location' | 'revenue';
+  eventType!: 'transaction' | 'employee' | 'location' | 'revenue';
 
   @ApiProperty({ description: 'Event data' })
-  data: any;
+  data!: any;
 }
 
 export class MetricsHistoryQueryDto {
   @ApiProperty({ description: 'Start date for history query' })
-  startDate: string;
+  startDate!: string;
 
   @ApiProperty({ description: 'End date for history query' })
-  endDate: string;
+  endDate!: string;
 }
 
 @ApiTags('Tenant Metrics')

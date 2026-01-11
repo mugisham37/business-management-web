@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { FeatureFlagService } from '../services/feature-flag.service';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 import { BusinessTier } from '../entities/tenant.entity';
 import { AuthenticatedUser } from './tenant.guard';
 
@@ -11,7 +11,7 @@ export class FeatureGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly featureFlagService: FeatureFlagService,
-    private readonly logger: LoggerService,
+    private readonly logger: CustomLoggerService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -77,8 +77,7 @@ export class FeatureGuard implements CanActivate {
 
         if (!hasFeature) {
           this.logger.warn(
-            `Feature access denied: ${requiredFeature} for tenant ${user.tenantId} (tier: ${tenantContext.businessTier})`,
-            'FeatureGuard',
+            `Feature access denied: ${requiredFeature} for tenant ${user.tenantId} (tier: ${tenantContext.businessTier})`
           );
 
           throw new ForbiddenException({
@@ -92,8 +91,7 @@ export class FeatureGuard implements CanActivate {
 
       // Log successful feature access
       this.logger.debug(
-        `Feature access granted: ${requiredFeature || 'tier-based'} for tenant ${user.tenantId}`,
-        'FeatureGuard',
+        `Feature access granted: ${requiredFeature || 'tier-based'} for tenant ${user.tenantId}`
       );
 
       return true;
@@ -102,10 +100,13 @@ export class FeatureGuard implements CanActivate {
         throw error;
       }
 
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+
       this.logger.error(
-        `Feature guard evaluation failed: ${error.message}`,
-        error.stack,
-        'FeatureGuard',
+        `Feature guard evaluation failed: ${errorMessage}`,
+        errorStack,
+        { tenantId: user.tenantId },
       );
 
       throw new ForbiddenException('Feature access evaluation failed');

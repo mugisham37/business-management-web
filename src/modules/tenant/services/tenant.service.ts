@@ -3,7 +3,7 @@ import { eq, and, or, like, desc, asc, count } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { tenants, auditLogs } from '../../database/schema';
 import { BusinessMetricsService } from './business-metrics.service';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 import { 
   CreateTenantDto, 
   UpdateTenantDto, 
@@ -17,7 +17,7 @@ export class TenantService {
   constructor(
     private readonly drizzle: DrizzleService,
     private readonly businessMetricsService: BusinessMetricsService,
-    private readonly logger: LoggerService,
+    private readonly logger: CustomLoggerService,
   ) {}
 
   /**
@@ -49,7 +49,7 @@ export class TenantService {
     trialEndDate.setDate(trialEndDate.getDate() + 30);
 
     try {
-      const [newTenant] = await this.drizzle.db
+      const [newTenant] = await this.drizzle.getDb()
         .insert(tenants)
         .values({
           name,
@@ -65,14 +65,20 @@ export class TenantService {
         })
         .returning();
 
-      this.logger.log(`Created new tenant: ${name} (${slug})`, 'TenantService');
+      if (!newTenant) {
+        throw new Error('Failed to create tenant: No data returned');
+      }
+
+      this.logger.log(`Created new tenant: ${name} (${slug})`);
 
       // Log audit event
       await this.logAuditEvent('create', newTenant.id, null, newTenant, createdBy);
 
       return this.mapToEntity(newTenant);
     } catch (error) {
-      this.logger.error(`Failed to create tenant: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to create tenant: ${errorMessage}`, errorStack);
       throw new BadRequestException('Failed to create tenant');
     }
   }
@@ -82,14 +88,16 @@ export class TenantService {
    */
   async findById(id: string): Promise<Tenant | null> {
     try {
-      const [tenant] = await this.drizzle.db
+      const [tenant] = await this.drizzle.getDb()
         .select()
         .from(tenants)
         .where(and(eq(tenants.id, id), eq(tenants.isActive, true)));
 
       return tenant ? this.mapToEntity(tenant) : null;
     } catch (error) {
-      this.logger.error(`Failed to find tenant by ID: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to find tenant by ID: ${errorMessage}`, errorStack);
       return null;
     }
   }
@@ -99,14 +107,16 @@ export class TenantService {
    */
   async findBySlug(slug: string): Promise<Tenant | null> {
     try {
-      const [tenant] = await this.drizzle.db
+      const [tenant] = await this.drizzle.getDb()
         .select()
         .from(tenants)
         .where(and(eq(tenants.slug, slug), eq(tenants.isActive, true)));
 
       return tenant ? this.mapToEntity(tenant) : null;
     } catch (error) {
-      this.logger.error(`Failed to find tenant by slug: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to find tenant by slug: ${errorMessage}`, errorStack);
       return null;
     }
   }
@@ -120,7 +130,7 @@ export class TenantService {
 
     try {
       // Build where conditions
-      const conditions = [eq(tenants.isActive, isActive ?? true)];
+      const conditions: any[] = [eq(tenants.isActive, isActive ?? true)];
 
       if (businessTier) {
         conditions.push(eq(tenants.businessTier, businessTier));
@@ -135,18 +145,20 @@ export class TenantService {
           or(
             like(tenants.name, `%${search}%`),
             like(tenants.slug, `%${search}%`),
-          ),
+          ) as any,
         );
       }
 
       // Get total count
-      const [{ count: total }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: count() })
         .from(tenants)
         .where(and(...conditions));
 
+      const total = countResult?.[0]?.count ?? 0;
+
       // Get paginated results
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(tenants)
         .where(and(...conditions))
@@ -159,7 +171,9 @@ export class TenantService {
         total,
       };
     } catch (error) {
-      this.logger.error(`Failed to find tenants: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to find tenants: ${errorMessage}`, errorStack);
       throw new BadRequestException('Failed to retrieve tenants');
     }
   }
@@ -182,7 +196,7 @@ export class TenantService {
     }
 
     try {
-      const [updatedTenant] = await this.drizzle.db
+      const [updatedTenant] = await this.drizzle.getDb()
         .update(tenants)
         .set({
           ...updateTenantDto,
@@ -192,14 +206,20 @@ export class TenantService {
         .where(eq(tenants.id, id))
         .returning();
 
-      this.logger.log(`Updated tenant: ${updatedTenant.name} (${id})`, 'TenantService');
+      if (!updatedTenant) {
+        throw new Error('Failed to update tenant: No data returned');
+      }
+
+      this.logger.log(`Updated tenant: ${updatedTenant.name} (${id})`);
 
       // Log audit event
       await this.logAuditEvent('update', id, existingTenant, updatedTenant, updatedBy);
 
       return this.mapToEntity(updatedTenant);
     } catch (error) {
-      this.logger.error(`Failed to update tenant: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to update tenant: ${errorMessage}`, errorStack);
       throw new BadRequestException('Failed to update tenant');
     }
   }
@@ -227,7 +247,7 @@ export class TenantService {
     const newBusinessTier = this.businessMetricsService.calculateBusinessTier(updatedMetrics);
 
     try {
-      const [updatedTenant] = await this.drizzle.db
+      const [updatedTenant] = await this.drizzle.getDb()
         .update(tenants)
         .set({
           metrics: updatedMetrics,
@@ -238,9 +258,12 @@ export class TenantService {
         .where(eq(tenants.id, id))
         .returning();
 
+      if (!updatedTenant) {
+        throw new Error('Failed to update business metrics: No data returned');
+      }
+
       this.logger.log(
-        `Updated business metrics for tenant: ${updatedTenant.name} (${id}). New tier: ${newBusinessTier}`,
-        'TenantService',
+        `Updated business metrics for tenant: ${updatedTenant.name} (${id}). New tier: ${newBusinessTier}`
       );
 
       // Log audit event
@@ -248,7 +271,9 @@ export class TenantService {
 
       return this.mapToEntity(updatedTenant);
     } catch (error) {
-      this.logger.error(`Failed to update business metrics: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to update business metrics: ${errorMessage}`, errorStack);
       throw new BadRequestException('Failed to update business metrics');
     }
   }
@@ -263,7 +288,7 @@ export class TenantService {
     }
 
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(tenants)
         .set({
           isActive: false,
@@ -273,12 +298,14 @@ export class TenantService {
         })
         .where(eq(tenants.id, id));
 
-      this.logger.log(`Soft deleted tenant: ${existingTenant.name} (${id})`, 'TenantService');
+      this.logger.log(`Soft deleted tenant: ${existingTenant.name} (${id})`);
 
       // Log audit event
       await this.logAuditEvent('delete', id, existingTenant, null, deletedBy);
     } catch (error) {
-      this.logger.error(`Failed to delete tenant: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to delete tenant: ${errorMessage}`, errorStack);
       throw new BadRequestException('Failed to delete tenant');
     }
   }
@@ -354,7 +381,7 @@ export class TenantService {
     userId?: string,
   ): Promise<void> {
     try {
-      await this.drizzle.db.insert(auditLogs).values({
+      await this.drizzle.getDb().insert(auditLogs).values({
         tenantId,
         userId,
         action: action as any,
@@ -368,7 +395,9 @@ export class TenantService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to log audit event: ${error.message}`, error.stack, 'TenantService');
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+      this.logger.error(`Failed to log audit event: ${errorMessage}`, errorStack);
     }
   }
 }

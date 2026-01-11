@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BusinessTier } from '../entities/tenant.entity';
 import { BusinessMetricsDto } from '../dto/tenant.dto';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 
 export interface BusinessMetrics {
   employeeCount: number;
@@ -46,7 +46,7 @@ export class BusinessMetricsService {
     },
   };
 
-  constructor(private readonly logger: LoggerService) {}
+  constructor(private readonly logger: CustomLoggerService) {}
 
   /**
    * Calculate business tier based on current metrics
@@ -120,7 +120,7 @@ export class BusinessMetricsService {
       };
     }
 
-    const nextTier = tierOrder[currentIndex + 1];
+    const nextTier = tierOrder[currentIndex + 1] as BusinessTier;
     const requirements = this.tierThresholds[nextTier];
 
     return {
@@ -165,7 +165,7 @@ export class BusinessMetricsService {
     // Calculate progress toward next tier
     let nextTierProgress = 0;
     if (currentIndex < tierOrder.length - 1) {
-      const nextTier = tierOrder[currentIndex + 1];
+      const nextTier = tierOrder[currentIndex + 1] as BusinessTier;
       nextTierProgress = this.calculateProgressTowardTier(metrics, nextTier);
     }
 

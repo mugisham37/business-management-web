@@ -23,12 +23,12 @@ export class FeatureRuleDto {
   @ApiProperty({ description: 'Rule condition (e.g., "employeeCount > 10")' })
   @IsString()
   @Length(1, 500)
-  condition: string;
+  condition!: string;
 
   @Field()
   @ApiProperty({ description: 'Rule value (true/false)' })
   @IsBoolean()
-  value: boolean;
+  value!: boolean;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Rule description' })
@@ -47,12 +47,12 @@ export class CreateFeatureFlagDto {
   @Matches(/^[a-z0-9-]+$/, { 
     message: 'Feature name must contain only lowercase letters, numbers, and hyphens' 
   })
-  featureName: string;
+  featureName!: string;
 
   @Field()
   @ApiProperty({ description: 'Whether the feature is enabled' })
   @IsBoolean()
-  isEnabled: boolean;
+  isEnabled!: boolean;
 
   @Field(() => BusinessTier, { nullable: true })
   @ApiPropertyOptional({ enum: BusinessTier, description: 'Required business tier for this feature' })
@@ -137,7 +137,7 @@ export class FeatureAccessDto {
   @ApiProperty({ description: 'Feature name to check' })
   @IsString()
   @Length(1, 100)
-  featureName: string;
+  featureName!: string;
 }
 
 export class BulkFeatureAccessDto {
@@ -145,18 +145,18 @@ export class BulkFeatureAccessDto {
   @IsArray()
   @IsString({ each: true })
   @Length(1, 100, { each: true })
-  featureNames: string[];
+  featureNames!: string[];
 }
 
 export class FeatureEvaluationResultDto {
   @ApiProperty({ description: 'Feature name' })
-  featureName: string;
+  featureName!: string;
 
   @ApiProperty({ description: 'Whether the feature is available' })
-  hasAccess: boolean;
+  hasAccess!: boolean;
 
   @ApiProperty({ description: 'Reason for access/denial' })
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({ enum: BusinessTier, description: 'Required tier if access denied' })
   requiredTier?: BusinessTier;

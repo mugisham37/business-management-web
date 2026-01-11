@@ -1,8 +1,8 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 
 export interface TenantContext {
   tenantId: string;
@@ -12,7 +12,7 @@ export interface TenantContext {
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
-  constructor(private readonly logger: LoggerService) {}
+  constructor(private readonly logger: CustomLoggerService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = this.getRequest(context);
@@ -33,8 +33,7 @@ export class TenantInterceptor implements NestInterceptor {
     if (user && tenantContext) {
       this.logger.debug(
         `Request processed for tenant: ${tenantContext.tenant.name} (${tenantContext.tenant.id}) ` +
-        `by user: ${user.email} (${user.id}) - Tier: ${tenantContext.businessTier}`,
-        'TenantInterceptor',
+        `by user: ${user.email} (${user.id}) - Tier: ${tenantContext.businessTier}`
       );
     }
 
@@ -44,18 +43,18 @@ export class TenantInterceptor implements NestInterceptor {
           // Log successful request completion
           if (tenantContext) {
             this.logger.debug(
-              `Request completed successfully for tenant: ${tenantContext.tenant.id}`,
-              'TenantInterceptor',
+              `Request completed successfully for tenant: ${tenantContext.tenant.id}`
             );
           }
         },
         error: (error) => {
           // Log error with tenant context
           if (tenantContext) {
+            const errorMessage = (error as Error).message || 'Unknown error';
+            const errorStack = (error as Error).stack;
             this.logger.error(
-              `Request failed for tenant: ${tenantContext.tenant.id} - Error: ${error.message}`,
-              error.stack,
-              'TenantInterceptor',
+              `Request failed for tenant: ${tenantContext.tenant.id} - Error: ${errorMessage}`,
+              errorStack
             );
           }
         },

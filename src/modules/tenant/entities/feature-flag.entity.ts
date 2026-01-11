@@ -18,11 +18,11 @@ registerEnumType(FeatureFlagStatus, {
 export class FeatureRule {
   @Field()
   @ApiProperty({ description: 'Rule condition (e.g., "employeeCount > 10")' })
-  condition: string;
+  condition!: string;
 
   @Field()
   @ApiProperty({ description: 'Rule value (true/false)' })
-  value: boolean;
+  value!: boolean;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Rule description' })
@@ -33,19 +33,19 @@ export class FeatureRule {
 export class FeatureFlag {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique identifier for the feature flag' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant ID this feature flag belongs to' })
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
   @ApiProperty({ description: 'Feature name (kebab-case)' })
-  featureName: string;
+  featureName!: string;
 
   @Field()
   @ApiProperty({ description: 'Whether the feature is enabled' })
-  isEnabled: boolean;
+  isEnabled!: boolean;
 
   @Field(() => BusinessTier, { nullable: true })
   @ApiProperty({ enum: BusinessTier, description: 'Required business tier for this feature' })
@@ -61,7 +61,7 @@ export class FeatureFlag {
 
   @Field(() => FeatureFlagStatus)
   @ApiProperty({ enum: FeatureFlagStatus, description: 'Feature flag status' })
-  status: FeatureFlagStatus;
+  status!: FeatureFlagStatus;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Feature description' })
@@ -77,11 +77,11 @@ export class FeatureFlag {
 
   @Field()
   @ApiProperty({ description: 'Feature flag creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
   @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 // Predefined feature definitions

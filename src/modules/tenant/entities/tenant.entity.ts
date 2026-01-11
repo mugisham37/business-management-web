@@ -31,19 +31,19 @@ registerEnumType(SubscriptionStatus, {
 export class BusinessMetrics {
   @Field()
   @ApiProperty({ description: 'Number of employees in the organization' })
-  employeeCount: number;
+  employeeCount!: number;
 
   @Field()
   @ApiProperty({ description: 'Number of business locations' })
-  locationCount: number;
+  locationCount!: number;
 
   @Field()
   @ApiProperty({ description: 'Monthly transaction volume' })
-  monthlyTransactionVolume: number;
+  monthlyTransactionVolume!: number;
 
   @Field()
   @ApiProperty({ description: 'Monthly revenue in cents' })
-  monthlyRevenue: number;
+  monthlyRevenue!: number;
 }
 
 @ObjectType()
@@ -73,23 +73,23 @@ export class TenantSettings {
 export class Tenant {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique identifier for the tenant' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant name' })
-  name: string;
+  name!: string;
 
   @Field()
   @ApiProperty({ description: 'Unique slug for the tenant' })
-  slug: string;
+  slug!: string;
 
   @Field(() => BusinessTier)
   @ApiProperty({ enum: BusinessTier, description: 'Current business tier' })
-  businessTier: BusinessTier;
+  businessTier!: BusinessTier;
 
   @Field(() => SubscriptionStatus)
   @ApiProperty({ enum: SubscriptionStatus, description: 'Subscription status' })
-  subscriptionStatus: SubscriptionStatus;
+  subscriptionStatus!: SubscriptionStatus;
 
   @Field(() => TenantSettings, { nullable: true })
   @ApiProperty({ type: TenantSettings, description: 'Tenant configuration settings' })
@@ -97,7 +97,7 @@ export class Tenant {
 
   @Field(() => BusinessMetrics)
   @ApiProperty({ type: BusinessMetrics, description: 'Business metrics for tier calculation' })
-  metrics: BusinessMetrics;
+  metrics!: BusinessMetrics;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Contact email for the tenant' })
@@ -109,11 +109,11 @@ export class Tenant {
 
   @Field()
   @ApiProperty({ description: 'Tenant creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
   @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Subscription start date' })
@@ -129,5 +129,5 @@ export class Tenant {
 
   @Field()
   @ApiProperty({ description: 'Whether the tenant is active' })
-  isActive: boolean;
+  isActive!: boolean;
 }

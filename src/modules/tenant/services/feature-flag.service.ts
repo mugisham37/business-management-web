@@ -4,7 +4,7 @@ import { DrizzleService } from '../../database/drizzle.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { tenantFeatureFlags, tenants } from '../../database/schema';
 import { BusinessMetricsService } from './business-metrics.service';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 import { 
   FeatureFlag, 
   FeatureFlagStatus, 
@@ -28,7 +28,7 @@ export class FeatureFlagService {
     private readonly drizzle: DrizzleService,
     private readonly cacheService: IntelligentCacheService,
     private readonly businessMetricsService: BusinessMetricsService,
-    private readonly logger: LoggerService,
+    private readonly logger: CustomLoggerService,
   ) {}
 
   /**
@@ -49,7 +49,7 @@ export class FeatureFlagService {
 
     try {
       // Get tenant information
-      const [tenant] = await this.drizzle.db
+      const [tenant] = await this.drizzle.getDb()
         .select()
         .from(tenants)
         .where(eq(tenants.id, tenantId));
@@ -61,8 +61,8 @@ export class FeatureFlagService {
       // Build evaluation context
       const evaluationContext: FeatureEvaluationContext = {
         tenantId,
-        businessTier: tenant.businessTier,
-        businessMetrics: tenant.metrics as BusinessMetrics,
+        businessTier: tenant!.businessTier as BusinessTier,
+        businessMetrics: tenant!.metrics as BusinessMetrics,
         ...context,
       };
 
@@ -70,14 +70,15 @@ export class FeatureFlagService {
       hasAccess = await this.evaluateFeatureAccess(featureName, evaluationContext);
 
       // Cache result for 5 minutes
-      await this.cacheService.set(cacheKey, hasAccess, 300);
+      await this.cacheService.set(cacheKey, hasAccess, { ttl: 300 });
 
       return hasAccess;
     } catch (error) {
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
       this.logger.error(
-        `Failed to check feature access: ${error.message}`,
-        error.stack,
-        'FeatureFlagService',
+        `Failed to check feature access: ${errorMessage}`,
+        errorStack,
       );
       
       // Default to false on error
@@ -95,7 +96,7 @@ export class FeatureFlagService {
     // Get feature definition
     const featureDefinition = FEATURE_DEFINITIONS[featureName];
     if (!featureDefinition) {
-      this.logger.warn(`Unknown feature: ${featureName}`, 'FeatureFlagService');
+      this.logger.warn(`Unknown feature: ${featureName}`);
       return false;
     }
 
@@ -140,7 +141,7 @@ export class FeatureFlagService {
    */
   private async getTenantFeatureFlag(tenantId: string, featureName: string): Promise<FeatureFlag | null> {
     try {
-      const [flag] = await this.drizzle.db
+      const [flag] = await this.drizzle.getDb()
         .select()
         .from(tenantFeatureFlags)
         .where(
@@ -153,10 +154,11 @@ export class FeatureFlagService {
 
       return flag ? this.mapFeatureFlagToEntity(flag) : null;
     } catch (error) {
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
       this.logger.error(
-        `Failed to get tenant feature flag: ${error.message}`,
-        error.stack,
-        'FeatureFlagService',
+        `Failed to get tenant feature flag: ${errorMessage}`,
+        errorStack,
       );
       return null;
     }
@@ -209,14 +211,14 @@ export class FeatureFlagService {
   private evaluateRule(rule: FeatureRule, context: FeatureEvaluationContext): boolean {
     try {
       // Simple rule evaluation - in production, use a proper expression evaluator
-      const condition = rule.condition.toLowerCase();
+      const condition = (rule.condition || '').toLowerCase();
       const metrics = context.businessMetrics;
 
       if (condition.includes('employeecount')) {
         const match = condition.match(/employeecount\s*([><=]+)\s*(\d+)/);
         if (match) {
-          const operator = match[1];
-          const value = parseInt(match[2]);
+          const operator = match[1] || '';
+          const value = parseInt(match[2] || '0');
           return this.compareValues(metrics.employeeCount, operator, value);
         }
       }
@@ -224,8 +226,8 @@ export class FeatureFlagService {
       if (condition.includes('locationcount')) {
         const match = condition.match(/locationcount\s*([><=]+)\s*(\d+)/);
         if (match) {
-          const operator = match[1];
-          const value = parseInt(match[2]);
+          const operator = match[1] || '';
+          const value = parseInt(match[2] || '0');
           return this.compareValues(metrics.locationCount, operator, value);
         }
       }
@@ -233,8 +235,8 @@ export class FeatureFlagService {
       if (condition.includes('monthlyrevenue')) {
         const match = condition.match(/monthlyrevenue\s*([><=]+)\s*(\d+)/);
         if (match) {
-          const operator = match[1];
-          const value = parseInt(match[2]);
+          const operator = match[1] || '';
+          const value = parseInt(match[2] || '0');
           return this.compareValues(metrics.monthlyRevenue, operator, value);
         }
       }
@@ -242,8 +244,8 @@ export class FeatureFlagService {
       if (condition.includes('monthlytransactionvolume')) {
         const match = condition.match(/monthlytransactionvolume\s*([><=]+)\s*(\d+)/);
         if (match) {
-          const operator = match[1];
-          const value = parseInt(match[2]);
+          const operator = match[1] || '';
+          const value = parseInt(match[2] || '0');
           return this.compareValues(metrics.monthlyTransactionVolume, operator, value);
         }
       }
@@ -252,9 +254,8 @@ export class FeatureFlagService {
       return rule.value;
     } catch (error) {
       this.logger.error(
-        `Failed to evaluate rule: ${rule.condition} - ${error.message}`,
-        error.stack,
-        'FeatureFlagService',
+        `Failed to evaluate rule: ${rule.condition || 'unknown'} - ${(error as Error).message}`,
+        (error as Error).stack,
       );
       return rule.value;
     }
@@ -291,7 +292,7 @@ export class FeatureFlagService {
     unavailable: FeatureDefinition[];
     upgradeRequired: FeatureDefinition[];
   }> {
-    const [tenant] = await this.drizzle.db
+    const [tenant] = await this.drizzle.getDb()
       .select()
       .from(tenants)
       .where(eq(tenants.id, tenantId));
@@ -302,8 +303,8 @@ export class FeatureFlagService {
 
     const context: FeatureEvaluationContext = {
       tenantId,
-      businessTier: tenant.businessTier,
-      businessMetrics: tenant.metrics as BusinessMetrics,
+      businessTier: tenant!.businessTier as BusinessTier,
+      businessMetrics: tenant!.metrics as BusinessMetrics,
     };
 
     const available: FeatureDefinition[] = [];
@@ -343,7 +344,7 @@ export class FeatureFlagService {
     try {
       if (existingFlag) {
         // Update existing flag
-        const [updatedFlag] = await this.drizzle.db
+        const [updatedFlag] = await this.drizzle.getDb()
           .update(tenantFeatureFlags)
           .set({
             isEnabled,
@@ -367,7 +368,7 @@ export class FeatureFlagService {
         return this.mapFeatureFlagToEntity(updatedFlag);
       } else {
         // Create new flag
-        const [newFlag] = await this.drizzle.db
+        const [newFlag] = await this.drizzle.getDb()
           .insert(tenantFeatureFlags)
           .values({
             tenantId,
@@ -386,10 +387,11 @@ export class FeatureFlagService {
         return this.mapFeatureFlagToEntity(newFlag);
       }
     } catch (error) {
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
       this.logger.error(
-        `Failed to set tenant feature flag: ${error.message}`,
-        error.stack,
-        'FeatureFlagService',
+        `Failed to set tenant feature flag: ${errorMessage}`,
+        errorStack,
       );
       throw new BadRequestException('Failed to update feature flag');
     }

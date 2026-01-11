@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Unauthor
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { TenantService } from '../services/tenant.service';
-import { LoggerService } from '../../logger/logger.service';
+import { CustomLoggerService } from '../../logger/logger.service';
 
 export interface AuthenticatedUser {
   id: string;
@@ -17,7 +17,7 @@ export class TenantGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly tenantService: TenantService,
-    private readonly logger: LoggerService,
+    private readonly logger: CustomLoggerService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -44,8 +44,7 @@ export class TenantGuard implements CanActivate {
       
       if (!isValidTenant) {
         this.logger.warn(
-          `Access denied for inactive/invalid tenant: ${user.tenantId}`,
-          'TenantGuard',
+          `Access denied for inactive/invalid tenant: ${user.tenantId}`
         );
         throw new ForbiddenException('Tenant is inactive or does not exist');
       }
@@ -56,8 +55,7 @@ export class TenantGuard implements CanActivate {
 
       // Log successful tenant validation
       this.logger.debug(
-        `Tenant validation successful for user ${user.id} in tenant ${user.tenantId}`,
-        'TenantGuard',
+        `Tenant validation successful for user ${user.id} in tenant ${user.tenantId}`
       );
 
       return true;
@@ -66,10 +64,12 @@ export class TenantGuard implements CanActivate {
         throw error;
       }
 
+      const errorMessage = (error as Error).message || 'Unknown error';
+      const errorStack = (error as Error).stack;
+
       this.logger.error(
-        `Tenant validation failed for user ${user.id}: ${error.message}`,
-        error.stack,
-        'TenantGuard',
+        `Tenant validation failed for user ${user.id}: ${errorMessage}`,
+        errorStack
       );
       
       throw new ForbiddenException('Tenant validation failed');
