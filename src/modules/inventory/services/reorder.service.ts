@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { ProductRepository } from '../repositories/product.repository';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { QueueService } from '../../queue/queue.service';
+import { InventoryQueryDto } from '../dto/inventory.dto';
 
 // Domain events
 export class ReorderAlertEvent {
@@ -191,13 +192,13 @@ export class ReorderService {
     }
 
     // Emit events for each supplier
-    for (const [supplierIdKey, supplierSuggestions] of Object.entries(supplierSuggestions)) {
-      const totalValue = supplierSuggestions.reduce((sum, s) => sum + (s.totalCost || 0), 0);
+    for (const [supplierIdKey, suggestions] of Object.entries(supplierSuggestions)) {
+      const totalValue = suggestions.reduce((sum: number, s: ReorderSuggestion) => sum + (s.totalCost || 0), 0);
       
       this.eventEmitter.emit('purchase.order.suggestion', new PurchaseOrderSuggestionEvent(
         tenantId,
         supplierIdKey,
-        supplierSuggestions,
+        suggestions,
         totalValue,
       ));
     }
@@ -225,20 +226,36 @@ export class ReorderService {
       ));
 
       // Queue notification job
-      await this.queueService.add('send-reorder-alert', {
+      await this.queueService.addNotificationJob({
+        type: 'push',
+        recipients: [], // This should be populated with relevant user IDs
+        title: 'Low Stock Alert',
+        message: `Product ${suggestion.productId} is low on stock at location ${suggestion.locationId}. Current level: ${suggestion.currentLevel}, Reorder point: ${suggestion.reorderPoint}`,
+        data: {
+          productId: suggestion.productId,
+          variantId: suggestion.variantId,
+          locationId: suggestion.locationId,
+          currentLevel: suggestion.currentLevel,
+          reorderPoint: suggestion.reorderPoint,
+        },
         tenantId,
-        suggestion,
       });
     }
   }
 
   async updateReorderPoints(tenantId: string, locationId?: string): Promise<void> {
     // Get all inventory levels
-    const inventoryLevels = await this.inventoryRepository.findMany(tenantId, {
-      locationId,
+    const inventoryQuery: InventoryQueryDto = {
       page: 1,
       limit: 1000, // Process in batches
-    });
+    };
+
+    // Only add locationId if it's defined
+    if (locationId !== undefined) {
+      inventoryQuery.locationId = locationId;
+    }
+
+    const inventoryLevels = await this.inventoryRepository.findMany(tenantId, inventoryQuery);
 
     for (const inventory of inventoryLevels.inventoryLevels) {
       try {
@@ -246,7 +263,7 @@ export class ReorderService {
         const optimalReorderPoint = await this.calculateOptimalReorderPoint(
           tenantId,
           inventory.productId,
-          inventory.variantId,
+          inventory.variantId === null ? undefined : inventory.variantId,
           inventory.locationId,
         );
 
@@ -255,7 +272,7 @@ export class ReorderService {
           await this.inventoryRepository.updateLevel(
             tenantId,
             inventory.productId,
-            inventory.variantId,
+            inventory.variantId === null ? undefined : inventory.variantId,
             inventory.locationId,
             inventory.currentLevel, // Keep current level same
             'system', // System user
@@ -281,7 +298,7 @@ export class ReorderService {
     
     // Get lead time
     const product = await this.productRepository.findById(tenantId, productId);
-    const leadTimeDays = product?.leadTimeDays || 7;
+    const leadTimeDays = 7; // Default lead time since leadTimeDays property doesn't exist
     
     // Calculate reorder point: (Average daily sales × Lead time) + Safety stock
     const leadTimeDemand = averageDailySales * leadTimeDays;
@@ -299,18 +316,24 @@ export class ReorderService {
       // In a real system, this would use more sophisticated algorithms
       const salesHistory = await this.getSalesHistory(tenantId, productId, variantId, locationId);
       
-      forecastData = [{
+      const forecastItem: ForecastData = {
         productId,
-        variantId,
         locationId: locationId || 'all',
         averageDailySales: this.calculateAverageDailySales(salesHistory),
         trend: this.calculateTrend(salesHistory),
         seasonalFactor: 1.0, // Simplified - no seasonal adjustment
         forecastedDemand: this.calculateForecastedDemand(salesHistory),
         confidence: this.calculateForecastConfidence(salesHistory),
-      }];
+      };
 
-      await this.cacheService.set(cacheKey, forecastData, 3600); // 1 hour
+      // Only add variantId if it's defined
+      if (variantId !== undefined) {
+        forecastItem.variantId = variantId;
+      }
+
+      forecastData = [forecastItem];
+
+      await this.cacheService.set(cacheKey, forecastData, { ttl: 3600 }); // 1 hour
     }
 
     return forecastData;

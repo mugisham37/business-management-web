@@ -542,6 +542,23 @@ export class InventoryRepository {
     return reservation;
   }
 
+  async releaseReservation(tenantId: string, reservationId: string, userId: string): Promise<void> {
+    const db = this.drizzle.getDb();
+    
+    await db
+      .update(inventoryReservations)
+      .set({
+        status: 'released',
+        updatedBy: userId,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(inventoryReservations.tenantId, tenantId),
+        eq(inventoryReservations.id, reservationId),
+        eq(inventoryReservations.isActive, true)
+      ));
+  }
+
   async updateReservationStatus(
     tenantId: string,
     reservationId: string,

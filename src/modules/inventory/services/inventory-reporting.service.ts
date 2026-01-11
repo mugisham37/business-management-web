@@ -198,7 +198,7 @@ export class InventoryReportingService {
 
         const daysWithoutMovement = level.lastMovementAt ? 
           Math.floor((new Date().getTime() - level.lastMovementAt.getTime()) / (1000 * 60 * 60 * 24)) : 
-          undefined;
+          null;
 
         products.push({
           productId: level.productId,
@@ -216,7 +216,7 @@ export class InventoryReportingService {
           totalValue: totalItemValue,
           status,
           lastMovementAt: level.lastMovementAt || undefined,
-          daysWithoutMovement,
+          daysWithoutMovement: daysWithoutMovement || undefined,
         });
       }
 

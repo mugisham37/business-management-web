@@ -4,6 +4,34 @@ import { InventoryRepository } from '../repositories/inventory.repository';
 import { InventoryMovementRepository } from '../repositories/inventory-movement.repository';
 import { BatchTrackingRepository } from '../repositories/batch-tracking.repository';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { CreateInventoryLevelDto } from '../dto/inventory.dto';
+
+// Import the movement DTO interface
+export interface CreateInventoryMovementDto {
+  productId: string;
+  variantId?: string;
+  locationId: string;
+  movementType: 'sale' | 'purchase' | 'adjustment' | 'transfer_in' | 'transfer_out' | 'return' | 'damage' | 'theft' | 'expired' | 'recount' | 'production' | 'consumption';
+  quantity: number;
+  unitCost?: number;
+  totalCost?: number;
+  previousLevel: number;
+  newLevel: number;
+  referenceType?: string;
+  referenceId?: string;
+  referenceNumber?: string;
+  batchNumber?: string;
+  lotNumber?: string;
+  expiryDate?: Date;
+  reason?: 'manual_count' | 'cycle_count' | 'damaged_goods' | 'expired_goods' | 'theft_loss' | 'supplier_error' | 'system_error' | 'return_to_vendor' | 'promotional_use' | 'internal_use' | 'other';
+  notes?: string;
+  requiresApproval?: boolean;
+  approvedBy?: string;
+  approvedAt?: Date;
+  fromBinLocation?: string;
+  toBinLocation?: string;
+  metadata?: any;
+}
 
 // Perpetual inventory management DTOs
 export interface PerpetualInventoryUpdateDto {

@@ -4,6 +4,19 @@ import { InventoryMovementRepository } from '../repositories/inventory-movement.
 import { CycleCountingRepository } from '../repositories/cycle-counting.repository';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 
+// Import the DTOs from cycle counting service
+export interface StockCountSessionQueryDto {
+  locationId?: string;
+  status?: 'planned' | 'in_progress' | 'completed' | 'cancelled';
+  assignedTo?: string;
+  scheduledDateFrom?: Date;
+  scheduledDateTo?: Date;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 // Inventory accuracy reporting DTOs
 export interface AccuracyReportQueryDto {
   locationId?: string;
@@ -289,10 +302,10 @@ export class InventoryAccuracyReportingService {
         ((sessionItemsCounted - sessionVariances) / sessionItemsCounted) * 100 : 100;
 
       const locationId = session.locationId;
+      if (locationId && !locationAccuracies[locationId]) {
+        locationAccuracies[locationId] = { accuracy: 0, count: 0 };
+      }
       if (locationId) {
-        if (!locationAccuracies[locationId]) {
-          locationAccuracies[locationId] = { accuracy: 0, count: 0 };
-        }
         locationAccuracies[locationId].accuracy += sessionAccuracy;
         locationAccuracies[locationId].count++;
       }
@@ -420,29 +433,35 @@ export class InventoryAccuracyReportingService {
       const totalVariances = session.totalVariances ?? 0;
       const totalAdjustmentValue = session.totalAdjustmentValue ?? 0;
 
-      // Monthly
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { sessions: [], totalItems: 0, totalVariances: 0, totalValue: 0 };
+      // Monthly - ensure monthKey is valid
+      if (monthKey) {
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { sessions: [], totalItems: 0, totalVariances: 0, totalValue: 0 };
+        }
+        monthlyData[monthKey].sessions.push(session);
+        monthlyData[monthKey].totalItems += totalItemsCounted;
+        monthlyData[monthKey].totalVariances += totalVariances;
+        monthlyData[monthKey].totalValue += totalAdjustmentValue;
       }
-      monthlyData[monthKey].sessions.push(session);
-      monthlyData[monthKey].totalItems += totalItemsCounted;
-      monthlyData[monthKey].totalVariances += totalVariances;
-      monthlyData[monthKey].totalValue += totalAdjustmentValue;
 
-      // Weekly
-      if (!weeklyData[weekKey]) {
-        weeklyData[weekKey] = { sessions: [], totalItems: 0, totalVariances: 0 };
+      // Weekly - ensure weekKey is valid
+      if (weekKey) {
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = { sessions: [], totalItems: 0, totalVariances: 0 };
+        }
+        weeklyData[weekKey].sessions.push(session);
+        weeklyData[weekKey].totalItems += totalItemsCounted;
+        weeklyData[weekKey].totalVariances += totalVariances;
       }
-      weeklyData[weekKey].sessions.push(session);
-      weeklyData[weekKey].totalItems += totalItemsCounted;
-      weeklyData[weekKey].totalVariances += totalVariances;
 
-      // Daily
-      if (!dailyData[dateKey]) {
-        dailyData[dateKey] = { sessions: [], varianceCount: 0 };
+      // Daily - ensure dateKey is valid
+      if (dateKey) {
+        if (!dailyData[dateKey]) {
+          dailyData[dateKey] = { sessions: [], varianceCount: 0 };
+        }
+        dailyData[dateKey].sessions.push(session);
+        dailyData[dateKey].varianceCount += totalVariances;
       }
-      dailyData[dateKey].sessions.push(session);
-      dailyData[dateKey].varianceCount += totalVariances;
     }
 
     // Calculate trends
@@ -726,7 +745,7 @@ export class InventoryAccuracyReportingService {
       const completionRate = totalItemsCounted > 0 ? 
         (sessionItems.filter(item => item.status === 'counted' || item.status === 'adjusted').length / totalItemsCounted) * 100 : 0;
 
-      return {
+      const result: CountSessionAccuracy = {
         sessionId: session.id,
         sessionNumber: session.sessionNumber,
         locationId: session.locationId,
@@ -735,10 +754,16 @@ export class InventoryAccuracyReportingService {
         itemsWithVariances,
         accuracyPercentage,
         totalVarianceValue: session.totalAdjustmentValue ?? 0,
-        countDuration,
         countersInvolved,
         completionRate,
       };
+
+      // Only add countDuration if it's defined
+      if (countDuration !== undefined) {
+        result.countDuration = countDuration;
+      }
+
+      return result;
     });
   }
 
@@ -910,40 +935,46 @@ export class InventoryAccuracyReportingService {
 
     // Process current sessions
     for (const session of currentSessions) {
-      if (!locationData[session.locationId]) {
-        locationData[session.locationId] = {
-          locationId: session.locationId,
-          currentAccuracy: 0,
-          currentCount: 0,
-          previousAccuracy: 0,
-          previousCount: 0,
-        };
-      }
+      const locationId = session.locationId;
+      if (locationId) {
+        if (!locationData[locationId]) {
+          locationData[locationId] = {
+            locationId: locationId,
+            currentAccuracy: 0,
+            currentCount: 0,
+            previousAccuracy: 0,
+            previousCount: 0,
+          };
+        }
 
-      const accuracy = session.totalItemsCounted > 0 ? 
-        ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
-      
-      locationData[session.locationId].currentAccuracy += accuracy;
-      locationData[session.locationId].currentCount++;
+        const accuracy = session.totalItemsCounted > 0 ? 
+          ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
+        
+        locationData[locationId].currentAccuracy += accuracy;
+        locationData[locationId].currentCount++;
+      }
     }
 
     // Process previous sessions
     for (const session of previousSessions) {
-      if (!locationData[session.locationId]) {
-        locationData[session.locationId] = {
-          locationId: session.locationId,
-          currentAccuracy: 0,
-          currentCount: 0,
-          previousAccuracy: 0,
-          previousCount: 0,
-        };
-      }
+      const locationId = session.locationId;
+      if (locationId) {
+        if (!locationData[locationId]) {
+          locationData[locationId] = {
+            locationId: locationId,
+            currentAccuracy: 0,
+            currentCount: 0,
+            previousAccuracy: 0,
+            previousCount: 0,
+          };
+        }
 
-      const accuracy = session.totalItemsCounted > 0 ? 
-        ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
-      
-      locationData[session.locationId].previousAccuracy += accuracy;
-      locationData[session.locationId].previousCount++;
+        const accuracy = session.totalItemsCounted > 0 ? 
+          ((session.totalItemsCounted - session.totalVariances) / session.totalItemsCounted) * 100 : 100;
+        
+        locationData[locationId].previousAccuracy += accuracy;
+        locationData[locationId].previousCount++;
+      }
     }
 
     // Calculate averages and comparisons

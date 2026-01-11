@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InventoryMovementRepository } from '../repositories/inventory-movement.repository';
 import { InventoryRepository } from '../repositories/inventory.repository';
@@ -315,8 +315,9 @@ export class InventoryMovementTrackingService {
 
       // Find peak and slowest days
       const sortedDays = Object.entries(dailyMovements).sort((a, b) => b[1] - a[1]);
-      const peakMovementDay = sortedDays.length > 0 ? new Date(sortedDays[0][0]) : startDate;
-      const slowestMovementDay = sortedDays.length > 0 ? new Date(sortedDays[sortedDays.length - 1][0]) : startDate;
+      const peakMovementDay = sortedDays.length > 0 && sortedDays[0] ? new Date(sortedDays[0][0]) : startDate;
+      const slowestMovementDay = sortedDays.length > 0 && sortedDays[sortedDays.length - 1] ? 
+        new Date(sortedDays[sortedDays.length - 1][0]) : startDate;
 
       // Find most common movement type
       const mostCommonMovementType = Object.entries(movementTypes)
@@ -459,7 +460,7 @@ export class InventoryMovementTrackingService {
       await this.cacheService.set(cacheKey, analysis, { ttl: 600 }); // 10 minutes
     }
 
-    return analysis;
+    return analysis!;
   }
 
   async calculateInventoryAccuracy(
