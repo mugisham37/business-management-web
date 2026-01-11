@@ -98,10 +98,10 @@ export class Employee {
   customFields?: Record<string, any>;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -182,10 +182,10 @@ export class EmployeeSchedule {
   approvedAt?: Date;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -194,10 +194,10 @@ export class EmployeeSchedule {
   updatedBy?: string;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -287,10 +287,10 @@ export class TimeEntry {
   notes?: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -299,10 +299,10 @@ export class TimeEntry {
   updatedBy?: string;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -318,22 +318,22 @@ export class TimeEntry {
 
 export class PerformanceReview {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  reviewerId: string;
+  reviewerId!: string;
 
   @ApiProperty()
-  reviewPeriodStart: Date;
+  reviewPeriodStart!: Date;
 
   @ApiProperty()
-  reviewPeriodEnd: Date;
+  reviewPeriodEnd!: Date;
 
   @ApiPropertyOptional()
   reviewType?: string;
@@ -360,7 +360,7 @@ export class PerformanceReview {
   employeeComments?: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   completedAt?: Date;
@@ -372,10 +372,10 @@ export class PerformanceReview {
   nextReviewDate?: Date;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -384,10 +384,10 @@ export class PerformanceReview {
   updatedBy?: string;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -399,16 +399,16 @@ export class PerformanceReview {
 
 export class TrainingRecord {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  trainingName: string;
+  trainingName!: string;
 
   @ApiPropertyOptional()
   trainingType?: string;
@@ -435,7 +435,7 @@ export class TrainingRecord {
   certificationBody?: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   score?: number;
@@ -456,10 +456,10 @@ export class TrainingRecord {
   notes?: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -468,10 +468,10 @@ export class TrainingRecord {
   updatedBy?: string;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -487,16 +487,16 @@ export class TrainingRecord {
 
 export class EmployeeGoal {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional()
   description?: string;
@@ -505,19 +505,19 @@ export class EmployeeGoal {
   category?: string;
 
   @ApiProperty()
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty()
-  targetDate: Date;
+  targetDate!: Date;
 
   @ApiPropertyOptional()
   completedDate?: Date;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiProperty()
-  progress: number;
+  progress!: number;
 
   @ApiPropertyOptional()
   metrics?: Record<string, any>;
@@ -544,10 +544,10 @@ export class EmployeeGoal {
   updates?: any[];
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -556,10 +556,10 @@ export class EmployeeGoal {
   updatedBy?: string;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()

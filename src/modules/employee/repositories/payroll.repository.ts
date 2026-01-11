@@ -62,11 +62,11 @@ export class PayrollRepository {
     ];
 
     if (query.startDate) {
-      conditions.push(gte(payrollPeriods.startDate, new Date(query.startDate)));
+      conditions.push(gte(payrollPeriods.startDate, query.startDate));
     }
 
     if (query.endDate) {
-      conditions.push(lte(payrollPeriods.endDate, new Date(query.endDate)));
+      conditions.push(lte(payrollPeriods.endDate, query.endDate));
     }
 
     if (query.periodType) {
@@ -80,23 +80,36 @@ export class PayrollRepository {
     const whereClause = and(...conditions);
 
     // Get total count
-    const [{ count: totalCount }] = await this.drizzle.getDb()
+    const countResult = await this.drizzle.getDb()
       .select({ count: count() })
       .from(payrollPeriods)
       .where(whereClause);
+    
+    const totalCount = countResult[0]?.count ?? 0;
 
-    // Get paginated results
-    const offset = (query.page - 1) * query.limit;
-    const orderBy = query.sortOrder === 'desc' 
-      ? desc(payrollPeriods[query.sortBy as keyof typeof payrollPeriods] || payrollPeriods.startDate)
-      : asc(payrollPeriods[query.sortBy as keyof typeof payrollPeriods] || payrollPeriods.startDate);
+    // Get paginated results with safe pagination
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
+    
+    // Use default sort if sortBy is not a valid column
+    let orderByExpr;
+    if (query.sortBy === 'startDate') {
+      orderByExpr = query.sortOrder === 'desc' ? desc(payrollPeriods.startDate) : asc(payrollPeriods.startDate);
+    } else if (query.sortBy === 'endDate') {
+      orderByExpr = query.sortOrder === 'desc' ? desc(payrollPeriods.endDate) : asc(payrollPeriods.endDate);
+    } else if (query.sortBy === 'periodName') {
+      orderByExpr = query.sortOrder === 'desc' ? desc(payrollPeriods.periodName) : asc(payrollPeriods.periodName);
+    } else {
+      orderByExpr = query.sortOrder === 'desc' ? desc(payrollPeriods.startDate) : asc(payrollPeriods.startDate);
+    }
 
     const results = await this.drizzle.getDb()
       .select()
       .from(payrollPeriods)
       .where(whereClause)
-      .orderBy(orderBy)
-      .limit(query.limit)
+      .orderBy(orderByExpr)
+      .limit(limit)
       .offset(offset);
 
     return {
@@ -114,16 +127,16 @@ export class PayrollRepository {
         isNull(payrollPeriods.deletedAt),
         or(
           and(
-            lte(payrollPeriods.startDate, startDate),
-            gte(payrollPeriods.endDate, startDate)
+            lte(payrollPeriods.startDate, startDate.toISOString()),
+            gte(payrollPeriods.endDate, startDate.toISOString())
           ),
           and(
-            lte(payrollPeriods.startDate, endDate),
-            gte(payrollPeriods.endDate, endDate)
+            lte(payrollPeriods.startDate, endDate.toISOString()),
+            gte(payrollPeriods.endDate, endDate.toISOString())
           ),
           and(
-            gte(payrollPeriods.startDate, startDate),
-            lte(payrollPeriods.endDate, endDate)
+            gte(payrollPeriods.startDate, startDate.toISOString()),
+            lte(payrollPeriods.endDate, endDate.toISOString())
           )
         )
       ))
@@ -133,20 +146,40 @@ export class PayrollRepository {
   }
 
   async updatePayrollPeriod(tenantId: string, id: string, data: UpdatePayrollPeriodDto, updatedBy: string): Promise<PayrollPeriod> {
-    const [period] = await this.drizzle.getDb()
+    const updateData: any = {
+      updatedBy,
+      updatedAt: new Date(),
+      version: sql`${payrollPeriods.version} + 1`
+    };
+
+    // Only include provided fields
+    if (data.periodName !== undefined) updateData.periodName = data.periodName;
+    if (data.startDate !== undefined) updateData.startDate = data.startDate;
+    if (data.endDate !== undefined) updateData.endDate = data.endDate;
+    if (data.payDate !== undefined) updateData.payDate = data.payDate;
+    if (data.periodType !== undefined) updateData.periodType = data.periodType;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.totalGrossPay !== undefined) updateData.totalGrossPay = String(data.totalGrossPay);
+    if (data.totalNetPay !== undefined) updateData.totalNetPay = String(data.totalNetPay);
+    if (data.totalTaxes !== undefined) updateData.totalTaxes = String(data.totalTaxes);
+    if (data.totalDeductions !== undefined) updateData.totalDeductions = String(data.totalDeductions);
+    if (data.processedBy !== undefined) updateData.processedBy = data.processedBy;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+
+    const result = await this.drizzle.getDb()
       .update(payrollPeriods)
-      .set({
-        ...data,
-        updatedBy,
-        updatedAt: new Date(),
-        version: sql`${payrollPeriods.version} + 1`
-      })
+      .set(updateData)
       .where(and(
         eq(payrollPeriods.tenantId, tenantId),
         eq(payrollPeriods.id, id),
         isNull(payrollPeriods.deletedAt)
       ))
-      .returning();
+      .returning() as any[];
+
+    const period = result[0];
+    if (!period) {
+      throw new Error('Failed to update payroll period');
+    }
 
     return this.mapPayrollPeriodEntity(period);
   }
@@ -296,11 +329,11 @@ export class PayrollRepository {
     }
 
     if (query.startDate) {
-      conditions.push(gte(commissionRecords.saleDate, new Date(query.startDate)));
+      conditions.push(gte(commissionRecords.saleDate, query.startDate));
     }
 
     if (query.endDate) {
-      conditions.push(lte(commissionRecords.saleDate, new Date(query.endDate)));
+      conditions.push(lte(commissionRecords.saleDate, query.endDate));
     }
 
     if (query.commissionType) {
@@ -318,13 +351,17 @@ export class PayrollRepository {
     const whereClause = and(...conditions);
 
     // Get total count
-    const [{ count: totalCount }] = await this.drizzle.getDb()
+    const countResult = await this.drizzle.getDb()
       .select({ count: count() })
       .from(commissionRecords)
       .where(whereClause);
+    
+    const totalCount = countResult[0]?.count ?? 0;
 
-    // Get paginated results
-    const offset = (query.page - 1) * query.limit;
+    // Get paginated results with safe pagination
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
 
     const results = await this.drizzle.getDb()
       .select({
@@ -335,7 +372,7 @@ export class PayrollRepository {
       .leftJoin(employees, eq(commissionRecords.employeeId, employees.id))
       .where(whereClause)
       .orderBy(desc(commissionRecords.saleDate))
-      .limit(query.limit)
+      .limit(limit)
       .offset(offset);
 
     return {

@@ -66,7 +66,7 @@ export class EmployeeRepository {
         notes: data.notes,
         customFields: data.customFields,
       })
-      .returning();
+      .returning() as any[];
 
     const employee = result[0];
     if (!employee) {
@@ -77,7 +77,7 @@ export class EmployeeRepository {
   }
 
   async findEmployeeById(tenantId: string, id: string): Promise<Employee | null> {
-    const [employee] = await this.drizzle.getDb()
+    const result = await this.drizzle.getDb()
       .select()
       .from(employees)
       .where(and(
@@ -86,6 +86,7 @@ export class EmployeeRepository {
         isNull(employees.deletedAt)
       ));
 
+    const employee = result[0];
     return employee ? this.mapEmployeeEntity(employee) : null;
   }
 
@@ -141,13 +142,17 @@ export class EmployeeRepository {
     const whereClause = and(...conditions);
 
     // Get total count
-    const [{ count: totalCount }] = await this.drizzle.getDb()
+    const countResult = await this.drizzle.getDb()
       .select({ count: count() })
       .from(employees)
       .where(whereClause);
+    
+    const totalCount = countResult[0]?.count ?? 0;
 
-    // Get paginated results
-    const offset = (query.page - 1) * query.limit;
+    // Get paginated results with safe pagination
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
     const orderBy = query.sortOrder === 'desc' 
       ? desc(employees[query.sortBy as keyof typeof employees] || employees.lastName)
       : asc(employees[query.sortBy as keyof typeof employees] || employees.lastName);
@@ -157,7 +162,7 @@ export class EmployeeRepository {
       .from(employees)
       .where(whereClause)
       .orderBy(orderBy)
-      .limit(query.limit)
+      .limit(limit)
       .offset(offset);
 
     return {
@@ -186,7 +191,7 @@ export class EmployeeRepository {
   }
 
   async deleteEmployee(tenantId: string, id: string, deletedBy: string): Promise<void> {
-    await this.drizzle.db
+    await this.drizzle.getDb()
       .update(employees)
       .set({
         deletedAt: new Date(),
@@ -202,15 +207,25 @@ export class EmployeeRepository {
 
   // Employee Schedule operations
   async createSchedule(tenantId: string, data: CreateEmployeeScheduleDto, createdBy: string): Promise<EmployeeSchedule> {
-    const [schedule] = await this.drizzle.db
+    const now = new Date();
+    const scheduleData: any = {
+      ...data,
+      tenantId,
+      createdBy,
+      updatedBy: createdBy,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await this.drizzle.getDb()
       .insert(employeeSchedules)
-      .values({
-        ...data,
-        tenantId,
-        createdBy,
-        updatedBy: createdBy,
-      })
+      .values(scheduleData)
       .returning();
+
+    const schedule = result[0];
+    if (!schedule) {
+      throw new Error('Failed to create schedule');
+    }
 
     return this.mapScheduleEntity(schedule);
   }
@@ -223,14 +238,14 @@ export class EmployeeRepository {
     ];
 
     if (startDate) {
-      conditions.push(gte(employeeSchedules.scheduleDate, startDate));
+      conditions.push(gte(employeeSchedules.scheduleDate, startDate.toISOString()));
     }
 
     if (endDate) {
-      conditions.push(lte(employeeSchedules.scheduleDate, endDate));
+      conditions.push(lte(employeeSchedules.scheduleDate, endDate.toISOString()));
     }
 
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(employeeSchedules)
       .where(and(...conditions))
@@ -240,10 +255,21 @@ export class EmployeeRepository {
   }
 
   async updateSchedule(tenantId: string, id: string, data: UpdateEmployeeScheduleDto, updatedBy: string): Promise<EmployeeSchedule> {
-    const [schedule] = await this.drizzle.db
+    const [schedule] = await this.drizzle.getDb()
       .update(employeeSchedules)
       .set({
-        ...data,
+        ...(data.employeeId !== undefined && { employeeId: data.employeeId }),
+        ...(data.scheduleDate !== undefined && { scheduleDate: data.scheduleDate }),
+        ...(data.startTime !== undefined && { startTime: typeof data.startTime === 'string' ? new Date(data.startTime) : data.startTime }),
+        ...(data.endTime !== undefined && { endTime: typeof data.endTime === 'string' ? new Date(data.endTime) : data.endTime }),
+        ...(data.breakDuration !== undefined && { breakDuration: data.breakDuration }),
+        ...(data.lunchBreakStart !== undefined && { lunchBreakStart: typeof data.lunchBreakStart === 'string' ? new Date(data.lunchBreakStart) : data.lunchBreakStart }),
+        ...(data.lunchBreakEnd !== undefined && { lunchBreakEnd: typeof data.lunchBreakEnd === 'string' ? new Date(data.lunchBreakEnd) : data.lunchBreakEnd }),
+        ...(data.scheduleType !== undefined && { scheduleType: data.scheduleType }),
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.locationId !== undefined && { locationId: data.locationId }),
+        ...(data.department !== undefined && { department: data.department }),
+        ...(data.notes !== undefined && { notes: data.notes }),
         updatedBy,
         updatedAt: new Date(),
         version: sql`${employeeSchedules.version} + 1`
@@ -260,21 +286,31 @@ export class EmployeeRepository {
 
   // Time Entry operations
   async createTimeEntry(tenantId: string, data: CreateTimeEntryDto, createdBy: string): Promise<TimeEntry> {
-    const [timeEntry] = await this.drizzle.db
+    const now = new Date();
+    const timeEntryData: any = {
+      ...data,
+      tenantId,
+      createdBy,
+      updatedBy: createdBy,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await this.drizzle.getDb()
       .insert(timeEntries)
-      .values({
-        ...data,
-        tenantId,
-        createdBy,
-        updatedBy: createdBy,
-      })
+      .values(timeEntryData)
       .returning();
+
+    const timeEntry = result[0];
+    if (!timeEntry) {
+      throw new Error('Failed to create time entry');
+    }
 
     return this.mapTimeEntryEntity(timeEntry);
   }
 
   async findActiveTimeEntry(tenantId: string, employeeId: string): Promise<TimeEntry | null> {
-    const [timeEntry] = await this.drizzle.db
+    const result = await this.drizzle.getDb()
       .select()
       .from(timeEntries)
       .where(and(
@@ -286,6 +322,7 @@ export class EmployeeRepository {
       .orderBy(desc(timeEntries.clockInTime))
       .limit(1);
 
+    const timeEntry = result[0];
     return timeEntry ? this.mapTimeEntryEntity(timeEntry) : null;
   }
 
@@ -299,14 +336,6 @@ export class EmployeeRepository {
       conditions.push(eq(timeEntries.employeeId, query.employeeId));
     }
 
-    if (query.startDate) {
-      conditions.push(gte(timeEntries.clockInTime, new Date(query.startDate)));
-    }
-
-    if (query.endDate) {
-      conditions.push(lte(timeEntries.clockInTime, new Date(query.endDate)));
-    }
-
     if (query.entryType) {
       conditions.push(eq(timeEntries.entryType, query.entryType));
     }
@@ -318,20 +347,24 @@ export class EmployeeRepository {
     const whereClause = and(...conditions);
 
     // Get total count
-    const [{ count: totalCount }] = await this.drizzle.db
+    const countResult = await this.drizzle.getDb()
       .select({ count: count() })
       .from(timeEntries)
       .where(whereClause);
+    
+    const totalCount = countResult[0]?.count ?? 0;
 
-    // Get paginated results
-    const offset = (query.page - 1) * query.limit;
+    // Get paginated results with safe pagination
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const offset = (page - 1) * limit;
 
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(timeEntries)
       .where(whereClause)
       .orderBy(desc(timeEntries.clockInTime))
-      .limit(query.limit)
+      .limit(limit)
       .offset(offset);
 
     return {
@@ -354,7 +387,7 @@ export class EmployeeRepository {
       // updateData.totalHours = calculateHours(clockInTime, clockOutTime);
     }
 
-    const [timeEntry] = await this.drizzle.db
+    const [timeEntry] = await this.drizzle.getDb()
       .update(timeEntries)
       .set(updateData)
       .where(and(
@@ -369,7 +402,7 @@ export class EmployeeRepository {
 
   // Performance Review operations
   async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewDto, createdBy: string): Promise<PerformanceReview> {
-    const [review] = await this.drizzle.db
+    const [review] = await this.drizzle.getDb()
       .insert(performanceReviews)
       .values({
         ...data,
@@ -383,7 +416,7 @@ export class EmployeeRepository {
   }
 
   async findPerformanceReviewsByEmployee(tenantId: string, employeeId: string): Promise<PerformanceReview[]> {
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(performanceReviews)
       .where(and(
@@ -398,21 +431,46 @@ export class EmployeeRepository {
 
   // Training Record operations
   async createTrainingRecord(tenantId: string, data: CreateTrainingRecordDto, createdBy: string): Promise<TrainingRecord> {
-    const [training] = await this.drizzle.db
+    const now = new Date();
+    const trainingData: any = {
+      employeeId: data.employeeId,
+      tenantId,
+      trainingName: data.trainingName,
+      trainingType: data.trainingType,
+      provider: data.provider,
+      startDate: data.startDate,
+      completionDate: data.completionDate,
+      expirationDate: data.expirationDate,
+      duration: data.duration,
+      certificateNumber: data.certificateNumber,
+      certificationBody: data.certificationBody,
+      status: data.status || 'in_progress',
+      score: data.score ? String(data.score) : undefined,
+      passingScore: data.passingScore ? String(data.passingScore) : undefined,
+      cost: data.cost ? String(data.cost) : undefined,
+      documents: data.documents,
+      notes: data.notes,
+      createdBy,
+      updatedBy: createdBy,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await this.drizzle.getDb()
       .insert(trainingRecords)
-      .values({
-        ...data,
-        tenantId,
-        createdBy,
-        updatedBy: createdBy,
-      })
+      .values(trainingData)
       .returning();
+
+    const training = result[0];
+    if (!training) {
+      throw new Error('Failed to create training record');
+    }
 
     return this.mapTrainingRecordEntity(training);
   }
 
   async findTrainingRecordsByEmployee(tenantId: string, employeeId: string): Promise<TrainingRecord[]> {
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(trainingRecords)
       .where(and(
@@ -427,21 +485,44 @@ export class EmployeeRepository {
 
   // Employee Goal operations
   async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalDto, createdBy: string): Promise<EmployeeGoal> {
-    const [goal] = await this.drizzle.db
+    const now = new Date();
+    const goalData: any = {
+      employeeId: data.employeeId,
+      tenantId,
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      startDate: data.startDate,
+      targetDate: data.targetDate,
+      completedDate: data.completedDate,
+      status: data.status || 'active',
+      progress: data.progress || 0,
+      metrics: data.metrics,
+      targetValue: data.targetValue ? String(data.targetValue) : undefined,
+      currentValue: data.currentValue ? String(data.currentValue) : undefined,
+      notes: data.notes,
+      updates: data.updates,
+      createdBy,
+      updatedBy: createdBy,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await this.drizzle.getDb()
       .insert(employeeGoals)
-      .values({
-        ...data,
-        tenantId,
-        createdBy,
-        updatedBy: createdBy,
-      })
+      .values(goalData)
       .returning();
+
+    const goal = result[0];
+    if (!goal) {
+      throw new Error('Failed to create employee goal');
+    }
 
     return this.mapEmployeeGoalEntity(goal);
   }
 
   async findGoalsByEmployee(tenantId: string, employeeId: string): Promise<EmployeeGoal[]> {
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(employeeGoals)
       .where(and(
@@ -455,7 +536,7 @@ export class EmployeeRepository {
   }
 
   async findGoalById(tenantId: string, id: string): Promise<EmployeeGoal | null> {
-    const [goal] = await this.drizzle.db
+    const [goal] = await this.drizzle.getDb()
       .select()
       .from(employeeGoals)
       .where(and(
@@ -468,7 +549,7 @@ export class EmployeeRepository {
   }
 
   async updatePerformanceReview(tenantId: string, id: string, data: UpdatePerformanceReviewDto, updatedBy: string): Promise<PerformanceReview> {
-    const [review] = await this.drizzle.db
+    const [review] = await this.drizzle.getDb()
       .update(performanceReviews)
       .set({
         ...data,
@@ -487,14 +568,30 @@ export class EmployeeRepository {
   }
 
   async updateEmployeeGoal(tenantId: string, id: string, data: UpdateEmployeeGoalDto, updatedBy: string): Promise<EmployeeGoal> {
-    const [goal] = await this.drizzle.db
+    const updateData: any = {
+      updatedBy,
+      updatedAt: new Date(),
+      version: sql`${employeeGoals.version} + 1`
+    };
+
+    // Only include provided fields
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.category !== undefined) updateData.category = data.category;
+    if (data.startDate !== undefined) updateData.startDate = data.startDate;
+    if (data.targetDate !== undefined) updateData.targetDate = data.targetDate;
+    if (data.completedDate !== undefined) updateData.completedDate = data.completedDate;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.progress !== undefined) updateData.progress = data.progress;
+    if (data.metrics !== undefined) updateData.metrics = data.metrics;
+    if (data.targetValue !== undefined) updateData.targetValue = String(data.targetValue);
+    if (data.currentValue !== undefined) updateData.currentValue = String(data.currentValue);
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.updates !== undefined) updateData.updates = data.updates;
+
+    const result = await this.drizzle.getDb()
       .update(employeeGoals)
-      .set({
-        ...data,
-        updatedBy,
-        updatedAt: new Date(),
-        version: sql`${employeeGoals.version} + 1`
-      })
+      .set(updateData)
       .where(and(
         eq(employeeGoals.tenantId, tenantId),
         eq(employeeGoals.id, id),
@@ -502,18 +599,41 @@ export class EmployeeRepository {
       ))
       .returning();
 
+    const goal = result[0];
+    if (!goal) {
+      throw new Error('Failed to update employee goal');
+    }
+
     return this.mapEmployeeGoalEntity(goal);
   }
 
   async updateTrainingRecord(tenantId: string, id: string, data: UpdateTrainingRecordDto, updatedBy: string): Promise<TrainingRecord> {
-    const [training] = await this.drizzle.db
+    const updateData: any = {
+      updatedBy,
+      updatedAt: new Date(),
+      version: sql`${trainingRecords.version} + 1`
+    };
+
+    // Only include provided fields
+    if (data.trainingName !== undefined) updateData.trainingName = data.trainingName;
+    if (data.trainingType !== undefined) updateData.trainingType = data.trainingType;
+    if (data.provider !== undefined) updateData.provider = data.provider;
+    if (data.startDate !== undefined) updateData.startDate = data.startDate;
+    if (data.completionDate !== undefined) updateData.completionDate = data.completionDate;
+    if (data.expirationDate !== undefined) updateData.expirationDate = data.expirationDate;
+    if (data.duration !== undefined) updateData.duration = data.duration;
+    if (data.certificateNumber !== undefined) updateData.certificateNumber = data.certificateNumber;
+    if (data.certificationBody !== undefined) updateData.certificationBody = data.certificationBody;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.score !== undefined) updateData.score = String(data.score);
+    if (data.passingScore !== undefined) updateData.passingScore = String(data.passingScore);
+    if (data.cost !== undefined) updateData.cost = String(data.cost);
+    if (data.documents !== undefined) updateData.documents = data.documents;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+
+    const result = await this.drizzle.getDb()
       .update(trainingRecords)
-      .set({
-        ...data,
-        updatedBy,
-        updatedAt: new Date(),
-        version: sql`${trainingRecords.version} + 1`
-      })
+      .set(updateData)
       .where(and(
         eq(trainingRecords.tenantId, tenantId),
         eq(trainingRecords.id, id),
@@ -521,12 +641,17 @@ export class EmployeeRepository {
       ))
       .returning();
 
+    const training = result[0];
+    if (!training) {
+      throw new Error('Failed to update training record');
+    }
+
     return this.mapTrainingRecordEntity(training);
   }
 
   // Helper methods to map database records to entities
   private mapEmployeeEntity(record: any): Employee {
-    return {
+    const result: any = {
       id: record.id,
       tenantId: record.tenantId,
       userId: record.userId,
@@ -547,8 +672,6 @@ export class EmployeeRepository {
       hireDate: record.hireDate,
       terminationDate: record.terminationDate,
       probationEndDate: record.probationEndDate,
-      baseSalary: record.baseSalary ? parseFloat(record.baseSalary) : undefined,
-      hourlyRate: record.hourlyRate ? parseFloat(record.hourlyRate) : undefined,
       payFrequency: record.payFrequency,
       benefits: record.benefits,
       settings: record.settings,
@@ -566,6 +689,15 @@ export class EmployeeRepository {
       isActive: record.isActive,
       fullName: `${record.firstName} ${record.lastName}`,
     };
+
+    if (record.baseSalary) {
+      result.baseSalary = parseFloat(record.baseSalary);
+    }
+    if (record.hourlyRate) {
+      result.hourlyRate = parseFloat(record.hourlyRate);
+    }
+
+    return result;
   }
 
   private mapScheduleEntity(record: any): EmployeeSchedule {
@@ -596,15 +728,12 @@ export class EmployeeRepository {
   }
 
   private mapTimeEntryEntity(record: any): TimeEntry {
-    return {
+    const result: any = {
       id: record.id,
       tenantId: record.tenantId,
       employeeId: record.employeeId,
       clockInTime: record.clockInTime,
       clockOutTime: record.clockOutTime,
-      totalHours: record.totalHours ? parseFloat(record.totalHours) : undefined,
-      regularHours: record.regularHours ? parseFloat(record.regularHours) : undefined,
-      overtimeHours: record.overtimeHours ? parseFloat(record.overtimeHours) : undefined,
       breakStartTime: record.breakStartTime,
       breakEndTime: record.breakEndTime,
       totalBreakTime: record.totalBreakTime,
@@ -628,6 +757,18 @@ export class EmployeeRepository {
       isActive: record.isActive,
       isCurrentlyWorking: !record.clockOutTime,
     };
+
+    if (record.totalHours) {
+      result.totalHours = parseFloat(record.totalHours);
+    }
+    if (record.regularHours) {
+      result.regularHours = parseFloat(record.regularHours);
+    }
+    if (record.overtimeHours) {
+      result.overtimeHours = parseFloat(record.overtimeHours);
+    }
+
+    return result;
   }
 
   private mapPerformanceReviewEntity(record: any): PerformanceReview {
@@ -660,7 +801,7 @@ export class EmployeeRepository {
   }
 
   private mapTrainingRecordEntity(record: any): TrainingRecord {
-    return {
+    const result: any = {
       id: record.id,
       tenantId: record.tenantId,
       employeeId: record.employeeId,
@@ -674,9 +815,6 @@ export class EmployeeRepository {
       certificateNumber: record.certificateNumber,
       certificationBody: record.certificationBody,
       status: record.status,
-      score: record.score ? parseFloat(record.score) : undefined,
-      passingScore: record.passingScore ? parseFloat(record.passingScore) : undefined,
-      cost: record.cost ? parseFloat(record.cost) : undefined,
       approvedBy: record.approvedBy,
       documents: record.documents,
       notes: record.notes,
@@ -688,10 +826,22 @@ export class EmployeeRepository {
       isActive: record.isActive,
       isExpired: record.expirationDate ? new Date(record.expirationDate) < new Date() : false,
     };
+
+    if (record.score) {
+      result.score = parseFloat(record.score);
+    }
+    if (record.passingScore) {
+      result.passingScore = parseFloat(record.passingScore);
+    }
+    if (record.cost) {
+      result.cost = parseFloat(record.cost);
+    }
+
+    return result;
   }
 
   private mapEmployeeGoalEntity(record: any): EmployeeGoal {
-    return {
+    const result: any = {
       id: record.id,
       tenantId: record.tenantId,
       employeeId: record.employeeId,
@@ -704,8 +854,6 @@ export class EmployeeRepository {
       status: record.status,
       progress: record.progress,
       metrics: record.metrics,
-      targetValue: record.targetValue ? parseFloat(record.targetValue) : undefined,
-      currentValue: record.currentValue ? parseFloat(record.currentValue) : undefined,
       approvedBy: record.approvedBy,
       reviewedBy: record.reviewedBy,
       lastReviewDate: record.lastReviewDate,
@@ -719,5 +867,14 @@ export class EmployeeRepository {
       isActive: record.isActive,
       isOverdue: record.targetDate ? new Date(record.targetDate) < new Date() && record.status !== 'completed' : false,
     };
+
+    if (record.targetValue) {
+      result.targetValue = parseFloat(record.targetValue);
+    }
+    if (record.currentValue) {
+      result.currentValue = parseFloat(record.currentValue);
+    }
+
+    return result;
   }
 }

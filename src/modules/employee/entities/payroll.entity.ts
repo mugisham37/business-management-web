@@ -3,28 +3,28 @@ import { Employee } from './employee.entity';
 
 export class PayrollPeriod {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  periodName: string;
+  periodName!: string;
 
   @ApiProperty()
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty()
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty()
-  payDate: Date;
+  payDate!: Date;
 
   @ApiProperty()
-  periodType: string;
+  periodType!: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   totalGrossPay?: number;
@@ -48,10 +48,10 @@ export class PayrollPeriod {
   notes?: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -63,10 +63,10 @@ export class PayrollPeriod {
   deletedAt?: Date;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -82,16 +82,16 @@ export class PayrollPeriod {
 
 export class PayrollRecord {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiProperty()
-  payrollPeriodId: string;
+  payrollPeriodId!: string;
 
   // Hours worked
   @ApiPropertyOptional()
@@ -195,7 +195,7 @@ export class PayrollRecord {
   taxDetails?: Record<string, any>;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   approvedBy?: string;
@@ -207,10 +207,10 @@ export class PayrollRecord {
   notes?: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -222,10 +222,10 @@ export class PayrollRecord {
   deletedAt?: Date;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
@@ -250,28 +250,28 @@ export class PayrollRecord {
 
 export class CommissionRecord {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty()
-  employeeId: string;
+  employeeId!: string;
 
   @ApiPropertyOptional()
   transactionId?: string;
 
   @ApiProperty()
-  saleAmount: number;
+  saleAmount!: number;
 
   @ApiProperty()
-  commissionRate: number;
+  commissionRate!: number;
 
   @ApiProperty()
-  commissionAmount: number;
+  commissionAmount!: number;
 
   @ApiProperty()
-  saleDate: Date;
+  saleDate!: Date;
 
   @ApiPropertyOptional()
   payrollPeriodId?: string;
@@ -286,7 +286,7 @@ export class CommissionRecord {
   customerType?: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiPropertyOptional()
   description?: string;
@@ -295,10 +295,10 @@ export class CommissionRecord {
   notes?: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional()
   createdBy?: string;
@@ -310,10 +310,10 @@ export class CommissionRecord {
   deletedAt?: Date;
 
   @ApiProperty()
-  version: number;
+  version!: number;
 
   @ApiProperty()
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional()
