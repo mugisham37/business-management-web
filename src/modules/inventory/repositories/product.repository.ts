@@ -20,7 +20,7 @@ export interface ProductWithVariants {
   status: 'active' | 'inactive' | 'discontinued' | 'out_of_stock';
   categoryId?: string | null;
   brandId?: string | null;
-  tags?: string[];
+  tags: string[];
   basePrice: string;
   costPrice?: string | null;
   msrp?: string | null;
@@ -33,16 +33,16 @@ export interface ProductWithVariants {
   slug?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
-  images?: any[];
+  images: any[];
   primaryImageUrl?: string | null;
   attributes?: any;
   customFields?: any;
   supplierId?: string | null;
   supplierSku?: string | null;
-  minStockLevel: number;
+  minStockLevel: number | null;
   maxStockLevel?: number | null;
-  reorderPoint: number;
-  reorderQuantity: number;
+  reorderPoint: number | null;
+  reorderQuantity: number | null;
   requiresBatchTracking: boolean;
   requiresExpiryDate: boolean;
   shelfLife?: number | null;
@@ -118,6 +118,10 @@ export class ProductRepository {
         })
         .returning();
 
+      if (!product) {
+        throw new Error('Failed to create product');
+      }
+
       // Create variants if this is a variable product
       let variants: any[] = [];
       if (data.type === 'variable' && data.variants && data.variants.length > 0) {
@@ -153,6 +157,8 @@ export class ProductRepository {
 
       return {
         ...product,
+        tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+        images: Array.isArray(product.images) ? product.images : [],
         variants,
       };
     });
@@ -216,6 +222,8 @@ export class ProductRepository {
 
     return {
       ...product,
+      tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+      images: Array.isArray(product.images) ? product.images : [],
       variants,
       category,
       brand,
@@ -373,10 +381,13 @@ export class ProductRepository {
         .orderBy(asc(productVariants.sortOrder));
 
       variantsByProduct = variants.reduce((acc, variant) => {
-        if (!acc[variant.productId]) {
-          acc[variant.productId] = [];
+        const productId = variant.productId;
+        if (productId) {
+          if (!acc[productId]) {
+            acc[productId] = [];
+          }
+          acc[productId]!.push(variant);
         }
-        acc[variant.productId].push(variant);
         return acc;
       }, {} as Record<string, any[]>);
     }
@@ -384,6 +395,8 @@ export class ProductRepository {
     // Combine products with their variants
     const productsWithVariants = productList.map(product => ({
       ...product,
+      tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+      images: Array.isArray(product.images) ? product.images : [],
       variants: variantsByProduct[product.id] || [],
     }));
 
@@ -543,6 +556,8 @@ export class ProductRepository {
 
     return lowStockProducts.map(product => ({
       ...product,
+      tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+      images: Array.isArray(product.images) ? product.images : [],
       variants: [], // Would be populated with actual inventory data
     }));
   }
@@ -567,6 +582,8 @@ export class ProductRepository {
 
     return searchResults.map(product => ({
       ...product,
+      tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+      images: Array.isArray(product.images) ? product.images : [],
       variants: [], // Would be populated if needed
     }));
   }

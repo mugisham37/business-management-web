@@ -16,7 +16,7 @@ export interface CategoryWithChildren {
   parentId?: string | null;
   level: number;
   path?: string | null;
-  sortOrder: number;
+  sortOrder: number | null;
   isVisible: boolean;
   imageUrl?: string | null;
   iconUrl?: string | null;
@@ -86,6 +86,10 @@ export class ProductCategoryRepository {
         })
         .returning();
 
+      if (!category) {
+        throw new Error('Failed to create category');
+      }
+
       return category;
     });
   }
@@ -120,6 +124,7 @@ export class ProductCategoryRepository {
 
     return {
       ...category,
+      sortOrder: category.sortOrder ?? 0,
       productCount,
     };
   }
@@ -254,6 +259,7 @@ export class ProductCategoryRepository {
 
     const categoriesWithCounts = categoryList.map(category => ({
       ...category,
+      sortOrder: category.sortOrder ?? 0,
       productCount: productCounts[category.id] || 0,
     }));
 
@@ -289,6 +295,7 @@ export class ProductCategoryRepository {
     allCategories.forEach(category => {
       categoryMap.set(category.id, {
         ...category,
+        sortOrder: category.sortOrder ?? 0,
         children: [],
         productCount: 0,
       });
@@ -351,6 +358,7 @@ export class ProductCategoryRepository {
 
     return children.map(category => ({
       ...category,
+      sortOrder: category.sortOrder ?? 0,
       productCount: productCounts[category.id] || 0,
     }));
   }

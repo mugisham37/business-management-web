@@ -57,6 +57,10 @@ export class ProductBrandRepository {
       })
       .returning();
 
+    if (!brand) {
+      throw new Error('Failed to create brand');
+    }
+
     return {
       ...brand,
       productCount: 0,

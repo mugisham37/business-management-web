@@ -19,7 +19,7 @@ export interface InventoryLevelWithProduct {
   availableLevel: number;
   reservedLevel: number;
   minStockLevel: number;
-  maxStockLevel?: number;
+  maxStockLevel: number | null;
   reorderPoint: number;
   reorderQuantity: number;
   valuationMethod: string;
@@ -29,7 +29,7 @@ export interface InventoryLevelWithProduct {
   zone?: string | null;
   lastMovementAt?: Date | null;
   lastCountAt?: Date | null;
-  lowStockAlertSent: boolean;
+  lowStockAlertSent: boolean | null;
   lastAlertSentAt?: Date | null;
   attributes?: any;
   isActive: boolean;
@@ -76,6 +76,10 @@ export class InventoryRepository {
       })
       .returning();
 
+    if (!inventoryLevel) {
+      throw new Error('Failed to create inventory level');
+    }
+
     const result = await this.findById(tenantId, inventoryLevel.id);
     if (!result) {
       throw new Error('Failed to create inventory level');
@@ -119,7 +123,7 @@ export class InventoryRepository {
       availableLevel: parseFloat(inventory.availableLevel || '0'),
       reservedLevel: parseFloat(inventory.reservedLevel || '0'),
       minStockLevel: parseFloat(inventory.minStockLevel || '0'),
-      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : undefined,
+      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : null,
       reorderPoint: parseFloat(inventory.reorderPoint || '0'),
       reorderQuantity: parseFloat(inventory.reorderQuantity || '0'),
       averageCost: parseFloat(inventory.averageCost || '0'),
@@ -179,7 +183,7 @@ export class InventoryRepository {
       availableLevel: parseFloat(inventory.availableLevel || '0'),
       reservedLevel: parseFloat(inventory.reservedLevel || '0'),
       minStockLevel: parseFloat(inventory.minStockLevel || '0'),
-      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : undefined,
+      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : null,
       reorderPoint: parseFloat(inventory.reorderPoint || '0'),
       reorderQuantity: parseFloat(inventory.reorderQuantity || '0'),
       averageCost: parseFloat(inventory.averageCost || '0'),
@@ -284,7 +288,7 @@ export class InventoryRepository {
       availableLevel: parseFloat(inventory.availableLevel || '0'),
       reservedLevel: parseFloat(inventory.reservedLevel || '0'),
       minStockLevel: parseFloat(inventory.minStockLevel || '0'),
-      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : undefined,
+      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : null,
       reorderPoint: parseFloat(inventory.reorderPoint || '0'),
       reorderQuantity: parseFloat(inventory.reorderQuantity || '0'),
       averageCost: parseFloat(inventory.averageCost || '0'),
@@ -482,7 +486,7 @@ export class InventoryRepository {
       availableLevel: parseFloat(inventory.availableLevel || '0'),
       reservedLevel: parseFloat(inventory.reservedLevel || '0'),
       minStockLevel: parseFloat(inventory.minStockLevel || '0'),
-      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : undefined,
+      maxStockLevel: inventory.maxStockLevel ? parseFloat(inventory.maxStockLevel) : null,
       reorderPoint: parseFloat(inventory.reorderPoint || '0'),
       reorderQuantity: parseFloat(inventory.reorderQuantity || '0'),
       averageCost: parseFloat(inventory.averageCost || '0'),

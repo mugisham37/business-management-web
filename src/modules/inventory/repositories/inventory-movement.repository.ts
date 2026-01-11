@@ -53,7 +53,7 @@ export interface InventoryMovementWithProduct {
   expiryDate?: Date | null;
   reason?: string | null;
   notes?: string | null;
-  requiresApproval: boolean;
+  requiresApproval: boolean | null;
   approvedBy?: string | null;
   approvedAt?: Date | null;
   fromBinLocation?: string | null;
@@ -109,6 +109,10 @@ export class InventoryMovementRepository {
         updatedBy: userId,
       })
       .returning();
+
+    if (!movement) {
+      throw new Error('Failed to create inventory movement');
+    }
 
     const result = await this.findById(tenantId, movement.id);
     if (!result) {
@@ -188,8 +192,8 @@ export class InventoryMovementRepository {
     return result.map(({ movement, product, variant }) => ({
       ...movement,
       quantity: parseFloat(movement.quantity || '0'),
-      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : undefined,
-      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : undefined,
+      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : null,
+      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : null,
       previousLevel: parseFloat(movement.previousLevel || '0'),
       newLevel: parseFloat(movement.newLevel || '0'),
       product,
@@ -230,8 +234,8 @@ export class InventoryMovementRepository {
     return result.map(({ movement, product, variant }) => ({
       ...movement,
       quantity: parseFloat(movement.quantity || '0'),
-      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : undefined,
-      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : undefined,
+      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : null,
+      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : null,
       previousLevel: parseFloat(movement.previousLevel || '0'),
       newLevel: parseFloat(movement.newLevel || '0'),
       product,
@@ -262,8 +266,8 @@ export class InventoryMovementRepository {
     return result.map(({ movement, product, variant }) => ({
       ...movement,
       quantity: parseFloat(movement.quantity || '0'),
-      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : undefined,
-      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : undefined,
+      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : null,
+      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : null,
       previousLevel: parseFloat(movement.previousLevel || '0'),
       newLevel: parseFloat(movement.newLevel || '0'),
       product,
@@ -294,8 +298,8 @@ export class InventoryMovementRepository {
     return result.map(({ movement, product, variant }) => ({
       ...movement,
       quantity: parseFloat(movement.quantity || '0'),
-      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : undefined,
-      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : undefined,
+      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : null,
+      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : null,
       previousLevel: parseFloat(movement.previousLevel || '0'),
       newLevel: parseFloat(movement.newLevel || '0'),
       product,
@@ -444,8 +448,8 @@ export class InventoryMovementRepository {
     return result.map(({ movement, product, variant }) => ({
       ...movement,
       quantity: parseFloat(movement.quantity || '0'),
-      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : undefined,
-      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : undefined,
+      unitCost: movement.unitCost ? parseFloat(movement.unitCost) : null,
+      totalCost: movement.totalCost ? parseFloat(movement.totalCost) : null,
       previousLevel: parseFloat(movement.previousLevel || '0'),
       newLevel: parseFloat(movement.newLevel || '0'),
       product,

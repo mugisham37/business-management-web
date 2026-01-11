@@ -28,7 +28,7 @@ export interface StockCountSessionWithDetails {
   completedAt?: Date | null;
   assignedTo: string[];
   totalItemsCounted: number | null;
-  totalVariances: number;
+  totalVariances: number | null;
   totalAdjustmentValue: number;
   notes?: string | null;
   isActive: boolean;
@@ -52,7 +52,7 @@ export interface StockCountItemWithProduct {
   binLocation?: string | null;
   countedBy?: string | null;
   countedAt?: Date | null;
-  status: string;
+  status: string | null;
   notes?: string | null;
   adjustmentId?: string | null;
   isActive: boolean;
@@ -63,8 +63,8 @@ export interface StockCountItemWithProduct {
   version: number;
   product?: any;
   variant?: any;
-  sessionNumber?: string;
-  sessionLocationId?: string;
+  sessionNumber?: string | null;
+  sessionLocationId?: string | null;
 }
 
 export interface CreateCountItemDto {
@@ -119,6 +119,10 @@ export class CycleCountingRepository {
       })
       .returning();
 
+    if (!session) {
+      throw new Error('Failed to create stock count session');
+    }
+
     const result = await this.findSessionById(tenantId, session.id);
     if (!result) {
       throw new Error('Failed to create stock count session');
@@ -149,6 +153,7 @@ export class CycleCountingRepository {
       productIds: Array.isArray(session.productIds) ? session.productIds : [],
       assignedTo: Array.isArray(session.assignedTo) ? session.assignedTo : [],
       totalItemsCounted: session.totalItemsCounted ?? 0,
+      totalVariances: session.totalVariances ?? 0,
       totalAdjustmentValue: parseFloat(session.totalAdjustmentValue || '0'),
     };
   }
@@ -176,6 +181,7 @@ export class CycleCountingRepository {
       productIds: Array.isArray(session.productIds) ? session.productIds : [],
       assignedTo: Array.isArray(session.assignedTo) ? session.assignedTo : [],
       totalItemsCounted: session.totalItemsCounted ?? 0,
+      totalVariances: session.totalVariances ?? 0,
       totalAdjustmentValue: parseFloat(session.totalAdjustmentValue || '0'),
     };
   }
@@ -268,6 +274,7 @@ export class CycleCountingRepository {
       productIds: Array.isArray(session.productIds) ? session.productIds as string[] : [],
       assignedTo: Array.isArray(session.assignedTo) ? session.assignedTo as string[] : [],
       totalItemsCounted: session.totalItemsCounted ?? 0,
+      totalVariances: session.totalVariances ?? 0,
       totalAdjustmentValue: parseFloat(session.totalAdjustmentValue || '0'),
     }));
 
@@ -364,6 +371,10 @@ export class CycleCountingRepository {
       })
       .returning();
 
+    if (!item) {
+      throw new Error('Failed to create count item');
+    }
+
     const result = await this.findCountItemById(tenantId, item.id);
     if (!result) {
       throw new Error('Failed to create count item');
@@ -408,10 +419,11 @@ export class CycleCountingRepository {
       expectedQuantity: parseFloat(item.expectedQuantity || '0'),
       countedQuantity: item.countedQuantity ? parseFloat(item.countedQuantity) : null,
       variance: item.variance ? parseFloat(item.variance) : null,
+      status: item.status || 'pending',
       product,
       variant,
-      sessionNumber: session?.sessionNumber,
-      sessionLocationId: session?.locationId,
+      sessionNumber: session?.sessionNumber || null,
+      sessionLocationId: session?.locationId || null,
     };
   }
 
@@ -484,10 +496,11 @@ export class CycleCountingRepository {
       expectedQuantity: parseFloat(item.expectedQuantity || '0'),
       countedQuantity: item.countedQuantity ? parseFloat(item.countedQuantity) : null,
       variance: item.variance ? parseFloat(item.variance) : null,
+      status: item.status || 'pending',
       product,
       variant,
-      sessionNumber: session?.sessionNumber,
-      sessionLocationId: session?.locationId,
+      sessionNumber: session?.sessionNumber || null,
+      sessionLocationId: session?.locationId || null,
     }));
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -599,10 +612,11 @@ export class CycleCountingRepository {
       expectedQuantity: parseFloat(item.expectedQuantity || '0'),
       countedQuantity: item.countedQuantity ? parseFloat(item.countedQuantity) : null,
       variance: item.variance ? parseFloat(item.variance) : null,
+      status: item.status || 'pending',
       product,
       variant,
-      sessionNumber: session?.sessionNumber,
-      sessionLocationId: session?.locationId,
+      sessionNumber: session?.sessionNumber || null,
+      sessionLocationId: session?.locationId || null,
     }));
   }
 }
