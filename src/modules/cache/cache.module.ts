@@ -2,6 +2,11 @@ import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { SimpleRedisService } from './simple-redis.service';
+import { RedisService } from './redis.service';
+import { IntelligentCacheService } from './intelligent-cache.service';
+import { AdvancedCacheService } from './advanced-cache.service';
+import { HorizontalScalingService } from './horizontal-scaling.service';
+import { APIPerformanceService } from './api-performance.service';
 
 @Global()
 @Module({
@@ -13,7 +18,19 @@ import { SimpleRedisService } from './simple-redis.service';
   ],
   providers: [
     SimpleRedisService,
+    RedisService,
+    IntelligentCacheService,
+    AdvancedCacheService,
+    HorizontalScalingService,
+    APIPerformanceService,
   ],
-  exports: [SimpleRedisService],
+  exports: [
+    SimpleRedisService,
+    RedisService,
+    IntelligentCacheService,
+    AdvancedCacheService,
+    HorizontalScalingService,
+    APIPerformanceService,
+  ],
 })
 export class CacheConfigModule {}

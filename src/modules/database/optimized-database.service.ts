@@ -49,6 +49,14 @@ export class OptimizedDatabaseService {
   private readReplicaConnections: Map<string, any> = new Map();
   private partitioningEnabled = false;
   private partitioningStrategy: 'date' | 'tenant' | 'hash' = 'date';
+  
+  // Connection pool optimization
+  private connectionPoolStats = {
+    totalConnections: 0,
+    activeConnections: 0,
+    idleConnections: 0,
+    waitingRequests: 0,
+  };
 
   constructor(
     private readonly drizzleService: DrizzleService,
@@ -396,8 +404,266 @@ export class OptimizedDatabaseService {
   }
 
   /**
-   * Start maintenance tasks for query statistics
+   * Enable database partitioning for large tables
    */
+  async enablePartitioning(
+    tableName: string,
+    strategy: 'date' | 'tenant' | 'hash',
+    partitionColumn: string
+  ): Promise<void> {
+    const client = await this.drizzleService.getClient();
+    
+    try {
+      switch (strategy) {
+        case 'date':
+          await this.createDatePartitions(client, tableName, partitionColumn);
+          break;
+        case 'tenant':
+          await this.createTenantPartitions(client, tableName, partitionColumn);
+          break;
+        case 'hash':
+          await this.createHashPartitions(client, tableName, partitionColumn);
+          break;
+      }
+      
+      this.partitioningEnabled = true;
+      this.partitioningStrategy = strategy;
+      
+      this.customLogger.log('Database partitioning enabled', {
+        tableName,
+        strategy,
+        partitionColumn,
+      });
+    } catch (error) {
+      this.customLogger.error('Failed to enable partitioning', error instanceof Error ? error.stack : undefined, {
+        tableName,
+        strategy,
+        partitionColumn,
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Create date-based partitions
+   */
+  private async createDatePartitions(
+    client: PoolClient,
+    tableName: string,
+    dateColumn: string
+  ): Promise<void> {
+    // Create monthly partitions for the next 12 months
+    const currentDate = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const partitionDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+      const nextPartitionDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + i + 1, 1);
+      
+      const partitionName = `${tableName}_${partitionDate.getFullYear()}_${String(partitionDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      const createPartitionQuery = `
+        CREATE TABLE IF NOT EXISTS ${partitionName} 
+        PARTITION OF ${tableName}
+        FOR VALUES FROM ('${partitionDate.toISOString().split('T')[0]}') 
+        TO ('${nextPartitionDate.toISOString().split('T')[0]}')
+      `;
+      
+      await client.query(createPartitionQuery);
+      
+      // Create indexes on partition
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_${partitionName}_${dateColumn} 
+        ON ${partitionName} (${dateColumn})
+      `);
+    }
+  }
+
+  /**
+   * Create tenant-based partitions
+   */
+  private async createTenantPartitions(
+    client: PoolClient,
+    tableName: string,
+    tenantColumn: string
+  ): Promise<void> {
+    // Get list of active tenants
+    const tenantsResult = await client.query('SELECT id FROM tenants WHERE deleted_at IS NULL');
+    
+    for (const tenant of tenantsResult.rows) {
+      const partitionName = `${tableName}_tenant_${tenant.id.replace(/-/g, '_')}`;
+      
+      const createPartitionQuery = `
+        CREATE TABLE IF NOT EXISTS ${partitionName} 
+        PARTITION OF ${tableName}
+        FOR VALUES IN ('${tenant.id}')
+      `;
+      
+      await client.query(createPartitionQuery);
+      
+      // Create indexes on partition
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_${partitionName}_${tenantColumn} 
+        ON ${partitionName} (${tenantColumn})
+      `);
+    }
+  }
+
+  /**
+   * Create hash-based partitions
+   */
+  private async createHashPartitions(
+    client: PoolClient,
+    tableName: string,
+    hashColumn: string
+  ): Promise<void> {
+    const partitionCount = 8; // Create 8 hash partitions
+    
+    for (let i = 0; i < partitionCount; i++) {
+      const partitionName = `${tableName}_hash_${i}`;
+      
+      const createPartitionQuery = `
+        CREATE TABLE IF NOT EXISTS ${partitionName} 
+        PARTITION OF ${tableName}
+        FOR VALUES WITH (modulus ${partitionCount}, remainder ${i})
+      `;
+      
+      await client.query(createPartitionQuery);
+      
+      // Create indexes on partition
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_${partitionName}_${hashColumn} 
+        ON ${partitionName} (${hashColumn})
+      `);
+    }
+  }
+
+  /**
+   * Optimize database indexes
+   */
+  async optimizeIndexes(tableName?: string): Promise<void> {
+    const client = await this.drizzleService.getClient();
+    
+    try {
+      if (tableName) {
+        // Analyze specific table
+        await client.query(`ANALYZE ${tableName}`);
+        
+        // Reindex specific table
+        await client.query(`REINDEX TABLE ${tableName}`);
+        
+        this.customLogger.log('Table indexes optimized', { tableName });
+      } else {
+        // Analyze all tables
+        await client.query('ANALYZE');
+        
+        // Get list of tables that need reindexing
+        const tablesResult = await client.query(`
+          SELECT schemaname, tablename 
+          FROM pg_tables 
+          WHERE schemaname = 'public'
+        `);
+        
+        for (const table of tablesResult.rows) {
+          await client.query(`REINDEX TABLE ${table.schemaname}.${table.tablename}`);
+        }
+        
+        this.customLogger.log('All indexes optimized');
+      }
+    } catch (error) {
+      this.customLogger.error('Index optimization failed', error instanceof Error ? error.stack : undefined, {
+        tableName,
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Get database performance metrics
+   */
+  async getDatabaseMetrics(): Promise<{
+    connectionPool: any;
+    queryPerformance: QueryStats;
+    indexUsage: Array<{ table: string; index: string; scans: number; tuples: number }>;
+    tableStats: Array<{ table: string; size: string; rowCount: number }>;
+    slowQueries: Array<{ query: string; avgTime: number; calls: number }>;
+  }> {
+    const client = await this.drizzleService.getClient();
+    
+    try {
+      // Get connection pool stats
+      const poolStats = this.drizzleService.getPoolStats();
+      
+      // Get index usage statistics
+      const indexUsageResult = await client.query(`
+        SELECT 
+          schemaname,
+          tablename,
+          indexname,
+          idx_scan,
+          idx_tup_read
+        FROM pg_stat_user_indexes
+        ORDER BY idx_scan DESC
+        LIMIT 20
+      `);
+      
+      // Get table size statistics
+      const tableSizeResult = await client.query(`
+        SELECT 
+          schemaname,
+          tablename,
+          pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
+          n_tup_ins + n_tup_upd + n_tup_del as total_operations
+        FROM pg_stat_user_tables
+        ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+        LIMIT 20
+      `);
+      
+      // Get slow query statistics (if pg_stat_statements is enabled)
+      let slowQueries: any[] = [];
+      try {
+        const slowQueriesResult = await client.query(`
+          SELECT 
+            query,
+            mean_exec_time,
+            calls
+          FROM pg_stat_statements
+          WHERE mean_exec_time > 100
+          ORDER BY mean_exec_time DESC
+          LIMIT 10
+        `);
+        slowQueries = slowQueriesResult.rows;
+      } catch {
+        // pg_stat_statements not available
+      }
+      
+      return {
+        connectionPool: poolStats,
+        queryPerformance: this.queryStats,
+        indexUsage: indexUsageResult.rows.map(row => ({
+          table: `${row.schemaname}.${row.tablename}`,
+          index: row.indexname,
+          scans: row.idx_scan,
+          tuples: row.idx_tup_read,
+        })),
+        tableStats: tableSizeResult.rows.map(row => ({
+          table: `${row.schemaname}.${row.tablename}`,
+          size: row.size,
+          rowCount: row.total_operations,
+        })),
+        slowQueries: slowQueries.map(row => ({
+          query: row.query.substring(0, 100) + '...',
+          avgTime: row.mean_exec_time,
+          calls: row.calls,
+        })),
+      };
+    } finally {
+      client.release();
+    }
+  }
   private startQueryStatsMaintenance(): void {
     // Clean old prepared statements every 10 minutes
     setInterval(() => {
