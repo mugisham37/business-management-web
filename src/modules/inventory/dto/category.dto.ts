@@ -17,7 +17,7 @@ export class CreateCategoryDto {
   @ApiProperty({ description: 'Category name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Category description' })
   @IsOptional()

@@ -2,14 +2,14 @@ import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto, UpdateProductDto, ProductQueryDto } from '../dto/product.dto';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { FeatureGuard } from '../../tenant/guards/feature.guard';
 import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 
 @Resolver('Product')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('inventory-management')
 export class ProductResolver {
   constructor(private readonly productService: ProductService) {}

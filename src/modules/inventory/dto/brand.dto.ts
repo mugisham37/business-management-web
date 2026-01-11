@@ -16,7 +16,7 @@ export class CreateBrandDto {
   @ApiProperty({ description: 'Brand name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Brand description' })
   @IsOptional()

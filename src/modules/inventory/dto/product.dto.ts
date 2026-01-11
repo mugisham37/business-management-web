@@ -529,16 +529,16 @@ export class BulkUpdateProductsDto {
 
 export class ProductResponseDto {
   @ApiProperty({ description: 'Product ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Product SKU' })
-  sku: string;
+  sku!: string;
 
   @ApiProperty({ description: 'Product name' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Product description' })
   description?: string;
@@ -547,10 +547,10 @@ export class ProductResponseDto {
   shortDescription?: string;
 
   @ApiProperty({ description: 'Product type', enum: ProductType })
-  type: ProductType;
+  type!: ProductType;
 
   @ApiProperty({ description: 'Product status', enum: ProductStatus })
-  status: ProductStatus;
+  status!: ProductStatus;
 
   @ApiPropertyOptional({ description: 'Category ID' })
   categoryId?: string;
@@ -562,7 +562,7 @@ export class ProductResponseDto {
   tags?: string[];
 
   @ApiProperty({ description: 'Base price' })
-  basePrice: number;
+  basePrice!: number;
 
   @ApiPropertyOptional({ description: 'Cost price' })
   costPrice?: number;
@@ -571,10 +571,10 @@ export class ProductResponseDto {
   msrp?: number;
 
   @ApiProperty({ description: 'Track inventory flag' })
-  trackInventory: boolean;
+  trackInventory!: boolean;
 
   @ApiProperty({ description: 'Unit of measure', enum: UnitOfMeasure })
-  unitOfMeasure: UnitOfMeasure;
+  unitOfMeasure!: UnitOfMeasure;
 
   @ApiPropertyOptional({ description: 'Product weight' })
   weight?: number;
@@ -583,7 +583,7 @@ export class ProductResponseDto {
   dimensions?: ProductDimensionsDto;
 
   @ApiProperty({ description: 'Taxable flag' })
-  taxable: boolean;
+  taxable!: boolean;
 
   @ApiPropertyOptional({ description: 'Tax category ID' })
   taxCategoryId?: string;
@@ -616,34 +616,34 @@ export class ProductResponseDto {
   supplierSku?: string;
 
   @ApiProperty({ description: 'Minimum stock level' })
-  minStockLevel: number;
+  minStockLevel!: number;
 
   @ApiPropertyOptional({ description: 'Maximum stock level' })
   maxStockLevel?: number;
 
   @ApiProperty({ description: 'Reorder point' })
-  reorderPoint: number;
+  reorderPoint!: number;
 
   @ApiProperty({ description: 'Reorder quantity' })
-  reorderQuantity: number;
+  reorderQuantity!: number;
 
   @ApiProperty({ description: 'Requires batch tracking' })
-  requiresBatchTracking: boolean;
+  requiresBatchTracking!: boolean;
 
   @ApiProperty({ description: 'Requires expiry date' })
-  requiresExpiryDate: boolean;
+  requiresExpiryDate!: boolean;
 
   @ApiPropertyOptional({ description: 'Shelf life in days' })
   shelfLife?: number;
 
   @ApiProperty({ description: 'Is featured' })
-  isFeatured: boolean;
+  isFeatured!: boolean;
 
   @ApiProperty({ description: 'Allow backorders' })
-  allowBackorders: boolean;
+  allowBackorders!: boolean;
 
   @ApiProperty({ description: 'Is active' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiPropertyOptional({ description: 'Launch date' })
   launchedAt?: string;
@@ -652,10 +652,10 @@ export class ProductResponseDto {
   discontinuedAt?: string;
 
   @ApiProperty({ description: 'Created at timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Updated at timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiPropertyOptional({ description: 'Created by user ID' })
   createdBy?: string;
@@ -664,5 +664,5 @@ export class ProductResponseDto {
   updatedBy?: string;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 }
