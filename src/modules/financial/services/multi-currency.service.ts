@@ -120,7 +120,10 @@ export class MultiCurrencyService {
       await this.cacheService.set(cacheKey, currencies_list, { ttl: 300 }); // 5 minutes
     }
 
-    return currencies_list as Currency[];
+    return currencies_list.map(currency => ({
+      ...currency,
+      countryCode: currency.countryCode || '',
+    })) as Currency[];
   }
 
   async getBaseCurrency(tenantId: string): Promise<Currency> {
@@ -202,7 +205,6 @@ export class MultiCurrencyService {
     const exchangeRate = await this.drizzle.getDb()
       .insert(exchangeRates)
       .values({
-        tenantId,
         fromCurrencyId: data.fromCurrencyId!,
         toCurrencyId: data.toCurrencyId!,
         exchangeRate: data.exchangeRate!,
@@ -284,15 +286,15 @@ export class MultiCurrencyService {
             ...inverseRate,
             fromCurrencyId,
             toCurrencyId,
-            exchangeRate: Number(inverseRate.inverseRate),
-            inverseRate: Number(inverseRate.exchangeRate),
+            exchangeRate: Number(inverseRate.inverseRate || 1),
+            inverseRate: Number(inverseRate.exchangeRate || 1),
           } as ExchangeRate;
         }
       } else {
         rate = {
           ...result[0],
-          exchangeRate: Number(result[0].exchangeRate),
-          inverseRate: Number(result[0].inverseRate),
+          exchangeRate: Number(result[0].exchangeRate || 1),
+          inverseRate: Number(result[0].inverseRate || 1),
         } as ExchangeRate;
       }
 
@@ -353,7 +355,6 @@ export class MultiCurrencyService {
       await this.drizzle.getDb()
         .insert(currencyConversions)
         .values({
-          tenantId,
           sourceType,
           sourceId,
           fromCurrencyId,
@@ -413,9 +414,17 @@ export class MultiCurrencyService {
     }
 
     const curr = currency[0];
+    if (!curr) {
+      return amount.toFixed(2);
+    }
+
     const formattedAmount = amount.toFixed(curr.decimalPlaces);
     const [integerPart, decimalPart] = formattedAmount.split('.');
     
+    if (!integerPart) {
+      return amount.toFixed(2);
+    }
+
     // Add thousands separators
     const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, curr.thousandsSeparator);
     

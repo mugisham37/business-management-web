@@ -30,7 +30,7 @@ export class TransactionPostingService {
     // Get required accounts
     const accounts = await this.getRequiredAccounts(tenantId);
     
-    if (!accounts.cash || !accounts.salesRevenue || !accounts.inventory || !accounts.cogs) {
+    if (!(accounts as any).cash || !(accounts as any).salesRevenue || !(accounts as any).inventory || !(accounts as any).cogs) {
       throw new Error('Required accounts not found. Please initialize chart of accounts.');
     }
 
@@ -45,7 +45,7 @@ export class TransactionPostingService {
     // 1. Debit Cash/Payment Account
     const paymentAccountId = await this.getPaymentAccountId(tenantId, transaction.paymentMethod);
     journalLines.push({
-      accountId: paymentAccountId || accounts.cash.id,
+      accountId: paymentAccountId || (accounts as any).cash?.id,
       lineNumber: lineNumber++,
       description: `Payment received - ${transaction.paymentMethod}`,
       debitAmount: totalAmount.toFixed(2),
@@ -57,7 +57,7 @@ export class TransactionPostingService {
 
     // 2. Credit Sales Revenue
     journalLines.push({
-      accountId: accounts.salesRevenue.id,
+      accountId: (accounts as any).salesRevenue?.id,
       lineNumber: lineNumber++,
       description: 'Sales revenue',
       debitAmount: '0.00',
@@ -68,9 +68,9 @@ export class TransactionPostingService {
     });
 
     // 3. Credit Sales Tax (if applicable)
-    if (totalTax > 0 && accounts.salesTax) {
+    if (totalTax > 0 && (accounts as any).salesTax) {
       journalLines.push({
-        accountId: accounts.salesTax.id,
+        accountId: (accounts as any).salesTax?.id,
         lineNumber: lineNumber++,
         description: 'Sales tax collected',
         debitAmount: '0.00',
@@ -89,7 +89,7 @@ export class TransactionPostingService {
         if (costAmount > 0) {
           // Debit COGS
           journalLines.push({
-            accountId: accounts.cogs.id,
+            accountId: (accounts as any).cogs?.id,
             lineNumber: lineNumber++,
             description: `COGS for ${item.productName || item.productId}`,
             debitAmount: costAmount.toFixed(2),
@@ -100,7 +100,7 @@ export class TransactionPostingService {
 
           // Credit Inventory
           journalLines.push({
-            accountId: accounts.inventory.id,
+            accountId: (accounts as any).inventory?.id,
             lineNumber: lineNumber++,
             description: `Inventory reduction for ${item.productName || item.productId}`,
             debitAmount: '0.00',
@@ -142,7 +142,7 @@ export class TransactionPostingService {
 
     // Debit Salary Expense
     journalLines.push({
-      accountId: accounts.salaryExpense?.id,
+      accountId: (accounts as any).salaryExpense?.id,
       lineNumber: lineNumber++,
       description: `Payroll for period ${payrollData.payPeriod}`,
       debitAmount: payrollData.grossPay.toFixed(2),
@@ -153,7 +153,7 @@ export class TransactionPostingService {
 
     // Credit Cash (net pay)
     journalLines.push({
-      accountId: accounts.cash.id,
+      accountId: (accounts as any).cash?.id,
       lineNumber: lineNumber++,
       description: 'Net pay disbursement',
       debitAmount: '0.00',
@@ -164,7 +164,7 @@ export class TransactionPostingService {
     // Credit various payroll liabilities
     if (payrollData.federalTax > 0) {
       journalLines.push({
-        accountId: accounts.federalTaxPayable?.id || accounts.accruedExpenses?.id,
+        accountId: (accounts as any).federalTaxPayable?.id || (accounts as any).accruedExpenses?.id,
         lineNumber: lineNumber++,
         description: 'Federal tax withholding',
         debitAmount: '0.00',
@@ -196,7 +196,7 @@ export class TransactionPostingService {
     if (isIncrease) {
       // Inventory increase - Debit Inventory, Credit Inventory Adjustment (or specific account)
       journalLines.push({
-        accountId: accounts.inventory.id,
+        accountId: (accounts as any).inventory?.id,
         lineNumber: lineNumber++,
         description: `Inventory adjustment - ${adjustmentData.reason}`,
         debitAmount: adjustmentAmount.toFixed(2),
@@ -205,7 +205,7 @@ export class TransactionPostingService {
       });
 
       journalLines.push({
-        accountId: accounts.inventoryAdjustment?.id || accounts.otherExpense?.id,
+        accountId: (accounts as any).inventoryAdjustment?.id || (accounts as any).otherExpense?.id,
         lineNumber: lineNumber++,
         description: `Inventory adjustment - ${adjustmentData.reason}`,
         debitAmount: '0.00',
@@ -215,7 +215,7 @@ export class TransactionPostingService {
     } else {
       // Inventory decrease - Debit Inventory Adjustment, Credit Inventory
       journalLines.push({
-        accountId: accounts.inventoryAdjustment?.id || accounts.otherExpense?.id,
+        accountId: (accounts as any).inventoryAdjustment?.id || (accounts as any).otherExpense?.id,
         lineNumber: lineNumber++,
         description: `Inventory adjustment - ${adjustmentData.reason}`,
         debitAmount: adjustmentAmount.toFixed(2),
@@ -224,7 +224,7 @@ export class TransactionPostingService {
       });
 
       journalLines.push({
-        accountId: accounts.inventory.id,
+        accountId: (accounts as any).inventory?.id,
         lineNumber: lineNumber++,
         description: `Inventory adjustment - ${adjustmentData.reason}`,
         debitAmount: '0.00',
@@ -245,8 +245,8 @@ export class TransactionPostingService {
   }
 
   private async getRequiredAccounts(tenantId: string) {
-    const allAccounts = await this.chartOfAccountsService.getAllAccounts(tenantId);
-    const accountMap = new Map(allAccounts.map(acc => [acc.accountNumber, acc]));
+    const allAccounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as any[];
+    const accountMap = new Map(allAccounts.map((acc: any) => [acc.accountNumber, acc]));
 
     return {
       cash: accountMap.get('1110'), // Cash and Cash Equivalents
@@ -278,7 +278,7 @@ export class TransactionPostingService {
     }
 
     const account = await this.chartOfAccountsService.findAccountByNumber(tenantId, accountNumber);
-    return account?.id || null;
+    return (account as any)?.id || null;
   }
 
   private async getItemCost(tenantId: string, productId: string, quantity: number): Promise<number> {

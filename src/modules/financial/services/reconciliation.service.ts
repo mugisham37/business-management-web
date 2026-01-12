@@ -73,7 +73,7 @@ export class ReconciliationService {
     }
 
     // If statement balance is updated, recalculate adjusted balance
-    let updateData = { ...data };
+    let updateData: any = { ...data };
     if (data.statementBalance) {
       const bookBalance = parseFloat(reconciliation.bookBalance);
       const statementBalance = parseFloat(data.statementBalance);
@@ -181,7 +181,7 @@ export class ReconciliationService {
 
     // If balances match exactly, mark as reconciled
     if (Math.abs(bookBalanceNum - statementBalanceNum) < 0.01) {
-      return await this.reconciliationRepository.markAsReconciled(tenantId, reconciliation.id, userId);
+      return await this.reconciliationRepository.markAsReconciled(tenantId, reconciliation?.id || '', userId);
     }
 
     // Otherwise, calculate outstanding items
@@ -189,13 +189,13 @@ export class ReconciliationService {
     
     if (difference > 0) {
       // Outstanding credits (deposits in transit)
-      await this.reconciliationRepository.update(tenantId, reconciliation.id, {
+      await this.reconciliationRepository.update(tenantId, reconciliation?.id || '', {
         outstandingCredits: Math.abs(difference).toFixed(2),
         adjustedBalance: statementBalance,
       }, userId);
     } else {
       // Outstanding debits (checks not yet cleared)
-      await this.reconciliationRepository.update(tenantId, reconciliation.id, {
+      await this.reconciliationRepository.update(tenantId, reconciliation?.id || '', {
         outstandingDebits: Math.abs(difference).toFixed(2),
         adjustedBalance: statementBalance,
       }, userId);

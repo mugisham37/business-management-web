@@ -22,7 +22,7 @@ import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Controller('api/v1/inventory/batches')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('batch-tracking')
 @ApiTags('Batch Tracking')
 export class BatchTrackingController {
@@ -146,10 +146,10 @@ export class BatchTrackingController {
   @ApiParam({ name: 'locationId', description: 'Location ID' })
   @ApiQuery({ name: 'variantId', required: false })
   async getFIFOBatches(
+    @CurrentTenant() tenantId: string,
     @Param('productId') productId: string,
     @Param('locationId') locationId: string,
     @Query('variantId') variantId?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     return this.batchTrackingService.getFIFOBatches(tenantId, productId, variantId || null, locationId);
   }
@@ -162,10 +162,10 @@ export class BatchTrackingController {
   @ApiParam({ name: 'locationId', description: 'Location ID' })
   @ApiQuery({ name: 'variantId', required: false })
   async getLIFOBatches(
+    @CurrentTenant() tenantId: string,
     @Param('productId') productId: string,
     @Param('locationId') locationId: string,
     @Query('variantId') variantId?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     return this.batchTrackingService.getLIFOBatches(tenantId, productId, variantId || null, locationId);
   }
@@ -178,10 +178,10 @@ export class BatchTrackingController {
   @ApiParam({ name: 'locationId', description: 'Location ID' })
   @ApiQuery({ name: 'variantId', required: false })
   async getFEFOBatches(
+    @CurrentTenant() tenantId: string,
     @Param('productId') productId: string,
     @Param('locationId') locationId: string,
     @Query('variantId') variantId?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     return this.batchTrackingService.getFEFOBatches(tenantId, productId, variantId || null, locationId);
   }

@@ -28,7 +28,7 @@ import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Controller('api/v1/inventory/cycle-counting')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('cycle-counting')
 @ApiTags('Cycle Counting')
 export class CycleCountingController {

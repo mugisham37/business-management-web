@@ -241,7 +241,15 @@ export class BudgetService {
       budget: budgetWithLines,
       asOfDate: currentDate,
       percentComplete: (percentComplete * 100).toFixed(2),
-      lines: [],
+      lines: [] as Array<{
+        accountId: string;
+        budgetedAmount: string;
+        expectedAmount: string;
+        actualAmount: string;
+        variance: string;
+        variancePercent: string;
+        isFavorable: boolean;
+      }>,
       summary: {
         totalBudgeted: 0,
         totalActual: 0,
@@ -306,6 +314,10 @@ export class BudgetService {
       budgetType: sourceBudget.budgetType,
     }, userId);
 
+    if (!newBudget) {
+      throw new Error('Failed to create new budget');
+    }
+
     // Copy budget lines
     for (const line of sourceBudget.lines) {
       await this.budgetRepository.createBudgetLine(tenantId, {
@@ -316,10 +328,11 @@ export class BudgetService {
         q2Amount: line.q2Amount,
         q3Amount: line.q3Amount,
         q4Amount: line.q4Amount,
-        monthlyAmounts: line.monthlyAmounts,
-        departmentId: line.departmentId,
-        projectId: line.projectId,
-        locationId: line.locationId,
+        monthlyAmounts: line.monthlyAmounts as Record<string, any>,
+        departmentId: line.departmentId || undefined,
+        projectId: line.projectId || undefined,
+        locationId: line.locationId || undefined,
+        notes: line.notes || undefined,
         notes: line.notes,
       }, userId);
     }

@@ -34,12 +34,12 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors/logging.interceptor';
+import { LoggingInterceptor } from '../../../common/interceptors/logging.interceptor';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Controller('api/v1/brands')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('inventory-management')
 @UseInterceptors(LoggingInterceptor)
 @ApiTags('Product Brands')

@@ -1,10 +1,12 @@
-import { Resolver, Query, Args, Context } from '@nestjs/graphql';
+import { Resolver, Query, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { GraphQLTenantGuard } from '../../tenant/guards/graphql-tenant.guard';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { CurrentUser } from '../../auth/decorators/auth.decorators';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
+import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 import { FinancialReportingService, FinancialReport } from '../services/financial-reporting.service';
-import { GraphQLContext } from '../../../common/graphql/graphql-context.interface';
 
 @Resolver()
 @UseGuards(GraphQLJwtAuthGuard, GraphQLTenantGuard)
@@ -17,14 +19,15 @@ export class FinancialReportingResolver {
   @RequirePermission('financial:reports:read')
   async generateBalanceSheet(
     @Args('asOfDate', { nullable: true }) asOfDate: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     const reportDate = asOfDate || new Date();
     
     return this.financialReportingService.generateBalanceSheet(
-      context.req.tenant.id,
+      tenantId,
       reportDate,
-      context.req.user.id,
+      user.id,
     );
   }
 
@@ -33,17 +36,18 @@ export class FinancialReportingResolver {
   async generateIncomeStatement(
     @Args('periodStart') periodStart: Date,
     @Args('periodEnd') periodEnd: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     if (periodStart >= periodEnd) {
       throw new Error('Period start must be before period end');
     }
 
     return this.financialReportingService.generateIncomeStatement(
-      context.req.tenant.id,
+      tenantId,
       periodStart,
       periodEnd,
-      context.req.user.id,
+      user.id,
     );
   }
 
@@ -52,17 +56,18 @@ export class FinancialReportingResolver {
   async generateCashFlowStatement(
     @Args('periodStart') periodStart: Date,
     @Args('periodEnd') periodEnd: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     if (periodStart >= periodEnd) {
       throw new Error('Period start must be before period end');
     }
 
     return this.financialReportingService.generateCashFlowStatement(
-      context.req.tenant.id,
+      tenantId,
       periodStart,
       periodEnd,
-      context.req.user.id,
+      user.id,
     );
   }
 
@@ -70,14 +75,15 @@ export class FinancialReportingResolver {
   @RequirePermission('financial:reports:read')
   async generateTrialBalance(
     @Args('asOfDate', { nullable: true }) asOfDate: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     const reportDate = asOfDate || new Date();
     
     return this.financialReportingService.generateTrialBalance(
-      context.req.tenant.id,
+      tenantId,
       reportDate,
-      context.req.user.id,
+      user.id,
     );
   }
 
@@ -87,18 +93,19 @@ export class FinancialReportingResolver {
     @Args('accountId') accountId: string,
     @Args('periodStart') periodStart: Date,
     @Args('periodEnd') periodEnd: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     if (periodStart >= periodEnd) {
       throw new Error('Period start must be before period end');
     }
 
     return this.financialReportingService.generateGeneralLedger(
-      context.req.tenant.id,
+      tenantId,
       accountId,
       periodStart,
       periodEnd,
-      context.req.user.id,
+      user.id,
     );
   }
 
@@ -106,14 +113,15 @@ export class FinancialReportingResolver {
   @RequirePermission('financial:reports:read')
   async generateFinancialRatios(
     @Args('asOfDate', { nullable: true }) asOfDate: Date,
-    @Context() context: GraphQLContext,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<FinancialReport> {
     const reportDate = asOfDate || new Date();
     
     return this.financialReportingService.generateFinancialRatios(
-      context.req.tenant.id,
+      tenantId,
       reportDate,
-      context.req.user.id,
+      user.id,
     );
   }
 }

@@ -36,12 +36,12 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors/logging.interceptor';
+import { LoggingInterceptor } from '../../../common/interceptors/logging.interceptor';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Controller('api/v1/products')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('inventory-management')
 @UseInterceptors(LoggingInterceptor)
 @ApiTags('Products')
@@ -65,7 +65,7 @@ export class ProductController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.create(tenantId, createProductDto, user.id);
+    return this.productService.create(tenantId, createProductDto, user.id) as Promise<ProductResponseDto>;
   }
 
   @Get()

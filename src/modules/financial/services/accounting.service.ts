@@ -32,7 +32,7 @@ export class AccountingService {
     }) as ChartOfAccount[];
 
     const trialBalance = (allAccounts || []).map((account: ChartOfAccount) => {
-      const balance = parseFloat(account.currentBalance);
+      const balance = parseFloat(account.currentBalance || '0');
       const isDebitAccount = account.normalBalance === 'debit';
 
       return {
@@ -123,7 +123,6 @@ export class AccountingService {
     // Debit Cash (or appropriate payment account)
     journalLines.push({
       accountId: cashAccount.id,
-      lineNumber: lineNumber++,
       description: `Payment received - ${transactionData.paymentMethod}`,
       debitAmount: totalAmount.toFixed(2),
       creditAmount: '0.00',
@@ -134,7 +133,6 @@ export class AccountingService {
     // Credit Sales Revenue
     journalLines.push({
       accountId: salesRevenueAccount.id,
-      lineNumber: lineNumber++,
       description: 'Sales revenue',
       debitAmount: '0.00',
       creditAmount: subtotal.toFixed(2),
@@ -146,7 +144,6 @@ export class AccountingService {
     if (totalTax > 0 && salesTaxAccount) {
       journalLines.push({
         accountId: salesTaxAccount.id,
-        lineNumber: lineNumber++,
         description: 'Sales tax collected',
         debitAmount: '0.00',
         creditAmount: totalTax.toFixed(2),
@@ -164,7 +161,6 @@ export class AccountingService {
       // Debit COGS
       journalLines.push({
         accountId: cogsAccount.id,
-        lineNumber: lineNumber++,
         description: `COGS for product ${item.productId}`,
         debitAmount: estimatedCost.toFixed(2),
         creditAmount: '0.00',
@@ -174,7 +170,6 @@ export class AccountingService {
       // Credit Inventory
       journalLines.push({
         accountId: inventoryAccount.id,
-        lineNumber: lineNumber++,
         description: `Inventory reduction for product ${item.productId}`,
         debitAmount: '0.00',
         creditAmount: estimatedCost.toFixed(2),
@@ -197,16 +192,16 @@ export class AccountingService {
   }
 
   async getFinancialSummary(tenantId: string, dateFrom?: Date, dateTo?: Date) {
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId);
+    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as ChartOfAccount[];
     
     // Group accounts by type
-    const accountsByType = accounts.reduce((acc, account) => {
+    const accountsByType = (accounts || []).reduce((acc, account) => {
       if (!acc[account.accountType]) {
         acc[account.accountType] = [];
       }
       acc[account.accountType].push(account);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, ChartOfAccount[]>);
 
     // Calculate totals by type
     const summary = {
@@ -246,21 +241,21 @@ export class AccountingService {
     };
   }
 
-  private calculateTypeTotal(accounts: any[]): number {
+  private calculateTypeTotal(accounts: ChartOfAccount[]): number {
     return accounts.reduce((sum, account) => {
-      const balance = parseFloat(account.currentBalance);
+      const balance = parseFloat(account.currentBalance || '0');
       return sum + (balance > 0 ? balance : 0);
     }, 0);
   }
 
-  private calculateWorkingCapital(accountsByType: Record<string, any[]>): number {
+  private calculateWorkingCapital(accountsByType: Record<string, ChartOfAccount[]>): number {
     const currentAssets = (accountsByType[AccountType.ASSET] || [])
-      .filter(acc => acc.accountSubType.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance), 0);
+      .filter(acc => acc.accountSubType?.includes('current'))
+      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance || '0'), 0);
 
     const currentLiabilities = (accountsByType[AccountType.LIABILITY] || [])
-      .filter(acc => acc.accountSubType.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance), 0);
+      .filter(acc => acc.accountSubType?.includes('current'))
+      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance || '0'), 0);
 
     return currentAssets - currentLiabilities;
   }
@@ -298,9 +293,9 @@ export class AccountingService {
     }
 
     // Check for accounts with negative balances that shouldn't have them
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId);
+    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as ChartOfAccount[];
     for (const account of accounts) {
-      const balance = parseFloat(account.currentBalance);
+      const balance = parseFloat(account.currentBalance || '0');
       if (balance < 0) {
         const shouldBePositive = (
           (account.normalBalance === 'debit' && [AccountType.ASSET, AccountType.EXPENSE].includes(account.accountType)) ||

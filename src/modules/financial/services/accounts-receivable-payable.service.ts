@@ -195,17 +195,17 @@ export class AccountsReceivablePayableService {
           supplierId: input.supplierId,
           invoiceDate: input.invoiceDate,
           dueDate: input.dueDate || input.invoiceDate,
-          subtotalAmount,
-          taxAmount,
-          discountAmount,
-          totalAmount,
-          paidAmount: 0,
-          balanceAmount: totalAmount,
+          subtotalAmount: subtotalAmount.toFixed(2),
+          taxAmount: taxAmount.toFixed(2),
+          discountAmount: discountAmount.toFixed(2),
+          totalAmount: totalAmount.toFixed(2),
+          paidAmount: '0.00',
+          balanceAmount: totalAmount.toFixed(2),
           status: 'open',
           paymentTerms: input.paymentTerms,
           paymentTermsDays: input.paymentTermsDays || 30,
           currency: input.currency || 'USD',
-          exchangeRate: input.exchangeRate || 1,
+          exchangeRate: (input.exchangeRate || 1).toFixed(4),
           purchaseOrderNumber: input.purchaseOrderNumber,
           referenceNumber: input.referenceNumber,
           description: input.description,
@@ -228,18 +228,17 @@ export class AccountsReceivablePayableService {
         await tx
           .insert(arApInvoiceLines)
           .values({
-            tenantId,
             invoiceId: invoice[0].id,
             productId: line.productId,
             lineNumber,
             description: line.description,
             quantity: line.quantity,
-            unitPrice: line.unitPrice,
-            lineAmount: netAmount,
-            taxAmount: 0, // Would be calculated based on taxRateId
+            unitPrice: line.unitPrice.toFixed(2),
+            lineAmount: netAmount.toFixed(2),
+            taxAmount: '0.00', // Would be calculated based on taxRateId
             taxRateId: line.taxRateId,
-            discountPercent: line.discountPercent || 0,
-            discountAmount: lineDiscount,
+            discountPercent: (line.discountPercent || 0).toFixed(2),
+            discountAmount: lineDiscount.toFixed(2),
             glAccountId: line.glAccountId,
             notes: line.notes,
             createdAt: new Date(),
@@ -293,7 +292,7 @@ export class AccountsReceivablePayableService {
       conditions.push(lte(arApInvoices.invoiceDate, toDate));
     }
 
-    return await this.drizzle.db
+    return await this.drizzle.getDb()
       .select()
       .from(arApInvoices)
       .where(and(...conditions))
@@ -301,7 +300,7 @@ export class AccountsReceivablePayableService {
   }
 
   async getInvoiceById(tenantId: string, invoiceId: string): Promise<ARAPInvoice | null> {
-    const result = await this.drizzle.db
+    const result = await this.drizzle.getDb()
       .select()
       .from(arApInvoices)
       .where(
@@ -327,18 +326,17 @@ export class AccountsReceivablePayableService {
       const payment = await tx
         .insert(arApPayments)
         .values({
-          tenantId,
           paymentNumber: input.paymentNumber,
           paymentType: input.paymentType,
           customerId: input.customerId,
           supplierId: input.supplierId,
           paymentDate: input.paymentDate,
           paymentMethod: input.paymentMethod,
-          paymentAmount: input.paymentAmount,
-          appliedAmount: 0,
-          unappliedAmount: input.paymentAmount,
+          paymentAmount: input.paymentAmount.toFixed(2),
+          appliedAmount: '0.00',
+          unappliedAmount: input.paymentAmount.toFixed(2),
           currency: input.currency || 'USD',
-          exchangeRate: input.exchangeRate || 1,
+          exchangeRate: (input.exchangeRate || 1).toFixed(4),
           bankAccountId: input.bankAccountId,
           checkNumber: input.checkNumber,
           referenceNumber: input.referenceNumber,
@@ -375,8 +373,8 @@ export class AccountsReceivablePayableService {
         await tx
           .update(arApPayments)
           .set({
-            appliedAmount: totalApplied,
-            unappliedAmount: input.paymentAmount - totalApplied,
+            appliedAmount: totalApplied.toFixed(2),
+            unappliedAmount: (input.paymentAmount - totalApplied).toFixed(2),
             updatedAt: new Date(),
             updatedBy: userId,
           })
@@ -425,7 +423,7 @@ export class AccountsReceivablePayableService {
       conditions.push(lte(arApPayments.paymentDate, toDate));
     }
 
-    return await this.drizzle.db
+    return await this.drizzle.getDb()
       .select()
       .from(arApPayments)
       .where(and(...conditions))
@@ -439,7 +437,7 @@ export class AccountsReceivablePayableService {
     asOfDate: Date = new Date()
   ): Promise<AgingReport[]> {
     // Get aging buckets
-    const buckets = await this.drizzle.db
+    const buckets = await this.drizzle.getDb()
       .select()
       .from(agingBuckets)
       .where(
@@ -452,7 +450,7 @@ export class AccountsReceivablePayableService {
       .orderBy(asc(agingBuckets.displayOrder));
 
     // Get open invoices
-    const invoices = await this.drizzle.db
+    const invoices = await this.drizzle.getDb()
       .select()
       .from(arApInvoices)
       .where(
@@ -491,7 +489,7 @@ export class AccountsReceivablePayableService {
         buckets: buckets.map(bucket => ({
           bucketName: bucket.bucketName,
           minDays: bucket.minDays,
-          maxDays: bucket.maxDays || undefined,
+          ...(bucket.maxDays !== null && { maxDays: bucket.maxDays }),
           amount: 0,
         })),
       };
@@ -593,7 +591,7 @@ export class AccountsReceivablePayableService {
     const year = new Date().getFullYear();
     
     // Get the next sequence number for this tenant and type
-    const lastInvoice = await this.drizzle.db
+    const lastInvoice = await this.drizzle.getDb()
       .select()
       .from(arApInvoices)
       .where(
@@ -623,7 +621,7 @@ export class AccountsReceivablePayableService {
     const year = new Date().getFullYear();
     
     // Get the next sequence number for this tenant and type
-    const lastPayment = await this.drizzle.db
+    const lastPayment = await this.drizzle.getDb()
       .select()
       .from(arApPayments)
       .where(

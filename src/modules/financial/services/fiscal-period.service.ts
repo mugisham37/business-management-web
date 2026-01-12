@@ -204,7 +204,7 @@ export class FiscalPeriodService {
       const current = sortedPeriods[i];
       const next = sortedPeriods[i + 1];
       
-      if (current.endDate >= next.startDate) {
+      if (current && next && current.endDate >= next.startDate) {
         issues.push({
           type: 'overlapping_periods',
           message: `Period ${current.periodNumber} overlaps with period ${next.periodNumber}`,
@@ -217,14 +217,16 @@ export class FiscalPeriodService {
       const current = sortedPeriods[i];
       const next = sortedPeriods[i + 1];
       
-      const dayAfterCurrent = new Date(current.endDate);
-      dayAfterCurrent.setDate(dayAfterCurrent.getDate() + 1);
-      
-      if (dayAfterCurrent.getTime() !== next.startDate.getTime()) {
-        issues.push({
-          type: 'date_gap',
-          message: `Gap between period ${current.periodNumber} and period ${next.periodNumber}`,
-        });
+      if (current && next) {
+        const dayAfterCurrent = new Date(current.endDate);
+        dayAfterCurrent.setDate(dayAfterCurrent.getDate() + 1);
+        
+        if (dayAfterCurrent.getTime() !== next.startDate.getTime()) {
+          issues.push({
+            type: 'date_gap',
+            message: `Gap between period ${current.periodNumber} and period ${next.periodNumber}`,
+          });
+        }
       }
     }
 

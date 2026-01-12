@@ -17,7 +17,7 @@ import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 
 @Controller('api/v1/inventory/reports')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('inventory-reporting')
 @ApiTags('Inventory Reporting')
 export class InventoryReportingController {
@@ -116,9 +116,9 @@ export class InventoryReportingController {
     @CurrentTenant() tenantId: string,
   ) {
     return this.valuationService.getValuationSummary(tenantId, {
-      locationId: query.locationId,
-      productId: query.productId,
-      asOfDate: query.dateTo,
+      ...(query.locationId && { locationId: query.locationId }),
+      ...(query.productId && { productId: query.productId }),
+      ...(query.dateTo && { asOfDate: query.dateTo }),
     });
   }
 
@@ -145,8 +145,8 @@ export class InventoryReportingController {
       // Get valuation for all locations
       return this.valuationService.calculateInventoryValuation(tenantId, {
         productId,
-        valuationMethod: query.valuationMethod,
-        asOfDate: query.asOfDate ? new Date(query.asOfDate) : undefined,
+        ...(query.valuationMethod && { valuationMethod: query.valuationMethod }),
+        ...(query.asOfDate && { asOfDate: new Date(query.asOfDate) }),
       });
     }
 

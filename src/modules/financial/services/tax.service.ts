@@ -112,11 +112,12 @@ export class TaxService {
 
   // Tax Jurisdiction Management
   async createJurisdiction(tenantId: string, data: Partial<TaxJurisdiction>): Promise<TaxJurisdiction> {
-    const jurisdiction = await this.drizzle.db
+    const jurisdiction = await this.drizzle.getDb()
       .insert(taxJurisdictions)
       .values({
         ...data,
-        tenantId,
+        jurisdictionCode: data.jurisdictionCode || '',
+        jurisdictionName: data.jurisdictionName || '',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -136,7 +137,7 @@ export class TaxService {
         conditions.push(eq(taxJurisdictions.isActive, true));
       }
 
-      jurisdictions = await this.drizzle.db
+      jurisdictions = await this.drizzle.getDb()
         .select()
         .from(taxJurisdictions)
         .where(and(...conditions))
@@ -145,7 +146,10 @@ export class TaxService {
       await this.cacheService.set(cacheKey, jurisdictions, { ttl: 300 }); // 5 minutes
     }
 
-    return jurisdictions as TaxJurisdiction[];
+    return jurisdictions.map(jurisdiction => ({
+      ...jurisdiction,
+      stateProvince: jurisdiction.stateProvince || '',
+    })) as TaxJurisdiction[];
   }
 
   async getJurisdictionByCode(tenantId: string, jurisdictionCode: string): Promise<TaxJurisdiction | null> {
@@ -153,7 +157,7 @@ export class TaxService {
     let jurisdiction = await this.cacheService.get<TaxJurisdiction>(cacheKey);
 
     if (!jurisdiction) {
-      const result = await this.drizzle.db
+      const result = await this.drizzle.getDb()
         .select()
         .from(taxJurisdictions)
         .where(
@@ -176,18 +180,22 @@ export class TaxService {
 
   // Tax Rate Management
   async createTaxRate(tenantId: string, data: Partial<TaxRate>): Promise<TaxRate> {
-    const taxRate = await this.drizzle.db
+    const taxRate = await this.drizzle.getDb()
       .insert(taxRates)
       .values({
         ...data,
-        tenantId,
+        effectiveDate: data.effectiveDate || new Date(),
+        jurisdictionId: data.jurisdictionId || '',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
     await this.invalidateTaxRateCache(tenantId);
-    return taxRate[0] as TaxRate;
+    return {
+      ...taxRate[0],
+      rate: parseFloat(taxRate[0].rate || '0'),
+    } as TaxRate;
   }
 
   async getTaxRates(
@@ -215,7 +223,7 @@ export class TaxService {
         );
       }
 
-      rates = await this.drizzle.db
+      rates = await this.drizzle.getDb()
         .select()
         .from(taxRates)
         .where(and(...conditions))
@@ -259,10 +267,9 @@ export class TaxService {
         const finalTaxAmount = taxAmount + roundingAdjustment;
 
         // Store calculation for audit trail
-        await this.drizzle.db
+        await this.drizzle.getDb()
           .insert(taxCalculations)
           .values({
-            tenantId,
             sourceType,
             sourceId,
             jurisdictionId: jurisdiction.id,
@@ -306,17 +313,20 @@ export class TaxService {
       data.returnNumber = await this.generateReturnNumber(tenantId, data.jurisdictionId!, data.periodYear!, data.periodNumber!);
     }
 
-    const taxReturn = await this.drizzle.db
+    const taxReturn = await this.drizzle.getDb()
       .insert(taxReturns)
       .values({
         ...data,
-        tenantId,
+        jurisdictionId: data.jurisdictionId || '',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
-    return taxReturn[0] as TaxReturn;
+    return {
+      ...taxReturn[0],
+      totalTaxableAmount: parseFloat(taxReturn[0].totalTaxableAmount || '0'),
+    } as TaxReturn;
   }
 
   async getTaxReturns(
@@ -339,11 +349,16 @@ export class TaxService {
       conditions.push(eq(taxReturns.filingStatus, filingStatus));
     }
 
-    return await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(taxReturns)
       .where(and(...conditions))
       .orderBy(desc(taxReturns.periodYear), desc(taxReturns.periodNumber));
+
+    return results.map(result => ({
+      ...result,
+      filingDate: result.filingDate || new Date(),
+    })) as TaxReturn[];
   }
 
   async generateTaxReturn(
@@ -357,7 +372,7 @@ export class TaxService {
     const { startDate, endDate, dueDate } = this.calculatePeriodDates(periodYear, periodNumber, periodType);
 
     // Get tax calculations for the period
-    const calculations = await this.drizzle.db
+    const calculations = await this.drizzle.getDb()
       .select()
       .from(taxCalculations)
       .where(
@@ -405,18 +420,17 @@ export class TaxService {
 
     let lineNumber = 1;
     for (const [taxRateId, group] of rateGroups) {
-      const rate = await this.drizzle.db
+      const rate = await this.drizzle.getDb()
         .select()
         .from(taxRates)
         .where(eq(taxRates.id, taxRateId))
         .limit(1);
 
       if (rate.length > 0) {
-        await this.drizzle.db
+        await this.drizzle.getDb()
           .insert(taxReturnLines)
           .values({
-            tenantId,
-            taxReturnId: taxReturn.id,
+            taxReturnId: taxReturn?.id || '',
             taxRateId,
             lineNumber,
             lineDescription: rate[0].taxName,
@@ -517,7 +531,7 @@ export class TaxService {
     periodYear: number, 
     periodNumber: number
   ): Promise<string> {
-    const jurisdiction = await this.drizzle.db
+    const jurisdiction = await this.drizzle.getDb()
       .select()
       .from(taxJurisdictions)
       .where(eq(taxJurisdictions.id, jurisdictionId))

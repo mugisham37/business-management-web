@@ -286,11 +286,11 @@ export class FinancialReportingService {
       currency: 'USD',
       data: {
         account: {
-          id: account.id,
-          number: account.accountNumber,
-          name: account.accountName,
-          type: account.accountType,
-          normalBalance: account.normalBalance,
+          id: (account as any).id,
+          number: (account as any).accountNumber,
+          name: (account as any).accountName,
+          type: (account as any).accountType,
+          normalBalance: (account as any).normalBalance,
         },
         entries: ledgerEntries,
         summary: {

@@ -11,7 +11,7 @@ import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Resolver()
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('financial-management')
 export class AccountingResolver {
   constructor(private readonly accountingService: AccountingService) {}

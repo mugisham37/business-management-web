@@ -115,7 +115,7 @@ export class ChartOfAccountsService {
     const existingAccount = await this.findAccountById(tenantId, id);
 
     // Check if account is a system account
-    if (existingAccount.isSystemAccount) {
+    if ((existingAccount as any).isSystemAccount) {
       throw new BadRequestException('System accounts cannot be modified');
     }
 
@@ -131,12 +131,12 @@ export class ChartOfAccountsService {
     const account = await this.findAccountById(tenantId, id);
 
     // Check if account is a system account
-    if (account.isSystemAccount) {
+    if ((account as any).isSystemAccount) {
       throw new BadRequestException('System accounts cannot be deleted');
     }
 
     // Check if account has a balance
-    if (parseFloat(account.currentBalance) !== 0) {
+    if (parseFloat((account as any).currentBalance || '0') !== 0) {
       throw new BadRequestException('Cannot delete account with non-zero balance');
     }
 
@@ -202,7 +202,7 @@ export class ChartOfAccountsService {
           accountType: accountData.accountType,
           accountSubType: accountData.accountSubType,
           normalBalance: accountData.normalBalance,
-          parentAccountId,
+          ...(parentAccountId && { parentAccountId }),
           description: accountData.description,
           isActive: true,
           allowManualEntries: accountData.allowManualEntries ?? true,
@@ -211,7 +211,7 @@ export class ChartOfAccountsService {
         createdAccounts.push(account);
       } catch (error) {
         // Log error but continue with other accounts
-        console.error(`Failed to create account ${accountData.accountNumber}:`, error.message);
+        console.error(`Failed to create account ${accountData.accountNumber}:`, (error as Error).message);
       }
     }
 
