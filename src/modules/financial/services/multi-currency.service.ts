@@ -1,18 +1,12 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { 
   currencies, 
   exchangeRates, 
-  currencyConversions, 
-  multiCurrencyAccountBalances,
-  currencyRevaluations,
-  currencyRevaluationDetails,
-  journalEntries,
-  journalEntryLines,
-  chartOfAccounts
+  currencyConversions
 } from '../../database/schema/financial.schema';
-import { eq, and, gte, lte, isNull, or, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, isNull, or, desc, asc } from 'drizzle-orm';
 
 export interface Currency {
   id: string;
@@ -26,7 +20,7 @@ export interface Currency {
   symbolPosition: string;
   isActive: boolean;
   isBaseCurrency: boolean;
-  countryCode?: string;
+  countryCode: string;
   notes?: string;
 }
 
@@ -103,7 +97,7 @@ export class MultiCurrencyService {
 
   async getCurrencies(tenantId: string, activeOnly: boolean = true): Promise<Currency[]> {
     const cacheKey = `currency:list:${tenantId}:${activeOnly}`;
-    let currencies_list = await this.cacheService.get<Currency[]>(cacheKey);
+    let currencies_list = await this.cacheService.get<any[]>(cacheKey);
 
     if (!currencies_list) {
       const conditions = [eq(currencies.tenantId, tenantId)];
@@ -120,9 +114,21 @@ export class MultiCurrencyService {
       await this.cacheService.set(cacheKey, currencies_list, { ttl: 300 }); // 5 minutes
     }
 
+    // Transform the database results to match the Currency interface
     return (currencies_list || []).map(currency => ({
-      ...currency,
+      id: currency.id,
+      tenantId: currency.tenantId,
+      currencyCode: currency.currencyCode,
+      currencyName: currency.currencyName,
+      currencySymbol: currency.currencySymbol,
+      decimalPlaces: currency.decimalPlaces,
+      decimalSeparator: currency.decimalSeparator,
+      thousandsSeparator: currency.thousandsSeparator,
+      symbolPosition: currency.symbolPosition,
+      isActive: currency.isActive,
+      isBaseCurrency: currency.isBaseCurrency,
       countryCode: currency.countryCode || '',
+      notes: currency.notes,
     })) as Currency[];
   }
 
@@ -467,8 +473,7 @@ export class MultiCurrencyService {
     newExchangeRate: number,
     revaluationDate: Date,
     fiscalYear: number,
-    fiscalPeriod: number,
-    userId: string
+    fiscalPeriod: number
   ): Promise<any> {
     // Simplified implementation - would need full transaction logic
     return {

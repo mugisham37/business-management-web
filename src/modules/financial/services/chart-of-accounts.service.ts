@@ -194,7 +194,9 @@ export class ChartOfAccountsService {
         let parentAccountId: string | undefined;
         if (accountData.parentAccountNumber) {
           const parentAccount = await this.findAccountByNumber(tenantId, accountData.parentAccountNumber);
-          parentAccountId = parentAccount && typeof parentAccount === 'object' && 'id' in parentAccount ? parentAccount.id : undefined;
+          parentAccountId = parentAccount && typeof parentAccount === 'object' && 'id' in parentAccount 
+            ? (parentAccount as any).id 
+            : undefined;
         }
 
         const account = await this.createAccount(tenantId, {

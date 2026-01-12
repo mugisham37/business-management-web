@@ -1,18 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { 
   arApInvoices, 
   arApInvoiceLines, 
   arApPayments, 
-  paymentApplications, 
-  creditMemos,
-  agingBuckets,
-  journalEntries,
-  journalEntryLines,
-  chartOfAccounts
+  paymentApplications,
+  agingBuckets
 } from '../../database/schema/financial.schema';
-import { eq, and, gte, lte, isNull, or, desc, asc, sum, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, asc, sql } from 'drizzle-orm';
 
 export interface ARAPInvoice {
   id: string;
@@ -253,7 +249,7 @@ export class AccountsReceivablePayableService {
 
       // Create journal entry for the invoice
       if (invoice[0]) {
-        await this.createInvoiceJournalEntry(tx, tenantId, invoice[0], userId);
+        await this.createInvoiceJournalEntry(tx, tenantId, invoice[0]);
       }
 
       return this.transformToARAPInvoice(invoice[0]);
@@ -391,7 +387,7 @@ export class AccountsReceivablePayableService {
 
       // Create journal entry for the payment
       if (payment[0]) {
-        await this.createPaymentJournalEntry(tx, tenantId, payment[0], userId);
+        await this.createPaymentJournalEntry(tx, tenantId, payment[0]);
       }
 
       return this.transformToARAPPayment(payment[0]);
@@ -584,18 +580,24 @@ export class AccountsReceivablePayableService {
     }
   }
 
-  private async createInvoiceJournalEntry(tx: any, tenantId: string, invoice: any, userId: string): Promise<void> {
+  private async createInvoiceJournalEntry(tx: any, tenantId: string, invoice: any): Promise<void> {
     // This would create the appropriate journal entries for the invoice
     // For AR: Debit AR, Credit Revenue
     // For AP: Debit Expense, Credit AP
     // Implementation would depend on the specific GL account setup
+    
+    // Placeholder implementation
+    console.log(`Creating journal entry for invoice ${invoice.id} in tenant ${tenantId}`);
   }
 
-  private async createPaymentJournalEntry(tx: any, tenantId: string, payment: any, userId: string): Promise<void> {
+  private async createPaymentJournalEntry(tx: any, tenantId: string, payment: any): Promise<void> {
     // This would create the appropriate journal entries for the payment
     // For AR payment: Debit Cash, Credit AR
     // For AP payment: Debit AP, Credit Cash
     // Implementation would depend on the specific GL account setup
+    
+    // Placeholder implementation
+    console.log(`Creating journal entry for payment ${payment.id} in tenant ${tenantId}`);
   }
 
   private async generateInvoiceNumber(tenantId: string, invoiceType: string): Promise<string> {
@@ -621,7 +623,7 @@ export class AccountsReceivablePayableService {
       const lastNumber = lastInvoice[0].invoiceNumber;
       if (lastNumber) {
         const match = lastNumber.match(/(\d+)$/);
-        if (match) {
+        if (match && match[1]) {
           nextNumber = parseInt(match[1]) + 1;
         }
       }
@@ -651,9 +653,11 @@ export class AccountsReceivablePayableService {
     let nextNumber = 1;
     if (lastPayment.length > 0 && lastPayment[0]) {
       const lastNumber = lastPayment[0].paymentNumber;
-      const match = lastNumber?.match(/(\d+)$/);
-      if (match) {
-        nextNumber = parseInt(match[1]) + 1;
+      if (lastNumber) {
+        const match = lastNumber.match(/(\d+)$/);
+        if (match && match[1]) {
+          nextNumber = parseInt(match[1]) + 1;
+        }
       }
     }
 

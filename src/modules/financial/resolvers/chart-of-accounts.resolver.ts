@@ -11,6 +11,7 @@ import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
+import { transformToChartOfAccountArray, transformHierarchyArrayToChartOfAccountArray } from '../utils/type-transformers';
 
 @Resolver()
 @UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
@@ -50,7 +51,7 @@ export class ChartOfAccountsResolver {
     if (includeInactive !== undefined) options.includeInactive = includeInactive;
     
     const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId, options);
-    return accounts as ChartOfAccount[];
+    return transformToChartOfAccountArray(accounts);
   }
 
   @Query(() => String)
@@ -69,7 +70,7 @@ export class ChartOfAccountsResolver {
     @Args('rootAccountId', { nullable: true }) rootAccountId?: string,
   ): Promise<ChartOfAccount[]> {
     const hierarchy = await this.chartOfAccountsService.getAccountHierarchy(tenantId, rootAccountId);
-    return hierarchy as ChartOfAccount[];
+    return transformHierarchyArrayToChartOfAccountArray(hierarchy);
   }
 
   @Query(() => [String])

@@ -4,6 +4,7 @@ import { JournalEntryRepository } from '../repositories/journal-entry.repository
 import { ChartOfAccountsService } from './chart-of-accounts.service';
 import { CreateJournalEntryDto, UpdateJournalEntryDto, JournalEntryStatus, JournalEntryQueryDto, JournalEntryResponseDto } from '../dto/journal-entry.dto';
 import { AccountingService } from './accounting.service';
+import { isDebitAccount } from '../utils/type-transformers';
 
 @Injectable()
 export class JournalEntryService {
@@ -42,7 +43,38 @@ export class JournalEntryService {
 
   async findAllJournalEntries(tenantId: string, query: JournalEntryQueryDto = {}): Promise<JournalEntryResponseDto[]> {
     const results = await this.journalEntryRepository.findAll(tenantId, query);
-    return results as JournalEntryResponseDto[];
+    
+    // Transform the results to match JournalEntryResponseDto structure
+    // The repository returns objects with nested lines, but we need to ensure all required properties are present
+    return results.map((result: any) => {
+      // Create a safe transformation with defaults for missing properties
+      return {
+        id: result.id || '',
+        tenantId: result.tenantId || tenantId,
+        entryNumber: result.entryNumber || '',
+        entryDate: result.entryDate || new Date(),
+        postingDate: result.postingDate || undefined,
+        description: result.description || '',
+        reference: result.reference || undefined,
+        status: result.status || JournalEntryStatus.DRAFT,
+        sourceType: result.sourceType || undefined,
+        sourceId: result.sourceId || undefined,
+        approvedBy: result.approvedBy || undefined,
+        approvedAt: result.approvedAt || undefined,
+        reversedBy: result.reversedBy || undefined,
+        reversedAt: result.reversedAt || undefined,
+        reversalReason: result.reversalReason || undefined,
+        originalEntryId: result.originalEntryId || undefined,
+        notes: result.notes || undefined,
+        attachments: result.attachments || [],
+        totalDebits: result.totalDebits || '0.00',
+        totalCredits: result.totalCredits || '0.00',
+        createdBy: result.createdBy || '',
+        createdAt: result.createdAt || new Date(),
+        updatedAt: result.updatedAt || new Date(),
+        lines: result.lines || [],
+      } as JournalEntryResponseDto;
+    });
   }
 
   async findJournalEntriesByAccount(tenantId: string, accountId: string, options?: {
@@ -171,13 +203,13 @@ export class JournalEntryService {
     // Calculate running balance
     let runningBalance = 0;
     const account = await this.chartOfAccountsService.findAccountById(tenantId, accountId);
-    const isDebitAccount = (account as any).normalBalance === 'debit';
+    const isDebit = isDebitAccount((account as any).normalBalance);
 
     const ledgerWithBalance = ledgerEntries.map(entry => {
       const debitAmount = parseFloat(entry.debitAmount);
       const creditAmount = parseFloat(entry.creditAmount);
 
-      if (isDebitAccount) {
+      if (isDebit) {
         runningBalance += debitAmount - creditAmount;
       } else {
         runningBalance += creditAmount - debitAmount;
@@ -310,7 +342,7 @@ export class JournalEntryService {
       const creditAmount = parseFloat(line.creditAmount);
 
       let newBalance: number;
-      if ((account as any).normalBalance === 'debit') {
+      if (isDebitAccount((account as any).normalBalance)) {
         newBalance = currentBalance + debitAmount - creditAmount;
       } else {
         newBalance = currentBalance + creditAmount - debitAmount;

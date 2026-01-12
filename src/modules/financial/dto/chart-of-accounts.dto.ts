@@ -246,6 +246,15 @@ export class ChartOfAccountResponseDto {
   @ApiProperty({ description: 'Updated timestamp' })
   updatedAt!: Date;
 
+  @ApiProperty({ description: 'Version for optimistic locking' })
+  version!: number;
+
+  @ApiPropertyOptional({ description: 'Created by user ID' })
+  createdBy?: string;
+
+  @ApiPropertyOptional({ description: 'Updated by user ID' })
+  updatedBy?: string;
+
   @ApiPropertyOptional({ description: 'Child accounts' })
   children?: ChartOfAccountResponseDto[];
 }

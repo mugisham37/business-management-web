@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ChartOfAccountsService } from './chart-of-accounts.service';
 import { JournalEntryService } from './journal-entry.service';
-import { AccountType } from '../dto/chart-of-accounts.dto';
+import { AccountType, NormalBalance } from '../dto/chart-of-accounts.dto';
 import { ChartOfAccount } from '../types/chart-of-accounts.types';
+import { transformToChartOfAccountArray, isDebitAccount, parseBalanceAmount } from '../utils/type-transformers';
 
 @Injectable()
 export class AccountingService {
@@ -13,12 +14,13 @@ export class AccountingService {
 
   async initializeTenantAccounting(tenantId: string, userId: string) {
     // Initialize default chart of accounts
-    const accounts = await this.chartOfAccountsService.initializeDefaultChartOfAccounts(tenantId, userId);
+    const accountDtos = await this.chartOfAccountsService.initializeDefaultChartOfAccounts(tenantId, userId);
+    const accounts = transformToChartOfAccountArray(accountDtos);
 
     return {
       message: 'Accounting system initialized successfully',
       accountsCreated: accounts.length,
-      accounts: (accounts as ChartOfAccount[]).map((account: ChartOfAccount) => ({
+      accounts: accounts.map((account: ChartOfAccount) => ({
         accountNumber: account.accountNumber,
         accountName: account.accountName,
         accountType: account.accountType,
@@ -27,21 +29,22 @@ export class AccountingService {
   }
 
   async getTrialBalance(tenantId: string, asOfDate?: Date) {
-    const allAccounts = await this.chartOfAccountsService.getAllAccounts(tenantId, {
+    const accountDtos = await this.chartOfAccountsService.getAllAccounts(tenantId, {
       includeInactive: false,
-    }) as ChartOfAccount[];
+    });
+    const allAccounts = transformToChartOfAccountArray(accountDtos);
 
     const trialBalance = (allAccounts || []).map((account: ChartOfAccount) => {
-      const balance = parseFloat(String(account.currentBalance || '0'));
-      const isDebitAccount = account.normalBalance === 'debit';
+      const balance = parseBalanceAmount(account.currentBalance);
+      const isDebit = isDebitAccount(account.normalBalance);
 
       return {
         accountId: account.id,
         accountNumber: account.accountNumber,
         accountName: account.accountName,
         accountType: account.accountType,
-        debitBalance: isDebitAccount && balance > 0 ? balance.toFixed(2) : '0.00',
-        creditBalance: !isDebitAccount && balance > 0 ? balance.toFixed(2) : '0.00',
+        debitBalance: isDebit && balance > 0 ? balance.toFixed(2) : '0.00',
+        creditBalance: !isDebit && balance > 0 ? balance.toFixed(2) : '0.00',
         balance: balance.toFixed(2),
       };
     });
@@ -61,7 +64,8 @@ export class AccountingService {
 
   async getAccountBalances(tenantId: string, accountType?: AccountType, asOfDate?: Date) {
     const options = accountType ? { accountType } : undefined;
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId, options) as ChartOfAccount[];
+    const accountDtos = await this.chartOfAccountsService.getAllAccounts(tenantId, options);
+    const accounts = transformToChartOfAccountArray(accountDtos);
 
     return (accounts || []).map((account: ChartOfAccount) => ({
       accountId: account.id,
@@ -98,7 +102,8 @@ export class AccountingService {
     userId: string
   ) {
     // Get relevant accounts
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as ChartOfAccount[];
+    const accountDtos = await this.chartOfAccountsService.getAllAccounts(tenantId);
+    const accounts = transformToChartOfAccountArray(accountDtos);
     const accountMap = new Map((accounts || []).map((acc: ChartOfAccount) => [acc.accountNumber, acc]));
 
     // Find required accounts
@@ -197,7 +202,8 @@ export class AccountingService {
   }
 
   async getFinancialSummary(tenantId: string, dateFrom?: Date, dateTo?: Date) {
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as ChartOfAccount[];
+    const accountDtos = await this.chartOfAccountsService.getAllAccounts(tenantId);
+    const accounts = transformToChartOfAccountArray(accountDtos);
     
     // Group accounts by type
     const accountsByType = (accounts || []).reduce((acc, account) => {
@@ -206,7 +212,7 @@ export class AccountingService {
       if (!acc[accountType]) {
         acc[accountType] = [];
       }
-      acc[accountType].push(account);
+      acc[accountType]!.push(account);
       return acc;
     }, {} as Record<string, ChartOfAccount[]>);
 
@@ -250,19 +256,19 @@ export class AccountingService {
 
   private calculateTypeTotal(accounts: ChartOfAccount[]): number {
     return accounts.reduce((sum, account) => {
-      const balance = parseFloat(String(account.currentBalance || '0'));
+      const balance = parseBalanceAmount(account.currentBalance);
       return sum + (balance > 0 ? balance : 0);
     }, 0);
   }
 
   private calculateWorkingCapital(accountsByType: Record<string, ChartOfAccount[]>): number {
     const currentAssets = (accountsByType[AccountType.ASSET] || [])
-      .filter(acc => acc.accountSubType?.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(String(acc.currentBalance || '0')), 0);
+      .filter(acc => acc.accountSubType.toString().includes('current'))
+      .reduce((sum, acc) => sum + parseBalanceAmount(acc.currentBalance), 0);
 
     const currentLiabilities = (accountsByType[AccountType.LIABILITY] || [])
-      .filter(acc => acc.accountSubType?.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(String(acc.currentBalance || '0')), 0);
+      .filter(acc => acc.accountSubType.toString().includes('current'))
+      .reduce((sum, acc) => sum + parseBalanceAmount(acc.currentBalance), 0);
 
     return currentAssets - currentLiabilities;
   }
@@ -300,13 +306,14 @@ export class AccountingService {
     }
 
     // Check for accounts with negative balances that shouldn't have them
-    const accounts = await this.chartOfAccountsService.getAllAccounts(tenantId) as ChartOfAccount[];
+    const accountDtos = await this.chartOfAccountsService.getAllAccounts(tenantId);
+    const accounts = transformToChartOfAccountArray(accountDtos);
     for (const account of accounts) {
-      const balance = parseFloat(account.currentBalance || '0');
+      const balance = parseBalanceAmount(account.currentBalance);
       if (balance < 0) {
         const shouldBePositive = (
-          (account.normalBalance === 'debit' && [AccountType.ASSET, AccountType.EXPENSE].includes(account.accountType)) ||
-          (account.normalBalance === 'credit' && [AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE].includes(account.accountType))
+          (isDebitAccount(account.normalBalance) && [AccountType.ASSET, AccountType.EXPENSE].includes(account.accountType)) ||
+          (!isDebitAccount(account.normalBalance) && [AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE].includes(account.accountType))
         );
 
         if (shouldBePositive) {
@@ -316,7 +323,7 @@ export class AccountingService {
             details: {
               accountNumber: account.accountNumber,
               accountName: account.accountName,
-              balance: account.currentBalance,
+              balance: account.currentBalance.toString(),
               normalBalance: account.normalBalance,
             },
           });
