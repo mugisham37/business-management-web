@@ -74,7 +74,7 @@ export class LocationPromotionService {
         updatedBy: userId,
       };
 
-      const [newPromotion] = await this.drizzle.db
+      const [newPromotion] = await this.drizzle.getDb()
         .insert(locationPromotions)
         .values(promotionData)
         .returning();
@@ -133,9 +133,9 @@ export class LocationPromotionService {
       if (updateDto.targetCustomerSegments !== undefined) updateData.targetCustomerSegments = updateDto.targetCustomerSegments ? JSON.stringify(updateDto.targetCustomerSegments) : null;
       if (updateDto.startDate !== undefined) updateData.startDate = new Date(updateDto.startDate);
       if (updateDto.endDate !== undefined) updateData.endDate = new Date(updateDto.endDate);
-      if (updateDto.discountPercentage !== undefined) updateData.discountPercentage = updateDto.discountPercentage?.toString();
-      if (updateDto.discountAmount !== undefined) updateData.discountAmount = updateDto.discountAmount?.toString();
-      if (updateDto.minPurchaseAmount !== undefined) updateData.minPurchaseAmount = updateDto.minPurchaseAmount?.toString();
+      if (updateDto.discountPercentage !== undefined) updateData.discountPercentage = updateDto.discountPercentage !== null ? updateDto.discountPercentage.toString() : null;
+      if (updateDto.discountAmount !== undefined) updateData.discountAmount = updateDto.discountAmount !== null ? updateDto.discountAmount.toString() : null;
+      if (updateDto.minPurchaseAmount !== undefined) updateData.minPurchaseAmount = updateDto.minPurchaseAmount !== null ? updateDto.minPurchaseAmount.toString() : null;
       if (updateDto.maxDiscountAmount !== undefined) updateData.maxDiscountAmount = updateDto.maxDiscountAmount?.toString();
       if (updateDto.maxUsesPerCustomer !== undefined) updateData.maxUsesPerCustomer = updateDto.maxUsesPerCustomer;
       if (updateDto.maxTotalUses !== undefined) updateData.maxTotalUses = updateDto.maxTotalUses;
@@ -147,7 +147,7 @@ export class LocationPromotionService {
       if (updateDto.isActive !== undefined) updateData.isActive = updateDto.isActive;
       if (updateDto.status !== undefined) updateData.status = updateDto.status;
 
-      const [updatedPromotion] = await this.drizzle.db
+      const [updatedPromotion] = await this.drizzle.getDb()
         .update(locationPromotions)
         .set(updateData)
         .where(and(
@@ -191,7 +191,7 @@ export class LocationPromotionService {
         throw new NotFoundException(`Promotion with ID ${promotionId} not found`);
       }
 
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .delete(locationPromotions)
         .where(and(
           eq(locationPromotions.id, promotionId),
@@ -219,7 +219,7 @@ export class LocationPromotionService {
    */
   async findById(tenantId: string, locationId: string, promotionId: string): Promise<LocationPromotion | null> {
     try {
-      const [promotion] = await this.drizzle.db
+      const [promotion] = await this.drizzle.getDb()
         .select()
         .from(locationPromotions)
         .where(and(
@@ -240,7 +240,7 @@ export class LocationPromotionService {
    */
   async findByCode(tenantId: string, locationId: string, promotionCode: string): Promise<LocationPromotion | null> {
     try {
-      const [promotion] = await this.drizzle.db
+      const [promotion] = await this.drizzle.getDb()
         .select()
         .from(locationPromotions)
         .where(and(
@@ -286,17 +286,19 @@ export class LocationPromotionService {
       }
 
       // Count total
-      const [{ count: total }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: count() })
         .from(locationPromotions)
         .where(and(...conditions));
+      
+      const total = countResult[0]?.count || 0;
 
       // Get paginated results
       const page = query.page || 1;
       const limit = query.limit || 20;
       const offset = (page - 1) * limit;
 
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(locationPromotions)
         .where(and(...conditions))
@@ -363,8 +365,8 @@ export class LocationPromotionService {
           discountAmount: 0,
           discountPercentage: 0,
           details: [],
-          errorMessage: validationResult.reason,
-          reason: validationResult.code,
+          errorMessage: validationResult.reason || 'Promotion validation failed',
+          reason: validationResult.code || 'VALIDATION_FAILED',
         };
       }
 
@@ -460,7 +462,7 @@ export class LocationPromotionService {
         gte(locationPromotions.endDate, now),
       ];
 
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(locationPromotions)
         .where(and(...conditions))
@@ -499,7 +501,7 @@ export class LocationPromotionService {
       conditions.push(sql`${locationPromotions.id} != ${excludePromotionId}`);
     }
 
-    const [existingPromotion] = await this.drizzle.db
+    const [existingPromotion] = await this.drizzle.getDb()
       .select()
       .from(locationPromotions)
       .where(and(...conditions));
@@ -555,7 +557,7 @@ export class LocationPromotionService {
     userId?: string
   ): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .insert(promotionUsage)
         .values({
           tenantId,
@@ -582,7 +584,7 @@ export class LocationPromotionService {
     promotionId: string
   ): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(locationPromotions)
         .set({
           currentUses: sql`${locationPromotions.currentUses} + 1`,
@@ -602,7 +604,7 @@ export class LocationPromotionService {
    * Map database record to entity
    */
   private mapToEntity(record: any): LocationPromotion {
-    return new LocationPromotion({
+    const entityData: Partial<LocationPromotion> = {
       id: record.id,
       tenantId: record.tenantId,
       locationId: record.locationId,
@@ -615,10 +617,6 @@ export class LocationPromotionService {
       targetCustomerSegments: record.targetCustomerSegments ? JSON.parse(record.targetCustomerSegments) : undefined,
       startDate: record.startDate,
       endDate: record.endDate,
-      discountPercentage: record.discountPercentage ? parseFloat(record.discountPercentage) : undefined,
-      discountAmount: record.discountAmount ? parseFloat(record.discountAmount) : undefined,
-      minPurchaseAmount: record.minPurchaseAmount ? parseFloat(record.minPurchaseAmount) : undefined,
-      maxDiscountAmount: record.maxDiscountAmount ? parseFloat(record.maxDiscountAmount) : undefined,
       maxUsesPerCustomer: record.maxUsesPerCustomer,
       maxTotalUses: record.maxTotalUses,
       currentUses: record.currentUses,
@@ -633,6 +631,22 @@ export class LocationPromotionService {
       updatedBy: record.updatedBy,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
-    });
+    };
+
+    // Only add numeric fields if they exist
+    if (record.discountPercentage !== null && record.discountPercentage !== undefined) {
+      entityData.discountPercentage = parseFloat(record.discountPercentage);
+    }
+    if (record.discountAmount !== null && record.discountAmount !== undefined) {
+      entityData.discountAmount = parseFloat(record.discountAmount);
+    }
+    if (record.minPurchaseAmount !== null && record.minPurchaseAmount !== undefined) {
+      entityData.minPurchaseAmount = parseFloat(record.minPurchaseAmount);
+    }
+    if (record.maxDiscountAmount !== null && record.maxDiscountAmount !== undefined) {
+      entityData.maxDiscountAmount = parseFloat(record.maxDiscountAmount);
+    }
+
+    return new LocationPromotion(entityData);
   }
 }

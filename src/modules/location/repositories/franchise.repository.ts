@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, and, or, like, desc, asc, count, isNull } from 'drizzle-orm';
+import { eq, and, or, like, asc, count, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import {
   franchises,
@@ -438,6 +438,96 @@ export class FranchiseRepository {
       updatedBy: dbPermission.updatedBy,
       deletedAt: dbPermission.deletedAt,
       version: dbPermission.version,
+    };
+  }
+
+  // Additional methods needed by FranchiseService
+  async createFranchiseLocation(tenantId: string, dto: any, userId: string): Promise<FranchiseLocation> {
+    const franchiseLocationData = {
+      tenantId,
+      franchiseId: dto.franchiseId,
+      locationId: dto.locationId,
+      role: dto.role || 'primary',
+      effectiveDate: new Date(dto.effectiveDate),
+      expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : null,
+      settings: dto.settings || {},
+      createdBy: userId,
+      updatedBy: userId,
+    };
+
+    const [franchiseLocation] = await this.drizzle.getDb()
+      .insert(franchiseLocations)
+      .values(franchiseLocationData)
+      .returning();
+
+    return this.mapFranchiseLocationFromDb(franchiseLocation);
+  }
+
+  async createFranchisePermission(tenantId: string, dto: any, userId: string): Promise<FranchisePermission> {
+    const permissionData = {
+      tenantId,
+      franchiseId: dto.franchiseId,
+      userId: dto.userId,
+      permissions: dto.permissions || [],
+      role: dto.role || 'operator',
+      effectiveDate: new Date(dto.effectiveDate),
+      expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : null,
+      createdBy: userId,
+      updatedBy: userId,
+    };
+
+    const [permission] = await this.drizzle.getDb()
+      .insert(franchisePermissions)
+      .values(permissionData)
+      .returning();
+
+    return this.mapFranchisePermissionFromDb(permission);
+  }
+
+  async createTerritoryAssignment(tenantId: string, dto: any, userId: string): Promise<any> {
+    // For now, we'll update the territory with the assignment
+    // In a full implementation, you might have a separate territoryAssignments table
+    const updateData: any = {
+      updatedBy: userId,
+      updatedAt: new Date(),
+    };
+
+    if (dto.franchiseId) {
+      updateData.assignedFranchiseId = dto.franchiseId;
+    }
+
+    if (dto.userId) {
+      updateData.assignedUserId = dto.userId;
+    }
+
+    const [territory] = await this.drizzle.getDb()
+      .update(territories)
+      .set(updateData)
+      .where(and(
+        eq(territories.tenantId, tenantId),
+        eq(territories.id, dto.territoryId),
+        isNull(territories.deletedAt)
+      ))
+      .returning();
+
+    if (!territory) {
+      throw new Error('Failed to create territory assignment');
+    }
+
+    return {
+      id: `assignment_${territory.id}`,
+      territoryId: dto.territoryId,
+      franchiseId: dto.franchiseId,
+      userId: dto.userId,
+      assignmentType: dto.assignmentType,
+      effectiveDate: new Date(dto.effectiveDate),
+      expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : null,
+      reason: dto.reason,
+      metadata: dto.metadata || {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: userId,
+      updatedBy: userId,
     };
   }
 }

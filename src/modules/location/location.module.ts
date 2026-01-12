@@ -25,7 +25,7 @@ import { FinancialModule } from '../financial/financial.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { CrmModule } from '../crm/crm.module';
 import { SupplierModule } from '../supplier/supplier.module';
-import { PosModule } from '../pos/pos.module';
+import { POSModule } from '../pos/pos.module';
 
 @Module({
   imports: [
@@ -36,7 +36,7 @@ import { PosModule } from '../pos/pos.module';
     InventoryModule,
     CrmModule,
     SupplierModule,
-    PosModule,
+    POSModule,
   ],
   controllers: [
     LocationController,

@@ -438,9 +438,8 @@ export class LocationSyncService {
       // Get last sync time from timeline
       const timelineKey = `sync-timeline:${tenantId}`;
       const timeline = this.syncTimelines.get(timelineKey) || [];
-      const lastSyncTime = timeline.length > 0 
-        ? new Date(timeline[timeline.length - 1].timestamp) 
-        : null;
+      const lastEvent = timeline.length > 0 ? timeline[timeline.length - 1] : null;
+      const lastSyncTime = lastEvent?.timestamp ? new Date(lastEvent.timestamp) : null;
       
       // Count failed events
       const failedListKey = `failed-sync-list:${tenantId}`;

@@ -7,9 +7,6 @@ import {
   Territory,
   FranchiseLocation,
   FranchisePermission,
-  FranchiseType,
-  FranchiseStatus,
-  TerritoryType,
 } from '../entities/franchise.entity';
 import {
   CreateFranchiseDto,
@@ -242,5 +239,212 @@ export class FranchiseService {
 
   async getUserFranchisePermissions(tenantId: string, userId: string): Promise<FranchisePermission[]> {
     return this.franchiseRepository.findFranchisePermissionsByUser(tenantId, userId);
+  }
+
+  // Dealer Portal Methods
+  async validateDealerPortalAccess(tenantId: string, franchiseId: string, userId: string): Promise<any> {
+    // Validate franchise exists
+    const franchise = await this.getFranchiseById(tenantId, franchiseId);
+    
+    // Get user permissions for this franchise
+    const permissions = await this.franchiseRepository.findFranchisePermissionsByUser(tenantId, userId);
+    const franchisePermission = permissions.find(p => p.franchiseId === franchiseId);
+    
+    if (!franchisePermission) {
+      throw new ForbiddenException('User does not have access to this franchise');
+    }
+
+    // Check if permission is still valid
+    const now = new Date();
+    if (franchisePermission.expirationDate && franchisePermission.expirationDate < now) {
+      throw new ForbiddenException('Franchise access has expired');
+    }
+
+    return {
+      franchiseId,
+      userId,
+      accessLevel: franchisePermission.role || 'operator',
+      allowedModules: franchisePermission.permissions || [],
+      franchise: {
+        id: franchise.id,
+        name: franchise.name,
+        type: franchise.type,
+        status: franchise.status,
+      },
+    };
+  }
+
+  async getDealerDashboard(tenantId: string, franchiseId: string, userId: string): Promise<any> {
+    // Validate access first
+    const access = await this.validateDealerPortalAccess(tenantId, franchiseId, userId);
+    
+    const franchise = await this.getFranchiseById(tenantId, franchiseId);
+    const locations = await this.getFranchiseLocations(tenantId, franchiseId);
+    
+    // Get performance data (mock for now - would integrate with actual analytics)
+    const currentPeriod = await this.getFranchisePerformance(tenantId, franchiseId, 'current');
+    const previousPeriod = await this.getFranchisePerformance(tenantId, franchiseId, 'previous');
+
+    return {
+      franchise: {
+        id: franchise.id,
+        name: franchise.name,
+        type: franchise.type,
+        status: franchise.status,
+        territory: franchise.primaryTerritoryId || 'N/A',
+      },
+      performance: {
+        currentPeriod,
+        previousPeriod,
+        trends: {
+          salesGrowth: currentPeriod.salesMetrics.salesGrowth,
+          revenueGrowth: ((currentPeriod.financialMetrics.revenue - previousPeriod.financialMetrics.revenue) / previousPeriod.financialMetrics.revenue) * 100,
+        },
+      },
+      locations: locations.length,
+      availableActions: access.allowedModules,
+      notifications: [], // Would be populated from notification service
+      quickLinks: [
+        { name: 'Sales Report', url: `/dealer/sales/${franchiseId}` },
+        { name: 'Inventory', url: `/dealer/inventory/${franchiseId}` },
+        { name: 'Performance', url: `/dealer/performance/${franchiseId}` },
+      ],
+    };
+  }
+
+  async getFranchisePerformance(tenantId: string, franchiseId: string, period: string): Promise<any> {
+    // Validate franchise exists
+    await this.getFranchiseById(tenantId, franchiseId);
+    
+    // Mock performance data - in real implementation, this would query analytics/reporting services
+    const mockPerformance = {
+      franchiseId,
+      period,
+      salesMetrics: {
+        totalSales: period === 'current' ? 125000 : 110000,
+        salesGrowth: period === 'current' ? 13.6 : 8.2,
+        averageTransactionValue: period === 'current' ? 45.50 : 42.30,
+        transactionCount: period === 'current' ? 2747 : 2601,
+      },
+      financialMetrics: {
+        revenue: period === 'current' ? 125000 : 110000,
+        royaltyPaid: period === 'current' ? 6250 : 5500,
+        marketingFeePaid: period === 'current' ? 2500 : 2200,
+        profitMargin: period === 'current' ? 0.18 : 0.16,
+      },
+      operationalMetrics: {
+        customerSatisfaction: period === 'current' ? 4.2 : 4.0,
+        employeeCount: period === 'current' ? 12 : 11,
+        inventoryTurnover: period === 'current' ? 8.5 : 7.8,
+        complianceScore: period === 'current' ? 92 : 89,
+      },
+      territoryMetrics: {
+        marketShare: period === 'current' ? 0.15 : 0.14,
+        territoryPenetration: period === 'current' ? 0.68 : 0.65,
+        competitorAnalysis: {},
+      },
+    };
+
+    return mockPerformance;
+  }
+
+  async assignLocationToFranchise(tenantId: string, dto: any, userId: string): Promise<any> {
+    // Validate franchise exists
+    await this.getFranchiseById(tenantId, dto.franchiseId);
+    
+    // Validate location exists (would need to inject LocationService)
+    // For now, assume location exists
+    
+    // Create franchise location assignment
+    const franchiseLocation = await this.franchiseRepository.createFranchiseLocation(tenantId, {
+      franchiseId: dto.franchiseId,
+      locationId: dto.locationId,
+      role: dto.role || 'primary',
+      effectiveDate: dto.effectiveDate || new Date().toISOString(),
+      expirationDate: dto.expirationDate,
+      settings: dto.settings || {},
+    }, userId);
+
+    // Emit event
+    this.eventEmitter.emit('franchise.location.assigned', {
+      tenantId,
+      franchiseLocation,
+      userId,
+    });
+
+    return franchiseLocation;
+  }
+
+  async grantFranchisePermission(tenantId: string, dto: any, userId: string): Promise<any> {
+    // Validate franchise exists
+    await this.getFranchiseById(tenantId, dto.franchiseId);
+    
+    // Create franchise permission
+    const permission = await this.franchiseRepository.createFranchisePermission(tenantId, {
+      franchiseId: dto.franchiseId,
+      userId: dto.userId,
+      permissions: dto.permissions || [],
+      role: dto.role || 'operator',
+      effectiveDate: dto.effectiveDate || new Date().toISOString(),
+      expirationDate: dto.expirationDate,
+    }, userId);
+
+    // Emit event
+    this.eventEmitter.emit('franchise.permission.granted', {
+      tenantId,
+      permission,
+      userId,
+    });
+
+    return permission;
+  }
+
+  async assignTerritoryToFranchise(tenantId: string, dto: any, userId: string): Promise<any> {
+    // Validate franchise and territory exist
+    await this.getFranchiseById(tenantId, dto.franchiseId);
+    await this.getTerritoryById(tenantId, dto.territoryId);
+    
+    // Create territory assignment
+    const assignment = await this.franchiseRepository.createTerritoryAssignment(tenantId, {
+      territoryId: dto.territoryId,
+      franchiseId: dto.franchiseId,
+      userId: dto.userId,
+      assignmentType: dto.assignmentType || 'franchise',
+      effectiveDate: dto.effectiveDate || new Date().toISOString(),
+      expirationDate: dto.expirationDate,
+      reason: dto.reason,
+      metadata: dto.metadata || {},
+    }, userId);
+
+    // Emit event
+    this.eventEmitter.emit('territory.assigned', {
+      tenantId,
+      assignment,
+      userId,
+    });
+
+    return assignment;
+  }
+
+  async createTerritoryAssignment(tenantId: string, dto: any, userId: string): Promise<any> {
+    // Validate territory exists
+    await this.getTerritoryById(tenantId, dto.territoryId);
+    
+    // Validate franchise exists if provided
+    if (dto.franchiseId) {
+      await this.getFranchiseById(tenantId, dto.franchiseId);
+    }
+    
+    // Create territory assignment
+    const assignment = await this.franchiseRepository.createTerritoryAssignment(tenantId, dto, userId);
+
+    // Emit event
+    this.eventEmitter.emit('territory.assignment.created', {
+      tenantId,
+      assignment,
+      userId,
+    });
+
+    return assignment;
   }
 }

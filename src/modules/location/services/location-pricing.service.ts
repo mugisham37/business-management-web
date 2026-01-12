@@ -60,7 +60,7 @@ export class LocationPricingService {
         updatedBy: userId,
       };
 
-      const [newRule] = await this.drizzle.db
+      const [newRule] = await this.drizzle.getDb()
         .insert(locationPricingRules)
         .values(ruleData)
         .returning();
@@ -101,9 +101,8 @@ export class LocationPricingService {
       }
 
       // Validate conflicts if product/category is being changed
-      if (updateDto.productId !== undefined || updateDto.categoryId !== undefined) {
-        await this.validateRuleConflicts(tenantId, locationId, updateDto as any, ruleId);
-      }
+      // Note: productId and categoryId are not updatable in UpdateLocationPricingRuleDto
+      // They are only set during creation
 
       const updateData: any = {
         updatedBy: userId,
@@ -123,7 +122,7 @@ export class LocationPricingService {
       if (updateDto.isActive !== undefined) updateData.isActive = updateDto.isActive;
       if (updateDto.status !== undefined) updateData.status = updateDto.status;
 
-      const [updatedRule] = await this.drizzle.db
+      const [updatedRule] = await this.drizzle.getDb()
         .update(locationPricingRules)
         .set(updateData)
         .where(and(
@@ -167,7 +166,7 @@ export class LocationPricingService {
         throw new NotFoundException(`Pricing rule with ID ${ruleId} not found`);
       }
 
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .delete(locationPricingRules)
         .where(and(
           eq(locationPricingRules.id, ruleId),
@@ -195,7 +194,7 @@ export class LocationPricingService {
    */
   async findById(tenantId: string, locationId: string, ruleId: string): Promise<LocationPricingRule | null> {
     try {
-      const [rule] = await this.drizzle.db
+      const [rule] = await this.drizzle.getDb()
         .select()
         .from(locationPricingRules)
         .where(and(
@@ -246,17 +245,19 @@ export class LocationPricingService {
       }
 
       // Count total
-      const [{ count: total }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: count() })
         .from(locationPricingRules)
         .where(and(...conditions));
+      
+      const total = countResult[0]?.count || 0;
 
       // Get paginated results
       const page = query.page || 1;
       const limit = query.limit || 20;
       const offset = (page - 1) * limit;
 
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(locationPricingRules)
         .where(and(...conditions))
@@ -399,7 +400,7 @@ export class LocationPricingService {
       )
     );
 
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(locationPricingRules)
       .where(and(...conditions))
@@ -445,7 +446,7 @@ export class LocationPricingService {
       conditions.push(eq(locationPricingRules.id, excludeRuleId));
     }
 
-    const conflictingRules = await this.drizzle.db
+    const conflictingRules = await this.drizzle.getDb()
       .select()
       .from(locationPricingRules)
       .where(and(...conditions));
@@ -468,7 +469,7 @@ export class LocationPricingService {
     userId?: string
   ): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .insert(priceCalculationHistory)
         .values({
           tenantId,

@@ -34,8 +34,8 @@ import { FeatureGuard } from '../../tenant/guards/feature.guard';
 import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission, CurrentUser, CurrentTenant } from '../../auth/decorators/auth.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
-import { CacheInterceptor } from '../../common/interceptors/cache.interceptor';
-import { LoggingInterceptor } from '../../common/interceptors/logging.interceptor';
+import { CacheInterceptor } from '../../../common/interceptors/cache.interceptor';
+import { LoggingInterceptor } from '../../../common/interceptors/logging.interceptor';
 
 @Controller('api/v1/locations/reporting')
 @UseGuards(AuthGuard('jwt'), TenantGuard, FeatureGuard)
@@ -146,8 +146,8 @@ export class LocationReportingController {
   async getPerformanceSummary(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('groupBy') groupBy?: string,
     @CurrentTenant() tenantId: string,
+    @Query('groupBy') groupBy?: string,
   ): Promise<any> {
     const query: ConsolidatedReportQueryDto = {
       startDate: new Date(startDate),
@@ -231,15 +231,17 @@ export class LocationReportingController {
 
         if (monthlyReport.locationMetrics.length > 0) {
           const metrics = monthlyReport.locationMetrics[0];
-          monthlyTrends.push({
-            month: monthStart.toISOString().substring(0, 7), // YYYY-MM format
-            revenue: metrics.revenue,
-            profitMargin: metrics.profitMargin,
-            transactionCount: metrics.transactionCount,
-            averageTransactionValue: metrics.averageTransactionValue,
-            uniqueCustomers: metrics.uniqueCustomers,
-            inventoryTurnover: metrics.inventoryTurnover,
-          });
+          if (metrics) {
+            monthlyTrends.push({
+              month: monthStart.toISOString().substring(0, 7), // YYYY-MM format
+              revenue: metrics.revenue,
+              profitMargin: metrics.profitMargin,
+              transactionCount: metrics.transactionCount,
+              averageTransactionValue: metrics.averageTransactionValue,
+              uniqueCustomers: metrics.uniqueCustomers,
+              inventoryTurnover: metrics.inventoryTurnover,
+            });
+          }
         }
       } catch (error) {
         // Skip months with no data

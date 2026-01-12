@@ -7,16 +7,17 @@ import { ProcurementAnalyticsService } from '../../supplier/services/procurement
 import { TransactionService } from '../../pos/services/transaction.service';
 import { Location } from '../entities/location.entity';
 import { LocationStatus } from '../dto/location.dto';
+import { ReportType, ComparisonType, GroupByType, DrillDownLevel } from '../dto/location-reporting.dto';
 
 export interface ConsolidatedReportQuery {
   locationIds?: string[];
   startDate: Date;
   endDate: Date;
-  reportType: 'financial' | 'inventory' | 'sales' | 'customer' | 'procurement' | 'comprehensive';
-  groupBy?: 'location' | 'region' | 'type' | 'manager';
+  reportType: ReportType;
+  groupBy?: GroupByType;
   includeComparisons?: boolean;
   includeBenchmarks?: boolean;
-  drillDownLevel?: 'summary' | 'detailed' | 'transaction';
+  drillDownLevel?: DrillDownLevel;
 }
 
 export interface LocationPerformanceMetrics {
@@ -69,7 +70,7 @@ export interface LocationPerformanceMetrics {
 export interface ConsolidatedReport {
   reportId: string;
   tenantId: string;
-  reportType: string;
+  reportType: ReportType;
   generatedAt: Date;
   query: ConsolidatedReportQuery;
   
@@ -122,7 +123,7 @@ export interface LocationComparisonReport {
   comparisonId: string;
   tenantId: string;
   generatedAt: Date;
-  comparisonType: 'peer' | 'historical' | 'benchmark';
+  comparisonType: ComparisonType;
   
   locations: {
     locationId: string;

@@ -74,7 +74,7 @@ export class LocationInventoryPolicyService {
         updatedBy: userId,
       };
 
-      const [newPolicy] = await this.drizzle.db
+      const [newPolicy] = await this.drizzle.getDb()
         .insert(locationInventoryPolicies)
         .values(policyData)
         .returning();
@@ -139,7 +139,7 @@ export class LocationInventoryPolicyService {
       if (updateDto.isActive !== undefined) updateData.isActive = updateDto.isActive;
       if (updateDto.status !== undefined) updateData.status = updateDto.status;
 
-      const [updatedPolicy] = await this.drizzle.db
+      const [updatedPolicy] = await this.drizzle.getDb()
         .update(locationInventoryPolicies)
         .set(updateData)
         .where(and(
@@ -183,7 +183,7 @@ export class LocationInventoryPolicyService {
         throw new NotFoundException(`Inventory policy with ID ${policyId} not found`);
       }
 
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .delete(locationInventoryPolicies)
         .where(and(
           eq(locationInventoryPolicies.id, policyId),
@@ -211,7 +211,7 @@ export class LocationInventoryPolicyService {
    */
   async findById(tenantId: string, locationId: string, policyId: string): Promise<LocationInventoryPolicy | null> {
     try {
-      const [policy] = await this.drizzle.db
+      const [policy] = await this.drizzle.getDb()
         .select()
         .from(locationInventoryPolicies)
         .where(and(
@@ -262,17 +262,19 @@ export class LocationInventoryPolicyService {
       }
 
       // Count total
-      const [{ count: total }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: count() })
         .from(locationInventoryPolicies)
         .where(and(...conditions));
+      
+      const total = countResult[0]?.count || 0;
 
       // Get paginated results
       const page = query.page || 1;
       const limit = query.limit || 20;
       const offset = (page - 1) * limit;
 
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(locationInventoryPolicies)
         .where(and(...conditions))
@@ -319,6 +321,10 @@ export class LocationInventoryPolicyService {
 
         // Use the highest priority policy for recommendations
         const primaryPolicy = applicablePolicies[0];
+        if (!primaryPolicy) {
+          continue; // Skip if no applicable policy found
+        }
+        
         const averageDemand = item.averageDailyDemand || 0;
 
         const stockStatus = primaryPolicy.getStockStatus(item.currentStock, averageDemand);
@@ -352,7 +358,7 @@ export class LocationInventoryPolicyService {
           recommendedQuantity,
           reason: stockStatus.recommendation,
           priority: stockStatus.urgency,
-          expectedStockOutDate,
+          ...(expectedStockOutDate && { expectedStockOutDate }),
           appliedPolicies: applicablePolicies.map(policy => ({
             policyId: policy.id,
             policyName: policy.name,
@@ -369,8 +375,8 @@ export class LocationInventoryPolicyService {
           item.currentStock,
           recommendedAction,
           recommendedQuantity,
-          null,
-          null,
+          undefined,
+          undefined,
           { stockStatus, averageDemand },
           'system'
         );
@@ -498,7 +504,7 @@ export class LocationInventoryPolicyService {
       for (const productId of bulkUpdateDto.productIds) {
         try {
           // Find existing policy for this product
-          const existingPolicies = await this.drizzle.db
+          const existingPolicies = await this.drizzle.getDb()
             .select()
             .from(locationInventoryPolicies)
             .where(and(
@@ -507,7 +513,7 @@ export class LocationInventoryPolicyService {
               eq(locationInventoryPolicies.productId, productId)
             ));
 
-          if (existingPolicies.length > 0) {
+          if (existingPolicies.length > 0 && existingPolicies[0]) {
             // Update existing policy
             const policyId = existingPolicies[0].id;
             await this.updateInventoryPolicy(tenantId, locationId, policyId, bulkUpdateDto.updates, userId);
@@ -558,7 +564,7 @@ export class LocationInventoryPolicyService {
       ),
     ];
 
-    const results = await this.drizzle.db
+    const results = await this.drizzle.getDb()
       .select()
       .from(locationInventoryPolicies)
       .where(and(...conditions))
@@ -607,7 +613,7 @@ export class LocationInventoryPolicyService {
     userId?: string
   ): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .insert(inventoryPolicyExecutionLog)
         .values({
           tenantId,

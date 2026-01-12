@@ -140,7 +140,7 @@ export class TerritoryController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { franchiseId: string },
   ): Promise<TerritoryAssignment> {
-    return this.franchiseService.assignTerritoryToFranchise(tenantId, id, body.franchiseId, user.id);
+    return this.franchiseService.assignTerritoryToFranchise(tenantId, { territoryId: id, franchiseId: body.franchiseId }, user.id);
   }
 
   @Post('assignments')
