@@ -32,7 +32,7 @@ export class AccountingService {
     }) as ChartOfAccount[];
 
     const trialBalance = (allAccounts || []).map((account: ChartOfAccount) => {
-      const balance = parseFloat(account.currentBalance || '0');
+      const balance = parseFloat(String(account.currentBalance || '0'));
       const isDebitAccount = account.normalBalance === 'debit';
 
       return {
@@ -47,8 +47,8 @@ export class AccountingService {
     });
 
     // Calculate totals
-    const totalDebits = trialBalance.reduce((sum, account) => sum + parseFloat(account.debitBalance), 0);
-    const totalCredits = trialBalance.reduce((sum, account) => sum + parseFloat(account.creditBalance), 0);
+    const totalDebits = trialBalance.reduce((sum, account) => sum + parseFloat(account.debitBalance || '0'), 0);
+    const totalCredits = trialBalance.reduce((sum, account) => sum + parseFloat(account.creditBalance || '0'), 0);
 
     return {
       asOfDate: asOfDate || new Date(),
@@ -243,7 +243,7 @@ export class AccountingService {
 
   private calculateTypeTotal(accounts: ChartOfAccount[]): number {
     return accounts.reduce((sum, account) => {
-      const balance = parseFloat(account.currentBalance || '0');
+      const balance = parseFloat(String(account.currentBalance || '0'));
       return sum + (balance > 0 ? balance : 0);
     }, 0);
   }
@@ -251,11 +251,11 @@ export class AccountingService {
   private calculateWorkingCapital(accountsByType: Record<string, ChartOfAccount[]>): number {
     const currentAssets = (accountsByType[AccountType.ASSET] || [])
       .filter(acc => acc.accountSubType?.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance || '0'), 0);
+      .reduce((sum, acc) => sum + parseFloat(String(acc.currentBalance || '0')), 0);
 
     const currentLiabilities = (accountsByType[AccountType.LIABILITY] || [])
       .filter(acc => acc.accountSubType?.includes('current'))
-      .reduce((sum, acc) => sum + parseFloat(acc.currentBalance || '0'), 0);
+      .reduce((sum, acc) => sum + parseFloat(String(acc.currentBalance || '0')), 0);
 
     return currentAssets - currentLiabilities;
   }
@@ -274,7 +274,7 @@ export class AccountingService {
         details: {
           totalDebits: trialBalance.totalDebits,
           totalCredits: trialBalance.totalCredits,
-          difference: (parseFloat(trialBalance.totalDebits) - parseFloat(trialBalance.totalCredits)).toFixed(2),
+          difference: (parseFloat(trialBalance.totalDebits || '0') - parseFloat(trialBalance.totalCredits || '0')).toFixed(2),
         },
       });
     }

@@ -228,11 +228,12 @@ export class AccountsReceivablePayableService {
         await tx
           .insert(arApInvoiceLines)
           .values({
+            tenantId,
             invoiceId: invoice[0].id,
             productId: line.productId,
             lineNumber,
             description: line.description,
-            quantity: line.quantity,
+            quantity: line.quantity.toString(),
             unitPrice: line.unitPrice.toFixed(2),
             lineAmount: netAmount.toFixed(2),
             taxAmount: '0.00', // Would be calculated based on taxRateId
@@ -251,9 +252,11 @@ export class AccountsReceivablePayableService {
       }
 
       // Create journal entry for the invoice
-      await this.createInvoiceJournalEntry(tx, tenantId, invoice[0], userId);
+      if (invoice[0]) {
+        await this.createInvoiceJournalEntry(tx, tenantId, invoice[0], userId);
+      }
 
-      return invoice[0] as ARAPInvoice;
+      return this.transformToARAPInvoice(invoice[0]);
     });
   }
 
@@ -292,11 +295,13 @@ export class AccountsReceivablePayableService {
       conditions.push(lte(arApInvoices.invoiceDate, toDate));
     }
 
-    return await this.drizzle.getDb()
+    const invoices = await this.drizzle.getDb()
       .select()
       .from(arApInvoices)
       .where(and(...conditions))
       .orderBy(desc(arApInvoices.invoiceDate));
+    
+    return invoices.map(invoice => this.transformToARAPInvoice(invoice));
   }
 
   async getInvoiceById(tenantId: string, invoiceId: string): Promise<ARAPInvoice | null> {
@@ -311,7 +316,7 @@ export class AccountsReceivablePayableService {
       )
       .limit(1);
 
-    return result[0] as ARAPInvoice || null;
+    return result[0] ? this.transformToARAPInvoice(result[0]) : null;
   }
 
   // Payment Management
@@ -326,6 +331,7 @@ export class AccountsReceivablePayableService {
       const payment = await tx
         .insert(arApPayments)
         .values({
+          tenantId,
           paymentNumber: input.paymentNumber,
           paymentType: input.paymentType,
           customerId: input.customerId,
@@ -359,7 +365,7 @@ export class AccountsReceivablePayableService {
           await this.applyPaymentToInvoice(
             tx,
             tenantId,
-            payment[0].id,
+            payment[0]?.id || '',
             application.invoiceId,
             application.appliedAmount,
             application.discountAmount || 0,
@@ -370,21 +376,25 @@ export class AccountsReceivablePayableService {
         }
 
         // Update payment applied amounts
-        await tx
-          .update(arApPayments)
-          .set({
-            appliedAmount: totalApplied.toFixed(2),
-            unappliedAmount: (input.paymentAmount - totalApplied).toFixed(2),
-            updatedAt: new Date(),
-            updatedBy: userId,
-          })
-          .where(eq(arApPayments.id, payment[0].id));
+        if (payment[0]) {
+          await tx
+            .update(arApPayments)
+            .set({
+              appliedAmount: totalApplied.toFixed(2),
+              unappliedAmount: (input.paymentAmount - totalApplied).toFixed(2),
+              updatedAt: new Date(),
+              updatedBy: userId,
+            })
+            .where(eq(arApPayments.id, payment[0].id));
+        }
       }
 
       // Create journal entry for the payment
-      await this.createPaymentJournalEntry(tx, tenantId, payment[0], userId);
+      if (payment[0]) {
+        await this.createPaymentJournalEntry(tx, tenantId, payment[0], userId);
+      }
 
-      return payment[0] as ARAPPayment;
+      return this.transformToARAPPayment(payment[0]);
     });
   }
 
@@ -423,11 +433,13 @@ export class AccountsReceivablePayableService {
       conditions.push(lte(arApPayments.paymentDate, toDate));
     }
 
-    return await this.drizzle.getDb()
+    const payments = await this.drizzle.getDb()
       .select()
       .from(arApPayments)
       .where(and(...conditions))
       .orderBy(desc(arApPayments.paymentDate));
+    
+    return payments.map(payment => this.transformToARAPPayment(payment));
   }
 
   // Aging Reports
@@ -635,14 +647,38 @@ export class AccountsReceivablePayableService {
       .limit(1);
 
     let nextNumber = 1;
-    if (lastPayment.length > 0) {
+    if (lastPayment.length > 0 && lastPayment[0]) {
       const lastNumber = lastPayment[0].paymentNumber;
-      const match = lastNumber.match(/(\d+)$/);
+      const match = lastNumber?.match(/(\d+)$/);
       if (match) {
         nextNumber = parseInt(match[1]) + 1;
       }
     }
 
     return `${prefix}-${year}-${nextNumber.toString().padStart(6, '0')}`;
+  }
+
+  private transformToARAPInvoice(invoice: any): ARAPInvoice {
+    return {
+      ...invoice,
+      subtotalAmount: typeof invoice.subtotalAmount === 'string' ? parseFloat(invoice.subtotalAmount) : invoice.subtotalAmount,
+      taxAmount: typeof invoice.taxAmount === 'string' ? parseFloat(invoice.taxAmount) : invoice.taxAmount,
+      totalAmount: typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount,
+      paidAmount: typeof invoice.paidAmount === 'string' ? parseFloat(invoice.paidAmount) : invoice.paidAmount,
+      balanceAmount: typeof invoice.balanceAmount === 'string' ? parseFloat(invoice.balanceAmount) : invoice.balanceAmount,
+      discountAmount: typeof invoice.discountAmount === 'string' ? parseFloat(invoice.discountAmount) : invoice.discountAmount,
+      invoiceType: invoice.invoiceType as 'receivable' | 'payable',
+    } as ARAPInvoice;
+  }
+
+  private transformToARAPPayment(payment: any): ARAPPayment {
+    return {
+      ...payment,
+      paymentAmount: typeof payment.paymentAmount === 'string' ? parseFloat(payment.paymentAmount) : payment.paymentAmount,
+      appliedAmount: typeof payment.appliedAmount === 'string' ? parseFloat(payment.appliedAmount) : payment.appliedAmount,
+      unappliedAmount: typeof payment.unappliedAmount === 'string' ? parseFloat(payment.unappliedAmount) : payment.unappliedAmount,
+      exchangeRate: typeof payment.exchangeRate === 'string' ? parseFloat(payment.exchangeRate) : payment.exchangeRate,
+      paymentType: payment.paymentType as 'received' | 'made',
+    } as ARAPPayment;
   }
 }

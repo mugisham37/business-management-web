@@ -27,7 +27,7 @@ export class LoyaltyRepository {
   // Loyalty Transactions
   async createTransaction(tenantId: string, data: CreateLoyaltyTransactionDto, userId: string): Promise<LoyaltyTransaction> {
     try {
-      const [transaction] = await this.drizzle.db
+      const [transaction] = await this.drizzle.getDb()
         .insert(loyaltyTransactions)
         .values({
           tenantId,
@@ -45,6 +45,9 @@ export class LoyaltyRepository {
         })
         .returning();
 
+      if (!transaction) {
+        throw new Error('Failed to create loyalty transaction');
+      }
       this.logger.log(`Created loyalty transaction ${transaction.id} for customer ${data.customerId}`);
       return this.mapTransactionToEntity(transaction);
     } catch (error) {
@@ -84,23 +87,29 @@ export class LoyaltyRepository {
       const whereClause = and(...conditions);
 
       // Get total count
-      const [{ count }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: sql<number>`count(*)` })
         .from(loyaltyTransactions)
         .where(whereClause);
 
-      // Get paginated results
-      const offset = (query.page - 1) * query.limit;
-      const orderBy = query.sortOrder === 'asc' 
-        ? asc(loyaltyTransactions[query.sortBy as keyof typeof loyaltyTransactions] || loyaltyTransactions.createdAt)
-        : desc(loyaltyTransactions[query.sortBy as keyof typeof loyaltyTransactions] || loyaltyTransactions.createdAt);
+      const countData = (countResult as any) || [];
+      const [{ count }] = countData.length > 0 ? countData : [{ count: 0 }];
 
-      const results = await this.drizzle.db
+      // Get paginated results
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 20;
+      const offset = (page - 1) * limit;
+      const sortByColumn = (loyaltyTransactions[query.sortBy as keyof typeof loyaltyTransactions] as any) || loyaltyTransactions.createdAt;
+      const orderBy = query.sortOrder === 'asc' 
+        ? asc(sortByColumn)
+        : desc(sortByColumn);
+
+      const results = await this.drizzle.getDb()
         .select()
         .from(loyaltyTransactions)
         .where(whereClause)
         .orderBy(orderBy)
-        .limit(query.limit)
+        .limit(limit)
         .offset(offset);
 
       return {
@@ -121,7 +130,7 @@ export class LoyaltyRepository {
   }> {
     try {
       // Get all transactions for the customer
-      const transactions = await this.drizzle.db
+      const transactions = await this.drizzle.getDb()
         .select()
         .from(loyaltyTransactions)
         .where(and(
@@ -175,7 +184,7 @@ export class LoyaltyRepository {
   // Loyalty Rewards
   async createReward(tenantId: string, data: CreateRewardDto, userId: string): Promise<any> {
     try {
-      const [reward] = await this.drizzle.db
+      const reward = (await this.drizzle.getDb()
         .insert(loyaltyRewards)
         .values({
           tenantId,
@@ -197,10 +206,15 @@ export class LoyaltyRepository {
           createdBy: userId,
           updatedBy: userId,
         })
-        .returning();
+        .returning()) as any;
 
-      this.logger.log(`Created loyalty reward ${reward.id} for tenant ${tenantId}`);
-      return this.mapRewardToEntity(reward);
+      const createdReward = reward instanceof Array ? reward[0] : reward;
+      if (!createdReward) {
+        throw new Error('Failed to create loyalty reward');
+      }
+
+      this.logger.log(`Created loyalty reward ${createdReward.id} for tenant ${tenantId}`);
+      return this.mapRewardToEntity(createdReward);
     } catch (error) {
       this.logger.error(`Failed to create loyalty reward:`, error);
       throw error;
@@ -246,23 +260,29 @@ export class LoyaltyRepository {
       const whereClause = and(...conditions);
 
       // Get total count
-      const [{ count }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: sql<number>`count(*)` })
         .from(loyaltyRewards)
         .where(whereClause);
 
-      // Get paginated results
-      const offset = (query.page - 1) * query.limit;
-      const orderBy = query.sortOrder === 'asc' 
-        ? asc(loyaltyRewards[query.sortBy as keyof typeof loyaltyRewards] || loyaltyRewards.pointsRequired)
-        : desc(loyaltyRewards[query.sortBy as keyof typeof loyaltyRewards] || loyaltyRewards.pointsRequired);
+      const countData = (countResult as any) || [];
+      const [{ count }] = countData.length > 0 ? countData : [{ count: 0 }];
 
-      const results = await this.drizzle.db
+      // Get paginated results
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 20;
+      const offset = (page - 1) * limit;
+      const sortByColumn = (loyaltyRewards[query.sortBy as keyof typeof loyaltyRewards] as any) || loyaltyRewards.pointsRequired;
+      const orderBy = query.sortOrder === 'asc' 
+        ? asc(sortByColumn)
+        : desc(sortByColumn);
+
+      const results = await this.drizzle.getDb()
         .select()
         .from(loyaltyRewards)
         .where(whereClause)
         .orderBy(orderBy)
-        .limit(query.limit)
+        .limit(limit)
         .offset(offset);
 
       return {
@@ -277,7 +297,7 @@ export class LoyaltyRepository {
 
   async findRewardById(tenantId: string, id: string): Promise<any | null> {
     try {
-      const [reward] = await this.drizzle.db
+      const [reward] = await this.drizzle.getDb()
         .select()
         .from(loyaltyRewards)
         .where(and(
@@ -316,7 +336,7 @@ export class LoyaltyRepository {
         updateData.maximumDiscountAmount = data.maximumDiscountAmount.toString();
       }
 
-      const [reward] = await this.drizzle.db
+      const [reward] = await this.drizzle.getDb()
         .update(loyaltyRewards)
         .set(updateData)
         .where(and(
@@ -340,7 +360,7 @@ export class LoyaltyRepository {
 
   async deleteReward(tenantId: string, id: string, userId: string): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(loyaltyRewards)
         .set({
           deletedAt: new Date(),
@@ -362,7 +382,7 @@ export class LoyaltyRepository {
   // Loyalty Campaigns
   async createCampaign(tenantId: string, data: CreateCampaignDto, userId: string): Promise<any> {
     try {
-      const [campaign] = await this.drizzle.db
+      const [campaign] = await this.drizzle.getDb()
         .insert(loyaltyCampaigns)
         .values({
           tenantId,
@@ -396,7 +416,7 @@ export class LoyaltyRepository {
   async findActiveCampaigns(tenantId: string): Promise<any[]> {
     try {
       const now = new Date();
-      const campaigns = await this.drizzle.db
+      const campaigns = await this.drizzle.getDb()
         .select()
         .from(loyaltyCampaigns)
         .where(and(

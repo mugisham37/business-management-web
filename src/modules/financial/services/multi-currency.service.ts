@@ -120,7 +120,7 @@ export class MultiCurrencyService {
       await this.cacheService.set(cacheKey, currencies_list, { ttl: 300 }); // 5 minutes
     }
 
-    return currencies_list.map(currency => ({
+    return (currencies_list || []).map(currency => ({
       ...currency,
       countryCode: currency.countryCode || '',
     })) as Currency[];
@@ -205,10 +205,11 @@ export class MultiCurrencyService {
     const exchangeRate = await this.drizzle.getDb()
       .insert(exchangeRates)
       .values({
+        tenantId,
         fromCurrencyId: data.fromCurrencyId!,
         toCurrencyId: data.toCurrencyId!,
-        exchangeRate: data.exchangeRate!,
-        inverseRate: data.inverseRate!,
+        exchangeRate: data.exchangeRate!.toString(),
+        inverseRate: data.inverseRate!.toString(),
         effectiveDate: data.effectiveDate!,
         expirationDate: data.expirationDate,
         rateSource: data.rateSource || 'manual',
@@ -355,16 +356,17 @@ export class MultiCurrencyService {
       await this.drizzle.getDb()
         .insert(currencyConversions)
         .values({
+          tenantId,
           sourceType,
           sourceId,
           fromCurrencyId,
           toCurrencyId,
-          originalAmount: amount,
-          convertedAmount,
-          exchangeRate: rate.exchangeRate,
+          originalAmount: amount.toString(),
+          convertedAmount: convertedAmount.toString(),
+          exchangeRate: rate.exchangeRate.toString(),
           conversionDate,
           rateSource: rate.rateSource,
-          gainLossAmount: 0, // Would be calculated for revaluations
+          gainLossAmount: '0.00', // Would be calculated for revaluations
           createdAt: new Date(),
           updatedAt: new Date(),
         });

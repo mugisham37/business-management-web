@@ -32,23 +32,23 @@ export class CreateLoyaltyTransactionDto {
   @Field()
   @ApiProperty({ description: 'Customer ID' })
   @IsUUID()
-  customerId: string;
+  customerId!: string;
 
   @Field()
   @ApiProperty({ description: 'Transaction type', enum: LoyaltyTransactionType })
   @IsEnum(LoyaltyTransactionType)
-  type: LoyaltyTransactionType;
+  type!: LoyaltyTransactionType;
 
   @Field(() => Int)
   @ApiProperty({ description: 'Points amount (positive for earned, negative for redeemed)' })
   @IsNumber()
-  points: number;
+  points!: number;
 
   @Field()
   @ApiProperty({ description: 'Transaction description' })
   @IsString()
   @Length(1, 500)
-  description: string;
+  description!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Related POS transaction ID' })
@@ -75,7 +75,7 @@ export class CreateLoyaltyTransactionDto {
   promotionId?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -86,7 +86,7 @@ export class CreateRewardDto {
   @ApiProperty({ description: 'Reward name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Reward description' })
@@ -98,13 +98,13 @@ export class CreateRewardDto {
   @Field()
   @ApiProperty({ description: 'Reward type', enum: RewardType })
   @IsEnum(RewardType)
-  type: RewardType;
+  type!: RewardType;
 
   @Field(() => Int)
   @ApiProperty({ description: 'Points required to redeem' })
   @IsNumber()
   @Min(1)
-  pointsRequired: number;
+  pointsRequired!: number;
 
   @Field(() => Float, { nullable: true })
   @ApiPropertyOptional({ description: 'Reward value (amount or percentage)' })
@@ -174,7 +174,7 @@ export class CreateRewardDto {
   termsAndConditions?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -276,7 +276,7 @@ export class UpdateRewardDto {
   isActive?: boolean;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -287,7 +287,7 @@ export class CreateCampaignDto {
   @ApiProperty({ description: 'Campaign name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Campaign description' })
@@ -299,19 +299,19 @@ export class CreateCampaignDto {
   @Field()
   @ApiProperty({ description: 'Campaign start date' })
   @IsDateString()
-  startDate: string;
+  startDate!: string;
 
   @Field()
   @ApiProperty({ description: 'Campaign end date' })
   @IsDateString()
-  endDate: string;
+  endDate!: string;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Points multiplier (e.g., 2.0 for double points)' })
   @IsNumber()
   @Min(0.1)
   @Max(10)
-  pointsMultiplier: number;
+  pointsMultiplier!: number;
 
   @Field(() => Float, { nullable: true })
   @ApiPropertyOptional({ description: 'Minimum purchase amount' })
@@ -370,7 +370,7 @@ export class CreateCampaignDto {
   termsAndConditions?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   metadata?: Record<string, any>;
 }

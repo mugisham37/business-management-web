@@ -3,20 +3,18 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
 import { CreateCustomerDto, UpdateCustomerDto, CustomerQueryDto } from '../dto/customer.dto';
 import { Customer } from '../entities/customer.entity';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { FeatureGuard } from '../../tenant/guards/feature.guard';
 import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors/logging.interceptor';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Resolver(() => Customer)
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('customer-management')
-@UseInterceptors(LoggingInterceptor)
 export class CustomerResolver {
   constructor(private readonly customerService: CustomerService) {}
 
@@ -94,8 +92,8 @@ export class CustomerResolver {
   async updateCustomerPurchaseStats(
     @Args('id', { type: () => ID }) id: string,
     @Args('orderValue', { type: () => Int }) orderValue: number,
-    @Args('orderDate', { nullable: true }) orderDate?: Date,
     @CurrentTenant() tenantId: string,
+    @Args('orderDate', { nullable: true }) orderDate?: Date,
   ): Promise<boolean> {
     const date = orderDate || new Date();
     await this.customerService.updatePurchaseStats(tenantId, id, orderValue, date);

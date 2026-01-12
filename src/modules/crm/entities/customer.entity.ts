@@ -5,23 +5,23 @@ import { ApiProperty } from '@nestjs/swagger';
 export class Customer {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique customer identifier' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
   @ApiProperty({ description: 'Customer number' })
-  customerNumber: string;
+  customerNumber!: string;
 
   @Field()
   @ApiProperty({ description: 'Customer type', enum: ['individual', 'business'] })
-  type: 'individual' | 'business';
+  type!: 'individual' | 'business';
 
   @Field()
   @ApiProperty({ description: 'Customer status', enum: ['active', 'inactive', 'blocked', 'prospect'] })
-  status: 'active' | 'inactive' | 'blocked' | 'prospect';
+  status!: 'active' | 'inactive' | 'blocked' | 'prospect';
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'First name', required: false })
@@ -97,27 +97,27 @@ export class Customer {
 
   @Field()
   @ApiProperty({ description: 'Loyalty tier', enum: ['bronze', 'silver', 'gold', 'platinum', 'diamond'] })
-  loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  loyaltyTier!: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
 
   @Field(() => Int)
   @ApiProperty({ description: 'Current loyalty points' })
-  loyaltyPoints: number;
+  loyaltyPoints!: number;
 
   @Field(() => Int)
   @ApiProperty({ description: 'Lifetime loyalty points earned' })
-  loyaltyPointsLifetime: number;
+  loyaltyPointsLifetime!: number;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Total amount spent' })
-  totalSpent: number;
+  totalSpent!: number;
 
   @Field(() => Int)
   @ApiProperty({ description: 'Total number of orders' })
-  totalOrders: number;
+  totalOrders!: number;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Average order value' })
-  averageOrderValue: number;
+  averageOrderValue!: number;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Last purchase date', required: false })
@@ -129,11 +129,11 @@ export class Customer {
 
   @Field(() => Float)
   @ApiProperty({ description: 'Customer lifetime value' })
-  lifetimeValue: number;
+  lifetimeValue!: number;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Predicted lifetime value' })
-  predictedLifetimeValue: number;
+  predictedLifetimeValue!: number;
 
   @Field(() => Float, { nullable: true })
   @ApiProperty({ description: 'Churn risk probability (0-1)', required: false })
@@ -141,19 +141,19 @@ export class Customer {
 
   @Field()
   @ApiProperty({ description: 'Marketing opt-in status' })
-  marketingOptIn: boolean;
+  marketingOptIn!: boolean;
 
   @Field()
   @ApiProperty({ description: 'Email opt-in status' })
-  emailOptIn: boolean;
+  emailOptIn!: boolean;
 
   @Field()
   @ApiProperty({ description: 'SMS opt-in status' })
-  smsOptIn: boolean;
+  smsOptIn!: boolean;
 
   @Field(() => [String])
   @ApiProperty({ description: 'Customer tags' })
-  tags: string[];
+  tags!: string[];
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Customer notes', required: false })
@@ -173,11 +173,11 @@ export class Customer {
 
   @Field()
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Deletion date', required: false })
@@ -188,15 +188,15 @@ export class Customer {
 export class CustomerSegment {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique segment identifier' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
   @ApiProperty({ description: 'Segment name' })
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Segment description', required: false })
@@ -204,23 +204,23 @@ export class CustomerSegment {
 
   @Field()
   @ApiProperty({ description: 'Segment type', enum: ['demographic', 'behavioral', 'geographic', 'psychographic', 'value_based'] })
-  type: 'demographic' | 'behavioral' | 'geographic' | 'psychographic' | 'value_based';
+  type!: 'demographic' | 'behavioral' | 'geographic' | 'psychographic' | 'value_based';
 
   @Field(() => Int)
   @ApiProperty({ description: 'Number of customers in segment' })
-  customerCount: number;
+  customerCount!: number;
 
   @Field()
   @ApiProperty({ description: 'Is segment active' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @Field()
   @ApiProperty({ description: 'Is segment auto-updated' })
-  isAutoUpdated: boolean;
+  isAutoUpdated!: boolean;
 
   @Field()
   @ApiProperty({ description: 'Update frequency' })
-  updateFrequency: string;
+  updateFrequency!: string;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Last calculation date', required: false })
@@ -228,34 +228,34 @@ export class CustomerSegment {
 
   @Field()
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @ObjectType()
 export class CustomerCommunication {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique communication identifier' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
   @ApiProperty({ description: 'Customer ID' })
-  customerId: string;
+  customerId!: string;
 
   @Field()
   @ApiProperty({ description: 'Communication channel', enum: ['email', 'sms', 'phone', 'in_person', 'chat', 'social_media'] })
-  channel: 'email' | 'sms' | 'phone' | 'in_person' | 'chat' | 'social_media';
+  channel!: 'email' | 'sms' | 'phone' | 'in_person' | 'chat' | 'social_media';
 
   @Field()
   @ApiProperty({ description: 'Communication direction', enum: ['inbound', 'outbound'] })
-  direction: 'inbound' | 'outbound';
+  direction!: 'inbound' | 'outbound';
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Communication subject', required: false })
@@ -283,46 +283,38 @@ export class CustomerCommunication {
 
   @Field()
   @ApiProperty({ description: 'Communication status' })
-  status: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ description: 'Campaign ID', required: false })
-  campaignId?: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ description: 'Campaign name', required: false })
-  campaignName?: string;
+  status!: string;
 
   @Field()
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 }
 
 @ObjectType()
 export class LoyaltyTransaction {
   @Field(() => ID)
   @ApiProperty({ description: 'Unique loyalty transaction identifier' })
-  id: string;
+  id!: string;
 
   @Field()
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
   @ApiProperty({ description: 'Customer ID' })
-  customerId: string;
+  customerId!: string;
 
   @Field()
   @ApiProperty({ description: 'Transaction type', enum: ['earned', 'redeemed', 'expired', 'adjusted'] })
-  type: 'earned' | 'redeemed' | 'expired' | 'adjusted';
+  type!: 'earned' | 'redeemed' | 'expired' | 'adjusted';
 
   @Field(() => Int)
   @ApiProperty({ description: 'Points amount (positive for earned, negative for redeemed)' })
-  points: number;
+  points!: number;
 
   @Field()
   @ApiProperty({ description: 'Transaction description' })
-  description: string;
+  description!: string;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Related POS transaction ID', required: false })
@@ -342,5 +334,5 @@ export class LoyaltyTransaction {
 
   @Field()
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 }

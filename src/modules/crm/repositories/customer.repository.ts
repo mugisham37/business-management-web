@@ -19,7 +19,7 @@ export class CustomerRepository {
       // Calculate display name
       const displayName = this.calculateDisplayName(data);
 
-      const [customer] = await this.drizzle.db
+      const customer = (await this.drizzle.getDb()
         .insert(customers)
         .values({
           tenantId,
@@ -49,10 +49,15 @@ export class CustomerRepository {
           preferences: data.preferences || {},
           socialProfiles: data.socialProfiles || {},
         })
-        .returning();
+        .returning() as any;
 
-      this.logger.log(`Created customer ${customer.id} for tenant ${tenantId}`);
-      return this.mapToEntity(customer);
+      const [createdCustomer] = customer;
+      if (!createdCustomer) {
+        throw new Error('Failed to create customer');
+      }
+
+      this.logger.log(`Created customer ${createdCustomer.id} for tenant ${tenantId}`);
+      return this.mapToEntity(createdCustomer);
     } catch (error) {
       this.logger.error(`Failed to create customer for tenant ${tenantId}:`, error);
       throw error;
@@ -61,7 +66,7 @@ export class CustomerRepository {
 
   async findById(tenantId: string, id: string): Promise<Customer | null> {
     try {
-      const [customer] = await this.drizzle.db
+      const [customer] = await this.drizzle.getDb()
         .select()
         .from(customers)
         .where(and(
@@ -79,7 +84,7 @@ export class CustomerRepository {
 
   async findByEmail(tenantId: string, email: string): Promise<Customer | null> {
     try {
-      const [customer] = await this.drizzle.db
+      const [customer] = await this.drizzle.getDb()
         .select()
         .from(customers)
         .where(and(
@@ -97,7 +102,7 @@ export class CustomerRepository {
 
   async findByPhone(tenantId: string, phone: string): Promise<Customer | null> {
     try {
-      const [customer] = await this.drizzle.db
+      const [customer] = await this.drizzle.getDb()
         .select()
         .from(customers)
         .where(and(
@@ -202,26 +207,34 @@ export class CustomerRepository {
         );
       }
 
-      const whereClause = and(...conditions);
+      const whereClause = conditions.filter(Boolean).length > 0 
+        ? and(...(conditions.filter(Boolean) as any[])) 
+        : undefined;
 
       // Get total count
-      const [{ count }] = await this.drizzle.db
+      const countResult = await this.drizzle.getDb()
         .select({ count: sql<number>`count(*)` })
         .from(customers)
-        .where(whereClause);
+        .where(whereClause ?? sql`true`);
+      
+      const countData = (countResult as any) || [];
+      const [{ count }] = countData.length > 0 ? countData : [{ count: 0 }];
 
       // Get paginated results
-      const offset = (query.page - 1) * query.limit;
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 20;
+      const offset = (page - 1) * limit;
+      const sortByColumn = (customers[query.sortBy as keyof typeof customers] as any) || customers.createdAt;
       const orderBy = query.sortOrder === 'asc' 
-        ? asc(customers[query.sortBy as keyof typeof customers] || customers.createdAt)
-        : desc(customers[query.sortBy as keyof typeof customers] || customers.createdAt);
+        ? asc(sortByColumn)
+        : desc(sortByColumn);
 
-      const results = await this.drizzle.db
+      const results = await this.drizzle.getDb()
         .select()
         .from(customers)
-        .where(whereClause)
+        .where(whereClause ?? sql`true`)
         .orderBy(orderBy)
-        .limit(query.limit)
+        .limit(limit)
         .offset(offset);
 
       return {
@@ -241,11 +254,11 @@ export class CustomerRepository {
       if (data.firstName || data.lastName || data.companyName) {
         updateData.displayName = this.calculateDisplayName({
           ...data,
-          type: data.type || 'individual', // Default type for display name calculation
+          type: (data.type || 'individual') as any, // Default type for display name calculation
         });
       }
 
-      const [customer] = await this.drizzle.db
+      const customer = (await this.drizzle.getDb()
         .update(customers)
         .set(updateData)
         .where(and(
@@ -253,14 +266,15 @@ export class CustomerRepository {
           eq(customers.id, id),
           isNull(customers.deletedAt)
         ))
-        .returning();
+        .returning()) as any;
 
-      if (!customer) {
+      const updatedCustomer = customer instanceof Array ? customer[0] : customer;
+      if (!updatedCustomer) {
         throw new Error(`Customer ${id} not found`);
       }
 
       this.logger.log(`Updated customer ${id} for tenant ${tenantId}`);
-      return this.mapToEntity(customer);
+      return this.mapToEntity(updatedCustomer);
     } catch (error) {
       this.logger.error(`Failed to update customer ${id} for tenant ${tenantId}:`, error);
       throw error;
@@ -269,7 +283,7 @@ export class CustomerRepository {
 
   async delete(tenantId: string, id: string, userId: string): Promise<void> {
     try {
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(customers)
         .set({
           deletedAt: new Date(),
@@ -318,7 +332,7 @@ export class CustomerRepository {
         updateData.firstPurchaseDate = orderDate;
       }
 
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(customers)
         .set(updateData)
         .where(and(
@@ -348,7 +362,7 @@ export class CustomerRepository {
       // Calculate new loyalty tier based on lifetime points
       const newTier = this.calculateLoyaltyTier(newLifetimePoints);
 
-      await this.drizzle.db
+      await this.drizzle.getDb()
         .update(customers)
         .set({
           loyaltyPoints: newPoints,
@@ -369,16 +383,19 @@ export class CustomerRepository {
 
   private async generateCustomerNumber(tenantId: string): Promise<string> {
     // Get the count of existing customers for this tenant
-    const [{ count }] = await this.drizzle.db
+    const countResult = await this.drizzle.getDb()
       .select({ count: sql<number>`count(*)` })
       .from(customers)
       .where(eq(customers.tenantId, tenantId));
+
+    const countData = (countResult as any) || [];
+    const [{ count }] = countData.length > 0 ? countData : [{ count: 0 }];
 
     // Generate customer number with prefix and zero-padded number
     const customerNumber = `CUST-${String(count + 1).padStart(6, '0')}`;
     
     // Check if this number already exists (unlikely but possible)
-    const existing = await this.drizzle.db
+    const existing = await this.drizzle.getDb()
       .select({ id: customers.id })
       .from(customers)
       .where(and(
@@ -461,7 +478,7 @@ export class CustomerRepository {
       firstPurchaseDate: customer.firstPurchaseDate,
       lifetimeValue: parseFloat(customer.lifetimeValue || '0'),
       predictedLifetimeValue: parseFloat(customer.predictedLifetimeValue || '0'),
-      churnRisk: customer.churnRisk ? parseFloat(customer.churnRisk) : null,
+      churnRisk: customer.churnRisk ? parseFloat(customer.churnRisk as string) : undefined,
       marketingOptIn: customer.marketingOptIn,
       emailOptIn: customer.emailOptIn,
       smsOptIn: customer.smsOptIn,

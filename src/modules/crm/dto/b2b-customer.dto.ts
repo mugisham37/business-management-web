@@ -36,7 +36,7 @@ export class CreateB2BCustomerDto {
   @ApiProperty({ description: 'Company name' })
   @IsString()
   @Length(1, 255)
-  companyName: string;
+  companyName!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Primary contact first name' })
@@ -97,12 +97,12 @@ export class CreateB2BCustomerDto {
   @ApiProperty({ description: 'Credit limit amount' })
   @IsNumber()
   @Min(0)
-  creditLimit: number;
+  creditLimit!: number;
 
   @Field()
   @ApiProperty({ description: 'Payment terms', enum: PaymentTermsType })
   @IsEnum(PaymentTermsType)
-  paymentTerms: PaymentTermsType;
+  paymentTerms!: PaymentTermsType;
 
   @Field(() => Int, { nullable: true })
   @ApiPropertyOptional({ description: 'Custom payment terms in days (for CUSTOM type)' })
@@ -131,7 +131,7 @@ export class CreateB2BCustomerDto {
   @Field()
   @ApiProperty({ description: 'Pricing tier', enum: PricingTier })
   @IsEnum(PricingTier)
-  pricingTier: PricingTier;
+  pricingTier!: PricingTier;
 
   @Field(() => Float, { nullable: true })
   @ApiPropertyOptional({ description: 'Volume discount percentage' })
@@ -292,7 +292,7 @@ export class CreateB2BCustomerDto {
   contractEndDate?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   b2bMetadata?: Record<string, any>;
 }
@@ -437,7 +437,7 @@ export class UpdateB2BCustomerDto {
   contractEndDate?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional B2B metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional B2B metadata', type: 'object', additionalProperties: true })
   @IsOptional()
   b2bMetadata?: Record<string, any>;
 }

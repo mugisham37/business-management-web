@@ -333,7 +333,6 @@ export class BudgetService {
         projectId: line.projectId || undefined,
         locationId: line.locationId || undefined,
         notes: line.notes || undefined,
-        notes: line.notes,
       }, userId);
     }
 

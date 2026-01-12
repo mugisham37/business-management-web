@@ -65,7 +65,8 @@ export class ProductController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.create(tenantId, createProductDto, user.id) as Promise<ProductResponseDto>;
+    const product = await this.productService.create(tenantId, createProductDto, user.id);
+    return this.transformToResponseDto(product);
   }
 
   @Get()
@@ -90,7 +91,11 @@ export class ProductController {
     @Query() query: ProductQueryDto,
     @CurrentTenant() tenantId: string,
   ) {
-    return this.productService.findMany(tenantId, query);
+    const result = await this.productService.findMany(tenantId, query);
+    return {
+      ...result,
+      products: this.transformArrayToResponseDto(result.products),
+    };
   }
 
   @Get('search')
@@ -109,7 +114,8 @@ export class ProductController {
     @Query('q') searchTerm: string,
     @Query('limit') limit: number = 10,
   ): Promise<ProductResponseDto[]> {
-    return this.productService.searchProducts(tenantId, searchTerm, limit);
+    const products = await this.productService.searchProducts(tenantId, searchTerm, limit);
+    return this.transformArrayToResponseDto(products);
   }
 
   @Get('low-stock')
@@ -127,7 +133,8 @@ export class ProductController {
     @CurrentTenant() tenantId: string,
     @Query('locationId') locationId?: string,
   ): Promise<ProductResponseDto[]> {
-    return this.productService.findLowStockProducts(tenantId, locationId);
+    const products = await this.productService.findLowStockProducts(tenantId, locationId);
+    return this.transformArrayToResponseDto(products);
   }
 
   @Get(':id')
@@ -145,7 +152,8 @@ export class ProductController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.findById(tenantId, id);
+    const product = await this.productService.findById(tenantId, id);
+    return this.transformToResponseDto(product);
   }
 
   @Get('sku/:sku')
@@ -163,7 +171,8 @@ export class ProductController {
     @Param('sku') sku: string,
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.findBySku(tenantId, sku);
+    const product = await this.productService.findBySku(tenantId, sku);
+    return this.transformToResponseDto(product);
   }
 
   @Put(':id')
@@ -183,7 +192,8 @@ export class ProductController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.update(tenantId, id, updateProductDto, user.id);
+    const product = await this.productService.update(tenantId, id, updateProductDto, user.id);
+    return this.transformToResponseDto(product);
   }
 
   @Put('bulk')
@@ -228,5 +238,20 @@ export class ProductController {
     @CurrentTenant() tenantId: string,
   ): Promise<void> {
     await this.productService.delete(tenantId, id, user.id);
+  }
+
+  private transformToResponseDto(product: any): ProductResponseDto {
+    return {
+      ...product,
+      basePrice: typeof product.basePrice === 'string' ? parseFloat(product.basePrice) : product.basePrice,
+      costPrice: typeof product.costPrice === 'string' ? parseFloat(product.costPrice) : product.costPrice,
+      msrp: typeof product.msrp === 'string' ? parseFloat(product.msrp) : product.msrp,
+      weight: typeof product.weight === 'string' ? parseFloat(product.weight) : product.weight,
+      description: product.description || undefined,
+    } as ProductResponseDto;
+  }
+
+  private transformArrayToResponseDto(products: any[]): ProductResponseDto[] {
+    return products.map(product => this.transformToResponseDto(product));
   }
 }

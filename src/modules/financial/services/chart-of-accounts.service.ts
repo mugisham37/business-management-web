@@ -203,7 +203,7 @@ export class ChartOfAccountsService {
           accountSubType: accountData.accountSubType,
           normalBalance: accountData.normalBalance,
           ...(parentAccountId && { parentAccountId }),
-          description: accountData.description,
+          description: accountData.description || '',
           isActive: true,
           allowManualEntries: accountData.allowManualEntries ?? true,
         }, userId);

@@ -9,20 +9,18 @@ import {
   RewardQueryDto 
 } from '../dto/loyalty.dto';
 import { LoyaltyTransaction } from '../entities/customer.entity';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { FeatureGuard } from '../../tenant/guards/feature.guard';
 import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors/logging.interceptor';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Resolver(() => LoyaltyTransaction)
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('loyalty-program')
-@UseInterceptors(LoggingInterceptor)
 export class LoyaltyResolver {
   constructor(private readonly loyaltyService: LoyaltyService) {}
 
@@ -42,10 +40,10 @@ export class LoyaltyResolver {
     @Args('customerId', { type: () => ID }) customerId: string,
     @Args('points', { type: () => Int }) points: number,
     @Args('reason') reason: string,
-    @Args('relatedTransactionId', { type: () => ID, nullable: true }) relatedTransactionId?: string,
-    @Args('campaignId', { type: () => ID, nullable: true }) campaignId?: string,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
+    @Args('relatedTransactionId', { type: () => ID, nullable: true }) relatedTransactionId?: string,
+    @Args('campaignId', { type: () => ID, nullable: true }) campaignId?: string,
   ): Promise<LoyaltyTransaction> {
     return this.loyaltyService.awardPoints(
       tenantId,
@@ -64,9 +62,9 @@ export class LoyaltyResolver {
     @Args('customerId', { type: () => ID }) customerId: string,
     @Args('points', { type: () => Int }) points: number,
     @Args('reason') reason: string,
-    @Args('relatedTransactionId', { type: () => ID, nullable: true }) relatedTransactionId?: string,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
+    @Args('relatedTransactionId', { type: () => ID, nullable: true }) relatedTransactionId?: string,
   ): Promise<LoyaltyTransaction> {
     return this.loyaltyService.redeemPoints(
       tenantId,

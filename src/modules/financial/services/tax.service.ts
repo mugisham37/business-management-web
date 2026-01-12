@@ -115,9 +115,17 @@ export class TaxService {
     const jurisdiction = await this.drizzle.getDb()
       .insert(taxJurisdictions)
       .values({
-        ...data,
+        tenantId,
         jurisdictionCode: data.jurisdictionCode || '',
         jurisdictionName: data.jurisdictionName || '',
+        jurisdictionType: data.jurisdictionType,
+        country: data.country,
+        stateProvince: data.stateProvince,
+        county: data.county,
+        city: data.city,
+        postalCode: data.postalCode,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        settings: data.settings,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -146,7 +154,7 @@ export class TaxService {
       await this.cacheService.set(cacheKey, jurisdictions, { ttl: 300 }); // 5 minutes
     }
 
-    return jurisdictions.map(jurisdiction => ({
+    return (jurisdictions || []).map(jurisdiction => ({
       ...jurisdiction,
       stateProvince: jurisdiction.stateProvince || '',
     })) as TaxJurisdiction[];
@@ -183,9 +191,25 @@ export class TaxService {
     const taxRate = await this.drizzle.getDb()
       .insert(taxRates)
       .values({
-        ...data,
+        tenantId,
         effectiveDate: data.effectiveDate || new Date(),
         jurisdictionId: data.jurisdictionId || '',
+        taxType: data.taxType,
+        taxName: data.taxName,
+        taxCode: data.taxCode,
+        rate: data.rate,
+        flatAmount: data.flatAmount,
+        calculationMethod: data.calculationMethod,
+        compoundingOrder: data.compoundingOrder,
+        applicableToProducts: data.applicableToProducts,
+        applicableToServices: data.applicableToServices,
+        applicableToShipping: data.applicableToShipping,
+        minimumTaxableAmount: data.minimumTaxableAmount,
+        maximumTaxableAmount: data.maximumTaxableAmount,
+        expirationDate: data.expirationDate,
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        glAccountId: data.glAccountId,
+        settings: data.settings,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -194,7 +218,7 @@ export class TaxService {
     await this.invalidateTaxRateCache(tenantId);
     return {
       ...taxRate[0],
-      rate: parseFloat(taxRate[0].rate || '0'),
+      rate: parseFloat(taxRate[0]?.rate || '0'),
     } as TaxRate;
   }
 
@@ -232,7 +256,11 @@ export class TaxService {
       await this.cacheService.set(cacheKey, rates, { ttl: 300 });
     }
 
-    return rates as TaxRate[];
+    return (rates || []).map(rate => ({
+      ...rate,
+      rate: typeof rate.rate === 'string' ? parseFloat(rate.rate || '0') : rate.rate,
+      flatAmount: typeof rate.flatAmount === 'string' ? parseFloat(rate.flatAmount || '0') : rate.flatAmount,
+    })) as TaxRate[];
   }
 
   // Tax Calculation Engine
@@ -270,14 +298,15 @@ export class TaxService {
         await this.drizzle.getDb()
           .insert(taxCalculations)
           .values({
+            tenantId,
             sourceType,
             sourceId,
             jurisdictionId: jurisdiction.id,
             taxRateId: rate.id,
-            taxableAmount,
-            taxRate: rate.rate,
-            taxAmount: finalTaxAmount,
-            roundingAdjustment,
+            taxableAmount: taxableAmount.toFixed(2),
+            taxRate: rate.rate.toString(),
+            taxAmount: finalTaxAmount.toFixed(2),
+            roundingAdjustment: roundingAdjustment.toFixed(2),
             calculationDate,
             calculationMethod: rate.calculationMethod,
             createdAt: new Date(),
@@ -316,17 +345,33 @@ export class TaxService {
     const taxReturn = await this.drizzle.getDb()
       .insert(taxReturns)
       .values({
-        ...data,
+        tenantId,
         jurisdictionId: data.jurisdictionId || '',
+        returnNumber: data.returnNumber,
+        periodType: data.periodType,
+        periodYear: data.periodYear,
+        periodNumber: data.periodNumber,
+        periodStartDate: data.periodStartDate,
+        periodEndDate: data.periodEndDate,
+        filingDate: data.filingDate,
+        dueDate: data.dueDate,
+        totalTaxableAmount: data.totalTaxableAmount,
+        totalTaxAmount: data.totalTaxAmount,
+        totalPaymentsCredits: data.totalPaymentsCredits,
+        balanceDue: data.balanceDue,
+        refundAmount: data.refundAmount,
+        status: data.status || 'draft',
+        filedBy: data.filedBy,
+        reviewedBy: data.reviewedBy,
+        notes: data.notes,
+        attachments: data.attachments,
+        isActive: data.isActive !== undefined ? data.isActive : true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
-    return {
-      ...taxReturn[0],
-      totalTaxableAmount: parseFloat(taxReturn[0].totalTaxableAmount || '0'),
-    } as TaxReturn;
+    return this.transformToTaxReturn(taxReturn[0]);
   }
 
   async getTaxReturns(
@@ -355,10 +400,7 @@ export class TaxService {
       .where(and(...conditions))
       .orderBy(desc(taxReturns.periodYear), desc(taxReturns.periodNumber));
 
-    return results.map(result => ({
-      ...result,
-      filingDate: result.filingDate || new Date(),
-    })) as TaxReturn[];
+    return results.map(result => this.transformToTaxReturn(result));
   }
 
   async generateTaxReturn(
@@ -426,17 +468,18 @@ export class TaxService {
         .where(eq(taxRates.id, taxRateId))
         .limit(1);
 
-      if (rate.length > 0) {
+      if (rate.length > 0 && rate[0]) {
         await this.drizzle.getDb()
           .insert(taxReturnLines)
           .values({
+            tenantId,
             taxReturnId: taxReturn?.id || '',
             taxRateId,
             lineNumber,
-            lineDescription: rate[0].taxName,
-            taxableAmount: group.taxableAmount,
-            taxRate: Number(rate[0].rate),
-            taxAmount: group.taxAmount,
+            lineDescription: rate[0].taxName || '',
+            taxableAmount: group.taxableAmount.toFixed(2),
+            taxRate: Number(rate[0].rate || 0),
+            taxAmount: group.taxAmount.toFixed(2),
             calculationMethod: 'aggregated',
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -551,5 +594,17 @@ export class TaxService {
 
   private async invalidateTaxRateCache(tenantId: string): Promise<void> {
     await this.cacheService.invalidatePattern(`tax:rates:${tenantId}:*`);
+  }
+
+  private transformToTaxReturn(taxReturn: any): TaxReturn {
+    return {
+      ...taxReturn,
+      totalTaxableAmount: typeof taxReturn.totalTaxableAmount === 'string' ? parseFloat(taxReturn.totalTaxableAmount || '0') : taxReturn.totalTaxableAmount,
+      totalTaxAmount: typeof taxReturn.totalTaxAmount === 'string' ? parseFloat(taxReturn.totalTaxAmount || '0') : taxReturn.totalTaxAmount,
+      totalPaymentsCredits: typeof taxReturn.totalPaymentsCredits === 'string' ? parseFloat(taxReturn.totalPaymentsCredits || '0') : taxReturn.totalPaymentsCredits,
+      balanceDue: typeof taxReturn.balanceDue === 'string' ? parseFloat(taxReturn.balanceDue || '0') : taxReturn.balanceDue,
+      refundAmount: typeof taxReturn.refundAmount === 'string' ? parseFloat(taxReturn.refundAmount || '0') : taxReturn.refundAmount,
+      filingDate: taxReturn.filingDate || new Date(),
+    } as TaxReturn;
   }
 }

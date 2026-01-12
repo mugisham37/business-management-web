@@ -28,7 +28,7 @@ export class CreateCustomerDto {
   @Field()
   @ApiProperty({ description: 'Customer type', enum: CustomerType })
   @IsEnum(CustomerType)
-  type: CustomerType;
+  type!: CustomerType;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'First name' })
@@ -201,17 +201,17 @@ export class CreateCustomerDto {
   referredBy?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Custom fields', type: 'object' })
+  @ApiPropertyOptional({ description: 'Custom fields', type: 'object', additionalProperties: true })
   @IsOptional()
   customFields?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Customer preferences', type: 'object' })
+  @ApiPropertyOptional({ description: 'Customer preferences', type: 'object', additionalProperties: true })
   @IsOptional()
   preferences?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Social media profiles', type: 'object' })
+  @ApiPropertyOptional({ description: 'Social media profiles', type: 'object', additionalProperties: true })
   @IsOptional()
   socialProfiles?: Record<string, any>;
 }
@@ -415,17 +415,17 @@ export class UpdateCustomerDto {
   anniversary?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Custom fields', type: 'object' })
+  @ApiPropertyOptional({ description: 'Custom fields', type: 'object', additionalProperties: true })
   @IsOptional()
   customFields?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Customer preferences', type: 'object' })
+  @ApiPropertyOptional({ description: 'Customer preferences', type: 'object', additionalProperties: true })
   @IsOptional()
   preferences?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Social media profiles', type: 'object' })
+  @ApiPropertyOptional({ description: 'Social media profiles', type: 'object', additionalProperties: true })
   @IsOptional()
   socialProfiles?: Record<string, any>;
 }
