@@ -7,11 +7,11 @@ import { FranchiseType, FranchiseStatus, TerritoryType, AssignmentType } from '.
 export class CreateFranchiseDto {
   @ApiProperty({ description: 'Franchise name' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Franchise code' })
   @IsString()
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Franchise description' })
   @IsOptional()
@@ -20,7 +20,7 @@ export class CreateFranchiseDto {
 
   @ApiProperty({ enum: FranchiseType, description: 'Franchise type' })
   @IsEnum(FranchiseType)
-  type: FranchiseType;
+  type!: FranchiseType;
 
   @ApiPropertyOptional({ description: 'Franchise owner user ID' })
   @IsOptional()
@@ -176,11 +176,11 @@ export class FranchiseQueryDto {
 export class CreateTerritoryDto {
   @ApiProperty({ description: 'Territory name' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Territory code' })
   @IsString()
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Territory description' })
   @IsOptional()
@@ -189,7 +189,7 @@ export class CreateTerritoryDto {
 
   @ApiProperty({ enum: TerritoryType, description: 'Territory type' })
   @IsEnum(TerritoryType)
-  type: TerritoryType;
+  type!: TerritoryType;
 
   @ApiPropertyOptional({ description: 'Geographic boundaries (GeoJSON)' })
   @IsOptional()
@@ -290,11 +290,11 @@ export class TerritoryQueryDto {
 export class CreateFranchiseLocationDto {
   @ApiProperty({ description: 'Franchise ID' })
   @IsUUID()
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'Location ID' })
   @IsUUID()
-  locationId: string;
+  locationId!: string;
 
   @ApiPropertyOptional({ description: 'Role in franchise', default: 'primary' })
   @IsOptional()
@@ -303,7 +303,7 @@ export class CreateFranchiseLocationDto {
 
   @ApiProperty({ description: 'Effective date' })
   @IsDateString()
-  effectiveDate: string;
+  effectiveDate!: string;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   @IsOptional()
@@ -322,16 +322,16 @@ export class UpdateFranchiseLocationDto extends PartialType(CreateFranchiseLocat
 export class CreateFranchisePermissionDto {
   @ApiProperty({ description: 'Franchise ID' })
   @IsUUID()
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'User ID' })
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ description: 'Permissions array' })
   @IsArray()
   @IsString({ each: true })
-  permissions: string[];
+  permissions!: string[];
 
   @ApiPropertyOptional({ description: 'Role', default: 'operator' })
   @IsOptional()
@@ -340,7 +340,7 @@ export class CreateFranchisePermissionDto {
 
   @ApiProperty({ description: 'Effective date' })
   @IsDateString()
-  effectiveDate: string;
+  effectiveDate!: string;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   @IsOptional()
@@ -354,7 +354,7 @@ export class UpdateFranchisePermissionDto extends PartialType(CreateFranchisePer
 export class CreateTerritoryAssignmentDto {
   @ApiProperty({ description: 'Territory ID' })
   @IsUUID()
-  territoryId: string;
+  territoryId!: string;
 
   @ApiPropertyOptional({ description: 'Franchise ID' })
   @IsOptional()
@@ -368,11 +368,11 @@ export class CreateTerritoryAssignmentDto {
 
   @ApiProperty({ enum: AssignmentType, description: 'Assignment type' })
   @IsEnum(AssignmentType)
-  assignmentType: AssignmentType;
+  assignmentType!: AssignmentType;
 
   @ApiProperty({ description: 'Effective date' })
   @IsDateString()
-  effectiveDate: string;
+  effectiveDate!: string;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   @IsOptional()
@@ -395,13 +395,13 @@ export class UpdateTerritoryAssignmentDto extends PartialType(CreateTerritoryAss
 // Franchise Performance DTOs
 export class FranchisePerformanceDto {
   @ApiProperty({ description: 'Franchise ID' })
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'Performance period' })
-  period: string;
+  period!: string;
 
   @ApiProperty({ description: 'Sales metrics' })
-  salesMetrics: {
+  salesMetrics!: {
     totalSales: number;
     salesGrowth: number;
     averageTransactionValue: number;
@@ -409,7 +409,7 @@ export class FranchisePerformanceDto {
   };
 
   @ApiProperty({ description: 'Financial metrics' })
-  financialMetrics: {
+  financialMetrics!: {
     revenue: number;
     royaltyPaid: number;
     marketingFeePaid: number;
@@ -417,7 +417,7 @@ export class FranchisePerformanceDto {
   };
 
   @ApiProperty({ description: 'Operational metrics' })
-  operationalMetrics: {
+  operationalMetrics!: {
     customerSatisfaction: number;
     employeeCount: number;
     inventoryTurnover: number;
@@ -425,7 +425,7 @@ export class FranchisePerformanceDto {
   };
 
   @ApiProperty({ description: 'Territory metrics' })
-  territoryMetrics: {
+  territoryMetrics!: {
     marketShare: number;
     territoryPenetration: number;
     competitorAnalysis: Record<string, any>;
@@ -436,20 +436,20 @@ export class FranchisePerformanceDto {
 export class DealerPortalAccessDto {
   @ApiProperty({ description: 'Franchise ID' })
   @IsUUID()
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'User ID' })
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ description: 'Access level' })
   @IsString()
-  accessLevel: string; // 'full', 'limited', 'readonly'
+  accessLevel!: string; // 'full', 'limited', 'readonly'
 
   @ApiProperty({ description: 'Allowed modules' })
   @IsArray()
   @IsString({ each: true })
-  allowedModules: string[];
+  allowedModules!: string[];
 
   @ApiPropertyOptional({ description: 'Custom permissions' })
   @IsOptional()
@@ -459,7 +459,7 @@ export class DealerPortalAccessDto {
 
 export class DealerDashboardDto {
   @ApiProperty({ description: 'Franchise information' })
-  franchise: {
+  franchise!: {
     id: string;
     name: string;
     type: FranchiseType;
@@ -468,7 +468,7 @@ export class DealerDashboardDto {
   };
 
   @ApiProperty({ description: 'Performance summary' })
-  performance: {
+  performance!: {
     currentPeriod: FranchisePerformanceDto;
     previousPeriod: FranchisePerformanceDto;
     trends: Record<string, any>;
@@ -484,11 +484,11 @@ export class DealerDashboardDto {
   };
 
   @ApiProperty({ description: 'Available actions' })
-  availableActions: string[];
+  availableActions!: string[];
 
   @ApiProperty({ description: 'Notifications' })
-  notifications: any[];
+  notifications!: any[];
 
   @ApiProperty({ description: 'Quick links' })
-  quickLinks: any[];
+  quickLinks!: any[];
 }

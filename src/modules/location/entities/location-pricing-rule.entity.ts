@@ -16,30 +16,30 @@ export enum PricingRuleStatus {
 }
 
 export interface PricingRuleCondition {
-  type: string;
-  operator: string;
-  value: any;
+  type!: string;
+  operator!: string;
+  value!: any;
   parameters?: Record<string, any>;
 }
 
 export class LocationPricingRule {
   @ApiProperty({ description: 'Unique identifier for the pricing rule' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Rule name' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Rule description' })
   description?: string;
 
   @ApiProperty({ enum: PricingRuleType, description: 'Type of pricing rule' })
-  ruleType: PricingRuleType;
+  ruleType!: PricingRuleType;
 
   @ApiPropertyOptional({ description: 'Product ID this rule applies to' })
   productId?: string;
@@ -48,7 +48,7 @@ export class LocationPricingRule {
   categoryId?: string;
 
   @ApiProperty({ description: 'Rule value (percentage, amount, or fixed price)' })
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional({ description: 'Minimum quantity for rule to apply' })
   minQuantity?: number;
@@ -63,28 +63,28 @@ export class LocationPricingRule {
   endDate?: Date;
 
   @ApiProperty({ description: 'Priority for rule application (higher number = higher priority)' })
-  priority: number;
+  priority!: number;
 
   @ApiPropertyOptional({ description: 'Additional conditions for rule application' })
   conditions?: PricingRuleCondition[];
 
   @ApiProperty({ description: 'Whether rule is active' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ enum: PricingRuleStatus, description: 'Rule status' })
-  status: PricingRuleStatus;
+  status!: PricingRuleStatus;
 
   @ApiProperty({ description: 'User who created the rule' })
-  createdBy: string;
+  createdBy!: string;
 
   @ApiPropertyOptional({ description: 'User who last updated the rule' })
   updatedBy?: string;
 
   @ApiProperty({ description: 'Rule creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<LocationPricingRule>) {
     Object.assign(this, partial);
@@ -141,8 +141,7 @@ export class LocationPricingRule {
         // For bulk discount, apply discount based on quantity tiers
         return basePrice * (1 - this.value / 100);
       
-      default:
-        return basePrice;
+      default!: return basePrice;
     }
   }
 

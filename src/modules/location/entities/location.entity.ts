@@ -3,28 +3,28 @@ import { LocationType, LocationStatus, AddressDto, OperatingHoursDto } from '../
 
 export class Location {
   @ApiProperty({ description: 'Location ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location name' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Location code' })
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Location description' })
   description?: string;
 
   @ApiProperty({ enum: LocationType, description: 'Location type' })
-  type: LocationType;
+  type!: LocationType;
 
   @ApiProperty({ enum: LocationStatus, description: 'Location status' })
-  status: LocationStatus;
+  status!: LocationStatus;
 
   @ApiProperty({ type: AddressDto, description: 'Location address' })
-  address: AddressDto;
+  address!: AddressDto;
 
   @ApiPropertyOptional({ description: 'Phone number' })
   phone?: string;
@@ -39,10 +39,10 @@ export class Location {
   parentLocationId?: string;
 
   @ApiProperty({ description: 'Timezone' })
-  timezone: string;
+  timezone!: string;
 
   @ApiProperty({ description: 'Currency code' })
-  currency: string;
+  currency!: string;
 
   @ApiPropertyOptional({ type: OperatingHoursDto, description: 'Operating hours' })
   operatingHours?: OperatingHoursDto;
@@ -60,31 +60,31 @@ export class Location {
   squareFootage?: number;
 
   @ApiProperty({ description: 'Location settings' })
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @ApiProperty({ description: 'Performance metrics' })
-  metrics: Record<string, any>;
+  metrics!: Record<string, any>;
 
   @ApiProperty({ description: 'Tax settings' })
-  taxSettings: Record<string, any>;
+  taxSettings!: Record<string, any>;
 
   @ApiProperty({ description: 'Inventory settings' })
-  inventorySettings: Record<string, any>;
+  inventorySettings!: Record<string, any>;
 
   @ApiProperty({ description: 'POS settings' })
-  posSettings: Record<string, any>;
+  posSettings!: Record<string, any>;
 
   @ApiProperty({ description: 'Feature flags' })
-  featureFlags: Record<string, any>;
+  featureFlags!: Record<string, any>;
 
   @ApiProperty({ description: 'Capacity information' })
-  capacity: Record<string, any>;
+  capacity!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -96,10 +96,10 @@ export class Location {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 
   // Virtual properties for hierarchy
   @ApiPropertyOptional({ description: 'Parent location' })
@@ -120,31 +120,31 @@ export class Location {
 
 export class LocationPermission {
   @ApiProperty({ description: 'Permission ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'User ID' })
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ description: 'Permission role' })
-  role: string;
+  role!: string;
 
   @ApiProperty({ description: 'Specific permissions' })
-  permissions: string[];
+  permissions!: string[];
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional({ description: 'Location' })
@@ -156,46 +156,46 @@ export class LocationPermission {
 
 export class LocationMetric {
   @ApiProperty({ description: 'Metric ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Metric type' })
-  metricType: string;
+  metricType!: string;
 
   @ApiProperty({ description: 'Metric name' })
-  metricName: string;
+  metricName!: string;
 
   @ApiProperty({ description: 'Metric value' })
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional({ description: 'Unit of measurement' })
   unit?: string;
 
   @ApiProperty({ description: 'Period type' })
-  period: string;
+  period!: string;
 
   @ApiProperty({ description: 'Period start date' })
-  periodStart: Date;
+  periodStart!: Date;
 
   @ApiProperty({ description: 'Period end date' })
-  periodEnd: Date;
+  periodEnd!: Date;
 
   @ApiProperty({ description: 'Additional metadata' })
-  metadata: Record<string, any>;
+  metadata!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional({ description: 'Location' })
@@ -204,28 +204,28 @@ export class LocationMetric {
 
 export class LocationHierarchy {
   @ApiProperty({ description: 'Hierarchy ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Ancestor location ID' })
-  ancestorId: string;
+  ancestorId!: string;
 
   @ApiProperty({ description: 'Descendant location ID' })
-  descendantId: string;
+  descendantId!: string;
 
   @ApiProperty({ description: 'Hierarchy depth' })
-  depth: number;
+  depth!: number;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 
   // Relations
   @ApiPropertyOptional({ description: 'Ancestor location' })

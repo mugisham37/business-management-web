@@ -25,39 +25,39 @@ export enum PromotionTargetType {
 }
 
 export interface PromotionCondition {
-  type: string;
-  operator: string;
-  value: any;
+  type!: string;
+  operator!: string;
+  value!: any;
   parameters?: Record<string, any>;
 }
 
 export interface PromotionAction {
-  type: string;
-  value: any;
+  type!: string;
+  value!: any;
   parameters?: Record<string, any>;
 }
 
 export class LocationPromotion {
   @ApiProperty({ description: 'Unique identifier for the promotion' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Promotion name' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Promotion description' })
   description?: string;
 
   @ApiProperty({ enum: PromotionType, description: 'Type of promotion' })
-  promotionType: PromotionType;
+  promotionType!: PromotionType;
 
   @ApiProperty({ enum: PromotionTargetType, description: 'What the promotion targets' })
-  targetType: PromotionTargetType;
+  targetType!: PromotionTargetType;
 
   @ApiPropertyOptional({ description: 'Target product IDs (if targeting specific products)' })
   targetProductIds?: string[];
@@ -69,10 +69,10 @@ export class LocationPromotion {
   targetCustomerSegments?: string[];
 
   @ApiProperty({ description: 'Promotion start date' })
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ description: 'Promotion end date' })
-  endDate: Date;
+  endDate!: Date;
 
   @ApiPropertyOptional({ description: 'Discount percentage (for percentage discounts)' })
   discountPercentage?: number;
@@ -93,13 +93,13 @@ export class LocationPromotion {
   maxTotalUses?: number;
 
   @ApiProperty({ description: 'Current number of uses' })
-  currentUses: number;
+  currentUses!: number;
 
   @ApiProperty({ description: 'Priority for promotion application (higher number = higher priority)' })
-  priority: number;
+  priority!: number;
 
   @ApiProperty({ description: 'Whether promotion can be combined with other promotions' })
-  isCombinable: boolean;
+  isCombinable!: boolean;
 
   @ApiPropertyOptional({ description: 'Promotion conditions' })
   conditions?: PromotionCondition[];
@@ -111,22 +111,22 @@ export class LocationPromotion {
   promotionCode?: string;
 
   @ApiProperty({ description: 'Whether promotion is active' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ enum: PromotionStatus, description: 'Promotion status' })
-  status: PromotionStatus;
+  status!: PromotionStatus;
 
   @ApiProperty({ description: 'User who created the promotion' })
-  createdBy: string;
+  createdBy!: string;
 
   @ApiPropertyOptional({ description: 'User who last updated the promotion' })
   updatedBy?: string;
 
   @ApiProperty({ description: 'Promotion creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<LocationPromotion>) {
     Object.assign(this, partial);
@@ -176,8 +176,7 @@ export class LocationPromotion {
       case PromotionTargetType.PRODUCT_CATEGORIES:
         return categoryId ? (this.targetCategoryIds?.includes(categoryId) || false) : false;
       
-      default:
-        return false;
+      default!: return false;
     }
   }
 

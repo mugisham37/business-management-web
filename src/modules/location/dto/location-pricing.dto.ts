@@ -20,14 +20,14 @@ export enum PricingRuleStatus {
 export class PricingRuleConditionDto {
   @ApiProperty({ description: 'Condition type (e.g., quantity, customer_type, time_range)' })
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ description: 'Condition operator (e.g., >=, <=, ==, in)' })
   @IsString()
-  operator: string;
+  operator!: string;
 
   @ApiProperty({ description: 'Condition value' })
-  value: any;
+  value!: any;
 
   @ApiPropertyOptional({ description: 'Additional condition parameters' })
   @IsOptional()
@@ -37,7 +37,7 @@ export class PricingRuleConditionDto {
 export class CreateLocationPricingRuleDto {
   @ApiProperty({ description: 'Rule name' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Rule description' })
   @IsOptional()
@@ -46,11 +46,11 @@ export class CreateLocationPricingRuleDto {
 
   @ApiProperty({ enum: PricingRuleType, description: 'Type of pricing rule' })
   @IsEnum(PricingRuleType)
-  ruleType: PricingRuleType;
+  ruleType!: PricingRuleType;
 
   @ApiProperty({ description: 'Product ID this rule applies to' })
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiPropertyOptional({ description: 'Product category ID this rule applies to' })
   @IsOptional()
@@ -60,7 +60,7 @@ export class CreateLocationPricingRuleDto {
   @ApiProperty({ description: 'Rule value (percentage, amount, or fixed price)' })
   @IsNumber()
   @Min(0)
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional({ description: 'Minimum quantity for rule to apply' })
   @IsOptional()
@@ -216,12 +216,12 @@ export class LocationPricingQueryDto {
 export class CalculatePriceDto {
   @ApiProperty({ description: 'Product ID' })
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ description: 'Quantity' })
   @IsNumber()
   @Min(1)
-  quantity: number;
+  quantity!: number;
 
   @ApiPropertyOptional({ description: 'Customer ID for customer-specific pricing' })
   @IsOptional()
@@ -235,16 +235,16 @@ export class CalculatePriceDto {
 
 export class PriceCalculationResultDto {
   @ApiProperty({ description: 'Original base price' })
-  basePrice: number;
+  basePrice!: number;
 
   @ApiProperty({ description: 'Final calculated price' })
-  finalPrice: number;
+  finalPrice!: number;
 
   @ApiProperty({ description: 'Total discount amount' })
-  discountAmount: number;
+  discountAmount!: number;
 
   @ApiProperty({ description: 'Discount percentage' })
-  discountPercentage: number;
+  discountPercentage!: number;
 
   @ApiProperty({ description: 'Applied pricing rules' })
   appliedRules: Array<{
@@ -252,7 +252,7 @@ export class PriceCalculationResultDto {
     ruleName: string;
     ruleType: PricingRuleType;
     value: number;
-    discountAmount: number;
+    discountAmount!: number;
   }>;
 
   @ApiProperty({ description: 'Calculation breakdown' })

@@ -29,31 +29,31 @@ export enum ABCClassification {
 }
 
 export interface InventoryPolicyRule {
-  type: string;
-  condition: string;
-  action: string;
-  parameters: Record<string, any>;
+  type!: string;
+  condition!: string;
+  action!: string;
+  parameters!: Record<string, any>;
   priority?: number;
 }
 
 export class LocationInventoryPolicy {
   @ApiProperty({ description: 'Unique identifier for the inventory policy' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Policy name' })
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Policy description' })
   description?: string;
 
   @ApiProperty({ enum: InventoryPolicyType, description: 'Type of inventory policy' })
-  policyType: InventoryPolicyType;
+  policyType!: InventoryPolicyType;
 
   @ApiPropertyOptional({ description: 'Product ID this policy applies to (if product-specific)' })
   productId?: string;
@@ -77,19 +77,19 @@ export class LocationInventoryPolicy {
   leadTimeDays?: number;
 
   @ApiProperty({ enum: StockReplenishmentMethod, description: 'How stock should be replenished' })
-  replenishmentMethod: StockReplenishmentMethod;
+  replenishmentMethod!: StockReplenishmentMethod;
 
   @ApiPropertyOptional({ enum: ABCClassification, description: 'ABC classification for the item' })
   abcClassification?: ABCClassification;
 
   @ApiProperty({ description: 'Seasonal demand multiplier (1.0 = normal, >1.0 = higher demand)' })
-  seasonalMultiplier: number;
+  seasonalMultiplier!: number;
 
   @ApiProperty({ description: 'Demand forecast period in days' })
-  forecastPeriodDays: number;
+  forecastPeriodDays!: number;
 
   @ApiProperty({ description: 'Whether to automatically create purchase orders' })
-  autoCreatePurchaseOrders: boolean;
+  autoCreatePurchaseOrders!: boolean;
 
   @ApiPropertyOptional({ description: 'Preferred supplier ID for automatic orders' })
   preferredSupplierId?: string;
@@ -98,28 +98,28 @@ export class LocationInventoryPolicy {
   rules?: InventoryPolicyRule[];
 
   @ApiProperty({ description: 'Policy priority (higher number = higher priority)' })
-  priority: number;
+  priority!: number;
 
   @ApiPropertyOptional({ description: 'Additional policy parameters' })
   parameters?: Record<string, any>;
 
   @ApiProperty({ description: 'Whether policy is active' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ enum: InventoryPolicyStatus, description: 'Policy status' })
-  status: InventoryPolicyStatus;
+  status!: InventoryPolicyStatus;
 
   @ApiProperty({ description: 'User who created the policy' })
-  createdBy: string;
+  createdBy!: string;
 
   @ApiPropertyOptional({ description: 'User who last updated the policy' })
   updatedBy?: string;
 
   @ApiProperty({ description: 'Policy creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<LocationInventoryPolicy>) {
     Object.assign(this, partial);
@@ -184,9 +184,9 @@ export class LocationInventoryPolicy {
    * Get stock status based on current levels
    */
   getStockStatus(currentStock: number, averageDailyDemand: number = 0): {
-    status: 'critical' | 'low' | 'normal' | 'high' | 'overstocked';
-    recommendation: string;
-    urgency: 'low' | 'medium' | 'high' | 'critical';
+    status!: 'critical' | 'low' | 'normal' | 'high' | 'overstocked';
+    recommendation!: string;
+    urgency!: 'low' | 'medium' | 'high' | 'critical';
   } {
     const safetyStockLevel = this.safetyStock || 0;
     const minLevel = this.minStockLevel || safetyStockLevel;

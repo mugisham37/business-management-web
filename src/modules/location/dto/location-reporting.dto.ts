@@ -47,7 +47,7 @@ export class ConsolidatedReportQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     description: 'Report end date',
@@ -55,7 +55,7 @@ export class ConsolidatedReportQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty({
     description: 'Type of report to generate',
@@ -63,7 +63,7 @@ export class ConsolidatedReportQueryDto {
     example: ReportType.COMPREHENSIVE,
   })
   @IsEnum(ReportType)
-  reportType: ReportType;
+  reportType!: ReportType;
 
   @ApiPropertyOptional({
     description: 'How to group the report data',
@@ -108,7 +108,7 @@ export class LocationComparisonQueryDto {
   })
   @IsArray()
   @IsUUID(4, { each: true })
-  locationIds: string[];
+  locationIds!: string[];
 
   @ApiProperty({
     description: 'Type of comparison to perform',
@@ -116,7 +116,7 @@ export class LocationComparisonQueryDto {
     example: ComparisonType.PEER,
   })
   @IsEnum(ComparisonType)
-  comparisonType: ComparisonType;
+  comparisonType!: ComparisonType;
 
   @ApiProperty({
     description: 'Comparison start date',
@@ -124,7 +124,7 @@ export class LocationComparisonQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     description: 'Comparison end date',
@@ -132,7 +132,7 @@ export class LocationComparisonQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  endDate: Date;
+  endDate!: Date;
 }
 
 export class LocationBenchmarkQueryDto {
@@ -141,7 +141,7 @@ export class LocationBenchmarkQueryDto {
     example: 'loc-1',
   })
   @IsUUID(4)
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({
     description: 'Benchmark start date',
@@ -149,7 +149,7 @@ export class LocationBenchmarkQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     description: 'Benchmark end date',
@@ -157,21 +157,21 @@ export class LocationBenchmarkQueryDto {
   })
   @IsDateString()
   @Transform(({ value }) => new Date(value))
-  endDate: Date;
+  endDate!: Date;
 }
 
 export class LocationPerformanceMetricsDto {
   @ApiProperty({ description: 'Location ID', example: 'loc-1' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Location name', example: 'Downtown Store' })
-  locationName: string;
+  locationName!: string;
 
   @ApiProperty({ description: 'Location code', example: 'DT001' })
-  locationCode: string;
+  locationCode!: string;
 
   @ApiProperty({ description: 'Location type', example: 'retail' })
-  locationType: string;
+  locationType!: string;
 
   @ApiPropertyOptional({ description: 'Region', example: 'North' })
   region?: string;
@@ -184,74 +184,74 @@ export class LocationPerformanceMetricsDto {
 
   // Financial Metrics
   @ApiProperty({ description: 'Total revenue', example: 125000.50 })
-  revenue: number;
+  revenue!: number;
 
   @ApiProperty({ description: 'Gross profit', example: 75000.30 })
-  grossProfit: number;
+  grossProfit!: number;
 
   @ApiProperty({ description: 'Net profit', example: 45000.20 })
-  netProfit: number;
+  netProfit!: number;
 
   @ApiProperty({ description: 'Total expenses', example: 30000.10 })
-  expenses: number;
+  expenses!: number;
 
   @ApiProperty({ description: 'Profit margin percentage', example: 36.0 })
-  profitMargin: number;
+  profitMargin!: number;
 
   // Sales Metrics
   @ApiProperty({ description: 'Number of transactions', example: 1250 })
-  transactionCount: number;
+  transactionCount!: number;
 
   @ApiProperty({ description: 'Average transaction value', example: 100.00 })
-  averageTransactionValue: number;
+  averageTransactionValue!: number;
 
   @ApiProperty({ description: 'Total items sold', example: 3750 })
-  itemsSold: number;
+  itemsSold!: number;
 
   @ApiProperty({ description: 'Total refund amount', example: 2500.00 })
-  refundAmount: number;
+  refundAmount!: number;
 
   @ApiProperty({ description: 'Refund rate percentage', example: 2.0 })
-  refundRate: number;
+  refundRate!: number;
 
   // Inventory Metrics
   @ApiProperty({ description: 'Current inventory value', example: 85000.00 })
-  inventoryValue: number;
+  inventoryValue!: number;
 
   @ApiProperty({ description: 'Inventory turnover ratio', example: 8.5 })
-  inventoryTurnover: number;
+  inventoryTurnover!: number;
 
   @ApiProperty({ description: 'Number of stockout events', example: 12 })
-  stockoutEvents: number;
+  stockoutEvents!: number;
 
   @ApiProperty({ description: 'Excess inventory value', example: 5000.00 })
-  excessInventoryValue: number;
+  excessInventoryValue!: number;
 
   // Customer Metrics
   @ApiProperty({ description: 'Number of unique customers', example: 850 })
-  uniqueCustomers: number;
+  uniqueCustomers!: number;
 
   @ApiProperty({ description: 'Repeat customer rate percentage', example: 65.5 })
-  repeatCustomerRate: number;
+  repeatCustomerRate!: number;
 
   @ApiProperty({ description: 'Customer lifetime value', example: 450.00 })
-  customerLifetimeValue: number;
+  customerLifetimeValue!: number;
 
   @ApiPropertyOptional({ description: 'Customer satisfaction score', example: 4.2 })
   customerSatisfactionScore?: number;
 
   // Operational Metrics
   @ApiProperty({ description: 'Number of employees', example: 8 })
-  employeeCount: number;
+  employeeCount!: number;
 
   @ApiProperty({ description: 'Sales per employee', example: 15625.06 })
-  salesPerEmployee: number;
+  salesPerEmployee!: number;
 
   @ApiProperty({ description: 'Operating hours per day', example: 12 })
-  operatingHours: number;
+  operatingHours!: number;
 
   @ApiProperty({ description: 'Sales per hour', example: 336.54 })
-  salesPerHour: number;
+  salesPerHour!: number;
 
   // Comparative Metrics
   @ApiPropertyOptional({ description: 'Growth vs previous period (%)', example: 15.5 })
@@ -266,55 +266,55 @@ export class LocationPerformanceMetricsDto {
 
 export class AggregatedMetricsDto {
   @ApiProperty({ description: 'Total revenue across all locations', example: 1250000.50 })
-  totalRevenue: number;
+  totalRevenue!: number;
 
   @ApiProperty({ description: 'Total transactions across all locations', example: 12500 })
-  totalTransactions: number;
+  totalTransactions!: number;
 
   @ApiProperty({ description: 'Total unique customers', example: 8500 })
-  totalCustomers: number;
+  totalCustomers!: number;
 
   @ApiProperty({ description: 'Total inventory value', example: 850000.00 })
-  totalInventoryValue: number;
+  totalInventoryValue!: number;
 
   @ApiProperty({ description: 'Average profit margin across locations', example: 32.5 })
-  averageProfitMargin: number;
+  averageProfitMargin!: number;
 
   @ApiProperty({ description: 'ID of top performing location', example: 'loc-5' })
-  topPerformingLocationId: string;
+  topPerformingLocationId!: string;
 
   @ApiProperty({ description: 'ID of lowest performing location', example: 'loc-2' })
-  lowestPerformingLocationId: string;
+  lowestPerformingLocationId!: string;
 }
 
 export class ReportPeriodDto {
   @ApiProperty({ description: 'Report start date', example: '2024-01-01T00:00:00Z' })
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ description: 'Report end date', example: '2024-01-31T23:59:59Z' })
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty({ description: 'Number of days in report period', example: 31 })
-  daysInPeriod: number;
+  daysInPeriod!: number;
 }
 
 export class ComparativeAnalysisDto {
   @ApiProperty({ description: 'Period over period growth percentage', example: 12.5 })
-  periodOverPeriodGrowth: number;
+  periodOverPeriodGrowth!: number;
 
   @ApiProperty({ 
     description: 'Best performing metrics', 
     type: [String],
     example: ['revenue', 'profitMargin', 'customerRetention'] 
   })
-  bestPerformingMetrics: string[];
+  bestPerformingMetrics!: string[];
 
   @ApiProperty({ 
     description: 'Areas needing improvement', 
     type: [String],
     example: ['inventory turnover', 'employee productivity'] 
   })
-  improvementOpportunities: string[];
+  improvementOpportunities!: string[];
 
   @ApiPropertyOptional({ description: 'Benchmark analysis data' })
   benchmarkAnalysis?: {
@@ -326,34 +326,34 @@ export class ComparativeAnalysisDto {
 
 export class ConsolidatedReportDto {
   @ApiProperty({ description: 'Unique report ID', example: 'report_1704067200_abc123def' })
-  reportId: string;
+  reportId!: string;
 
   @ApiProperty({ description: 'Tenant ID', example: 'tenant-1' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Report type', enum: ReportType })
-  reportType: string;
+  reportType!: string;
 
   @ApiProperty({ description: 'Report generation timestamp' })
-  generatedAt: Date;
+  generatedAt!: Date;
 
   @ApiProperty({ description: 'Original query parameters' })
   @ValidateNested()
   @Type(() => ConsolidatedReportQueryDto)
-  query: ConsolidatedReportQueryDto;
+  query!: ConsolidatedReportQueryDto;
 
   @ApiProperty({ description: 'Total number of locations in report', example: 5 })
-  totalLocations: number;
+  totalLocations!: number;
 
   @ApiProperty({ description: 'Report period information' })
   @ValidateNested()
   @Type(() => ReportPeriodDto)
-  reportPeriod: ReportPeriodDto;
+  reportPeriod!: ReportPeriodDto;
 
   @ApiProperty({ description: 'Aggregated metrics across all locations' })
   @ValidateNested()
   @Type(() => AggregatedMetricsDto)
-  aggregatedMetrics: AggregatedMetricsDto;
+  aggregatedMetrics!: AggregatedMetricsDto;
 
   @ApiProperty({ 
     description: 'Performance metrics for each location',
@@ -361,7 +361,7 @@ export class ConsolidatedReportDto {
   })
   @ValidateNested({ each: true })
   @Type(() => LocationPerformanceMetricsDto)
-  locationMetrics: LocationPerformanceMetricsDto[];
+  locationMetrics!: LocationPerformanceMetricsDto[];
 
   @ApiPropertyOptional({ description: 'Comparative analysis (when enabled)' })
   @ValidateNested()
@@ -381,35 +381,35 @@ export class ConsolidatedReportDto {
 
 export class LocationComparisonItemDto {
   @ApiProperty({ description: 'Location ID', example: 'loc-1' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Location name', example: 'Downtown Store' })
-  locationName: string;
+  locationName!: string;
 
   @ApiProperty({ description: 'Location performance metrics' })
   @ValidateNested()
   @Type(() => LocationPerformanceMetricsDto)
-  metrics: LocationPerformanceMetricsDto;
+  metrics!: LocationPerformanceMetricsDto;
 
   @ApiProperty({ description: 'Ranking among compared locations', example: 1 })
-  ranking: number;
+  ranking!: number;
 
   @ApiProperty({ description: 'Percentile rank (0-100)', example: 85.5 })
-  percentileRank: number;
+  percentileRank!: number;
 
   @ApiProperty({ 
     description: 'Areas where location excels',
     type: [String],
     example: ['High Revenue Generation', 'Strong Profit Margins']
   })
-  strengthAreas: string[];
+  strengthAreas!: string[];
 
   @ApiProperty({ 
     description: 'Areas needing improvement',
     type: [String],
     example: ['Inventory Management', 'Customer Retention']
   })
-  improvementAreas: string[];
+  improvementAreas!: string[];
 }
 
 export class ComparisonInsightsDto {
@@ -418,21 +418,21 @@ export class ComparisonInsightsDto {
     type: [String],
     example: ['Downtown Store', 'Mall Location']
   })
-  topPerformers: string[];
+  topPerformers!: string[];
 
   @ApiProperty({ 
     description: 'Underperforming locations',
     type: [String],
     example: ['Suburban Store', 'Airport Location']
   })
-  underperformers: string[];
+  underperformers!: string[];
 
   @ApiProperty({ 
     description: 'Key success factors identified',
     type: [String],
     example: ['Strong operational efficiency', 'Effective customer relationship management']
   })
-  keySuccessFactors: string[];
+  keySuccessFactors!: string[];
 
   @ApiProperty({ 
     description: 'Recommended actions for specific locations',
@@ -446,23 +446,23 @@ export class ComparisonInsightsDto {
     }
   })
   recommendedActions: {
-    locationId: string;
-    recommendations: string[];
+    locationId!: string;
+    recommendations!: string[];
   }[];
 }
 
 export class LocationComparisonReportDto {
   @ApiProperty({ description: 'Unique comparison ID', example: 'comp_1704067200_xyz789abc' })
-  comparisonId: string;
+  comparisonId!: string;
 
   @ApiProperty({ description: 'Tenant ID', example: 'tenant-1' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Report generation timestamp' })
-  generatedAt: Date;
+  generatedAt!: Date;
 
   @ApiProperty({ description: 'Type of comparison performed', enum: ComparisonType })
-  comparisonType: ComparisonType;
+  comparisonType!: ComparisonType;
 
   @ApiProperty({ 
     description: 'Comparison data for each location',
@@ -470,24 +470,24 @@ export class LocationComparisonReportDto {
   })
   @ValidateNested({ each: true })
   @Type(() => LocationComparisonItemDto)
-  locations: LocationComparisonItemDto[];
+  locations!: LocationComparisonItemDto[];
 
   @ApiProperty({ description: 'Analysis insights and recommendations' })
   @ValidateNested()
   @Type(() => ComparisonInsightsDto)
-  insights: ComparisonInsightsDto;
+  insights!: ComparisonInsightsDto;
 }
 
 export class BenchmarkDataDto {
   @ApiProperty({ description: 'Tenant average performance' })
   @ValidateNested()
   @Type(() => LocationPerformanceMetricsDto)
-  tenantAverage: LocationPerformanceMetricsDto;
+  tenantAverage!: LocationPerformanceMetricsDto;
 
   @ApiProperty({ description: 'Top quartile performance' })
   @ValidateNested()
   @Type(() => LocationPerformanceMetricsDto)
-  topQuartile: LocationPerformanceMetricsDto;
+  topQuartile!: LocationPerformanceMetricsDto;
 
   @ApiPropertyOptional({ description: 'Industry average (when available)' })
   @ValidateNested()
@@ -499,12 +499,12 @@ export class LocationBenchmarkReportDto {
   @ApiProperty({ description: 'Location performance metrics' })
   @ValidateNested()
   @Type(() => LocationPerformanceMetricsDto)
-  location: LocationPerformanceMetricsDto;
+  location!: LocationPerformanceMetricsDto;
 
   @ApiProperty({ description: 'Benchmark comparison data' })
   @ValidateNested()
   @Type(() => BenchmarkDataDto)
-  benchmarks: BenchmarkDataDto;
+  benchmarks!: BenchmarkDataDto;
 
   @ApiProperty({ 
     description: 'Specific recommendations for improvement',
@@ -514,15 +514,15 @@ export class LocationBenchmarkReportDto {
       'Inventory turnover is significantly below average. Optimize inventory management.'
     ]
   })
-  recommendations: string[];
+  recommendations!: string[];
 }
 
 // Export query interfaces for service layer
 export interface ConsolidatedReportQuery {
   locationIds?: string[];
-  startDate: Date;
-  endDate: Date;
-  reportType: 'financial' | 'inventory' | 'sales' | 'customer' | 'procurement' | 'comprehensive';
+  startDate!: Date;
+  endDate!: Date;
+  reportType!: 'financial' | 'inventory' | 'sales' | 'customer' | 'procurement' | 'comprehensive';
   groupBy?: 'location' | 'region' | 'type' | 'manager';
   includeComparisons?: boolean;
   includeBenchmarks?: boolean;

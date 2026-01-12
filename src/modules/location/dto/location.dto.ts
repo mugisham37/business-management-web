@@ -41,27 +41,27 @@ export class AddressDto {
   @ApiProperty({ description: 'Street address' })
   @IsString()
   @Length(1, 255)
-  street: string;
+  street!: string;
 
   @ApiProperty({ description: 'City' })
   @IsString()
   @Length(1, 100)
-  city: string;
+  city!: string;
 
   @ApiProperty({ description: 'State or province' })
   @IsString()
   @Length(1, 100)
-  state: string;
+  state!: string;
 
   @ApiProperty({ description: 'Country' })
   @IsString()
   @Length(1, 100)
-  country: string;
+  country!: string;
 
   @ApiProperty({ description: 'Postal code' })
   @IsString()
   @Length(1, 20)
-  postalCode: string;
+  postalCode!: string;
 
   @ApiPropertyOptional({ description: 'Geographic coordinates' })
   @IsOptional()
@@ -115,13 +115,13 @@ export class CreateLocationDto {
   @ApiProperty({ description: 'Location name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Location code (unique within tenant)' })
   @IsString()
   @Length(1, 50)
   @Matches(/^[A-Z0-9_-]+$/, { message: 'Code must contain only uppercase letters, numbers, underscores, and hyphens' })
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Location description' })
   @IsOptional()
@@ -131,7 +131,7 @@ export class CreateLocationDto {
 
   @ApiProperty({ enum: LocationType, description: 'Location type' })
   @IsEnum(LocationType)
-  type: LocationType;
+  type!: LocationType;
 
   @ApiProperty({ enum: LocationStatus, description: 'Location status', default: LocationStatus.ACTIVE })
   @IsOptional()
@@ -141,7 +141,7 @@ export class CreateLocationDto {
   @ApiProperty({ type: AddressDto, description: 'Location address' })
   @ValidateNested()
   @Type(() => AddressDto)
-  address: AddressDto;
+  address!: AddressDto;
 
   @ApiPropertyOptional({ description: 'Phone number' })
   @IsOptional()
@@ -419,35 +419,35 @@ export class LocationQueryDto {
 export class LocationPermissionDto {
   @ApiProperty({ description: 'User ID' })
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ description: 'Location ID' })
   @IsUUID()
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Permission role', enum: ['manager', 'employee', 'viewer'] })
   @IsEnum(['manager', 'employee', 'viewer'])
-  role: string;
+  role!: string;
 
   @ApiProperty({ description: 'Specific permissions array' })
   @IsArray()
   @IsString({ each: true })
-  permissions: string[];
+  permissions!: string[];
 }
 
 // Location metrics DTO
 export class LocationMetricsDto {
   @ApiProperty({ description: 'Metric type' })
   @IsString()
-  metricType: string;
+  metricType!: string;
 
   @ApiProperty({ description: 'Metric name' })
   @IsString()
-  metricName: string;
+  metricName!: string;
 
   @ApiProperty({ description: 'Metric value' })
   @IsNumber()
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional({ description: 'Unit of measurement' })
   @IsOptional()
@@ -456,15 +456,15 @@ export class LocationMetricsDto {
 
   @ApiProperty({ description: 'Period type', enum: ['daily', 'weekly', 'monthly', 'yearly'] })
   @IsEnum(['daily', 'weekly', 'monthly', 'yearly'])
-  period: string;
+  period!: string;
 
   @ApiProperty({ description: 'Period start date' })
   @Type(() => Date)
-  periodStart: Date;
+  periodStart!: Date;
 
   @ApiProperty({ description: 'Period end date' })
   @Type(() => Date)
-  periodEnd: Date;
+  periodEnd!: Date;
 
   @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
@@ -475,28 +475,28 @@ export class LocationMetricsDto {
 // Location response DTO
 export class LocationResponseDto {
   @ApiProperty({ description: 'Location ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Location name' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Location code' })
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Location description' })
   description?: string;
 
   @ApiProperty({ enum: LocationType, description: 'Location type' })
-  type: LocationType;
+  type!: LocationType;
 
   @ApiProperty({ enum: LocationStatus, description: 'Location status' })
-  status: LocationStatus;
+  status!: LocationStatus;
 
   @ApiProperty({ type: AddressDto, description: 'Location address' })
-  address: AddressDto;
+  address!: AddressDto;
 
   @ApiPropertyOptional({ description: 'Phone number' })
   phone?: string;
@@ -511,10 +511,10 @@ export class LocationResponseDto {
   parentLocationId?: string;
 
   @ApiProperty({ description: 'Timezone' })
-  timezone: string;
+  timezone!: string;
 
   @ApiProperty({ description: 'Currency code' })
-  currency: string;
+  currency!: string;
 
   @ApiPropertyOptional({ type: OperatingHoursDto, description: 'Operating hours' })
   operatingHours?: OperatingHoursDto;
@@ -532,32 +532,32 @@ export class LocationResponseDto {
   squareFootage?: number;
 
   @ApiProperty({ description: 'Location settings' })
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @ApiProperty({ description: 'Performance metrics' })
-  metrics: Record<string, any>;
+  metrics!: Record<string, any>;
 
   @ApiProperty({ description: 'Tax settings' })
-  taxSettings: Record<string, any>;
+  taxSettings!: Record<string, any>;
 
   @ApiProperty({ description: 'Inventory settings' })
-  inventorySettings: Record<string, any>;
+  inventorySettings!: Record<string, any>;
 
   @ApiProperty({ description: 'POS settings' })
-  posSettings: Record<string, any>;
+  posSettings!: Record<string, any>;
 
   @ApiProperty({ description: 'Feature flags' })
-  featureFlags: Record<string, any>;
+  featureFlags!: Record<string, any>;
 
   @ApiProperty({ description: 'Capacity information' })
-  capacity: Record<string, any>;
+  capacity!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 }

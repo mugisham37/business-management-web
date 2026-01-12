@@ -33,18 +33,18 @@ export enum ABCClassification {
 export class InventoryPolicyRuleDto {
   @ApiProperty({ description: 'Rule type' })
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ description: 'Rule condition' })
   @IsString()
-  condition: string;
+  condition!: string;
 
   @ApiProperty({ description: 'Rule action' })
   @IsString()
-  action: string;
+  action!: string;
 
   @ApiProperty({ description: 'Rule parameters' })
-  parameters: Record<string, any>;
+  parameters!: Record<string, any>;
 
   @ApiPropertyOptional({ description: 'Rule priority' })
   @IsOptional()
@@ -57,7 +57,7 @@ export class InventoryPolicyRuleDto {
 export class CreateLocationInventoryPolicyDto {
   @ApiProperty({ description: 'Policy name' })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Policy description' })
   @IsOptional()
@@ -66,7 +66,7 @@ export class CreateLocationInventoryPolicyDto {
 
   @ApiProperty({ enum: InventoryPolicyType, description: 'Type of inventory policy' })
   @IsEnum(InventoryPolicyType)
-  policyType: InventoryPolicyType;
+  policyType!: InventoryPolicyType;
 
   @ApiPropertyOptional({ description: 'Product ID this policy applies to (if product-specific)' })
   @IsOptional()
@@ -317,31 +317,31 @@ export class LocationInventoryPolicyQueryDto {
 
 export class InventoryRecommendationDto {
   @ApiProperty({ description: 'Product ID' })
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ description: 'Current stock level' })
-  currentStock: number;
+  currentStock!: number;
 
   @ApiProperty({ description: 'Recommended action' })
-  recommendedAction: 'reorder' | 'reduce_stock' | 'maintain' | 'increase_safety_stock';
+  recommendedAction!: 'reorder' | 'reduce_stock' | 'maintain' | 'increase_safety_stock';
 
   @ApiProperty({ description: 'Recommended quantity' })
-  recommendedQuantity: number;
+  recommendedQuantity!: number;
 
   @ApiProperty({ description: 'Reason for recommendation' })
-  reason: string;
+  reason!: string;
 
   @ApiProperty({ description: 'Priority level' })
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority!: 'low' | 'medium' | 'high' | 'critical';
 
   @ApiProperty({ description: 'Expected stock out date (if applicable)' })
   expectedStockOutDate?: Date;
 
   @ApiProperty({ description: 'Applied policies' })
   appliedPolicies: Array<{
-    policyId: string;
-    policyName: string;
-    policyType: InventoryPolicyType;
+    policyId!: string;
+    policyName!: string;
+    policyType!: InventoryPolicyType;
   }>;
 }
 
@@ -349,12 +349,12 @@ export class BulkInventoryPolicyUpdateDto {
   @ApiProperty({ description: 'Product IDs to update' })
   @IsArray()
   @IsString({ each: true })
-  productIds: string[];
+  productIds!: string[];
 
   @ApiProperty({ description: 'Policy updates to apply' })
   @ValidateNested()
   @Type(() => UpdateLocationInventoryPolicyDto)
-  updates: UpdateLocationInventoryPolicyDto;
+  updates!: UpdateLocationInventoryPolicyDto;
 
   @ApiPropertyOptional({ description: 'Whether to create new policies if they don\'t exist' })
   @IsOptional()

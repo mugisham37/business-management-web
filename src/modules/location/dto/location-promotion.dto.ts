@@ -345,7 +345,7 @@ export class LocationPromotionQueryDto {
 export class ApplyPromotionDto {
   @ApiProperty({ description: 'Promotion ID or code' })
   @IsString()
-  promotionIdOrCode: string;
+  promotionIdOrCode!: string;
 
   @ApiProperty({ description: 'Cart items' })
   @IsArray()
@@ -367,7 +367,7 @@ export class ApplyPromotionDto {
 
 export class PromotionApplicationResultDto {
   @ApiProperty({ description: 'Whether promotion was successfully applied' })
-  applied: boolean;
+  applied!: boolean;
 
   @ApiProperty({ description: 'Promotion details' })
   promotion: {
@@ -377,23 +377,23 @@ export class PromotionApplicationResultDto {
   };
 
   @ApiProperty({ description: 'Original total amount' })
-  originalAmount: number;
+  originalAmount!: number;
 
   @ApiProperty({ description: 'Final amount after promotion' })
-  finalAmount: number;
+  finalAmount!: number;
 
   @ApiProperty({ description: 'Total discount amount' })
-  discountAmount: number;
+  discountAmount!: number;
 
   @ApiProperty({ description: 'Discount percentage' })
-  discountPercentage: number;
+  discountPercentage!: number;
 
   @ApiProperty({ description: 'Application details' })
   details: Array<{
     itemId: string;
     originalPrice: number;
     discountedPrice: number;
-    discountAmount: number;
+    discountAmount!: number;
   }>;
 
   @ApiPropertyOptional({ description: 'Error message if promotion could not be applied' })

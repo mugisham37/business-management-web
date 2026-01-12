@@ -29,25 +29,25 @@ export enum AssignmentType {
 
 export class Franchise {
   @ApiProperty({ description: 'Franchise ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Franchise name' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Franchise code' })
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Franchise description' })
   description?: string;
 
   @ApiProperty({ enum: FranchiseType, description: 'Franchise type' })
-  type: FranchiseType;
+  type!: FranchiseType;
 
   @ApiProperty({ enum: FranchiseStatus, description: 'Franchise status' })
-  status: FranchiseStatus;
+  status!: FranchiseStatus;
 
   @ApiPropertyOptional({ description: 'Franchise owner user ID' })
   ownerId?: string;
@@ -65,16 +65,16 @@ export class Franchise {
   taxId?: string;
 
   @ApiProperty({ description: 'Contact information' })
-  contactInfo: Record<string, any>;
+  contactInfo!: Record<string, any>;
 
   @ApiProperty({ description: 'Royalty rate (decimal)', default: 0 })
-  royaltyRate: number;
+  royaltyRate!: number;
 
   @ApiProperty({ description: 'Marketing fee rate (decimal)', default: 0 })
-  marketingFeeRate: number;
+  marketingFeeRate!: number;
 
   @ApiProperty({ description: 'Initial franchise fee', default: 0 })
-  initialFranchiseFee: number;
+  initialFranchiseFee!: number;
 
   @ApiPropertyOptional({ description: 'Contract start date' })
   contractStartDate?: Date;
@@ -83,16 +83,16 @@ export class Franchise {
   contractEndDate?: Date;
 
   @ApiProperty({ description: 'Contract terms' })
-  contractTerms: Record<string, any>;
+  contractTerms!: Record<string, any>;
 
   @ApiProperty({ description: 'Performance metrics' })
-  performanceMetrics: Record<string, any>;
+  performanceMetrics!: Record<string, any>;
 
   @ApiProperty({ description: 'Franchise settings' })
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @ApiProperty({ description: 'Feature flags' })
-  featureFlags: Record<string, any>;
+  featureFlags!: Record<string, any>;
 
   @ApiPropertyOptional({ description: 'Primary territory ID' })
   primaryTerritoryId?: string;
@@ -101,10 +101,10 @@ export class Franchise {
   parentFranchiseId?: string;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -116,7 +116,7 @@ export class Franchise {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise owner' })
@@ -146,28 +146,28 @@ export class Franchise {
 
 export class Territory {
   @ApiProperty({ description: 'Territory ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Territory name' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Territory code' })
-  code: string;
+  code!: string;
 
   @ApiPropertyOptional({ description: 'Territory description' })
   description?: string;
 
   @ApiProperty({ enum: TerritoryType, description: 'Territory type' })
-  type: TerritoryType;
+  type!: TerritoryType;
 
   @ApiProperty({ description: 'Geographic boundaries (GeoJSON)' })
-  boundaries: Record<string, any>;
+  boundaries!: Record<string, any>;
 
   @ApiProperty({ description: 'Market criteria' })
-  marketCriteria: Record<string, any>;
+  marketCriteria!: Record<string, any>;
 
   @ApiPropertyOptional({ description: 'Parent territory ID' })
   parentTerritoryId?: string;
@@ -179,19 +179,19 @@ export class Territory {
   assignedUserId?: string;
 
   @ApiProperty({ description: 'Territory metrics' })
-  metrics: Record<string, any>;
+  metrics!: Record<string, any>;
 
   @ApiProperty({ description: 'Territory settings' })
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @ApiProperty({ description: 'Active status' })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -203,7 +203,7 @@ export class Territory {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Assigned franchise' })
@@ -224,34 +224,34 @@ export class Territory {
 
 export class FranchiseLocation {
   @ApiProperty({ description: 'Franchise location ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Franchise ID' })
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Role in franchise' })
-  role: string;
+  role!: string;
 
   @ApiProperty({ description: 'Effective date' })
-  effectiveDate: Date;
+  effectiveDate!: Date;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   expirationDate?: Date;
 
   @ApiProperty({ description: 'Settings' })
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -263,7 +263,7 @@ export class FranchiseLocation {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
@@ -275,34 +275,34 @@ export class FranchiseLocation {
 
 export class FranchisePermission {
   @ApiProperty({ description: 'Permission ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Franchise ID' })
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'User ID' })
-  userId: string;
+  userId!: string;
 
   @ApiProperty({ description: 'Permissions array' })
-  permissions: string[];
+  permissions!: string[];
 
   @ApiProperty({ description: 'Role' })
-  role: string;
+  role!: string;
 
   @ApiProperty({ description: 'Effective date' })
-  effectiveDate: Date;
+  effectiveDate!: Date;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   expirationDate?: Date;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -314,7 +314,7 @@ export class FranchisePermission {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
@@ -326,43 +326,43 @@ export class FranchisePermission {
 
 export class FranchiseMetric {
   @ApiProperty({ description: 'Metric ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Franchise ID' })
-  franchiseId: string;
+  franchiseId!: string;
 
   @ApiProperty({ description: 'Metric type' })
-  metricType: string;
+  metricType!: string;
 
   @ApiProperty({ description: 'Metric name' })
-  metricName: string;
+  metricName!: string;
 
   @ApiProperty({ description: 'Metric value' })
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional({ description: 'Unit of measurement' })
   unit?: string;
 
   @ApiProperty({ description: 'Period type' })
-  period: string;
+  period!: string;
 
   @ApiProperty({ description: 'Period start date' })
-  periodStart: Date;
+  periodStart!: Date;
 
   @ApiProperty({ description: 'Period end date' })
-  periodEnd: Date;
+  periodEnd!: Date;
 
   @ApiProperty({ description: 'Additional metadata' })
-  metadata: Record<string, any>;
+  metadata!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -374,7 +374,7 @@ export class FranchiseMetric {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
@@ -383,13 +383,13 @@ export class FranchiseMetric {
 
 export class TerritoryAssignment {
   @ApiProperty({ description: 'Assignment ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiProperty({ description: 'Territory ID' })
-  territoryId: string;
+  territoryId!: string;
 
   @ApiPropertyOptional({ description: 'Franchise ID' })
   franchiseId?: string;
@@ -398,10 +398,10 @@ export class TerritoryAssignment {
   userId?: string;
 
   @ApiProperty({ enum: AssignmentType, description: 'Assignment type' })
-  assignmentType: AssignmentType;
+  assignmentType!: AssignmentType;
 
   @ApiProperty({ description: 'Effective date' })
-  effectiveDate: Date;
+  effectiveDate!: Date;
 
   @ApiPropertyOptional({ description: 'Expiration date' })
   expirationDate?: Date;
@@ -410,13 +410,13 @@ export class TerritoryAssignment {
   reason?: string;
 
   @ApiProperty({ description: 'Additional metadata' })
-  metadata: Record<string, any>;
+  metadata!: Record<string, any>;
 
   @ApiProperty({ description: 'Creation date' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Last update date' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Created by user ID' })
   createdBy?: string;
@@ -428,7 +428,7 @@ export class TerritoryAssignment {
   deletedAt?: Date;
 
   @ApiProperty({ description: 'Version number' })
-  version: number;
+  version!: number;
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Territory' })
