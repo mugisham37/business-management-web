@@ -182,11 +182,11 @@ export class ConnectionManagerService {
 
     const stats = this.realtimeGateway.getConnectionStats();
     const currentHour = new Date().getHours();
-    const currentConnections = this.metrics.connectionsPerHour[currentHour];
+    const currentConnections = this.metrics.connectionsPerHour[currentHour] ?? 0;
 
     // Check for sudden spikes
     const previousHour = currentHour === 0 ? 23 : currentHour - 1;
-    const previousConnections = this.metrics.connectionsPerHour[previousHour];
+    const previousConnections = this.metrics.connectionsPerHour[previousHour] ?? 0;
     
     if (currentConnections > previousConnections * 2 && currentConnections > 100) {
       anomalies.push({
@@ -251,7 +251,8 @@ export class ConnectionManagerService {
       this.metrics.connectionsPerHour[currentHour] = stats.connectedClients;
 
     } catch (error) {
-      this.logger.error(`Health check failed: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Health check failed: ${err.message}`, err.stack);
     }
   }
 
@@ -270,7 +271,8 @@ export class ConnectionManagerService {
       );
 
     } catch (error) {
-      this.logger.error(`Metrics collection failed: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Metrics collection failed: ${err.message}`, err.stack);
     }
   }
 
@@ -292,7 +294,8 @@ export class ConnectionManagerService {
       this.logger.log(`Daily reset complete. Previous peak: ${previousPeak}`);
       
     } catch (error) {
-      this.logger.error(`Daily metrics reset failed: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Daily metrics reset failed: ${err.message}`, err.stack);
     }
   }
 

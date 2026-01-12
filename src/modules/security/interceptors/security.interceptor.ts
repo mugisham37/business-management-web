@@ -226,9 +226,11 @@ export class SecurityInterceptor implements NestInterceptor {
 
       await this.auditService.logEvent(auditData);
     } catch (auditError) {
+      const auditErrorMessage = auditError instanceof Error ? auditError.message : String(auditError);
+      const auditErrorStack = auditError instanceof Error ? auditError.stack : undefined;
       this.logger.error(
-        `Failed to audit security operation: ${auditError.message}`,
-        auditError.stack,
+        `Failed to audit security operation: ${auditErrorMessage}`,
+        auditErrorStack,
       );
     }
   }
@@ -251,7 +253,7 @@ export class SecurityInterceptor implements NestInterceptor {
     if (path.includes('role')) return 'role_change';
 
     // Default HTTP method mapping
-    const actionMap = {
+    const actionMap: Record<string, string> = {
       get: 'read',
       post: 'create',
       put: 'update',
@@ -270,7 +272,7 @@ export class SecurityInterceptor implements NestInterceptor {
     
     // Remove query parameters and extract resource
     const cleanPath = path.split('?')[0];
-    const pathParts = cleanPath.split('/').filter(part => part);
+    const pathParts = cleanPath.split('/').filter((part: string) => part);
     
     // Return the main resource (usually the second part after 'api/v1')
     if (pathParts.length >= 3 && pathParts[0] === 'api' && pathParts[1] === 'v1') {

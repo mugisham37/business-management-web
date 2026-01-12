@@ -118,7 +118,7 @@ export class NotificationProcessor {
           .set({ 
             status: 'sent',
             sentAt: new Date(),
-            deliveryAttempts: notification.deliveryAttempts + 1,
+            deliveryAttempts: (notification.deliveryAttempts ?? 0) + 1,
             lastAttemptAt: new Date(),
           })
           .where(eq(notifications.id, notificationId));
@@ -428,7 +428,7 @@ export class NotificationProcessor {
           message,
           priority: 'medium',
           targetUsers: recipients,
-          metadata: data,
+          metadata: data || {},
         });
       }
 

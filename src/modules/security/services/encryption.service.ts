@@ -56,7 +56,7 @@ export class EncryptionService {
       const key = await this.getTenantFieldKey(tenantId, fieldName);
       const iv = crypto.randomBytes(this.config.ivLength);
       
-      const cipher = crypto.createCipher(this.config.algorithm, key);
+      const cipher = crypto.createCipheriv(this.config.algorithm, key, iv) as any;
       cipher.setAAD(Buffer.from(`${tenantId}:${fieldName}`));
       
       let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -72,7 +72,8 @@ export class EncryptionService {
       
       return JSON.stringify(result);
     } catch (error) {
-      this.logger.error(`Failed to encrypt field ${fieldName} for tenant ${tenantId}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to encrypt field ${fieldName} for tenant ${tenantId}: ${errorMessage}`);
       throw new Error('Encryption failed');
     }
   }
@@ -84,8 +85,9 @@ export class EncryptionService {
     try {
       const data: EncryptedData = JSON.parse(encryptedData);
       const key = await this.getTenantFieldKey(tenantId, fieldName);
+      const iv = Buffer.from(data.iv, 'hex');
       
-      const decipher = crypto.createDecipher(this.config.algorithm, key);
+      const decipher = crypto.createDecipheriv(this.config.algorithm, key, iv) as any;
       decipher.setAAD(Buffer.from(`${tenantId}:${fieldName}`));
       decipher.setAuthTag(Buffer.from(data.tag, 'hex'));
       
@@ -94,7 +96,8 @@ export class EncryptionService {
       
       return decrypted;
     } catch (error) {
-      this.logger.error(`Failed to decrypt field ${fieldName} for tenant ${tenantId}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to decrypt field ${fieldName} for tenant ${tenantId}: ${errorMessage}`);
       throw new Error('Decryption failed');
     }
   }
@@ -108,7 +111,7 @@ export class EncryptionService {
       const key = crypto.pbkdf2Sync(this.masterKey, salt, this.config.iterations, this.config.keyLength, 'sha256');
       const iv = crypto.randomBytes(this.config.ivLength);
       
-      const cipher = crypto.createCipher(this.config.algorithm, key);
+      const cipher = crypto.createCipheriv(this.config.algorithm, key, iv) as any;
       cipher.setAAD(Buffer.from(context));
       
       let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -125,7 +128,8 @@ export class EncryptionService {
       
       return JSON.stringify(result);
     } catch (error) {
-      this.logger.error(`Failed to encrypt data at rest: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to encrypt data at rest: ${errorMessage}`);
       throw new Error('Encryption failed');
     }
   }
@@ -138,8 +142,9 @@ export class EncryptionService {
       const data: EncryptedData = JSON.parse(encryptedData);
       const salt = Buffer.from(data.salt!, 'hex');
       const key = crypto.pbkdf2Sync(this.masterKey, salt, this.config.iterations, this.config.keyLength, 'sha256');
+      const iv = Buffer.from(data.iv, 'hex');
       
-      const decipher = crypto.createDecipher(this.config.algorithm, key);
+      const decipher = crypto.createDecipheriv(this.config.algorithm, key, iv) as any;
       decipher.setAAD(Buffer.from(context));
       decipher.setAuthTag(Buffer.from(data.tag, 'hex'));
       
@@ -148,7 +153,8 @@ export class EncryptionService {
       
       return decrypted;
     } catch (error) {
-      this.logger.error(`Failed to decrypt data at rest: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to decrypt data at rest: ${errorMessage}`);
       throw new Error('Decryption failed');
     }
   }
@@ -213,10 +219,18 @@ export class EncryptionService {
         if (typeof masked[field] === 'string') {
           if (field === 'email') {
             // Mask email: john@example.com -> j***@e***.com
-            const [local, domain] = masked[field].split('@');
-            const maskedLocal = local.charAt(0) + '*'.repeat(Math.max(0, local.length - 1));
-            const maskedDomain = domain.charAt(0) + '*'.repeat(Math.max(0, domain.length - 4)) + domain.slice(-3);
-            masked[field] = `${maskedLocal}@${maskedDomain}`;
+            const emailParts = masked[field].split('@');
+            if (emailParts.length === 2 && emailParts[0] && emailParts[1]) {
+              const local = emailParts[0];
+              const domain = emailParts[1];
+              const maskedLocal = local.charAt(0) + '*'.repeat(Math.max(0, local.length - 1));
+              const maskedDomain = domain.charAt(0) + '*'.repeat(Math.max(0, domain.length - 4)) + domain.slice(-3);
+              masked[field] = `${maskedLocal}@${maskedDomain}`;
+            } else {
+              // Invalid email format, just mask the whole thing
+              const value = masked[field];
+              masked[field] = value.charAt(0) + '*'.repeat(Math.max(0, value.length - 2)) + value.charAt(value.length - 1);
+            }
           } else if (field === 'phone') {
             // Mask phone: +1234567890 -> +***-***-7890
             const phone = masked[field].replace(/\D/g, '');
@@ -248,7 +262,7 @@ export class EncryptionService {
     }
     // For strings, we can't directly overwrite memory in JavaScript
     // but we can at least clear the reference
-    data = null;
+    // Note: data = null would reassign the local parameter, not the caller's data
   }
 
   /**

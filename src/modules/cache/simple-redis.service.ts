@@ -103,4 +103,50 @@ export class SimpleRedisService {
   async getClient(): Promise<RedisClientType | null> {
     return this.isConnected ? this.client : null;
   }
+
+  async getInfo(): Promise<{ isHealthy: boolean; connections: number; memory: string }> {
+    try {
+      if (!this.isConnected) {
+        return {
+          isHealthy: false,
+          connections: 0,
+          memory: '0B',
+        };
+      }
+
+      const info = await this.client.info();
+      const lines = info.split('\r\n');
+      
+      let connections = 0;
+      let memory = '0B';
+      
+      for (const line of lines) {
+        if (line.startsWith('connected_clients:')) {
+          const value = line.split(':')[1];
+          if (value) {
+            connections = parseInt(value.trim(), 10);
+          }
+        }
+        if (line.startsWith('used_memory_human:')) {
+          const value = line.split(':')[1];
+          if (value) {
+            memory = value.trim();
+          }
+        }
+      }
+
+      return {
+        isHealthy: true,
+        connections,
+        memory,
+      };
+    } catch (error) {
+      this.logger.error('Failed to get Redis info', error instanceof Error ? error.message : 'Unknown error');
+      return {
+        isHealthy: false,
+        connections: 0,
+        memory: '0B',
+      };
+    }
+  }
 }

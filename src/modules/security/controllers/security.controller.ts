@@ -17,7 +17,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { EncryptionService } from '../services/encryption.service';
 import { SecurityMonitoringService } from '../services/security-monitoring.service';
 import { ThreatDetectionService } from '../services/threat-detection.service';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -47,7 +47,7 @@ export interface SecurityDashboardQuery {
 @ApiTags('Security')
 @ApiBearerAuth()
 @Controller('api/v1/security')
-@UseGuards(AuthGuard, TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @UseInterceptors(SecurityInterceptor)
 export class SecurityController {
   constructor(

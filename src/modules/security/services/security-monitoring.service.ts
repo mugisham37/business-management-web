@@ -85,7 +85,8 @@ export class SecurityMonitoringService {
       await this.threatDetectionService.analyzeEvent(event);
 
     } catch (error) {
-      this.logger.error(`Failed to handle audit event: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle audit event: ${err.message}`, err.stack);
     }
   }
 
@@ -139,7 +140,8 @@ export class SecurityMonitoringService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle security violation: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle security violation: ${err.message}`, err.stack);
     }
   }
 
@@ -240,7 +242,8 @@ export class SecurityMonitoringService {
       await this.generatePeriodicReports();
 
     } catch (error) {
-      this.logger.error(`Security health check failed: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Security health check failed: ${err.message}`, err.stack);
     }
   }
 

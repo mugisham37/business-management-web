@@ -85,6 +85,12 @@ export class AuditService {
     try {
       const db = this.drizzleService.getDb();
 
+      // Validate and normalize action to allowed enum values
+      const validActions = ['create', 'read', 'update', 'delete', 'login', 'logout', 'export', 'import'] as const;
+      const action = validActions.includes(event.action as any) 
+        ? (event.action as typeof validActions[number]) 
+        : 'read'; // Default to 'read' if invalid
+
       // Mask sensitive data in old/new values
       const maskedOldValues = event.oldValues 
         ? this.encryptionService.maskSensitiveData(event.oldValues)
@@ -133,11 +139,11 @@ export class AuditService {
 
       // Create immutable audit log entry
       await db.insert(auditLogs).values({
-        tenantId: event.tenantId || null,
-        userId: event.userId || null,
-        action: event.action,
+        tenantId: event.tenantId ? event.tenantId : null,
+        userId: event.userId ? event.userId : null,
+        action,
         resource: event.resource,
-        resourceId: event.resourceId || null,
+        resourceId: event.resourceId ? event.resourceId : null,
         oldValues: encryptedOldValues,
         newValues: encryptedNewValues,
         metadata: {
@@ -161,7 +167,9 @@ export class AuditService {
       await this.checkSecurityViolations(event);
 
     } catch (error) {
-      this.logger.error(`Failed to log audit event: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to log audit event: ${errorMessage}`, errorStack);
       // Don't throw error to avoid breaking the main operation
     }
   }
@@ -184,7 +192,10 @@ export class AuditService {
       }
 
       if (query.action) {
-        whereConditions.push(eq(auditLogs.action, query.action));
+        const validActions = ['create', 'read', 'update', 'delete', 'login', 'logout', 'export', 'import'] as const;
+        if (validActions.includes(query.action as any)) {
+          whereConditions.push(eq(auditLogs.action, query.action as typeof validActions[number]));
+        }
       }
 
       if (query.resource) {
@@ -213,7 +224,7 @@ export class AuditService {
       // Decrypt sensitive data if needed
       const decryptedResults = await Promise.all(
         results.map(async (log) => {
-          if (this.encryptSensitiveData && log.tenantId && log.metadata?.encrypted) {
+          if (this.encryptSensitiveData && log.tenantId && (log.metadata as any)?.encrypted) {
             try {
               const decryptedLog = { ...log };
 
@@ -246,7 +257,8 @@ export class AuditService {
 
               return decryptedLog;
             } catch (error) {
-              this.logger.error(`Failed to decrypt audit log ${log.id}: ${error.message}`);
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              this.logger.error(`Failed to decrypt audit log ${log.id}: ${errorMessage}`);
               return log; // Return encrypted version if decryption fails
             }
           }
@@ -257,7 +269,9 @@ export class AuditService {
 
       return decryptedResults;
     } catch (error) {
-      this.logger.error(`Failed to query audit logs: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to query audit logs: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -304,7 +318,9 @@ export class AuditService {
         recommendations,
       };
     } catch (error) {
-      this.logger.error(`Failed to generate compliance report: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to generate compliance report: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -325,7 +341,9 @@ export class AuditService {
       this.logger.log(`Cleaned up ${result.rowCount || 0} old audit logs`);
       return result.rowCount || 0;
     } catch (error) {
-      this.logger.error(`Failed to cleanup old audit logs: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to cleanup old audit logs: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -353,7 +371,9 @@ export class AuditService {
 
       return JSON.stringify(logs, null, 2);
     } catch (error) {
-      this.logger.error(`Failed to export audit logs: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to export audit logs: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -367,8 +387,8 @@ export class AuditService {
     // Check for suspicious login patterns
     if (event.action === 'login' && event.metadata?.failed) {
       const recentFailedLogins = await this.queryLogs({
-        tenantId: event.tenantId,
-        userId: event.userId,
+        ...(event.tenantId ? { tenantId: event.tenantId } : {}),
+        ...(event.userId ? { userId: event.userId } : {}),
         action: 'login',
         startDate: new Date(Date.now() - 15 * 60 * 1000), // Last 15 minutes
       });
@@ -382,8 +402,8 @@ export class AuditService {
     // Check for unusual data access patterns
     if (event.action === 'read' && event.resource === 'sensitive_data') {
       const recentAccess = await this.queryLogs({
-        tenantId: event.tenantId,
-        userId: event.userId,
+        ...(event.tenantId ? { tenantId: event.tenantId } : {}),
+        ...(event.userId ? { userId: event.userId } : {}),
         action: 'read',
         resource: 'sensitive_data',
         startDate: new Date(Date.now() - 60 * 60 * 1000), // Last hour
@@ -545,5 +565,248 @@ export class AuditService {
     });
 
     return csvRows.join('\n');
+  }
+
+  /**
+   * Generate audit report for specified period and type
+   */
+  async generateReport(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+    reportType: string = 'summary',
+  ): Promise<any> {
+    try {
+      const query: AuditQuery = {
+        tenantId,
+        startDate,
+        endDate,
+        limit: 10000,
+      };
+
+      const logs = await this.queryLogs(query);
+      const stats = await this.getStatistics(tenantId, startDate, endDate);
+
+      return {
+        id: `report-${Date.now()}`,
+        tenantId,
+        reportType,
+        period: { startDate, endDate },
+        summary: stats,
+        logs: reportType === 'detailed' ? logs : logs.slice(0, 100),
+        generatedAt: new Date(),
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to generate report: ${errorMessage}`);
+      throw new Error('Report generation failed');
+    }
+  }
+
+  /**
+   * Get audit statistics for a time period
+   */
+  async getStatistics(tenantId: string | undefined, startDate: Date, endDate: Date): Promise<any> {
+    try {
+      const query: AuditQuery = { 
+        ...(tenantId ? { tenantId } : {}),
+        startDate, 
+        endDate, 
+        limit: 10000 
+      };
+      const logs = await this.queryLogs(query);
+
+      const stats = {
+        totalEvents: logs.length,
+        byAction: {} as Record<string, number>,
+        byResource: {} as Record<string, number>,
+        byCategory: {} as Record<string, number>,
+        bySeverity: {} as Record<string, number>,
+        byUser: {} as Record<string, number>,
+        criticalEventCount: 0,
+      };
+
+      logs.forEach(log => {
+        stats.byAction[log.action] = (stats.byAction[log.action] || 0) + 1;
+        stats.byResource[log.resource] = (stats.byResource[log.resource] || 0) + 1;
+        if (log.metadata?.category) {
+          stats.byCategory[log.metadata.category] = (stats.byCategory[log.metadata.category] || 0) + 1;
+        }
+        if (log.metadata?.severity) {
+          stats.bySeverity[log.metadata.severity] = (stats.bySeverity[log.metadata.severity] || 0) + 1;
+          if (log.metadata.severity === 'critical') {
+            stats.criticalEventCount++;
+          }
+        }
+        if (log.userId) {
+          stats.byUser[log.userId] = (stats.byUser[log.userId] || 0) + 1;
+        }
+      });
+
+      return stats;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to get statistics: ${errorMessage}`);
+      return { totalEvents: 0, byAction: {}, byResource: {}, byCategory: {}, bySeverity: {}, byUser: {} };
+    }
+  }
+
+  /**
+   * Search logs with advanced filtering and full-text search
+   */
+  async searchLogs(searchOptions: any): Promise<{ logs: any[]; total: number }> {
+    try {
+      const query: AuditQuery = {
+        tenantId: searchOptions.tenantId,
+        limit: searchOptions.limit,
+        offset: searchOptions.offset,
+      };
+
+      // Simple text search in action and resource fields
+      if (searchOptions.query) {
+        const searchQuery = searchOptions.query.toLowerCase();
+        const allLogs = await this.queryLogs({ ...query, limit: 10000 });
+        const filteredLogs = allLogs.filter(log =>
+          log.action.toLowerCase().includes(searchQuery) ||
+          log.resource.toLowerCase().includes(searchQuery)
+        );
+
+        // Apply offset and limit
+        const total = filteredLogs.length;
+        const logs = filteredLogs.slice(searchOptions.offset, searchOptions.offset + searchOptions.limit);
+
+        // Apply additional filters
+        if (searchOptions.filters) {
+          if (searchOptions.filters.severity) {
+            logs.filter(log => log.metadata?.severity === searchOptions.filters.severity);
+          }
+          if (searchOptions.filters.category) {
+            logs.filter(log => log.metadata?.category === searchOptions.filters.category);
+          }
+        }
+
+        return { logs, total };
+      }
+
+      const logs = await this.queryLogs(query);
+      return { logs, total: logs.length };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to search logs: ${errorMessage}`);
+      return { logs: [], total: 0 };
+    }
+  }
+
+  /**
+   * Initiate audit log export job
+   */
+  async initiateExport(exportRequest: any): Promise<string> {
+    try {
+      const exportId = `export-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // In a production system, this would queue a background job
+      // For now, we'll just return the export ID
+      const query: AuditQuery = {
+        tenantId: exportRequest.tenantId,
+        startDate: exportRequest.startDate,
+        endDate: exportRequest.endDate,
+        limit: 100000,
+      };
+
+      const logs = await this.queryLogs(query);
+
+      // Store export metadata (in production, this would be in a cache/DB)
+      this.logger.log(`Export ${exportId} initiated with ${logs.length} logs`);
+
+      return exportId;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to initiate export: ${errorMessage}`);
+      throw new Error('Export initiation failed');
+    }
+  }
+
+  /**
+   * Get compliance audit trail
+   */
+  async getComplianceTrail(
+    tenantId: string | undefined,
+    startDate: Date,
+    endDate: Date,
+    framework?: string,
+  ): Promise<any[]> {
+    try {
+      const query: AuditQuery = {
+        ...(tenantId ? { tenantId } : {}),
+        startDate,
+        endDate,
+        limit: 10000,
+        category: 'compliance',
+      };
+
+      const logs = await this.queryLogs(query);
+
+      // Filter by compliance framework if specified
+      if (framework) {
+        return logs.filter(log => log.metadata?.complianceFramework === framework);
+      }
+
+      return logs;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to get compliance trail: ${errorMessage}`);
+      return [];
+    }
+  }
+
+  /**
+   * Verify integrity of audit logs
+   */
+  async verifyIntegrity(tenantId: string): Promise<any> {
+    try {
+      const query: AuditQuery = { tenantId, limit: 10000 };
+      const logs = await this.queryLogs(query);
+
+      // Basic integrity checks
+      const result = {
+        isIntegrityValid: true,
+        totalLogsVerified: logs.length,
+        checksPerformed: [] as string[],
+        anomalies: [] as string[],
+      };
+
+      // Check for gaps in timestamps
+      result.checksPerformed.push('timestamp_continuity');
+      if (logs.length > 1) {
+        for (let i = 1; i < logs.length; i++) {
+          const timeDiff = logs[i].createdAt.getTime() - logs[i - 1].createdAt.getTime();
+          // Allow up to 1 hour gaps (3600000ms)
+          if (timeDiff > 3600000 && i < logs.length - 1) {
+            result.anomalies.push(`Large time gap detected at log ${i}`);
+            result.isIntegrityValid = false;
+          }
+        }
+      }
+
+      // Check for required fields
+      result.checksPerformed.push('field_completeness');
+      logs.forEach((log, index) => {
+        if (!log.action || !log.resource) {
+          result.anomalies.push(`Missing required fields at log ${index}`);
+          result.isIntegrityValid = false;
+        }
+      });
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to verify integrity: ${errorMessage}`);
+      return {
+        isIntegrityValid: false,
+        totalLogsVerified: 0,
+        checksPerformed: [],
+        anomalies: [errorMessage],
+      };
+    }
   }
 }

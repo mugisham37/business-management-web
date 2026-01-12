@@ -64,4 +64,29 @@ export interface SecurityScanConfig {
 export interface VulnerabilityReport {
   tenantId: string;
   reportId: string;
-  generat
+  generatedAt: Date;
+  generatedBy: string;
+  totalFindings: number;
+  criticalFindings: number;
+  highFindings: number;
+  mediumFindings: number;
+  lowFindings: number;
+  infoFindings: number;
+  findings: PenetrationTestFinding[];
+  riskScore: number;
+  status: 'draft' | 'final' | 'published';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+@Injectable()
+export class PenetrationTestingService {
+  private readonly logger = new Logger(PenetrationTestingService.name);
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly auditService: AuditService,
+    private readonly securityMonitoringService: SecurityMonitoringService,
+  ) {}
+}

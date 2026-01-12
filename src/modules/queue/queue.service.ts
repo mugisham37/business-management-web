@@ -342,7 +342,7 @@ export class QueueService {
   async cleanQueue(
     queueName: 'email' | 'reports' | 'sync' | 'notifications',
     grace: number = 0,
-    status: 'completed' | 'failed' | 'active' | 'waiting' = 'completed'
+    status: 'completed' | 'failed' | 'active' = 'completed'
   ): Promise<void> {
     try {
       const queue = this.getQueueByName(queueName);
@@ -411,14 +411,23 @@ export class QueueService {
     delayed: number;
     paused: number;
   }> {
-    const [waiting, active, completed, failed, delayed, paused] = await Promise.all([
+    const [waiting, active, completed, failed, delayed] = await Promise.all([
       queue.getWaiting(),
       queue.getActive(),
       queue.getCompleted(),
       queue.getFailed(),
       queue.getDelayed(),
-      queue.getPaused(),
     ]);
+
+    // getPaused is not available in all Bull versions
+    let paused: any[] = [];
+    try {
+      if (typeof (queue as any).getPaused === 'function') {
+        paused = await (queue as any).getPaused();
+      }
+    } catch (error) {
+      paused = [];
+    }
 
     return {
       waiting: waiting.length,

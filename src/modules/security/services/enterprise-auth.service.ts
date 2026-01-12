@@ -1,10 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as saml from 'samlify';
-import * as ldap from 'ldapjs';
 import { DrizzleService } from '../../database/drizzle.service';
 import { AuditService } from './audit.service';
+
+// Optional dependencies - may not be installed
+let saml: any;
+let ldap: any;
+
+try {
+  saml = require('samlify');
+} catch {
+  saml = null;
+}
+
+try {
+  ldap = require('ldapjs');
+} catch {
+  ldap = null;
+}
 
 export interface SAMLConfig {
   tenantId: string;
@@ -131,7 +145,9 @@ export class EnterpriseAuthService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to configure SAML for tenant ${config.tenantId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to configure SAML for tenant ${config.tenantId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -163,8 +179,9 @@ export class EnterpriseAuthService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to configure OAuth2 for tenant ${config.tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to configure OAuth2 for tenant ${config.tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -205,8 +222,9 @@ export class EnterpriseAuthService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to configure LDAP for tenant ${config.tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to configure LDAP for tenant ${config.tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -233,8 +251,9 @@ export class EnterpriseAuthService {
       return context;
 
     } catch (error) {
-      this.logger.error(`Failed to initiate SAML login for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to initiate SAML login for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -286,8 +305,9 @@ export class EnterpriseAuthService {
       return { user, token, session };
 
     } catch (error) {
-      this.logger.error(`Failed to process SAML response for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to process SAML response for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -341,7 +361,8 @@ export class EnterpriseAuthService {
       return { user, token, session };
 
     } catch (error) {
-      this.logger.error(`LDAP authentication failed for tenant ${tenantId}: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`LDAP authentication failed for tenant ${tenantId}: ${err.message}`, err.stack);
       
       // Audit failed login
       await this.auditService.logEvent({
@@ -350,7 +371,7 @@ export class EnterpriseAuthService {
         resource: 'authentication',
         metadata: {
           username,
-          error: error.message,
+          error: err.message,
         },
       });
 
@@ -404,8 +425,9 @@ export class EnterpriseAuthService {
       return authCode;
 
     } catch (error) {
-      this.logger.error(`OAuth2 authorization failed for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`OAuth2 authorization failed for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -448,8 +470,9 @@ export class EnterpriseAuthService {
       };
 
     } catch (error) {
-      this.logger.error(`OAuth2 token exchange failed for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`OAuth2 token exchange failed for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -484,8 +507,9 @@ export class EnterpriseAuthService {
       return context;
 
     } catch (error) {
-      this.logger.error(`Failed to initiate SAML logout for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to initiate SAML logout for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 

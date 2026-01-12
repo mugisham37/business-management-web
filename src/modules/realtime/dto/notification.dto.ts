@@ -49,12 +49,12 @@ export class NotificationActionDto {
   @ApiProperty({ description: 'Action ID' })
   @IsString()
   @Length(1, 50)
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Action label' })
   @IsString()
   @Length(1, 100)
-  label: string;
+  label!: string;
 
   @ApiPropertyOptional({ description: 'Action URL' })
   @IsOptional()
@@ -79,7 +79,7 @@ export class CreateNotificationDto {
   @ApiProperty({ description: 'Notification type' })
   @IsString()
   @Length(1, 50)
-  type: string;
+  type!: string;
 
   @ApiProperty({ 
     description: 'Recipient user IDs',
@@ -88,7 +88,7 @@ export class CreateNotificationDto {
   @IsArray()
   @ArrayMinSize(1)
   @IsUUID(4, { each: true })
-  recipients: string[];
+  recipients!: string[];
 
   @ApiPropertyOptional({ description: 'Template ID' })
   @IsOptional()
@@ -104,7 +104,7 @@ export class CreateNotificationDto {
   @ApiProperty({ description: 'Notification message' })
   @IsString()
   @Length(1, 1000)
-  message: string;
+  message!: string;
 
   @ApiPropertyOptional({ description: 'HTML content' })
   @IsOptional()
@@ -139,6 +139,7 @@ export class CreateNotificationDto {
   @ApiPropertyOptional({ 
     description: 'Template variables',
     type: 'object',
+    additionalProperties: true,
   })
   @IsOptional()
   @IsObject()
@@ -166,8 +167,7 @@ export class CreateNotificationDto {
 
   @ApiPropertyOptional({ 
     description: 'Additional metadata',
-    type: 'object',
-  })
+    type: 'object',    additionalProperties: true,  })
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
@@ -177,19 +177,19 @@ export class CreateTemplateDto {
   @ApiProperty({ description: 'Template name' })
   @IsString()
   @Length(1, 100)
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Notification type' })
   @IsString()
   @Length(1, 50)
-  type: string;
+  type!: string;
 
   @ApiProperty({ 
     description: 'Notification channel',
     enum: NotificationChannel,
   })
   @IsEnum(NotificationChannel)
-  channel: NotificationChannel;
+  channel!: NotificationChannel;
 
   @ApiPropertyOptional({ description: 'Template subject' })
   @IsOptional()
@@ -200,7 +200,7 @@ export class CreateTemplateDto {
   @ApiProperty({ description: 'Template body' })
   @IsString()
   @Length(1, 5000)
-  bodyTemplate: string;
+  bodyTemplate!: string;
 
   @ApiPropertyOptional({ description: 'HTML template' })
   @IsOptional()
@@ -213,7 +213,7 @@ export class CreateTemplateDto {
   })
   @IsArray()
   @IsString({ each: true })
-  variables: string[];
+  variables!: string[];
 
   @ApiPropertyOptional({ 
     description: 'Template is active',
@@ -226,6 +226,7 @@ export class CreateTemplateDto {
   @ApiPropertyOptional({ 
     description: 'Additional metadata',
     type: 'object',
+    additionalProperties: true,
   })
   @IsOptional()
   @IsObject()
@@ -236,18 +237,18 @@ export class NotificationPreferenceDto {
   @ApiProperty({ description: 'Notification type' })
   @IsString()
   @Length(1, 50)
-  notificationType: string;
+  notificationType!: string;
 
   @ApiProperty({ 
     description: 'Notification channel',
     enum: NotificationChannel,
   })
   @IsEnum(NotificationChannel)
-  channel: NotificationChannel;
+  channel!: NotificationChannel;
 
   @ApiProperty({ description: 'Preference is enabled' })
   @IsBoolean()
-  isEnabled: boolean;
+  isEnabled!: boolean;
 
   @ApiPropertyOptional({ 
     description: 'Notification frequency',
@@ -285,6 +286,7 @@ export class NotificationPreferenceDto {
   @ApiPropertyOptional({ 
     description: 'Channel-specific settings',
     type: 'object',
+    additionalProperties: true,
   })
   @IsOptional()
   @IsObject()
@@ -304,21 +306,21 @@ export class UpdatePreferencesDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => NotificationPreferenceDto)
-  preferences: NotificationPreferenceDto[];
+  preferences!: NotificationPreferenceDto[];
 }
 
 export class RegisterDeviceTokenDto {
   @ApiProperty({ description: 'Device token' })
   @IsString()
   @Length(1, 500)
-  token: string;
+  token!: string;
 
   @ApiProperty({ 
     description: 'Device platform',
     enum: DevicePlatform,
   })
   @IsEnum(DevicePlatform)
-  platform: DevicePlatform;
+  platform!: DevicePlatform;
 
   @ApiPropertyOptional({ description: 'Device ID' })
   @IsOptional()
@@ -414,11 +416,12 @@ export class BulkNotificationDto {
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateNotificationDto)
-  notifications: CreateNotificationDto[];
+  notifications!: CreateNotificationDto[];
 
   @ApiPropertyOptional({ 
     description: 'Batch processing options',
     type: 'object',
+    additionalProperties: true,
   })
   @IsOptional()
   @IsObject()
@@ -432,7 +435,7 @@ export class BulkNotificationDto {
 export class NotificationWebhookDto {
   @ApiProperty({ description: 'Webhook URL' })
   @IsString()
-  url: string;
+  url!: string;
 
   @ApiProperty({ 
     description: 'Events to subscribe to',
@@ -440,7 +443,7 @@ export class NotificationWebhookDto {
   })
   @IsArray()
   @IsString({ each: true })
-  events: string[];
+  events!: string[];
 
   @ApiPropertyOptional({ description: 'Webhook secret for verification' })
   @IsOptional()

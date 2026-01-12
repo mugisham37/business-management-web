@@ -99,7 +99,9 @@ export class DataDeletionService {
       this.logger.log(`Scheduled data deletion request ${requestId} for tenant ${request.tenantId}`);
       return requestId;
     } catch (error) {
-      this.logger.error(`Failed to schedule data deletion: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to schedule data deletion: ${errorMessage}`, errorStack);
       throw new Error('Failed to schedule data deletion');
     }
   }
@@ -199,9 +201,11 @@ export class DataDeletionService {
 
     } catch (error) {
       result.status = 'failed';
-      result.errors.push(error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      result.errors.push(errorMessage);
 
-      this.logger.error(`Data deletion failed for request ${requestId}: ${error.message}`, error.stack);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Data deletion failed for request ${requestId}: ${errorMessage}`, errorStack);
 
       // Audit failed deletion
       if (this.config.auditRequired) {
@@ -212,7 +216,7 @@ export class DataDeletionService {
           resource: 'data_deletion',
           resourceId: requestId,
           metadata: {
-            error: error.message,
+            error: errorMessage,
             dataType: request.dataType,
           },
           severity: 'critical',

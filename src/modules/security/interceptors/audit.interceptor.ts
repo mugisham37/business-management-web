@@ -41,7 +41,9 @@ export class AuditInterceptor implements NestInterceptor {
         try {
           await this.logSuccessfulOperation(auditContext, response, duration);
         } catch (error) {
-          this.logger.error(`Failed to log successful audit event: ${error.message}`, error.stack);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorStack = error instanceof Error ? error.stack : undefined;
+          this.logger.error(`Failed to log successful audit event: ${errorMessage}`, errorStack);
         }
       }),
       catchError(async (error) => {
@@ -50,7 +52,9 @@ export class AuditInterceptor implements NestInterceptor {
         try {
           await this.logFailedOperation(auditContext, error, duration);
         } catch (auditError) {
-          this.logger.error(`Failed to log failed audit event: ${auditError.message}`, auditError.stack);
+          const auditErrorMessage = auditError instanceof Error ? auditError.message : String(auditError);
+          const auditErrorStack = auditError instanceof Error ? auditError.stack : undefined;
+          this.logger.error(`Failed to log failed audit event: ${auditErrorMessage}`, auditErrorStack);
         }
 
         throw error;
@@ -161,7 +165,7 @@ export class AuditInterceptor implements NestInterceptor {
     if (path.includes('upload')) return 'upload';
 
     // Default HTTP method mapping
-    const actionMap = {
+    const actionMap: Record<string, string> = {
       get: 'read',
       post: 'create',
       put: 'update',
@@ -169,7 +173,7 @@ export class AuditInterceptor implements NestInterceptor {
       delete: 'delete',
     };
 
-    return actionMap[method] || method;
+    return actionMap[method.toLowerCase()] ?? method;
   }
 
   /**
@@ -186,7 +190,7 @@ export class AuditInterceptor implements NestInterceptor {
     
     // Remove query parameters and extract resource
     const cleanPath = path.split('?')[0];
-    const pathParts = cleanPath.split('/').filter(part => part);
+    const pathParts = cleanPath.split('/').filter((part: string) => part);
     
     // Return the main resource (usually the second part after 'api/v1')
     if (pathParts.length >= 3 && pathParts[0] === 'api' && pathParts[1] === 'v1') {

@@ -67,7 +67,7 @@ export class KeyManagementService {
         keyData: encryptedKeyData,
         version: await this.getNextKeyVersion(tenantId, keyType),
         createdAt: new Date(),
-        expiresAt: this.calculateExpirationDate(keyType),
+        expiresAt: this.calculateExpirationDate(keyType) || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         status: 'active',
         metadata: {
           generatedBy: 'system',
@@ -85,7 +85,8 @@ export class KeyManagementService {
       
       return key;
     } catch (error) {
-      this.logger.error(`Failed to generate tenant key: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to generate tenant key: ${err.message}`, err.stack);
       throw new Error('Key generation failed');
     }
   }
@@ -103,8 +104,9 @@ export class KeyManagementService {
 
       this.logger.log(`Completed key rotation for tenant ${tenantId}`);
     } catch (error) {
-      this.logger.error(`Key rotation failed for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Key rotation failed for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -120,7 +122,7 @@ export class KeyManagementService {
     }
 
     // Retrieve from database
-    const keyRecord = await this.getActiveKeyRecord(tenantId, keyType);
+    let keyRecord = await this.getActiveKeyRecord(tenantId, keyType);
     if (!keyRecord) {
       // Generate new key if none exists
       const newKey = await this.generateTenantKey(tenantId, keyType as any);
@@ -168,8 +170,9 @@ export class KeyManagementService {
 
       this.logger.log(`Revoked key ${keyId} for tenant ${keyRecord.tenantId}: ${reason}`);
     } catch (error) {
-      this.logger.error(`Failed to delete key ${keyId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to delete key ${keyId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -233,8 +236,9 @@ export class KeyManagementService {
       
       return backupData;
     } catch (error) {
-      this.logger.error(`Failed to backup keys for tenant ${tenantId}: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to backup keys for tenant ${tenantId}: ${err.message}`, err.stack);
+      throw err;
     }
   }
 

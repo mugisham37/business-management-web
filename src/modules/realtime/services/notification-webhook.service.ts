@@ -11,7 +11,7 @@ export interface NotificationWebhook {
   tenantId: string;
   url: string;
   events: string[];
-  secret?: string;
+  secret: string | undefined;
   isActive: boolean;
   headers?: Record<string, string>;
   retryPolicy: {
@@ -92,7 +92,8 @@ export class NotificationWebhookService {
       return webhookId;
 
     } catch (error) {
-      this.logger.error(`Failed to register webhook: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to register webhook: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -123,7 +124,8 @@ export class NotificationWebhookService {
       await Promise.allSettled(deliveryPromises);
 
     } catch (error) {
-      this.logger.error(`Failed to trigger webhooks: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to trigger webhooks: ${err.message}`, err.stack);
     }
   }
 
@@ -192,7 +194,8 @@ export class NotificationWebhookService {
       // TODO: Store delivery record in database
 
     } catch (error) {
-      this.logger.error(`Webhook delivery failed`, error.stack, {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Webhook delivery failed`, err.stack, {
         deliveryId,
         webhookId: webhook.id,
         url: webhook.url,
@@ -213,9 +216,15 @@ export class NotificationWebhookService {
     tenantId: string,
     event: string,
   ): Promise<NotificationWebhook[]> {
-    // TODO: Implement database query
-    // For now, return empty array
-    return [];
+    try {
+      // TODO: Implement database query
+      // For now, return empty array
+      return [];
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get webhooks for event: ${err.message}`, err.stack);
+      return [];
+    }
   }
 
   /**
@@ -238,7 +247,8 @@ export class NotificationWebhookService {
         Buffer.from(expectedSignature),
       );
     } catch (error) {
-      this.logger.error(`Failed to verify webhook signature: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to verify webhook signature: ${err.message}`);
       return false;
     }
   }
@@ -264,7 +274,8 @@ export class NotificationWebhookService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to list webhooks: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to list webhooks: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -284,7 +295,8 @@ export class NotificationWebhookService {
       this.logger.log(`Updated webhook ${webhookId} for tenant ${tenantId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to update webhook: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update webhook: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -299,7 +311,8 @@ export class NotificationWebhookService {
       this.logger.log(`Deleted webhook ${webhookId} for tenant ${tenantId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to delete webhook: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to delete webhook: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -326,7 +339,8 @@ export class NotificationWebhookService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to get delivery history: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get delivery history: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -341,7 +355,8 @@ export class NotificationWebhookService {
       this.logger.log(`Retrying webhook delivery ${deliveryId} for tenant ${tenantId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to retry delivery: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to retry delivery: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -387,12 +402,13 @@ export class NotificationWebhookService {
       };
 
     } catch (error) {
-      this.logger.error(`Webhook test failed: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Webhook test failed: ${err.message}`, err.stack);
       
       return {
         success: false,
         responseTime: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: err.message,
       };
     }
   }

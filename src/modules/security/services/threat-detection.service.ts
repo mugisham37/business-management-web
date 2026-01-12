@@ -75,7 +75,8 @@ export class ThreatDetectionService {
 
       return analyses;
     } catch (error) {
-      this.logger.error(`Failed to analyze event for threats: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to analyze event for threats: ${err.message}`, err.stack);
       return [];
     }
   }
@@ -136,7 +137,8 @@ export class ThreatDetectionService {
 
       return analyses;
     } catch (error) {
-      this.logger.error(`Failed to perform behavioral analysis: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to perform behavioral analysis: ${err.message}`, err.stack);
       return [];
     }
   }
@@ -159,7 +161,8 @@ export class ThreatDetectionService {
       const compromiseScore = indicators.filter(Boolean).length;
       return compromiseScore >= 2; // Require at least 2 indicators
     } catch (error) {
-      this.logger.error(`Failed to check account compromise: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to check account compromise: ${err.message}`, err.stack);
       return false;
     }
   }
@@ -173,7 +176,8 @@ export class ThreatDetectionService {
       const blacklistedIps = await this.getBlacklistedIps();
       return blacklistedIps.includes(ipAddress);
     } catch (error) {
-      this.logger.error(`Failed to check IP blacklist: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to check IP blacklist: ${err.message}`, err.stack);
       return false;
     }
   }
@@ -308,7 +312,8 @@ export class ThreatDetectionService {
 
       return null;
     } catch (error) {
-      this.logger.error(`Failed to check threat pattern ${pattern.id}: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to check threat pattern ${pattern.id}: ${err.message}`);
       return null;
     }
   }
@@ -589,3 +594,4 @@ export class ThreatDetectionService {
       '10.0.0.50',     // Example malicious IP
     ];
   }
+}

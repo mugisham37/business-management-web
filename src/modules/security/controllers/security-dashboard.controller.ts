@@ -5,12 +5,12 @@ import { SecurityMonitoringService } from '../services/security-monitoring.servi
 import { ThreatDetectionService } from '../services/threat-detection.service';
 import { AuditService } from '../services/audit.service';
 import { ComplianceService } from '../services/compliance.service';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 
 @Controller('api/v1/security/dashboard')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @ApiTags('Security Dashboard')
 export class SecurityDashboardController {

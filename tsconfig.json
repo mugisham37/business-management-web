@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -23,7 +24,6 @@
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
-    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["src/*"],
       "@/common/*": ["src/common/*"],

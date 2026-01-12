@@ -15,7 +15,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 import { ComplianceService } from '../services/compliance.service';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -45,7 +45,7 @@ export interface ComplianceAssessmentRequest {
 @ApiTags('Compliance')
 @ApiBearerAuth()
 @Controller('api/v1/compliance')
-@UseGuards(AuthGuard, TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @UseInterceptors(SecurityInterceptor)
 export class ComplianceController {
   constructor(private readonly complianceService: ComplianceService) {}
@@ -357,8 +357,8 @@ export class ComplianceController {
       dashboard: {
         overallScore: status.overallScore,
         frameworkCount: status.frameworks.length,
-        criticalIssues: status.frameworks.reduce((count, f) => 
-          count + f.requirements.filter(r => r.status === 'non_compliant' && r.severity === 'critical').length, 0
+        criticalIssues: status.frameworks.reduce((count: number, f: any) => 
+          count + f.requirements.filter((r: any) => r.status === 'non_compliant' && r.severity === 'critical').length, 0
         ),
         upcomingAudits: [
           {

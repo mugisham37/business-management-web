@@ -72,12 +72,13 @@ export interface SalesDashboardData {
 }
 
 export interface SalesMilestone {
-  type: 'daily_target' | 'hourly_record' | 'transaction_milestone' | 'revenue_milestone';
+  type: 'daily_target' | 'revenue_milestone' | 'weekly_target' | 'monthly_target';
   title: string;
   description: string;
   value: number;
-  target?: number;
+  target: number;
   locationId?: string;
+  achievedBy?: string;
   achievedAt: Date;
 }
 
@@ -156,7 +157,8 @@ export class LiveSalesDashboardService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle completed transaction: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle completed transaction: ${err.message}`, err.stack);
     }
   }
 
@@ -192,7 +194,8 @@ export class LiveSalesDashboardService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to handle voided transaction: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle refunded transaction: ${err.message}`, err.stack);
     }
   }
 
@@ -230,7 +233,8 @@ export class LiveSalesDashboardService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to handle refunded transaction: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle refunded transaction: ${err.message}`, err.stack);
     }
   }
 
@@ -249,12 +253,13 @@ export class LiveSalesDashboardService {
         dashboardData = await this.generateSalesDashboardData(tenantId, locationId);
         
         // Cache for 1 minute (short cache for real-time data)
-        await this.cacheService.set(cacheKey, dashboardData, 60);
+        await this.cacheService.set(cacheKey, dashboardData, { ttl: 60 });
       }
 
       return dashboardData;
     } catch (error) {
-      this.logger.error(`Failed to get sales dashboard data: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get sales dashboard data: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -295,12 +300,13 @@ export class LiveSalesDashboardService {
         };
         
         // Cache for 30 seconds
-        await this.cacheService.set(cacheKey, metrics, 30);
+        await this.cacheService.set(cacheKey, metrics, { ttl: 30 });
       }
 
       return metrics;
     } catch (error) {
-      this.logger.error(`Failed to get live sales metrics: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get live sales metrics: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -334,12 +340,13 @@ export class LiveSalesDashboardService {
         });
         
         // Cache for 5 minutes
-        await this.cacheService.set(cacheKey, hourlyData, 300);
+        await this.cacheService.set(cacheKey, hourlyData, { ttl: 300 });
       }
 
       return hourlyData;
     } catch (error) {
-      this.logger.error(`Failed to get hourly sales breakdown: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get hourly sales breakdown: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -366,7 +373,8 @@ export class LiveSalesDashboardService {
         initialData,
       };
     } catch (error) {
-      this.logger.error(`Failed to create sales subscription: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create sales subscription: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -382,7 +390,8 @@ export class LiveSalesDashboardService {
       await this.cacheService.invalidatePattern(`live-sales-metrics:${tenantId}:*`);
       await this.cacheService.invalidatePattern(`hourly-sales:${tenantId}:*`);
     } catch (error) {
-      this.logger.warn(`Failed to update sales dashboard cache: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to update sales dashboard cache: ${err.message}`);
     }
   }
 
@@ -405,13 +414,15 @@ export class LiveSalesDashboardService {
         });
       }
 
-      // Check transaction milestone (every 100th transaction)
-      if (todayMetrics.todayTransactions % 100 === 0) {
+      // Check revenue milestone (every $5000 in transactions)
+      if (Math.floor(todayMetrics.todayTotal / 5000) > Math.floor((todayMetrics.todayTotal - transaction.total) / 5000)) {
+        const milestoneBoundary = Math.floor(todayMetrics.todayTotal / 5000) * 5000;
         milestones.push({
-          type: 'transaction_milestone',
-          title: 'Transaction Milestone',
-          description: `${todayMetrics.todayTransactions} transactions completed today`,
-          value: todayMetrics.todayTransactions,
+          type: 'revenue_milestone',
+          title: 'Revenue Milestone',
+          description: `$${milestoneBoundary} in revenue reached today`,
+          value: todayMetrics.todayTotal,
+          target: milestoneBoundary,
           locationId: transaction.locationId,
           achievedAt: new Date(),
         });
@@ -423,7 +434,8 @@ export class LiveSalesDashboardService {
       }
 
     } catch (error) {
-      this.logger.warn(`Failed to check sales milestones: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to check sales milestones: ${err.message}`);
     }
   }
 

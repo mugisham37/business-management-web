@@ -128,7 +128,8 @@ export class LiveAnalyticsService {
       await this.updateKPIMetrics(event.tenantId, event.transaction);
 
     } catch (error) {
-      this.logger.error(`Failed to handle transaction analytics: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle transaction analytics: ${err.message}`, err.stack);
     }
   }
 
@@ -172,7 +173,8 @@ export class LiveAnalyticsService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle inventory analytics: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle inventory analytics: ${err.message}`, err.stack);
     }
   }
 
@@ -210,7 +212,8 @@ export class LiveAnalyticsService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle customer analytics: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle customer analytics: ${err.message}`, err.stack);
     }
   }
 
@@ -229,13 +232,14 @@ export class LiveAnalyticsService {
         analyticsData = await this.generateLiveAnalyticsData(tenantId, locationId);
         
         // Cache for 1 minute (short cache for real-time data)
-        await this.cacheService.set(cacheKey, analyticsData, 60);
+        await this.cacheService.set(cacheKey, analyticsData, { ttl: 60 });
       }
 
       return analyticsData;
     } catch (error) {
-      this.logger.error(`Failed to get live analytics data: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get live analytics data: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -254,13 +258,14 @@ export class LiveAnalyticsService {
         kpiMetrics = await this.generateKPIMetrics(tenantId, locationId);
         
         // Cache for 2 minutes
-        await this.cacheService.set(cacheKey, kpiMetrics, 120);
+        await this.cacheService.set(cacheKey, kpiMetrics, { ttl: 120 });
       }
 
       return kpiMetrics;
     } catch (error) {
-      this.logger.error(`Failed to get KPI metrics: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get KPI metrics: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -287,13 +292,14 @@ export class LiveAnalyticsService {
         alerts = await this.generateAnalyticsAlerts(tenantId, options);
         
         // Cache for 30 seconds
-        await this.cacheService.set(cacheKey, alerts, 30);
+        await this.cacheService.set(cacheKey, alerts, { ttl: 30 });
       }
 
       return alerts;
     } catch (error) {
-      this.logger.error(`Failed to get analytics alerts: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get analytics alerts: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -313,8 +319,9 @@ export class LiveAnalyticsService {
 
       return fullAlert;
     } catch (error) {
-      this.logger.error(`Failed to create analytics alert: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create analytics alert: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -340,8 +347,9 @@ export class LiveAnalyticsService {
         initialData,
       };
     } catch (error) {
-      this.logger.error(`Failed to create analytics subscription: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create analytics subscription: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -378,13 +386,14 @@ export class LiveAnalyticsService {
         };
         
         // Cache for 5 minutes
-        await this.cacheService.set(cacheKey, comparison, 300);
+        await this.cacheService.set(cacheKey, comparison, { ttl: 300 });
       }
 
       return comparison;
     } catch (error) {
-      this.logger.error(`Failed to get performance comparison: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get performance comparison: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -399,7 +408,8 @@ export class LiveAnalyticsService {
       await this.cacheService.invalidatePattern(`kpi-metrics:${tenantId}:*`);
       await this.cacheService.invalidatePattern(`performance-comparison:${tenantId}:*`);
     } catch (error) {
-      this.logger.warn(`Failed to update analytics cache: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to update analytics cache: ${err.message}`);
     }
   }
 
@@ -442,7 +452,8 @@ export class LiveAnalyticsService {
       }
 
     } catch (error) {
-      this.logger.warn(`Failed to check analytics alerts: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to check analytics alerts: ${err.message}`);
     }
   }
 
@@ -452,7 +463,8 @@ export class LiveAnalyticsService {
       // For now, just invalidate the cache to force recalculation
       await this.cacheService.invalidatePattern(`kpi-metrics:${tenantId}:*`);
     } catch (error) {
-      this.logger.warn(`Failed to update KPI metrics: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to update KPI metrics: ${err.message}`);
     }
   }
 
@@ -482,10 +494,11 @@ export class LiveAnalyticsService {
         existingAlerts.splice(100);
       }
       
-      await this.cacheService.set(alertsCacheKey, existingAlerts, 3600); // 1 hour
+      await this.cacheService.set(alertsCacheKey, existingAlerts, { ttl: 3600 }); // 1 hour
 
     } catch (error) {
-      this.logger.error(`Failed to send analytics alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send analytics alert: ${err.message}`, err.stack);
     }
   }
 

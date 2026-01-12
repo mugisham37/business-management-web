@@ -115,7 +115,7 @@ export class LiveCustomerActivityService {
       };
 
       // Broadcast customer activity
-      await this.realtimeService.broadcastCustomerActivity(event.tenantId, event.customerId, {
+      await this.realtimeService.broadcastCustomerActivity(event.tenantId, {
         customerId: event.customerId,
         activityType: 'registration',
         details: activity.details,
@@ -138,7 +138,8 @@ export class LiveCustomerActivityService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to handle customer creation: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle customer creation: ${err.message}`, err.stack);
     }
   }
 
@@ -173,7 +174,7 @@ export class LiveCustomerActivityService {
       };
 
       // Broadcast customer activity
-      await this.realtimeService.broadcastCustomerActivity(event.tenantId, event.customerId, {
+      await this.realtimeService.broadcastCustomerActivity(event.tenantId, {
         customerId: event.customerId,
         activityType: 'profile_updated',
         details: activity.details,
@@ -199,7 +200,8 @@ export class LiveCustomerActivityService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle customer update: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle customer update: ${err.message}`, err.stack);
     }
   }
 
@@ -227,7 +229,7 @@ export class LiveCustomerActivityService {
       };
 
       // Broadcast customer activity
-      await this.realtimeService.broadcastCustomerActivity(event.tenantId, event.customerId, {
+      await this.realtimeService.broadcastCustomerActivity(event.tenantId, {
         customerId: event.customerId,
         activityType: 'purchase',
         details: activity.details,
@@ -252,7 +254,8 @@ export class LiveCustomerActivityService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle purchase stats update: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle purchase stats update: ${err.message}`, err.stack);
     }
   }
 
@@ -283,7 +286,7 @@ export class LiveCustomerActivityService {
       };
 
       // Broadcast customer activity
-      await this.realtimeService.broadcastCustomerActivity(event.tenantId, event.customerId, {
+      await this.realtimeService.broadcastCustomerActivity(event.tenantId, {
         customerId: event.customerId,
         activityType,
         details: activity.details,
@@ -310,7 +313,8 @@ export class LiveCustomerActivityService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to handle loyalty points update: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to handle loyalty points update: ${err.message}`, err.stack);
     }
   }
 
@@ -339,13 +343,14 @@ export class LiveCustomerActivityService {
         activityFeed = await this.generateCustomerActivityFeed(tenantId, options);
         
         // Cache for 2 minutes
-        await this.cacheService.set(cacheKey, activityFeed, 120);
+        await this.cacheService.set(cacheKey, activityFeed, { ttl: 120 });
       }
 
       return activityFeed;
     } catch (error) {
-      this.logger.error(`Failed to get customer activity feed: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get customer activity feed: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -364,13 +369,14 @@ export class LiveCustomerActivityService {
         metrics = await this.generateCustomerEngagementMetrics(tenantId);
         
         // Cache for 5 minutes
-        await this.cacheService.set(cacheKey, metrics, 300);
+        await this.cacheService.set(cacheKey, metrics, { ttl: 300 });
       }
 
       return metrics;
     } catch (error) {
-      this.logger.error(`Failed to get customer engagement metrics: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get customer engagement metrics: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -393,13 +399,14 @@ export class LiveCustomerActivityService {
         activities = this.generateMockCustomerActivities(customerId, limit);
         
         // Cache for 3 minutes
-        await this.cacheService.set(cacheKey, activities, 180);
+        await this.cacheService.set(cacheKey, activities, { ttl: 180 });
       }
 
       return activities;
     } catch (error) {
-      this.logger.error(`Failed to get customer activity history: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get customer activity history: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -414,7 +421,7 @@ export class LiveCustomerActivityService {
       const subscriptionId = `customer-activity-${tenantId}-${customerId || 'all'}-${Date.now()}`;
       
       // Get initial activity feed
-      const initialData = await this.getCustomerActivityFeed(tenantId, { customerId });
+      const initialData = await this.getCustomerActivityFeed(tenantId, customerId ? { customerId } : {});
       
       this.logger.log(
         `Created customer activity subscription ${subscriptionId} for tenant ${tenantId}`,
@@ -425,8 +432,9 @@ export class LiveCustomerActivityService {
         initialData,
       };
     } catch (error) {
-      this.logger.error(`Failed to create customer activity subscription: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create customer activity subscription: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -441,7 +449,8 @@ export class LiveCustomerActivityService {
       await this.cacheService.invalidatePattern(`customer-engagement-metrics:${tenantId}`);
       await this.cacheService.invalidatePattern(`customer-activity-history:${tenantId}:*`);
     } catch (error) {
-      this.logger.warn(`Failed to update customer activity cache: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.warn(`Failed to update customer activity cache: ${err.message}`);
     }
   }
 
@@ -556,7 +565,8 @@ export class LiveCustomerActivityService {
     ];
 
     return Array.from({ length: limit }, (_, i) => {
-      const type = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      const typeIndex = Math.floor(Math.random() * activityTypes.length);
+      const type = activityTypes[typeIndex];
       const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000); // Last 7 days
 
       let details: Record<string, any> = {};
@@ -580,7 +590,7 @@ export class LiveCustomerActivityService {
       }
 
       return {
-        type,
+        type: type || 'purchase',
         customerId: customerId === 'all' ? `cust-${String(i).padStart(3, '0')}` : customerId,
         customerName: `Customer ${i + 1}`,
         customerEmail: `customer${i + 1}@example.com`,

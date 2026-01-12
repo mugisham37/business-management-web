@@ -73,9 +73,11 @@ export class ThreatDetectionGuard implements CanActivate {
         throw error;
       }
 
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Threat detection guard error for user ${user.id}: ${error.message}`,
-        error.stack,
+        `Threat detection guard error for user ${user.id}: ${errorMessage}`,
+        errorStack,
       );
 
       // In case of error, allow request but log the issue
@@ -158,7 +160,7 @@ export class ThreatDetectionGuard implements CanActivate {
     if (path.includes('download')) return 'download';
 
     // Default HTTP method mapping
-    const actionMap = {
+    const actionMap: Record<string, string> = {
       get: 'read',
       post: 'create',
       put: 'update',
@@ -166,7 +168,7 @@ export class ThreatDetectionGuard implements CanActivate {
       delete: 'delete',
     };
 
-    return actionMap[method] || method;
+    return actionMap[method.toLowerCase()] ?? method;
   }
 
   /**
@@ -177,7 +179,7 @@ export class ThreatDetectionGuard implements CanActivate {
     
     // Remove query parameters and extract resource
     const cleanPath = path.split('?')[0];
-    const pathParts = cleanPath.split('/').filter(part => part);
+    const pathParts = cleanPath.split('/').filter((part: string) => part);
     
     // Return the main resource (usually the second part after 'api/v1')
     if (pathParts.length >= 3 && pathParts[0] === 'api' && pathParts[1] === 'v1') {

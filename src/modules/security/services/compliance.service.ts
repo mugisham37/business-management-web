@@ -173,8 +173,9 @@ export class ComplianceService {
       try {
         implemented = await this.runAutomatedCheck(tenantId, control.checkFunction);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error(
-          `Failed to run automated check for control ${control.id}: ${error.message}`,
+          `Failed to run automated check for control ${control.id}: ${errorMessage}`,
         );
         implemented = false;
       }
@@ -225,7 +226,9 @@ export class ComplianceService {
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to apply retention policies: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to apply retention policies: ${errorMessage}`, errorStack);
     }
   }
 
@@ -260,9 +263,11 @@ export class ComplianceService {
           },
         });
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         this.logger.error(
-          `Failed to delete expired data ${data.id}: ${error.message}`,
-          error.stack,
+          `Failed to delete expired data ${data.id}: ${errorMessage}`,
+          errorStack,
         );
       }
     }

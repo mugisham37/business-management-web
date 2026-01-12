@@ -20,9 +20,9 @@ export interface NotificationTemplate {
   name: string;
   type: string;
   channel: string;
-  subject?: string;
+  subject: string | null;
   bodyTemplate: string;
-  htmlTemplate?: string;
+  htmlTemplate: string | null;
   variables: string[];
   isActive: boolean;
   isSystem: boolean;
@@ -36,9 +36,9 @@ export interface NotificationPreference {
   channel: string;
   isEnabled: boolean;
   frequency: 'immediate' | 'hourly' | 'daily' | 'weekly';
-  quietHoursStart?: string;
-  quietHoursEnd?: string;
-  timezone: string;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+  timezone: string | null;
   settings: Record<string, any>;
 }
 
@@ -70,16 +70,16 @@ export interface NotificationHistory {
   recipientId: string;
   type: string;
   channel: string;
-  subject?: string;
+  subject: string | null;
   message: string;
   status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
-  priority: string;
-  scheduledAt?: Date;
-  sentAt?: Date;
-  deliveredAt?: Date;
-  readAt?: Date;
+  priority: string | null;
+  scheduledAt: Date | null;
+  sentAt: Date | null;
+  deliveredAt: Date | null;
+  readAt: Date | null;
   deliveryAttempts: number;
-  failureReason?: string;
+  failureReason: string | null;
   metadata: Record<string, any>;
   createdAt: Date;
 }
@@ -123,6 +123,7 @@ export class NotificationService {
       this.logger.log(`Sending notification: ${request.type} to ${request.recipients.length} recipients`);
 
       const notificationIds: string[] = [];
+      const allChannels = new Set<string>();
 
       // Get template if specified
       let template: NotificationTemplate | null = null;
@@ -145,6 +146,9 @@ export class NotificationService {
           this.logger.warn(`No enabled channels for user ${recipientId}, notification type ${request.type}`);
           continue;
         }
+
+        // Track all channels used
+        channels.forEach(ch => allChannels.add(ch));
 
         // Create notification record for each channel
         for (const channel of channels) {
@@ -182,14 +186,15 @@ export class NotificationService {
         notificationIds,
         type: request.type,
         recipientCount: request.recipients.length,
-        channels,
+        channels: Array.from(allChannels),
         priority: request.priority || 'medium',
       });
 
       return notificationIds;
 
     } catch (error) {
-      this.logger.error(`Failed to send notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -219,7 +224,7 @@ export class NotificationService {
         message: notification.message,
         priority: notification.priority as any,
         targetUsers: recipientIds,
-        metadata: notification.metadata,
+        metadata: notification.metadata || {},
       });
 
       this.logger.log(`Sent real-time notification to ${recipientIds.length} users`);
@@ -233,7 +238,8 @@ export class NotificationService {
         message: notification.message,
       });
     } catch (error) {
-      this.logger.error(`Failed to send real-time notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send real-time notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -270,7 +276,8 @@ export class NotificationService {
       return templateId;
 
     } catch (error) {
-      this.logger.error(`Failed to create notification template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create notification template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -326,7 +333,8 @@ export class NotificationService {
       this.logger.log(`Updated notification preferences for user ${userId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to update user preferences: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update user preferences: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -373,7 +381,8 @@ export class NotificationService {
       this.logger.log(`Registered device token for user ${userId}, platform ${platform}`);
 
     } catch (error) {
-      this.logger.error(`Failed to register device token: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to register device token: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -407,7 +416,8 @@ export class NotificationService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to mark notification as read: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to mark notification as read: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -454,10 +464,12 @@ export class NotificationService {
       }
 
       // Get total count
-      const [{ count: total }] = await this.db
+      const countResult = await this.db
         .select({ count: count() })
         .from(notifications)
         .where(whereConditions);
+      
+      const total = countResult[0]?.count ?? 0;
 
       // Get notifications
       const notificationList = await this.db
@@ -482,7 +494,7 @@ export class NotificationService {
           sentAt: n.sentAt,
           deliveredAt: n.deliveredAt,
           readAt: n.readAt,
-          deliveryAttempts: n.deliveryAttempts,
+          deliveryAttempts: n.deliveryAttempts ?? 0,
           failureReason: n.failureReason,
           metadata: n.metadata as Record<string, any>,
           createdAt: n.createdAt,
@@ -491,7 +503,8 @@ export class NotificationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to get notification history: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get notification history: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -511,7 +524,7 @@ export class NotificationService {
     try {
       const { startDate, endDate, type, userId } = options;
 
-      let whereConditions = eq(notifications.tenantId, tenantId);
+      let whereConditions: any = eq(notifications.tenantId, tenantId);
 
       if (startDate) {
         whereConditions = and(whereConditions, sql`${notifications.createdAt} >= ${startDate}`);
@@ -555,18 +568,19 @@ export class NotificationService {
 
       for (const stat of overallStats) {
         const count = Number(stat.count);
+        const status = stat.status ?? '';
 
         // Overall totals
-        if (['sent', 'delivered', 'read'].includes(stat.status)) {
+        if (['sent', 'delivered', 'read'].includes(status)) {
           stats.totalSent += count;
         }
-        if (['delivered', 'read'].includes(stat.status)) {
+        if (['delivered', 'read'].includes(status)) {
           stats.totalDelivered += count;
         }
-        if (stat.status === 'read') {
+        if (status === 'read') {
           stats.totalRead += count;
         }
-        if (stat.status === 'failed') {
+        if (status === 'failed') {
           stats.totalFailed += count;
         }
 
@@ -580,14 +594,17 @@ export class NotificationService {
           };
         }
 
-        if (['sent', 'delivered', 'read'].includes(stat.status)) {
-          stats.byChannel[stat.channel].sent += count;
-        }
-        if (['delivered', 'read'].includes(stat.status)) {
-          stats.byChannel[stat.channel].delivered += count;
-        }
-        if (stat.status === 'failed') {
-          stats.byChannel[stat.channel].failed += count;
+        const channelStats = stats.byChannel[stat.channel];
+        if (channelStats) {
+          if (['sent', 'delivered', 'read'].includes(status)) {
+            channelStats.sent += count;
+          }
+          if (['delivered', 'read'].includes(status)) {
+            channelStats.delivered += count;
+          }
+          if (status === 'failed') {
+            channelStats.failed += count;
+          }
         }
 
         // By type
@@ -599,14 +616,17 @@ export class NotificationService {
           };
         }
 
-        if (['sent', 'delivered', 'read'].includes(stat.status)) {
-          stats.byType[stat.type].sent += count;
-        }
-        if (['delivered', 'read'].includes(stat.status)) {
-          stats.byType[stat.type].delivered += count;
-        }
-        if (stat.status === 'failed') {
-          stats.byType[stat.type].failed += count;
+        const typeStats = stats.byType[stat.type];
+        if (typeStats) {
+          if (['sent', 'delivered', 'read'].includes(status)) {
+            typeStats.sent += count;
+          }
+          if (['delivered', 'read'].includes(status)) {
+            typeStats.delivered += count;
+          }
+          if (status === 'failed') {
+            typeStats.failed += count;
+          }
         }
       }
 
@@ -617,15 +637,18 @@ export class NotificationService {
       // Calculate channel delivery rates
       for (const channel in stats.byChannel) {
         const channelStats = stats.byChannel[channel];
-        channelStats.deliveryRate = channelStats.sent > 0 
-          ? (channelStats.delivered / channelStats.sent) * 100 
-          : 0;
+        if (channelStats) {
+          channelStats.deliveryRate = channelStats.sent > 0 
+            ? (channelStats.delivered / channelStats.sent) * 100 
+            : 0;
+        }
       }
 
       return stats;
 
     } catch (error) {
-      this.logger.error(`Failed to get notification stats: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get notification stats: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -646,7 +669,7 @@ export class NotificationService {
     try {
       const { type, channel, isActive, limit = 50, offset = 0 } = options;
 
-      let whereConditions = eq(notificationTemplates.tenantId, tenantId);
+      let whereConditions: any = eq(notificationTemplates.tenantId, tenantId);
 
       if (type) {
         whereConditions = and(whereConditions, eq(notificationTemplates.type, type));
@@ -661,10 +684,12 @@ export class NotificationService {
       }
 
       // Get total count
-      const [{ count: total }] = await this.db
+      const countResult = await this.db
         .select({ count: count() })
         .from(notificationTemplates)
         .where(whereConditions);
+      
+      const total = countResult[0]?.count ?? 0;
 
       // Get templates
       const templateList = await this.db
@@ -685,15 +710,16 @@ export class NotificationService {
           bodyTemplate: t.bodyTemplate,
           htmlTemplate: t.htmlTemplate,
           variables: t.variables as string[],
-          isActive: t.isActive,
-          isSystem: t.isSystem,
+          isActive: t.isActive ?? false,
+          isSystem: t.isSystem ?? false,
           metadata: t.metadata as Record<string, any>,
         })),
         total,
       };
 
     } catch (error) {
-      this.logger.error(`Failed to get notification templates: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get notification templates: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -724,7 +750,8 @@ export class NotificationService {
       this.logger.log(`Updated notification template: ${templateId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to update notification template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update notification template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -745,7 +772,8 @@ export class NotificationService {
       this.logger.log(`Deleted notification template: ${templateId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to delete notification template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to delete notification template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -753,7 +781,7 @@ export class NotificationService {
   /**
    * Get user notification preferences
    */
-  async getUserPreferences(
+  async getUserAllPreferences(
     tenantId: string,
     userId: string,
   ): Promise<NotificationPreference[]> {
@@ -771,7 +799,7 @@ export class NotificationService {
         userId: p.userId,
         notificationType: p.notificationType,
         channel: p.channel,
-        isEnabled: p.isEnabled,
+        isEnabled: p.isEnabled ?? false,
         frequency: p.frequency as any,
         quietHoursStart: p.quietHoursStart,
         quietHoursEnd: p.quietHoursEnd,
@@ -780,7 +808,8 @@ export class NotificationService {
       }));
 
     } catch (error) {
-      this.logger.error(`Failed to get user preferences: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get user preferences: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -818,7 +847,10 @@ export class NotificationService {
         batchResults.forEach((result, index) => {
           if (result.status === 'fulfilled') {
             allNotificationIds.push(...result.value);
-            totalSent += batch[index].recipients.length;
+            const batchItem = batch[index];
+            if (batchItem) {
+              totalSent += batchItem.recipients.length;
+            }
           } else {
             this.logger.error(`Failed to send notification in batch ${batchCount}:`, result.reason);
           }
@@ -841,7 +873,8 @@ export class NotificationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to send bulk notifications: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send bulk notifications: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -858,8 +891,11 @@ export class NotificationService {
           channel: 'email',
           subject: 'Transaction Confirmation - {{transactionId}}',
           bodyTemplate: 'Your transaction {{transactionId}} for {{amount}} has been processed successfully.',
+          htmlTemplate: null,
           variables: ['transactionId', 'amount', 'customerName'],
+          isActive: true,
           isSystem: true,
+          metadata: {},
         },
         {
           name: 'Low Stock Alert',
@@ -867,8 +903,11 @@ export class NotificationService {
           channel: 'email',
           subject: 'Low Stock Alert - {{productName}}',
           bodyTemplate: 'Product {{productName}} is running low. Current stock: {{currentStock}}. Reorder point: {{reorderPoint}}.',
+          htmlTemplate: null,
           variables: ['productName', 'currentStock', 'reorderPoint'],
+          isActive: true,
           isSystem: true,
+          metadata: {},
         },
         {
           name: 'Payment Received',
@@ -876,8 +915,11 @@ export class NotificationService {
           channel: 'email',
           subject: 'Payment Received - {{amount}}',
           bodyTemplate: 'We have received your payment of {{amount}} for invoice {{invoiceNumber}}. Thank you!',
+          htmlTemplate: null,
           variables: ['amount', 'invoiceNumber', 'customerName'],
+          isActive: true,
           isSystem: true,
+          metadata: {},
         },
         {
           name: 'System Maintenance',
@@ -885,8 +927,11 @@ export class NotificationService {
           channel: 'email',
           subject: 'Scheduled System Maintenance',
           bodyTemplate: 'System maintenance is scheduled for {{maintenanceDate}} from {{startTime}} to {{endTime}}. Please plan accordingly.',
+          htmlTemplate: null,
           variables: ['maintenanceDate', 'startTime', 'endTime'],
+          isActive: true,
           isSystem: true,
+          metadata: {},
         },
       ];
 
@@ -897,7 +942,8 @@ export class NotificationService {
       this.logger.log(`Created ${defaultTemplates.length} default templates for tenant ${tenantId}`);
 
     } catch (error) {
-      this.logger.error(`Failed to create default templates: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create default templates: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -987,8 +1033,8 @@ export class NotificationService {
       bodyTemplate: template.bodyTemplate,
       htmlTemplate: template.htmlTemplate,
       variables: template.variables as string[],
-      isActive: template.isActive,
-      isSystem: template.isSystem,
+      isActive: template.isActive ?? false,
+      isSystem: template.isSystem ?? false,
       metadata: template.metadata as Record<string, any>,
     } : null;
   }
@@ -1012,7 +1058,7 @@ export class NotificationService {
       userId: p.userId,
       notificationType: p.notificationType,
       channel: p.channel,
-      isEnabled: p.isEnabled,
+      isEnabled: p.isEnabled ?? false,
       frequency: p.frequency as any,
       quietHoursStart: p.quietHoursStart,
       quietHoursEnd: p.quietHoursEnd,

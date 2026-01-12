@@ -69,9 +69,11 @@ export class SecurityGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `Security check failed for user ${user.id}: ${error.message}`,
-        error.stack,
+        `Security check failed for user ${user.id}: ${errorMessage}`,
+        errorStack,
       );
 
       // Log security violation
@@ -83,7 +85,7 @@ export class SecurityGuard implements CanActivate {
         ipAddress: securityContext.ipAddress,
         userAgent: securityContext.userAgent,
         metadata: {
-          error: error.message,
+          error: errorMessage,
           blocked: true,
         },
       });
@@ -141,7 +143,8 @@ export class SecurityGuard implements CanActivate {
     const { user, ipAddress } = context;
 
     // Only apply IP restrictions for enterprise tier
-    if (user.businessTier !== 'enterprise') {
+    const businessTier = (user as any).businessTier;
+    if (businessTier !== 'enterprise') {
       return;
     }
 
@@ -206,23 +209,23 @@ export class SecurityGuard implements CanActivate {
     const { user, action } = context;
 
     // Different rate limits for different actions
-    const rateLimits = {
+    const rateLimits: Record<string, { requests: number; window: number }> = {
       login: { requests: 10, window: 5 * 60 * 1000 }, // 10 per 5 minutes
       export: { requests: 5, window: 60 * 60 * 1000 }, // 5 per hour
       api: { requests: 1000, window: 60 * 60 * 1000 }, // 1000 per hour
       default: { requests: 100, window: 60 * 1000 }, // 100 per minute
     };
 
-    const limit = rateLimits[action] || rateLimits.default;
+    const limit = rateLimits[action] || rateLimits['default'];
     
     // Check recent requests
     const recentRequests = await this.auditService.queryLogs({
       tenantId: user.tenantId,
       userId: user.id,
-      startDate: new Date(Date.now() - limit.window),
+      startDate: new Date(Date.now() - limit!.window),
     });
 
-    if (recentRequests.length >= limit.requests) {
+    if (recentRequests.length >= limit!.requests) {
       throw new ForbiddenException(
         `Rate limit exceeded - too many requests in time window`,
       );
@@ -296,11 +299,11 @@ export class SecurityGuard implements CanActivate {
    */
   private getActionName(context: ExecutionContext): string {
     const request = context.switchToHttp().getRequest();
-    const method = request.method.toLowerCase();
+    const method = (request.method as string).toLowerCase();
     const path = request.route?.path || request.url;
     
     // Map HTTP methods to actions
-    const actionMap = {
+    const actionMap: Record<string, string> = {
       get: 'read',
       post: 'create',
       put: 'update',

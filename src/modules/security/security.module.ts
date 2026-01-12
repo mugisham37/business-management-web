@@ -19,7 +19,7 @@ import { ThreatDetectionGuard } from './guards/threat-detection.guard';
 import { SecurityInterceptor } from './interceptors/security.interceptor';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
 import { DrizzleService } from '../database/drizzle.service';
-import { LoggerService } from '../logger/logger.service';
+import { CustomLoggerService } from '../logger/logger.service';
 
 @Module({
   imports: [ConfigModule],
@@ -31,7 +31,7 @@ import { LoggerService } from '../logger/logger.service';
   ],
   providers: [
     DrizzleService,
-    LoggerService,
+    CustomLoggerService,
     EncryptionService,
     AuditService,
     SecurityMonitoringService,

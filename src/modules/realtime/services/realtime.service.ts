@@ -27,7 +27,7 @@ export interface TransactionEvent {
 
 export interface CustomerActivityEvent {
   customerId: string;
-  activityType: 'purchase' | 'loyalty_earned' | 'loyalty_redeemed' | 'profile_updated';
+  activityType: 'purchase' | 'loyalty_earned' | 'loyalty_redeemed' | 'profile_updated' | 'registration';
   details: Record<string, any>;
   locationId?: string;
 }
@@ -68,7 +68,8 @@ export class RealtimeService {
         quantityChange: event.newQuantity - event.previousQuantity,
       });
     } catch (error) {
-      this.logger.error(`Failed to broadcast inventory update: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to broadcast inventory update: ${err.message}`, err.stack);
     }
   }
 
@@ -94,7 +95,8 @@ export class RealtimeService {
         items: event.items,
       });
     } catch (error) {
-      this.logger.error(`Failed to broadcast transaction event: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to broadcast transaction event: ${err.message}`, err.stack);
     }
   }
 
@@ -115,7 +117,8 @@ export class RealtimeService {
         locationId: event.locationId,
       });
     } catch (error) {
-      this.logger.error(`Failed to broadcast customer activity: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to broadcast customer activity: ${err.message}`, err.stack);
     }
   }
 
@@ -139,7 +142,8 @@ export class RealtimeService {
         metadata: notification.metadata,
       });
     } catch (error) {
-      this.logger.error(`Failed to send notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send notification: ${err.message}`, err.stack);
     }
   }
 
@@ -169,7 +173,8 @@ export class RealtimeService {
         estimatedDuration: alert.estimatedDuration,
       });
     } catch (error) {
-      this.logger.error(`Failed to send system alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send system alert: ${err.message}`, err.stack);
     }
   }
 
@@ -205,7 +210,8 @@ export class RealtimeService {
         severity: alert.currentQuantity === 0 ? 'critical' : 'warning',
       });
     } catch (error) {
-      this.logger.error(`Failed to broadcast low stock alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to broadcast low stock alert: ${err.message}`, err.stack);
     }
   }
 
@@ -241,7 +247,8 @@ export class RealtimeService {
         achievedBy: milestone.achievedBy,
       });
     } catch (error) {
-      this.logger.error(`Failed to broadcast sales milestone: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to broadcast sales milestone: ${err.message}`, err.stack);
     }
   }
 

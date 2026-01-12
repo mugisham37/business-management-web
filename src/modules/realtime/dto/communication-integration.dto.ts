@@ -23,11 +23,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class ActionDto {
   @ApiProperty({ description: 'Action ID' })
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Action label' })
   @IsString()
-  label: string;
+  label!: string;
 
   @ApiPropertyOptional({ description: 'Action URL' })
   @IsOptional()
@@ -105,26 +105,26 @@ export class SendMultiChannelNotificationDto {
   @ApiProperty({ description: 'Notification title' })
   @IsString()
   @Length(1, 200)
-  title: string;
+  title!: string;
 
   @ApiProperty({ description: 'Notification message' })
   @IsString()
   @Length(1, 2000)
-  message: string;
+  message!: string;
 
   @ApiProperty({ description: 'Notification priority', enum: ['low', 'medium', 'high', 'urgent'] })
   @IsEnum(['low', 'medium', 'high', 'urgent'])
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  priority!: 'low' | 'medium' | 'high' | 'urgent';
 
   @ApiProperty({ description: 'Notification type' })
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ description: 'Communication channels to use', type: [String] })
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })
-  channels: string[];
+  channels!: string[];
 
   @ApiPropertyOptional({ description: 'Notification recipients' })
   @IsOptional()
@@ -169,16 +169,16 @@ export class SendAlertDto {
   @ApiProperty({ description: 'Alert title' })
   @IsString()
   @Length(1, 200)
-  title: string;
+  title!: string;
 
   @ApiProperty({ description: 'Alert message' })
   @IsString()
   @Length(1, 2000)
-  message: string;
+  message!: string;
 
   @ApiProperty({ description: 'Alert severity', enum: ['info', 'warning', 'error', 'critical'] })
   @IsEnum(['info', 'warning', 'error', 'critical'])
-  severity: 'info' | 'warning' | 'error' | 'critical';
+  severity!: 'info' | 'warning' | 'error' | 'critical';
 
   @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
@@ -205,17 +205,17 @@ export class SendAlertDto {
 export class SendBusinessNotificationDto {
   @ApiProperty({ description: 'Notification type' })
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ description: 'Notification title' })
   @IsString()
   @Length(1, 200)
-  title: string;
+  title!: string;
 
   @ApiProperty({ description: 'Notification message' })
   @IsString()
   @Length(1, 2000)
-  message: string;
+  message!: string;
 
   @ApiPropertyOptional({ description: 'Notification priority', enum: ['low', 'medium', 'high'] })
   @IsOptional()
@@ -251,11 +251,11 @@ export class SendBusinessNotificationDto {
 export class CommunicationChannelDto {
   @ApiProperty({ description: 'Channel type' })
   @IsString()
-  type: string;
+  type!: string;
 
   @ApiProperty({ description: 'Whether channel is enabled' })
   @IsBoolean()
-  enabled: boolean;
+  enabled!: boolean;
 
   @ApiPropertyOptional({ description: 'Channel configuration' })
   @IsOptional()
@@ -281,7 +281,7 @@ export class ConfigureCommunicationChannelsDto {
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CommunicationChannelDto)
-  channels: CommunicationChannelDto[];
+  channels!: CommunicationChannelDto[];
 }
 
 // Slack integration DTOs
@@ -289,7 +289,7 @@ export class ConfigureCommunicationChannelsDto {
 export class CreateSlackIntegrationDto {
   @ApiProperty({ description: 'Slack webhook URL' })
   @IsUrl()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @ApiPropertyOptional({ description: 'Slack bot token' })
   @IsOptional()
@@ -344,7 +344,7 @@ export class CreateSlackIntegrationDto {
 export class CreateTeamsIntegrationDto {
   @ApiProperty({ description: 'Teams webhook URL' })
   @IsUrl()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @ApiPropertyOptional({ description: 'Default title' })
   @IsOptional()
@@ -383,11 +383,11 @@ export class CreateTeamsIntegrationDto {
 export class CreateEmailProviderDto {
   @ApiProperty({ description: 'Email provider type', enum: ['sendgrid', 'ses', 'smtp', 'mailgun', 'postmark'] })
   @IsEnum(['sendgrid', 'ses', 'smtp', 'mailgun', 'postmark'])
-  type: 'sendgrid' | 'ses' | 'smtp' | 'mailgun' | 'postmark';
+  type!: 'sendgrid' | 'ses' | 'smtp' | 'mailgun' | 'postmark';
 
   @ApiProperty({ description: 'Provider configuration' })
   @IsObject()
-  configuration: any;
+  configuration!: any;
 }
 
 // SMS provider DTOs
@@ -395,11 +395,11 @@ export class CreateEmailProviderDto {
 export class CreateSMSProviderDto {
   @ApiProperty({ description: 'SMS provider type', enum: ['twilio', 'aws-sns', 'nexmo', 'messagebird', 'plivo'] })
   @IsEnum(['twilio', 'aws-sns', 'nexmo', 'messagebird', 'plivo'])
-  type: 'twilio' | 'aws-sns' | 'nexmo' | 'messagebird' | 'plivo';
+  type!: 'twilio' | 'aws-sns' | 'nexmo' | 'messagebird' | 'plivo';
 
   @ApiProperty({ description: 'Provider configuration' })
   @IsObject()
-  configuration: any;
+  configuration!: any;
 }
 
 // Specific provider configuration DTOs
@@ -407,11 +407,11 @@ export class CreateSMSProviderDto {
 export class SendGridConfigDto {
   @ApiProperty({ description: 'SendGrid API key' })
   @IsString()
-  apiKey: string;
+  apiKey!: string;
 
   @ApiProperty({ description: 'From email address' })
   @IsEmail()
-  fromEmail: string;
+  fromEmail!: string;
 
   @ApiPropertyOptional({ description: 'From name' })
   @IsOptional()
@@ -447,15 +447,15 @@ export class SendGridConfigDto {
 export class TwilioConfigDto {
   @ApiProperty({ description: 'Twilio Account SID' })
   @IsString()
-  accountSid: string;
+  accountSid!: string;
 
   @ApiProperty({ description: 'Twilio Auth Token' })
   @IsString()
-  authToken: string;
+  authToken!: string;
 
   @ApiProperty({ description: 'From phone number' })
   @IsPhoneNumber()
-  fromNumber: string;
+  fromNumber!: string;
 
   @ApiPropertyOptional({ description: 'Messaging Service SID' })
   @IsOptional()
@@ -481,28 +481,28 @@ export class TwilioConfigDto {
 export class SMTPConfigDto {
   @ApiProperty({ description: 'SMTP host' })
   @IsString()
-  host: string;
+  host!: string;
 
   @ApiProperty({ description: 'SMTP port' })
   @IsNumber()
   @Min(1)
   @Max(65535)
-  port: number;
+  port!: number;
 
   @ApiProperty({ description: 'Use secure connection (TLS)' })
   @IsBoolean()
-  secure: boolean;
+  secure!: boolean;
 
   @ApiProperty({ description: 'Authentication credentials' })
   @IsObject()
-  auth: {
+  auth!: {
     user: string;
     pass: string;
   };
 
   @ApiProperty({ description: 'From email address' })
   @IsEmail()
-  fromEmail: string;
+  fromEmail!: string;
 
   @ApiPropertyOptional({ description: 'From name' })
   @IsOptional()
