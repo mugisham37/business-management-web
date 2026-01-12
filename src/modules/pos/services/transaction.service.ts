@@ -321,12 +321,22 @@ export class TransactionService {
     voidedTransactions: number;
     refundedTransactions: number;
   }> {
-    const { transactions } = await this.transactionRepository.findByTenant(tenantId, {
-      ...(locationId && { locationId }),
-      startDate,
-      endDate,
+    // Create options object without undefined properties
+    const options: any = {
       limit: 10000, // Get all transactions for summary
-    });
+    };
+
+    if (locationId) {
+      options.locationId = locationId;
+    }
+    if (startDate) {
+      options.startDate = startDate;
+    }
+    if (endDate) {
+      options.endDate = endDate;
+    }
+
+    const { transactions } = await this.transactionRepository.findByTenant(tenantId, options);
 
     const summary = {
       totalTransactions: transactions.length,
@@ -376,11 +386,10 @@ export class TransactionService {
   }
 
   private mapToResponseDto(transaction: TransactionWithItems): TransactionResponseDto {
-    return {
+    const responseDto: any = {
       id: transaction.id,
       transactionNumber: transaction.transactionNumber,
       tenantId: transaction.tenantId,
-      ...(transaction.customerId && { customerId: transaction.customerId }),
       locationId: transaction.locationId,
       subtotal: transaction.subtotal,
       taxAmount: transaction.taxAmount,
@@ -390,7 +399,6 @@ export class TransactionService {
       status: transaction.status as any,
       itemCount: transaction.itemCount,
       paymentMethod: transaction.paymentMethod as any,
-      notes: transaction.notes,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
       items: transaction.items.map(item => ({
@@ -406,5 +414,15 @@ export class TransactionService {
         variantInfo: item.variantInfo,
       })),
     };
+
+    // Only add optional properties if they exist
+    if (transaction.customerId) {
+      responseDto.customerId = transaction.customerId;
+    }
+    if (transaction.notes) {
+      responseDto.notes = transaction.notes;
+    }
+
+    return responseDto;
   }
 }

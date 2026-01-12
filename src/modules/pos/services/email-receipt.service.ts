@@ -62,11 +62,12 @@ export class EmailReceiptService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to send receipt email: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to send receipt email: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

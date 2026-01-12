@@ -117,7 +117,8 @@ export class OfflineSyncService {
         this.logger.log(`Successfully synced operation ${queueItem.queueId}`);
 
       } catch (error) {
-        this.logger.error(`Failed to sync operation ${queueItem.queueId}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        this.logger.error(`Failed to sync operation ${queueItem.queueId}: ${errorMessage}`);
 
         await this.offlineQueueRepository.incrementSyncAttempts(
           tenantId,
@@ -129,7 +130,7 @@ export class OfflineSyncService {
         result.failedOperations++;
         result.errors.push({
           operationId: queueItem.queueId,
-          error: error.message,
+          error: errorMessage,
         });
 
         // Mark as failed if max attempts reached
@@ -139,7 +140,7 @@ export class OfflineSyncService {
           this.eventEmitter.emit('offline.sync.failed', {
             tenantId,
             operation: queueItem,
-            error: error.message,
+            error: errorMessage,
           });
         }
       }
@@ -378,6 +379,8 @@ export class OfflineSyncService {
     try {
       return await this.transactionService.findById(tenantId, transactionId);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error checking transaction existence: ${errorMessage}`);
       return null;
     }
   }

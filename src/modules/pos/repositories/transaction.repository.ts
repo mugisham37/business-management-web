@@ -1,9 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { eq, and, desc, asc, sql, count } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, count, gte, lte } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { transactions, transactionItems, paymentRecords } from '../../database/schema/transaction.schema';
 import { Transaction, TransactionItem, TransactionWithItems } from '../entities/transaction.entity';
-import { CreateTransactionDto, CreateTransactionItemDto } from '../dto/transaction.dto';
+import { CreateTransactionDto, CreateTransactionItemDto, PaymentMethod, TransactionStatus } from '../dto/transaction.dto';
 
 @Injectable()
 export class TransactionRepository {
@@ -17,7 +17,7 @@ export class TransactionRepository {
     transactionData: CreateTransactionDto,
     userId: string,
   ): Promise<Transaction> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     // Generate transaction number
     const transactionNumber = await this.generateTransactionNumber(tenantId);
@@ -68,7 +68,7 @@ export class TransactionRepository {
     items: CreateTransactionItemDto[],
     userId: string,
   ): Promise<TransactionItem[]> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const itemsData = items.map(item => {
       const lineTotal = item.quantity * item.unitPrice - (item.discountAmount || 0);
@@ -99,7 +99,7 @@ export class TransactionRepository {
   }
 
   async findById(tenantId: string, id: string): Promise<Transaction | null> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const [transaction] = await db
       .select()
@@ -128,7 +128,7 @@ export class TransactionRepository {
   }
 
   async findItemsByTransactionId(tenantId: string, transactionId: string): Promise<TransactionItem[]> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const items = await db
       .select()
@@ -144,7 +144,7 @@ export class TransactionRepository {
   }
 
   async findPaymentsByTransactionId(tenantId: string, transactionId: string): Promise<any[]> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const payments = await db
       .select()
@@ -165,15 +165,31 @@ export class TransactionRepository {
     updates: Partial<Transaction>,
     userId: string,
   ): Promise<Transaction | null> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
+    
+    // Create update object without undefined properties and with proper types
+    const updateData: any = {
+      updatedBy: userId,
+      updatedAt: new Date(),
+    };
+
+    // Only add defined properties to avoid exactOptionalPropertyTypes issues
+    Object.keys(updates).forEach(key => {
+      const value = (updates as any)[key];
+      if (value !== undefined) {
+        if (key === 'paymentMethod') {
+          updateData[key] = value as PaymentMethod;
+        } else if (key === 'status') {
+          updateData[key] = value as TransactionStatus;
+        } else {
+          updateData[key] = value;
+        }
+      }
+    });
     
     const [updated] = await db
       .update(transactions)
-      .set({
-        ...updates,
-        updatedBy: userId,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(and(
         eq(transactions.tenantId, tenantId),
         eq(transactions.id, id),
@@ -195,7 +211,7 @@ export class TransactionRepository {
       endDate?: Date;
     } = {},
   ): Promise<{ transactions: Transaction[]; total: number }> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     let whereConditions = [
       eq(transactions.tenantId, tenantId),
@@ -207,36 +223,39 @@ export class TransactionRepository {
     }
 
     if (options.status) {
-      whereConditions.push(eq(transactions.status, options.status));
+      // Cast status to the correct enum type
+      whereConditions.push(eq(transactions.status, options.status as any));
     }
 
     if (options.startDate) {
-      whereConditions.push(sql`${transactions.createdAt} >= ${options.startDate}`);
+      whereConditions.push(gte(transactions.createdAt, options.startDate));
     }
 
     if (options.endDate) {
-      whereConditions.push(sql`${transactions.createdAt} <= ${options.endDate}`);
+      whereConditions.push(lte(transactions.createdAt, options.endDate));
     }
 
     // Get total count
-    const [{ count: totalCount }] = await db
+    const countResult = await db
       .select({ count: count() })
       .from(transactions)
       .where(and(...whereConditions));
 
-    // Get transactions
+    const totalCount = countResult[0]?.count || 0;
+
+    // Get transactions with proper query building
     let query = db
       .select()
       .from(transactions)
       .where(and(...whereConditions))
       .orderBy(desc(transactions.createdAt));
 
-    if (options.limit) {
-      query = query.limit(options.limit);
+    if (options.limit !== undefined) {
+      query = query.limit(options.limit) as any;
     }
 
-    if (options.offset) {
-      query = query.offset(options.offset);
+    if (options.offset !== undefined) {
+      query = query.offset(options.offset) as any;
     }
 
     const results = await query;
@@ -247,22 +266,52 @@ export class TransactionRepository {
     };
   }
 
+  async findByDateRange(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date,
+    locationId?: string,
+  ): Promise<Transaction[]> {
+    const db = this.drizzle.getDb();
+    
+    let whereConditions = [
+      eq(transactions.tenantId, tenantId),
+      eq(transactions.isActive, true),
+      gte(transactions.createdAt, startDate),
+      lte(transactions.createdAt, endDate),
+    ];
+
+    if (locationId) {
+      whereConditions.push(eq(transactions.locationId, locationId));
+    }
+
+    const results = await db
+      .select()
+      .from(transactions)
+      .where(and(...whereConditions))
+      .orderBy(desc(transactions.createdAt));
+
+    return results.map(this.mapToEntity);
+  }
+
   private async generateTransactionNumber(tenantId: string): Promise<string> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     // Get the count of transactions for today
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-    const [{ count: todayCount }] = await db
+    const countResult = await db
       .select({ count: count() })
       .from(transactions)
       .where(and(
         eq(transactions.tenantId, tenantId),
-        sql`${transactions.createdAt} >= ${startOfDay}`,
-        sql`${transactions.createdAt} < ${endOfDay}`
+        gte(transactions.createdAt, startOfDay),
+        lte(transactions.createdAt, endOfDay)
       ));
+
+    const todayCount = countResult[0]?.count || 0;
 
     const sequence = (todayCount + 1).toString().padStart(4, '0');
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');

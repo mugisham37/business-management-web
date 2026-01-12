@@ -1,6 +1,21 @@
-import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, IsEnum, IsBoolean, Min, Max } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, IsEnum, IsBoolean, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+// Utility types for handling optional properties with exactOptionalPropertyTypes
+export type OptionalUndefined<T> = T | undefined;
+export type StrictOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// Helper function to create objects without undefined properties
+export function createWithoutUndefined<T extends Record<string, any>>(obj: T): T {
+  const result = {} as T;
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      (result as any)[key] = value;
+    }
+  }
+  return result;
+}
 
 export enum PaymentMethod {
   CASH = 'cash',
@@ -25,25 +40,25 @@ export enum TransactionStatus {
 export class CreateTransactionItemDto {
   @ApiProperty({ description: 'Product ID' })
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ description: 'Product SKU' })
   @IsString()
-  productSku: string;
+  productSku!: string;
 
   @ApiProperty({ description: 'Product name' })
   @IsString()
-  productName: string;
+  productName!: string;
 
   @ApiProperty({ description: 'Quantity', minimum: 0.001 })
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0.001)
-  quantity: number;
+  quantity!: number;
 
   @ApiProperty({ description: 'Unit price', minimum: 0 })
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
-  unitPrice: number;
+  unitPrice!: number;
 
   @ApiPropertyOptional({ description: 'Discount amount', minimum: 0 })
   @IsOptional()
@@ -68,17 +83,17 @@ export class CreateTransactionDto {
 
   @ApiProperty({ description: 'Location ID' })
   @IsString()
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Transaction items', type: [CreateTransactionItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateTransactionItemDto)
-  items: CreateTransactionItemDto[];
+  items!: CreateTransactionItemDto[];
 
   @ApiProperty({ description: 'Payment method', enum: PaymentMethod })
   @IsEnum(PaymentMethod)
-  paymentMethod: PaymentMethod;
+  paymentMethod!: PaymentMethod;
 
   @ApiPropertyOptional({ description: 'Tax amount', minimum: 0 })
   @IsOptional()
@@ -136,7 +151,7 @@ export class UpdateTransactionDto {
 export class VoidTransactionDto {
   @ApiProperty({ description: 'Reason for voiding the transaction' })
   @IsString()
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({ description: 'Additional notes' })
   @IsOptional()
@@ -148,11 +163,11 @@ export class RefundTransactionDto {
   @ApiProperty({ description: 'Refund amount', minimum: 0.01 })
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01)
-  amount: number;
+  amount!: number;
 
   @ApiProperty({ description: 'Reason for refund' })
   @IsString()
-  reason: string;
+  reason!: string;
 
   @ApiPropertyOptional({ description: 'Additional notes' })
   @IsOptional()
@@ -162,85 +177,169 @@ export class RefundTransactionDto {
 
 export class TransactionResponseDto {
   @ApiProperty({ description: 'Transaction ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Transaction number' })
-  transactionNumber: string;
+  transactionNumber!: string;
 
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId: string;
+  tenantId!: string;
 
   @ApiPropertyOptional({ description: 'Customer ID' })
   customerId?: string;
 
   @ApiProperty({ description: 'Location ID' })
-  locationId: string;
+  locationId!: string;
 
   @ApiProperty({ description: 'Subtotal' })
-  subtotal: number;
+  subtotal!: number;
 
   @ApiProperty({ description: 'Tax amount' })
-  taxAmount: number;
+  taxAmount!: number;
 
   @ApiProperty({ description: 'Discount amount' })
-  discountAmount: number;
+  discountAmount!: number;
 
   @ApiProperty({ description: 'Tip amount' })
-  tipAmount: number;
+  tipAmount!: number;
 
   @ApiProperty({ description: 'Total amount' })
-  total: number;
+  total!: number;
 
   @ApiProperty({ description: 'Transaction status', enum: TransactionStatus })
-  status: TransactionStatus;
+  status!: TransactionStatus;
 
   @ApiProperty({ description: 'Item count' })
-  itemCount: number;
+  itemCount!: number;
 
   @ApiProperty({ description: 'Payment method', enum: PaymentMethod })
-  paymentMethod: PaymentMethod;
+  paymentMethod!: PaymentMethod;
 
   @ApiPropertyOptional({ description: 'Transaction notes' })
   notes?: string;
 
   @ApiProperty({ description: 'Created at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ description: 'Updated at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({ description: 'Transaction items' })
-  items: TransactionItemResponseDto[];
+  items!: TransactionItemResponseDto[];
 }
 
 export class TransactionItemResponseDto {
   @ApiProperty({ description: 'Item ID' })
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Product ID' })
-  productId: string;
+  productId!: string;
 
   @ApiProperty({ description: 'Product SKU' })
-  productSku: string;
+  productSku!: string;
 
   @ApiProperty({ description: 'Product name' })
-  productName: string;
+  productName!: string;
 
   @ApiProperty({ description: 'Quantity' })
-  quantity: number;
+  quantity!: number;
 
   @ApiProperty({ description: 'Unit price' })
-  unitPrice: number;
+  unitPrice!: number;
 
   @ApiProperty({ description: 'Line total' })
-  lineTotal: number;
+  lineTotal!: number;
 
   @ApiProperty({ description: 'Discount amount' })
-  discountAmount: number;
+  discountAmount!: number;
 
   @ApiProperty({ description: 'Tax amount' })
-  taxAmount: number;
+  taxAmount!: number;
 
   @ApiPropertyOptional({ description: 'Variant information' })
   variantInfo?: Record<string, any>;
+}
+
+// Payment-related DTOs and interfaces
+export interface PaymentRequest {
+  paymentMethod: PaymentMethod;
+  amount: number;
+  paymentReference?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  paymentId: string;
+  providerTransactionId?: string;
+  error?: string;
+  metadata?: Record<string, any>;
+}
+
+// Email and SMS receipt options
+export interface EmailReceiptOptions {
+  to: string;
+  template?: string;
+  includeItemDetails?: boolean;
+  includeTaxBreakdown?: boolean;
+}
+
+export interface SmsReceiptOptions {
+  to: string;
+  template?: string;
+  includeTotal: boolean;
+  includeItems?: boolean;
+}
+
+export interface ReceiptResult {
+  success: boolean;
+  receiptId: string;
+  deliveryMethod: 'email' | 'sms' | 'print';
+  error?: string;
+}
+
+export interface EmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+export interface SmsResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+export interface PrintResult {
+  success: boolean;
+  printJobId?: string;
+  error?: string;
+}
+
+// Reconciliation types
+export interface ReconciliationReport {
+  reconciliationId: string;
+  tenantId: string;
+  locationId?: string;
+  startDate: Date;
+  endDate: Date;
+  totalTransactions: number;
+  totalAmount: number;
+  paymentMethodBreakdown: Record<string, { count: number; amount: number }>;
+  discrepancies: ReconciliationDiscrepancy[];
+  summary: {
+    expectedAmount: number;
+    actualAmount: number;
+    variance: number;
+    variancePercentage: number;
+  };
+  generatedAt: Date;
+}
+
+export interface ReconciliationDiscrepancy {
+  type: 'missing_transaction' | 'amount_mismatch' | 'duplicate_transaction';
+  transactionId?: string;
+  expectedAmount?: number;
+  actualAmount?: number;
+  description: string;
 }

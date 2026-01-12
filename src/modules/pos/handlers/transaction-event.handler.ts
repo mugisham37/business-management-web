@@ -32,7 +32,8 @@ export class TransactionEventHandler {
       }
 
     } catch (error) {
-      this.logger.error(`Error handling transaction created event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling transaction created event: ${errorMessage}`);
     }
   }
 
@@ -55,7 +56,8 @@ export class TransactionEventHandler {
       await this.triggerAutoReceipt(payload);
 
     } catch (error) {
-      this.logger.error(`Error handling transaction completed event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling transaction completed event: ${errorMessage}`);
     }
   }
 
@@ -84,7 +86,8 @@ export class TransactionEventHandler {
       }
 
     } catch (error) {
-      this.logger.error(`Error handling transaction voided event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling transaction voided event: ${errorMessage}`);
     }
   }
 
@@ -114,7 +117,8 @@ export class TransactionEventHandler {
       }
 
     } catch (error) {
-      this.logger.error(`Error handling transaction refunded event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling transaction refunded event: ${errorMessage}`);
     }
   }
 
@@ -139,7 +143,8 @@ export class TransactionEventHandler {
       await this.triggerPostTransactionWorkflows(payload);
 
     } catch (error) {
-      this.logger.error(`Error handling POS transaction completed event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling POS transaction completed event: ${errorMessage}`);
     }
   }
 
@@ -164,7 +169,8 @@ export class TransactionEventHandler {
       await this.triggerFailureRecovery(payload);
 
     } catch (error) {
-      this.logger.error(`Error handling POS transaction failed event: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Error handling POS transaction failed event: ${errorMessage}`);
     }
   }
 

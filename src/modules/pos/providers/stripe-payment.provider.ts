@@ -66,13 +66,14 @@ export class StripePaymentProvider implements PaymentProvider {
       }
 
     } catch (error) {
-      this.logger.error(`Stripe payment processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Stripe payment processing failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         providerResponse: {
-          error: error.message,
+          error: errorMessage,
           timestamp: new Date().toISOString(),
         },
       };
@@ -87,8 +88,9 @@ export class StripePaymentProvider implements PaymentProvider {
       await this.simulateStripeCancel(providerTransactionId);
       
     } catch (error) {
-      this.logger.error(`Failed to void Stripe payment: ${error.message}`);
-      throw new BadRequestException(`Void failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to void Stripe payment: ${errorMessage}`);
+      throw new BadRequestException(`Void failed: ${errorMessage}`);
     }
   }
 
@@ -113,11 +115,12 @@ export class StripePaymentProvider implements PaymentProvider {
       };
 
     } catch (error) {
-      this.logger.error(`Stripe refund failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Stripe refund failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Body,
   Param,
@@ -99,14 +100,25 @@ export class TransactionController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const options = {
+    // Create options object without undefined properties
+    const options: any = {
       limit: limit ? Math.min(limit, 100) : 20,
       offset: offset || 0,
-      locationId,
-      status,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
     };
+
+    // Only add optional properties if they are defined
+    if (locationId) {
+      options.locationId = locationId;
+    }
+    if (status) {
+      options.status = status;
+    }
+    if (startDate) {
+      options.startDate = new Date(startDate);
+    }
+    if (endDate) {
+      options.endDate = new Date(endDate);
+    }
 
     const { transactions, total } = await this.transactionService.findTransactionsByTenant(
       tenantId,

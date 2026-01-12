@@ -43,13 +43,14 @@ export class CashPaymentProvider implements PaymentProvider {
       };
 
     } catch (error) {
-      this.logger.error(`Cash payment processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Cash payment processing failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         providerResponse: {
-          error: error.message,
+          error: errorMessage,
           timestamp: new Date().toISOString(),
         },
       };
@@ -91,11 +92,12 @@ export class CashPaymentProvider implements PaymentProvider {
       };
 
     } catch (error) {
-      this.logger.error(`Cash refund failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Cash refund failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

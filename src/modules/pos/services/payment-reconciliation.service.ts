@@ -68,18 +68,14 @@ export class PaymentReconciliationService {
   ): Promise<ReconciliationReport> {
     this.logger.log(`Starting payment reconciliation for tenant ${tenantId} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
-    const reconciliationId = `recon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const reconciliationId = `recon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     // Get all transactions in the date range
     const transactions = await this.transactionRepository.findByDateRange(
       tenantId,
       startDate,
       endDate,
-      {
-        locationId: options.locationId,
-        includeVoided: options.includeVoided || false,
-        includeRefunded: options.includeRefunded || true,
-      }
+      options.locationId
     );
 
     // Get all payments for these transactions
@@ -87,10 +83,7 @@ export class PaymentReconciliationService {
       tenantId,
       startDate,
       endDate,
-      {
-        locationId: options.locationId,
-        paymentMethods: options.paymentMethods,
-      }
+      options.locationId
     );
 
     // Perform reconciliation analysis
@@ -114,7 +107,6 @@ export class PaymentReconciliationService {
     const report: ReconciliationReport = {
       reconciliationId,
       tenantId,
-      locationId: options.locationId,
       startDate,
       endDate,
       totalTransactions: transactions.length,
@@ -129,6 +121,11 @@ export class PaymentReconciliationService {
       },
       generatedAt: new Date(),
     };
+
+    // Only add locationId if it exists
+    if (options.locationId) {
+      (report as any).locationId = options.locationId;
+    }
 
     this.logger.log(`Reconciliation completed: ${discrepancies.length} discrepancies found, difference: $${report.summary.difference.toFixed(2)}`);
 
@@ -223,12 +220,15 @@ export class PaymentReconciliationService {
         };
       }
 
-      breakdown[method].count++;
-      breakdown[method].amount += payment.amount;
-      
-      // Calculate fees based on payment method
-      if (method === 'card' || method === 'digital_wallet') {
-        breakdown[method].fees += this.calculateStripeFees(payment.amount);
+      const methodBreakdown = breakdown[method];
+      if (methodBreakdown) {
+        methodBreakdown.count++;
+        methodBreakdown.amount += payment.amount;
+        
+        // Calculate fees based on payment method
+        if (method === 'card' || method === 'digital_wallet') {
+          methodBreakdown.fees += this.calculateStripeFees(payment.amount);
+        }
       }
     }
 
@@ -343,7 +343,8 @@ export class PaymentReconciliationService {
               break;
           }
         } catch (error) {
-          this.logger.error(`Failed to auto-resolve discrepancy: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          this.logger.error(`Failed to auto-resolve discrepancy: ${errorMessage}`);
         }
       }
     }

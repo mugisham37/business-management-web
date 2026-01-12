@@ -5,21 +5,7 @@ import { CashPaymentProvider } from '../providers/cash-payment.provider';
 import { MobileMoneyProvider } from '../providers/mobile-money.provider';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { PaymentRecord } from '../entities/transaction.entity';
-
-export interface PaymentRequest {
-  paymentMethod: string;
-  amount: number;
-  paymentReference?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface PaymentResult {
-  success: boolean;
-  paymentId: string;
-  providerTransactionId?: string;
-  error?: string;
-  metadata?: Record<string, any>;
-}
+import { PaymentRequest, PaymentResult, createWithoutUndefined } from '../dto/transaction.dto';
 
 @Injectable()
 export class PaymentService {
@@ -56,18 +42,28 @@ export class PaymentService {
         },
       });
 
-      // Create payment record
+      // Create payment record with proper optional property handling
+      const paymentData: any = {
+        transactionId,
+        paymentMethod: paymentRequest.paymentMethod,
+        amount: paymentRequest.amount,
+        paymentProvider: provider.getProviderName(),
+      };
+
+      // Only add optional properties if they are defined
+      if (providerResult.providerTransactionId !== undefined) {
+        paymentData.providerTransactionId = providerResult.providerTransactionId;
+      }
+      if (providerResult.providerResponse !== undefined) {
+        paymentData.providerResponse = providerResult.providerResponse;
+      }
+      if (paymentRequest.metadata !== undefined) {
+        paymentData.metadata = paymentRequest.metadata;
+      }
+
       const payment = await this.paymentRepository.create(
         tenantId,
-        {
-          transactionId,
-          paymentMethod: paymentRequest.paymentMethod,
-          amount: paymentRequest.amount,
-          paymentProvider: provider.getProviderName(),
-          providerTransactionId: providerResult.providerTransactionId,
-          providerResponse: providerResult.providerResponse,
-          metadata: paymentRequest.metadata,
-        },
+        paymentData,
         userId
       );
 
@@ -92,12 +88,13 @@ export class PaymentService {
       };
 
     } catch (error) {
-      this.logger.error(`Payment processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Payment processing failed: ${errorMessage}`);
       
       return {
         success: false,
         paymentId: '',
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -123,7 +120,8 @@ export class PaymentService {
             userId
           );
         } catch (error) {
-          this.logger.error(`Failed to void payment ${payment.id}: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          this.logger.error(`Failed to void payment ${payment.id}: ${errorMessage}`);
           // Continue with other payments even if one fails
         }
       }
@@ -181,8 +179,9 @@ export class PaymentService {
       );
 
     } catch (error) {
-      this.logger.error(`Failed to refund payment: ${error.message}`);
-      throw new BadRequestException(`Refund failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to refund payment: ${errorMessage}`);
+      throw new BadRequestException(`Refund failed: ${errorMessage}`);
     }
   }
 
@@ -202,9 +201,10 @@ export class PaymentService {
       const provider = this.getPaymentProvider(paymentMethod);
       return await provider.validatePayment(amount, metadata);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         valid: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

@@ -86,11 +86,12 @@ export class PrintReceiptService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to print receipt: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to print receipt: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -204,11 +205,12 @@ export class PrintReceiptService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to open cash drawer: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to open cash drawer: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }

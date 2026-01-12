@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { eq, and, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, asc, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offlineTransactionQueue } from '../../database/schema/transaction.schema';
 import { OfflineTransactionQueue } from '../entities/transaction.entity';
@@ -22,7 +22,7 @@ export class OfflineQueueRepository {
     },
     userId: string,
   ): Promise<OfflineTransactionQueue> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     // Get next sequence number for this tenant
     const sequenceNumber = await this.getNextSequenceNumber(tenantId);
@@ -49,7 +49,7 @@ export class OfflineQueueRepository {
   }
 
   async findPendingSync(tenantId: string, limit: number = 100): Promise<OfflineTransactionQueue[]> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const items = await db
       .select()
@@ -73,7 +73,7 @@ export class OfflineQueueRepository {
     queueId: string,
     userId: string,
   ): Promise<OfflineTransactionQueue | null> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const [updated] = await db
       .update(offlineTransactionQueue)
@@ -99,7 +99,7 @@ export class OfflineQueueRepository {
     error: any,
     userId: string,
   ): Promise<OfflineTransactionQueue | null> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     // First get the current item to increment attempts
     const [current] = await db
@@ -114,7 +114,8 @@ export class OfflineQueueRepository {
     if (!current) return null;
 
     const newAttempts = current.syncAttempts + 1;
-    const newErrors = [...(current.syncErrors || []), {
+    const currentErrors = Array.isArray(current.syncErrors) ? current.syncErrors : [];
+    const newErrors = [...currentErrors, {
       timestamp: new Date(),
       error: error.message || error,
       attempt: newAttempts,
@@ -140,7 +141,7 @@ export class OfflineQueueRepository {
   }
 
   async findByQueueId(tenantId: string, queueId: string): Promise<OfflineTransactionQueue | null> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const [item] = await db
       .select()
@@ -155,7 +156,7 @@ export class OfflineQueueRepository {
   }
 
   async findByDeviceId(tenantId: string, deviceId: string): Promise<OfflineTransactionQueue[]> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
     const items = await db
       .select()
@@ -171,16 +172,17 @@ export class OfflineQueueRepository {
   }
 
   private async getNextSequenceNumber(tenantId: string): Promise<number> {
-    const db = this.drizzle.getDatabase();
+    const db = this.drizzle.getDb();
     
-    const [result] = await db
+    const result = await db
       .select({
-        maxSequence: sql`COALESCE(MAX(${offlineTransactionQueue.sequenceNumber}), 0)`,
+        maxSequence: sql<number>`COALESCE(MAX(${offlineTransactionQueue.sequenceNumber}), 0)`,
       })
       .from(offlineTransactionQueue)
       .where(eq(offlineTransactionQueue.tenantId, tenantId));
 
-    return (result?.maxSequence || 0) + 1;
+    const maxSequence = result[0]?.maxSequence;
+    return (typeof maxSequence === 'number' ? maxSequence : 0) + 1;
   }
 
   private mapToEntity(row: any): OfflineTransactionQueue {

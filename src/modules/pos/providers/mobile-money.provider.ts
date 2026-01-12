@@ -45,7 +45,7 @@ export class MobileMoneyProvider implements PaymentProvider {
       // Poll for payment status (in real implementation, this would be webhook-based)
       const paymentResult = await this.pollPaymentStatus(paymentRequest.requestId, 30000); // 30 second timeout
       
-      if (paymentResult.success) {
+      if (paymentResult.success && paymentResult.transactionId) {
         return {
           success: true,
           providerTransactionId: paymentResult.transactionId,
@@ -79,13 +79,14 @@ export class MobileMoneyProvider implements PaymentProvider {
       }
 
     } catch (error) {
-      this.logger.error(`Mobile money payment processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Mobile money payment processing failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         providerResponse: {
-          error: error.message,
+          error: errorMessage,
           timestamp: new Date().toISOString(),
         },
       };
@@ -100,8 +101,9 @@ export class MobileMoneyProvider implements PaymentProvider {
       await this.simulateMobileMoneyReversal(providerTransactionId);
       
     } catch (error) {
-      this.logger.error(`Failed to void mobile money payment: ${error.message}`);
-      throw new BadRequestException(`Void failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to void mobile money payment: ${errorMessage}`);
+      throw new BadRequestException(`Void failed: ${errorMessage}`);
     }
   }
 
@@ -127,11 +129,12 @@ export class MobileMoneyProvider implements PaymentProvider {
       };
 
     } catch (error) {
-      this.logger.error(`Mobile money refund failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Mobile money refund failed: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -196,7 +199,7 @@ export class MobileMoneyProvider implements PaymentProvider {
     phoneNumber: string,
   ): Promise<{ requestId: string; status: string }> {
     // Simulate mobile money payment initiation
-    const requestId = `mm_${provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `mm_${provider}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     // In a real implementation, this would make an API call to the mobile money provider
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call delay
@@ -226,7 +229,7 @@ export class MobileMoneyProvider implements PaymentProvider {
         if (success) {
           return {
             success: true,
-            transactionId: `mm_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            transactionId: `mm_tx_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
             processingTime,
           };
         } else {
@@ -259,7 +262,7 @@ export class MobileMoneyProvider implements PaymentProvider {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    const refundId = `mm_refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const refundId = `mm_refund_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     return {
       refundId,

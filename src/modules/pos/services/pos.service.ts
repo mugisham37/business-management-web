@@ -3,7 +3,13 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TransactionService } from './transaction.service';
 import { PaymentService } from './payment.service';
 import { TransactionValidationService } from './transaction-validation.service';
-import { CreateTransactionDto, TransactionResponseDto } from '../dto/transaction.dto';
+import { 
+  CreateTransactionDto, 
+  TransactionResponseDto, 
+  TransactionStatus, 
+  PaymentMethod,
+  createWithoutUndefined 
+} from '../dto/transaction.dto';
 import { TransactionWithItems } from '../entities/transaction.entity';
 
 @Injectable()
@@ -34,34 +40,50 @@ export class POSService {
         userId
       );
 
-      // Step 2: Process payment
+      // Step 2: Process payment with proper optional property handling
+      const paymentRequest: any = {
+        paymentMethod: transactionData.paymentMethod,
+        amount: transaction.total,
+      };
+
+      // Only add optional properties if they are defined
+      if (transactionData.paymentReference !== undefined) {
+        paymentRequest.paymentReference = transactionData.paymentReference;
+      }
+
       const paymentResult = await this.paymentService.processPayment(
         tenantId,
         transaction.id,
-        {
-          paymentMethod: transactionData.paymentMethod,
-          amount: transaction.total,
-          paymentReference: transactionData.paymentReference,
-        },
+        paymentRequest,
         userId
       );
 
       // Step 3: Update transaction status based on payment result
-      let finalTransaction = transaction;
+      let finalTransaction: TransactionWithItems;
       if (paymentResult.success) {
-        finalTransaction = await this.transactionService.updateTransaction(
+        const updatedTransaction = await this.transactionService.updateTransaction(
           tenantId,
           transaction.id,
-          { status: 'completed' },
+          { status: TransactionStatus.COMPLETED },
           userId
         );
+        finalTransaction = {
+          ...updatedTransaction,
+          items: transaction.items,
+          payments: transaction.payments,
+        };
       } else {
-        finalTransaction = await this.transactionService.updateTransaction(
+        const failedTransaction = await this.transactionService.updateTransaction(
           tenantId,
           transaction.id,
-          { status: 'failed' },
+          { status: TransactionStatus.FAILED },
           userId
         );
+        finalTransaction = {
+          ...failedTransaction,
+          items: transaction.items,
+          payments: transaction.payments,
+        };
         
         throw new BadRequestException(`Payment failed: ${paymentResult.error}`);
       }
@@ -78,21 +100,18 @@ export class POSService {
         userId,
       });
 
-      return this.mapToResponseDto({
-        ...finalTransaction,
-        items: transaction.items,
-        payments: transaction.payments,
-      });
+      return this.mapToResponseDto(finalTransaction);
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      this.logger.error(`Transaction processing failed in ${processingTime}ms: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Transaction processing failed in ${processingTime}ms: ${errorMessage}`);
 
       // Emit POS transaction failed event
       this.eventEmitter.emit('pos.transaction.failed', {
         tenantId,
         transactionData,
-        error: error.message,
+        error: errorMessage,
         processingTime,
         userId,
       });
@@ -115,10 +134,15 @@ export class POSService {
   ): Promise<TransactionResponseDto> {
     this.logger.log(`Voiding transaction ${transactionId} for tenant ${tenantId}`);
 
-    const voidedTransaction = await this.transactionService.voidTransaction(
+    const voidData: any = { reason };
+    if (notes !== undefined) {
+      voidData.notes = notes;
+    }
+    
+    await this.transactionService.voidTransaction(
       tenantId,
       transactionId,
-      { reason, notes },
+      voidData,
       userId
     );
 
@@ -149,10 +173,15 @@ export class POSService {
   ): Promise<TransactionResponseDto> {
     this.logger.log(`Refunding transaction ${transactionId} for tenant ${tenantId}, amount: ${amount}`);
 
-    const refundResult = await this.transactionService.refundTransaction(
+    const refundData: any = { amount, reason };
+    if (notes !== undefined) {
+      refundData.notes = notes;
+    }
+    
+    await this.transactionService.refundTransaction(
       tenantId,
       transactionId,
-      { amount, reason, notes },
+      refundData,
       userId
     );
 
@@ -207,25 +236,35 @@ export class POSService {
     );
 
     return {
-      transactions: transactions.map(transaction => ({
-        id: transaction.id,
-        transactionNumber: transaction.transactionNumber,
-        tenantId: transaction.tenantId,
-        customerId: transaction.customerId,
-        locationId: transaction.locationId,
-        subtotal: transaction.subtotal,
-        taxAmount: transaction.taxAmount,
-        discountAmount: transaction.discountAmount,
-        tipAmount: transaction.tipAmount,
-        total: transaction.total,
-        status: transaction.status as any,
-        itemCount: transaction.itemCount,
-        paymentMethod: transaction.paymentMethod as any,
-        notes: transaction.notes,
-        createdAt: transaction.createdAt,
-        updatedAt: transaction.updatedAt,
-        items: [], // Items not included in list view for performance
-      })),
+      transactions: transactions.map(transaction => {
+        const responseDto: any = {
+          id: transaction.id,
+          transactionNumber: transaction.transactionNumber,
+          tenantId: transaction.tenantId,
+          locationId: transaction.locationId,
+          subtotal: transaction.subtotal,
+          taxAmount: transaction.taxAmount,
+          discountAmount: transaction.discountAmount,
+          tipAmount: transaction.tipAmount,
+          total: transaction.total,
+          status: transaction.status as TransactionStatus,
+          itemCount: transaction.itemCount,
+          paymentMethod: transaction.paymentMethod as PaymentMethod,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+          items: [], // Items not included in list view for performance
+        };
+        
+        // Only add optional properties if they exist
+        if (transaction.customerId) {
+          responseDto.customerId = transaction.customerId;
+        }
+        if (transaction.notes) {
+          responseDto.notes = transaction.notes;
+        }
+        
+        return responseDto;
+      }),
       total,
       summary,
     };
@@ -311,21 +350,19 @@ export class POSService {
   }
 
   private mapToResponseDto(transaction: TransactionWithItems): TransactionResponseDto {
-    return {
+    const responseDto: any = {
       id: transaction.id,
       transactionNumber: transaction.transactionNumber,
       tenantId: transaction.tenantId,
-      ...(transaction.customerId && { customerId: transaction.customerId }),
       locationId: transaction.locationId,
       subtotal: transaction.subtotal,
       taxAmount: transaction.taxAmount,
       discountAmount: transaction.discountAmount,
       tipAmount: transaction.tipAmount,
       total: transaction.total,
-      status: transaction.status as any,
+      status: transaction.status as TransactionStatus,
       itemCount: transaction.itemCount,
-      paymentMethod: transaction.paymentMethod as any,
-      notes: transaction.notes,
+      paymentMethod: transaction.paymentMethod as PaymentMethod,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
       items: transaction.items.map(item => ({
@@ -341,5 +378,15 @@ export class POSService {
         variantInfo: item.variantInfo,
       })),
     };
+
+    // Only add optional properties if they exist
+    if (transaction.customerId) {
+      responseDto.customerId = transaction.customerId;
+    }
+    if (transaction.notes) {
+      responseDto.notes = transaction.notes;
+    }
+
+    return responseDto;
   }
 }

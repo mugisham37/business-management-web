@@ -55,7 +55,7 @@ export class SmsReceiptService {
       
       return {
         success: true,
-        messageId: results[0].messageId,
+        messageId: results[0]?.messageId || 'unknown',
         metadata: {
           to: this.maskPhoneNumber(options.to),
           messageCount: messages.length,
@@ -66,11 +66,12 @@ export class SmsReceiptService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to send receipt SMS: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`Failed to send receipt SMS: ${errorMessage}`);
       
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -281,7 +282,7 @@ export class SmsReceiptService {
     await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 700));
     
     // In a real implementation, this would use an SMS service like Twilio, AWS SNS, etc.
-    const messageId = `sms_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const messageId = `sms_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     this.logger.log(`Simulated SMS sent to ${this.maskPhoneNumber(phoneNumber)} with message ID: ${messageId}`);
     

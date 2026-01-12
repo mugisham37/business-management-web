@@ -18,6 +18,7 @@ import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { POSService } from '../services/pos.service';
+import { TransactionWithItems } from '../entities/transaction.entity';
 import { ReceiptService } from '../services/receipt.service';
 import { PaymentService } from '../services/payment.service';
 import { 
@@ -161,10 +162,10 @@ export class POSController {
     const options = {
       limit: limit ? Math.min(limit, 100) : 20, // Default 20, max 100
       offset: offset || 0,
-      locationId,
-      status,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      ...(locationId && { locationId }),
+      ...(status && { status }),
+      ...(startDate && { startDate: new Date(startDate) }),
+      ...(endDate && { endDate: new Date(endDate) }),
     };
 
     return this.posService.getTransactionHistory(tenantId, options);
@@ -211,9 +212,14 @@ export class POSController {
     const transaction = await this.posService.getTransaction(tenantId, id);
     
     // Convert to TransactionWithItems format for receipt service
-    const transactionWithItems = {
+    const transactionWithItems: any = {
       ...transaction,
-      items: transaction.items,
+      paymentStatus: 'completed', // Default status
+      isOfflineTransaction: false, // Default value
+      metadata: {}, // Default metadata
+      version: 1, // Default version
+      isActive: true, // Default active status
+      items: transaction.items || [],
       payments: [], // Would be populated from payment records
     };
 
@@ -242,15 +248,41 @@ export class POSController {
     const transaction = await this.posService.getTransaction(tenantId, id);
     
     // Convert to TransactionWithItems format for receipt service
-    const transactionWithItems = {
+    const transactionWithItems: TransactionWithItems = {
       ...transaction,
-      items: transaction.items,
+      paymentStatus: 'completed', // Default value
+      isOfflineTransaction: false, // Default value
+      metadata: {}, // Default value
+      version: 1, // Default value
+      isActive: true, // Default value
       payments: [], // Would be populated from payment records
+      items: transaction.items.map(item => ({
+        id: item.id,
+        tenantId: transaction.tenantId,
+        transactionId: transaction.id,
+        productId: item.productId,
+        productSku: item.productSku,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        lineTotal: item.lineTotal,
+        discountAmount: item.discountAmount,
+        taxAmount: item.taxAmount,
+        variantInfo: item.variantInfo || {},
+        metadata: {},
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+        createdBy: '',
+        updatedBy: '',
+        deletedAt: null as any,
+        version: 1,
+        isActive: true,
+      })),
     };
 
-    return this.receiptService.generateMultipleReceipts(
+    return this.receiptService.generateReceipt(
       transactionWithItems, 
-      receiptOptionsArray
+      receiptOptionsArray[0] || { format: 'print' } // Use first receipt option or default
     );
   }
 

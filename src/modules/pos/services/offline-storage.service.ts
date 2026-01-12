@@ -201,8 +201,11 @@ export class OfflineStorageService {
         categories[category] = { count: 0, size: 0 };
       }
       
-      categories[category].count++;
-      categories[category].size += itemSize;
+      const categoryData = categories[category];
+      if (categoryData) {
+        categoryData.count++;
+        categoryData.size += itemSize;
+      }
       totalItems++;
       totalSize += itemSize;
       
@@ -295,7 +298,7 @@ export class OfflineStorageService {
 
   private extractCategory(key: string): string {
     const parts = key.split(':');
-    return parts.length >= 2 ? parts[1] : 'unknown';
+    return parts.length >= 2 ? parts[1] || 'unknown' : 'unknown';
   }
 
   private calculateChecksum(data: any): string {

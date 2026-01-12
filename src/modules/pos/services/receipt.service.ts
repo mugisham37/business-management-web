@@ -4,6 +4,7 @@ import { EmailReceiptService } from './email-receipt.service';
 import { SmsReceiptService } from './sms-receipt.service';
 import { PrintReceiptService } from './print-receipt.service';
 import { TransactionWithItems } from '../entities/transaction.entity';
+import { createWithoutUndefined } from '../dto/transaction.dto';
 
 export interface ReceiptOptions {
   format: 'email' | 'sms' | 'print';
@@ -18,7 +19,6 @@ export interface ReceiptResult {
   receiptId: string;
   deliveryMethod: string;
   error?: string;
-  metadata?: Record<string, any>;
 }
 
 @Injectable()
@@ -43,27 +43,65 @@ export class ReceiptService {
       
       switch (options.format) {
         case 'email':
-          return await this.emailService.sendReceiptEmail(receiptContent, transaction, {
+          const emailOptions: any = {
             to: options.recipient!,
-            template: options.template,
-            includeItemDetails: options.includeItemDetails,
-            includeTaxBreakdown: options.includeTaxBreakdown,
-          });
+            includeItemDetails: options.includeItemDetails || false,
+            includeTaxBreakdown: options.includeTaxBreakdown || false,
+          };
+          if (options.template) {
+            emailOptions.template = options.template;
+          }
+          
+          const emailResult = await this.emailService.sendReceiptEmail(receiptContent, transaction, emailOptions);
+          const emailReceiptResult: ReceiptResult = {
+            success: emailResult.success,
+            receiptId: `email_${Date.now()}`,
+            deliveryMethod: 'email',
+          };
+          if (emailResult.error) {
+            emailReceiptResult.error = emailResult.error;
+          }
+          return emailReceiptResult;
+          
         case 'sms':
-          return await this.smsService.sendReceiptSms(receiptContent, transaction, {
+          const smsOptions: any = {
             to: options.recipient!,
-            template: options.template as any,
             includeTotal: true,
-            includeItems: options.includeItemDetails,
-          });
+            includeItems: options.includeItemDetails || false,
+          };
+          if (options.template) {
+            smsOptions.template = options.template as 'minimal' | 'standard' | 'detailed';
+          }
+          
+          const smsResult = await this.smsService.sendReceiptSms(receiptContent, transaction, smsOptions);
+          const smsReceiptResult: ReceiptResult = {
+            success: smsResult.success,
+            receiptId: `sms_${Date.now()}`,
+            deliveryMethod: 'sms',
+          };
+          if (smsResult.error) {
+            smsReceiptResult.error = smsResult.error;
+          }
+          return smsReceiptResult;
+          
         case 'print':
-          return await this.printService.printReceipt(receiptContent, transaction, {
+          const printResult = await this.printService.printReceipt(receiptContent, transaction, {
             template: options.template as any,
             includeBarcode: true,
             includeQrCode: false,
             cutPaper: true,
             openDrawer: false,
           });
+          const printReceiptResult: ReceiptResult = {
+            success: printResult.success,
+            receiptId: `print_${Date.now()}`,
+            deliveryMethod: 'print',
+          };
+          if (printResult.error) {
+            printReceiptResult.error = printResult.error;
+          }
+          return printReceiptResult;
+          
         default:
           throw new Error(`Unsupported receipt format: ${options.format}`);
       }
@@ -85,6 +123,10 @@ export class ReceiptService {
     transaction: TransactionWithItems,
     optionsArray: ReceiptOptions[],
   ): Promise<ReceiptResult[]> {
+    if (!optionsArray || optionsArray.length === 0) {
+      return [];
+    }
+
     const results: ReceiptResult[] = [];
     
     for (const options of optionsArray) {
@@ -95,11 +137,12 @@ export class ReceiptService {
     return results;
   }
 
-  async getAvailablePrinters() {
-    return this.printService.getAvailablePrinters();
+  async getAvailablePrinters(): Promise<string[]> {
+    const printers = await this.printService.getAvailablePrinters();
+    return printers.map(printer => typeof printer === 'string' ? printer : printer.name || 'Unknown');
   }
 
-  async openCashDrawer(printerName?: string) {
+  async openCashDrawer(printerName?: string): Promise<{ success: boolean; error?: string }> {
     return this.printService.openCashDrawer(printerName);
   }
 
@@ -110,12 +153,14 @@ export class ReceiptService {
     const template = options.template || 'standard';
     
     switch (template) {
-      case 'standard':
-        return this.buildStandardReceipt(transaction, options);
       case 'minimal':
         return this.buildMinimalReceipt(transaction, options);
       case 'detailed':
         return this.buildDetailedReceipt(transaction, options);
+      case 'email':
+        return this.buildEmailReceipt(transaction, options);
+      case 'sms':
+        return this.buildSmsReceipt(transaction, options);
       default:
         return this.buildStandardReceipt(transaction, options);
     }
@@ -125,71 +170,45 @@ export class ReceiptService {
     transaction: TransactionWithItems,
     options: ReceiptOptions,
   ): string {
-    const lines: string[] = [];
+    const lines = [];
     
     // Header
-    lines.push('================================');
-    lines.push('         RECEIPT');
-    lines.push('================================');
-    lines.push('');
-    
-    // Transaction info
-    lines.push(`Transaction #: ${transaction.transactionNumber}`);
+    lines.push('RECEIPT');
+    lines.push(`Transaction: ${transaction.transactionNumber}`);
     lines.push(`Date: ${transaction.createdAt.toLocaleDateString()}`);
     lines.push(`Time: ${transaction.createdAt.toLocaleTimeString()}`);
-    lines.push(`Location: ${transaction.locationId}`);
     lines.push('');
     
     // Items
-    if (options.includeItemDetails !== false) {
+    if (options.includeItemDetails && transaction.items) {
       lines.push('ITEMS:');
-      lines.push('--------------------------------');
-      
       for (const item of transaction.items) {
-        const itemLine = `${item.productName}`;
-        const qtyPrice = `${item.quantity} x $${item.unitPrice.toFixed(2)}`;
-        const total = `$${item.lineTotal.toFixed(2)}`;
-        
-        lines.push(itemLine);
-        lines.push(`  ${qtyPrice.padEnd(20)} ${total.padStart(10)}`);
-        
-        if (item.discountAmount > 0) {
-          lines.push(`  Discount: -$${item.discountAmount.toFixed(2)}`);
-        }
+        lines.push(`${item.quantity}x ${item.productName} - $${item.lineTotal.toFixed(2)}`);
       }
-      
       lines.push('');
     }
     
     // Totals
-    lines.push('TOTALS:');
-    lines.push('--------------------------------');
-    lines.push(`Subtotal:${('$' + transaction.subtotal.toFixed(2)).padStart(24)}`);
-    
-    if (transaction.discountAmount > 0) {
-      lines.push(`Discount:${('-$' + transaction.discountAmount.toFixed(2)).padStart(24)}`);
+    if (transaction.subtotal !== transaction.total) {
+      lines.push(`Subtotal: $${transaction.subtotal.toFixed(2)}`);
+      
+      if (transaction.taxAmount > 0) {
+        lines.push(`Tax: $${transaction.taxAmount.toFixed(2)}`);
+      }
+      
+      if (transaction.discountAmount > 0) {
+        lines.push(`Discount: -$${transaction.discountAmount.toFixed(2)}`);
+      }
+      
+      if (transaction.tipAmount > 0) {
+        lines.push(`Tip: $${transaction.tipAmount.toFixed(2)}`);
+      }
     }
     
-    if (options.includeTaxBreakdown !== false && transaction.taxAmount > 0) {
-      lines.push(`Tax:${('$' + transaction.taxAmount.toFixed(2)).padStart(29)}`);
-    }
-    
-    if (transaction.tipAmount > 0) {
-      lines.push(`Tip:${('$' + transaction.tipAmount.toFixed(2)).padStart(29)}`);
-    }
-    
-    lines.push('--------------------------------');
-    lines.push(`TOTAL:${('$' + transaction.total.toFixed(2)).padStart(26)}`);
+    lines.push(`TOTAL: $${transaction.total.toFixed(2)}`);
+    lines.push(`Payment: ${transaction.paymentMethod.toUpperCase()}`);
     lines.push('');
-    
-    // Payment info
-    lines.push(`Payment Method: ${transaction.paymentMethod.toUpperCase()}`);
-    lines.push(`Status: ${transaction.status.toUpperCase()}`);
-    lines.push('');
-    
-    // Footer
     lines.push('Thank you for your business!');
-    lines.push('================================');
     
     return lines.join('\n');
   }
@@ -198,14 +217,11 @@ export class ReceiptService {
     transaction: TransactionWithItems,
     options: ReceiptOptions,
   ): string {
-    const lines: string[] = [];
-    
-    lines.push(`Receipt: ${transaction.transactionNumber}`);
-    lines.push(`Date: ${transaction.createdAt.toLocaleDateString()}`);
+    const lines = [];
+    lines.push(`Receipt #${transaction.transactionNumber}`);
     lines.push(`Total: $${transaction.total.toFixed(2)}`);
-    lines.push(`Payment: ${transaction.paymentMethod.toUpperCase()}`);
-    lines.push('Thank you!');
-    
+    lines.push(`Payment: ${transaction.paymentMethod}`);
+    lines.push(`Date: ${transaction.createdAt.toLocaleDateString()}`);
     return lines.join('\n');
   }
 
@@ -213,29 +229,59 @@ export class ReceiptService {
     transaction: TransactionWithItems,
     options: ReceiptOptions,
   ): string {
-    // Build a more detailed receipt with additional information
-    const standardReceipt = this.buildStandardReceipt(transaction, options);
+    const lines = [];
     
-    const additionalLines: string[] = [];
-    additionalLines.push('');
-    additionalLines.push('ADDITIONAL DETAILS:');
-    additionalLines.push('--------------------------------');
-    additionalLines.push(`Transaction ID: ${transaction.id}`);
-    additionalLines.push(`Tenant ID: ${transaction.tenantId}`);
+    // Detailed header
+    lines.push('DETAILED RECEIPT');
+    lines.push(`Transaction ID: ${transaction.id}`);
+    lines.push(`Transaction #: ${transaction.transactionNumber}`);
+    lines.push(`Date: ${transaction.createdAt.toLocaleDateString()}`);
+    lines.push(`Time: ${transaction.createdAt.toLocaleTimeString()}`);
+    lines.push('');
     
-    if (transaction.customerId) {
-      additionalLines.push(`Customer ID: ${transaction.customerId}`);
+    // All items with details
+    if (transaction.items && transaction.items.length > 0) {
+      lines.push('ITEMS:');
+      for (const item of transaction.items) {
+        lines.push(`${item.productName} (${item.productSku})`);
+        lines.push(`  Qty: ${item.quantity} x $${item.unitPrice.toFixed(2)} = $${item.lineTotal.toFixed(2)}`);
+        if (item.discountAmount > 0) {
+          lines.push(`  Discount: -$${item.discountAmount.toFixed(2)}`);
+        }
+        if (item.taxAmount > 0) {
+          lines.push(`  Tax: $${item.taxAmount.toFixed(2)}`);
+        }
+        lines.push('');
+      }
     }
     
-    additionalLines.push(`Items Count: ${transaction.itemCount}`);
-    additionalLines.push(`Created By: ${transaction.createdBy || 'System'}`);
+    // Detailed totals
+    lines.push('TOTALS:');
+    lines.push(`Subtotal: $${transaction.subtotal.toFixed(2)}`);
+    lines.push(`Tax: $${transaction.taxAmount.toFixed(2)}`);
+    lines.push(`Discount: -$${transaction.discountAmount.toFixed(2)}`);
+    lines.push(`Tip: $${transaction.tipAmount.toFixed(2)}`);
+    lines.push(`TOTAL: $${transaction.total.toFixed(2)}`);
+    lines.push('');
+    lines.push(`Payment Method: ${transaction.paymentMethod.toUpperCase()}`);
+    lines.push(`Payment Status: ${transaction.paymentStatus}`);
     
-    if (transaction.notes) {
-      additionalLines.push('');
-      additionalLines.push('NOTES:');
-      additionalLines.push(transaction.notes);
-    }
-    
-    return standardReceipt + '\n' + additionalLines.join('\n');
+    return lines.join('\n');
+  }
+
+  private buildEmailReceipt(
+    transaction: TransactionWithItems,
+    options: ReceiptOptions,
+  ): string {
+    // Email receipts are typically HTML formatted
+    return this.buildStandardReceipt(transaction, options);
+  }
+
+  private buildSmsReceipt(
+    transaction: TransactionWithItems,
+    options: ReceiptOptions,
+  ): string {
+    // SMS receipts should be very concise
+    return this.buildMinimalReceipt(transaction, options);
   }
 }
