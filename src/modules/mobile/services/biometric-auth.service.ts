@@ -153,7 +153,9 @@ export class BiometricAuthService {
         expiresAt,
       };
     } catch (error) {
-      this.logger.error(`Biometric authentication error: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Biometric authentication error: ${errorMessage}`, errorStack);
       return {
         success: false,
         error: 'Authentication service error',
@@ -221,7 +223,9 @@ export class BiometricAuthService {
       this.logger.log(`Biometric registration completed for user ${userId}`);
       return registration;
     } catch (error) {
-      this.logger.error(`Biometric registration failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Biometric registration failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -262,7 +266,9 @@ export class BiometricAuthService {
         this.logger.log(`Unregistered all biometrics for user ${userId} on device ${deviceId}`);
       }
     } catch (error) {
-      this.logger.error(`Biometric unregistration failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Biometric unregistration failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -334,7 +340,9 @@ export class BiometricAuthService {
       // Check if session belongs to the correct user and tenant
       return sessionData.userId === userId && sessionData.tenantId === tenantId;
     } catch (error) {
-      this.logger.error(`Session token validation failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Session token validation failed: ${errorMessage}`, errorStack);
       return false;
     }
   }
@@ -420,7 +428,9 @@ export class BiometricAuthService {
       // Require at least 85% similarity for biometric authentication
       return similarity >= 0.85;
     } catch (error) {
-      this.logger.error(`Signature verification failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Signature verification failed: ${errorMessage}`, errorStack);
       return false;
     }
   }
@@ -444,7 +454,7 @@ export class BiometricAuthService {
    * Calculate Levenshtein distance
    */
   private levenshteinDistance(str1: string, str2: string): number {
-    const matrix = [];
+    const matrix: number[][] = [];
     
     for (let i = 0; i <= str2.length; i++) {
       matrix[i] = [i];
@@ -517,7 +527,7 @@ export class BiometricAuthService {
     };
 
     const cacheKey = `biometric_session:${token}`;
-    await this.cacheService.set(cacheKey, sessionData, this.sessionDuration / 1000);
+    await this.cacheService.set(cacheKey, sessionData, { ttl: this.sessionDuration / 1000 });
 
     return token;
   }

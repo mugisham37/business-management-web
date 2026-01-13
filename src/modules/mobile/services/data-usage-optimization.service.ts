@@ -123,7 +123,9 @@ export class DataUsageOptimizationService {
         recommendations,
       };
     } catch (error) {
-      this.logger.error(`Data usage optimization failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Data usage optimization failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -178,7 +180,9 @@ export class DataUsageOptimizationService {
         await this.checkDataLimitWarnings(userId, tenantId, dataLimit, stats);
       }
     } catch (error) {
-      this.logger.error(`Failed to track data usage: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to track data usage: ${errorMessage}`, errorStack);
     }
   }
 
@@ -209,7 +213,9 @@ export class DataUsageOptimizationService {
         timestamp: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to get data usage stats: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get data usage stats: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -245,7 +251,9 @@ export class DataUsageOptimizationService {
 
       return dataLimit;
     } catch (error) {
-      this.logger.error(`Failed to set data usage limit: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to set data usage limit: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -308,7 +316,9 @@ export class DataUsageOptimizationService {
         recommendations,
       };
     } catch (error) {
-      this.logger.error(`Failed to get intelligent sync strategy: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get intelligent sync strategy: ${errorMessage}`, errorStack);
       
       // Return conservative defaults on error
       return {
@@ -386,7 +396,9 @@ export class DataUsageOptimizationService {
 
       return offlineConfig;
     } catch (error) {
-      this.logger.error(`Failed to create offline-first experience: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create offline-first experience: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -602,7 +614,7 @@ export class DataUsageOptimizationService {
    */
   private async saveDataUsageLimit(dataLimit: DataUsageLimit): Promise<void> {
     const cacheKey = `data_limit:${dataLimit.tenantId}:${dataLimit.userId}`;
-    await this.cacheService.set(cacheKey, dataLimit, 86400 * 30); // 30 days
+    await this.cacheService.set(cacheKey, dataLimit, { ttl: 86400 * 30 }); // 30 days
   }
 
   /**

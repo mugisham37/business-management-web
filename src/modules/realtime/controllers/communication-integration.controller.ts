@@ -250,14 +250,25 @@ export class CommunicationIntegrationController {
     },
     @CurrentTenant() tenantId: string,
   ) {
-    return await this.emailService.sendNotificationToUsers(tenantId, dto.userIds, {
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const notification: {
+      subject: string;
+      message: string;
+      htmlContent?: string;
+      priority?: 'high' | 'normal' | 'low';
+      templateName?: string;
+      templateVariables?: Record<string, any>;
+    } = {
       subject: dto.subject,
       message: dto.message,
-      htmlContent: dto.htmlContent,
-      priority: dto.priority,
-      templateName: dto.templateName,
-      templateVariables: dto.templateVariables,
-    });
+    };
+    
+    if (dto.htmlContent !== undefined) notification.htmlContent = dto.htmlContent;
+    if (dto.priority !== undefined) notification.priority = dto.priority;
+    if (dto.templateName !== undefined) notification.templateName = dto.templateName;
+    if (dto.templateVariables !== undefined) notification.templateVariables = dto.templateVariables;
+
+    return await this.emailService.sendNotificationToUsers(tenantId, dto.userIds, notification);
   }
 
   @Post('email/templates')
@@ -315,20 +326,39 @@ export class CommunicationIntegrationController {
     @CurrentTenant() tenantId: string,
   ) {
     if (dto.userIds && dto.userIds.length > 0) {
-      return await this.smsService.sendNotificationToUsers(tenantId, dto.userIds, {
+      // Filter out undefined values to comply with exactOptionalPropertyTypes
+      const notification: {
+        message: string;
+        priority?: 'high' | 'normal' | 'low';
+        templateName?: string;
+        templateVariables?: Record<string, any>;
+        scheduledAt?: Date;
+      } = {
         message: dto.message,
-        priority: dto.priority,
-        templateName: dto.templateName,
-        templateVariables: dto.templateVariables,
-        scheduledAt: dto.scheduledAt,
-      });
+      };
+      
+      if (dto.priority !== undefined) notification.priority = dto.priority;
+      if (dto.templateName !== undefined) notification.templateName = dto.templateName;
+      if (dto.templateVariables !== undefined) notification.templateVariables = dto.templateVariables;
+      if (dto.scheduledAt !== undefined) notification.scheduledAt = dto.scheduledAt;
+
+      return await this.smsService.sendNotificationToUsers(tenantId, dto.userIds, notification);
     } else if (dto.phoneNumbers && dto.phoneNumbers.length > 0) {
-      return await this.smsService.sendSMS(tenantId, {
+      // Filter out undefined values to comply with exactOptionalPropertyTypes
+      const smsMessage: {
+        to: string[];
+        message: string;
+        priority?: 'high' | 'normal' | 'low';
+        scheduledAt?: Date;
+      } = {
         to: dto.phoneNumbers,
         message: dto.message,
-        priority: dto.priority,
-        scheduledAt: dto.scheduledAt,
-      });
+      };
+      
+      if (dto.priority !== undefined) smsMessage.priority = dto.priority;
+      if (dto.scheduledAt !== undefined) smsMessage.scheduledAt = dto.scheduledAt;
+
+      return await this.smsService.sendSMS(tenantId, smsMessage);
     } else {
       throw new Error('Either userIds or phoneNumbers must be provided');
     }
@@ -348,10 +378,17 @@ export class CommunicationIntegrationController {
     },
     @CurrentTenant() tenantId: string,
   ) {
-    return await this.smsService.sendOTP(tenantId, dto.phoneNumber, dto.otp, {
-      validityMinutes: dto.validityMinutes,
-      brandName: dto.brandName,
-    });
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const options: {
+      provider?: string;
+      validityMinutes?: number;
+      brandName?: string;
+    } = {};
+    
+    if (dto.validityMinutes !== undefined) options.validityMinutes = dto.validityMinutes;
+    if (dto.brandName !== undefined) options.brandName = dto.brandName;
+
+    return await this.smsService.sendOTP(tenantId, dto.phoneNumber, dto.otp, options);
   }
 
   @Post('sms/templates')

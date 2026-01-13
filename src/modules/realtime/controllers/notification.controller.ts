@@ -53,22 +53,47 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<{ notificationIds: string[]; message: string }> {
-    const notificationIds = await this.notificationService.sendNotification(tenantId, {
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const notificationRequest: {
+      type: string;
+      recipients: string[];
+      templateId?: string;
+      subject?: string;
+      message: string;
+      htmlContent?: string;
+      priority?: 'low' | 'medium' | 'high' | 'urgent';
+      scheduledAt?: Date;
+      channels?: string[];
+      variables?: Record<string, any>;
+      actions?: Array<{
+        id: string;
+        label: string;
+        url?: string;
+        action?: string;
+        style?: 'primary' | 'secondary' | 'danger';
+      }>;
+      groupId?: string;
+      threadId?: string;
+      metadata?: Record<string, any>;
+    } = {
       type: dto.type,
       recipients: dto.recipients,
-      templateId: dto.templateId,
-      subject: dto.subject,
       message: dto.message,
-      htmlContent: dto.htmlContent,
-      priority: dto.priority,
-      scheduledAt: dto.scheduledAt,
-      channels: dto.channels,
-      variables: dto.variables,
-      actions: dto.actions,
-      groupId: dto.groupId,
-      threadId: dto.threadId,
-      metadata: dto.metadata,
-    });
+    };
+
+    if (dto.templateId !== undefined) notificationRequest.templateId = dto.templateId;
+    if (dto.subject !== undefined) notificationRequest.subject = dto.subject;
+    if (dto.htmlContent !== undefined) notificationRequest.htmlContent = dto.htmlContent;
+    if (dto.priority !== undefined) notificationRequest.priority = dto.priority;
+    if (dto.scheduledAt !== undefined) notificationRequest.scheduledAt = dto.scheduledAt;
+    if (dto.channels !== undefined) notificationRequest.channels = dto.channels;
+    if (dto.variables !== undefined) notificationRequest.variables = dto.variables;
+    if (dto.actions !== undefined) notificationRequest.actions = dto.actions;
+    if (dto.groupId !== undefined) notificationRequest.groupId = dto.groupId;
+    if (dto.threadId !== undefined) notificationRequest.threadId = dto.threadId;
+    if (dto.metadata !== undefined) notificationRequest.metadata = dto.metadata;
+
+    const notificationIds = await this.notificationService.sendNotification(tenantId, notificationRequest);
 
     return {
       notificationIds,
@@ -97,15 +122,27 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<{ message: string }> {
-    await this.notificationService.sendRealtimeNotification(tenantId, dto.recipients, {
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const notification: {
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      priority: string;
+      actions?: any[];
+      metadata?: Record<string, any>;
+    } = {
       id: `realtime-${Date.now()}`,
       type: dto.type,
       title: dto.title,
       message: dto.message,
       priority: dto.priority || 'medium',
-      actions: dto.actions,
-      metadata: dto.metadata,
-    });
+    };
+
+    if (dto.actions !== undefined) notification.actions = dto.actions;
+    if (dto.metadata !== undefined) notification.metadata = dto.metadata;
+
+    await this.notificationService.sendRealtimeNotification(tenantId, dto.recipients, notification);
 
     return {
       message: `Real-time notification sent to ${dto.recipients.length} recipients`,
@@ -131,9 +168,9 @@ export class NotificationController {
         name: dto.name,
         type: dto.type,
         channel: dto.channel,
-        subject: dto.subject,
+        subject: dto.subject ?? null,
         bodyTemplate: dto.bodyTemplate,
-        htmlTemplate: dto.htmlTemplate,
+        htmlTemplate: dto.htmlTemplate ?? null,
         variables: dto.variables,
         isActive: dto.isActive ?? true,
         isSystem: false,
@@ -238,13 +275,22 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ) {
-    return await this.notificationService.getNotificationHistory(tenantId, user.id, {
-      limit: query.limit,
-      offset: query.offset,
-      type: query.type,
-      status: query.status,
-      unreadOnly: query.unreadOnly,
-    });
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const filters: {
+      limit?: number;
+      offset?: number;
+      type?: string;
+      status?: string;
+      unreadOnly?: boolean;
+    } = {};
+
+    if (query.limit !== undefined) filters.limit = query.limit;
+    if (query.offset !== undefined) filters.offset = query.offset;
+    if (query.type !== undefined) filters.type = query.type;
+    if (query.status !== undefined) filters.status = query.status;
+    if (query.unreadOnly !== undefined) filters.unreadOnly = query.unreadOnly;
+
+    return await this.notificationService.getNotificationHistory(tenantId, user.id, filters);
   }
 
   /**
@@ -263,12 +309,20 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ) {
-    return await this.notificationService.getNotificationStats(tenantId, {
-      startDate: query.startDate,
-      endDate: query.endDate,
-      type: query.type,
-      userId: query.userId,
-    });
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const filters: {
+      startDate?: Date;
+      endDate?: Date;
+      type?: string;
+      userId?: string;
+    } = {};
+
+    if (query.startDate !== undefined) filters.startDate = query.startDate;
+    if (query.endDate !== undefined) filters.endDate = query.endDate;
+    if (query.type !== undefined) filters.type = query.type;
+    if (query.userId !== undefined) filters.userId = query.userId;
+
+    return await this.notificationService.getNotificationStats(tenantId, filters);
   }
 
   /**
@@ -302,7 +356,7 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ) {
-    const preferences = await this.notificationService.getUserPreferences(tenantId, user.id);
+    const preferences = await this.notificationService.getUserAllPreferences(tenantId, user.id);
     
     return {
       preferences,
@@ -332,13 +386,22 @@ export class NotificationController {
     },
     @CurrentTenant() tenantId: string,
   ) {
-    return await this.notificationService.getTemplates(tenantId, {
-      type: query.type,
-      channel: query.channel,
-      isActive: query.isActive,
-      limit: query.limit,
-      offset: query.offset,
-    });
+    // Filter out undefined values to comply with exactOptionalPropertyTypes
+    const filters: {
+      type?: string;
+      channel?: string;
+      isActive?: boolean;
+      limit?: number;
+      offset?: number;
+    } = {};
+
+    if (query.type !== undefined) filters.type = query.type;
+    if (query.channel !== undefined) filters.channel = query.channel;
+    if (query.isActive !== undefined) filters.isActive = query.isActive;
+    if (query.limit !== undefined) filters.limit = query.limit;
+    if (query.offset !== undefined) filters.offset = query.offset;
+
+    return await this.notificationService.getTemplates(tenantId, filters);
   }
 
   /**
@@ -403,25 +466,69 @@ export class NotificationController {
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ) {
-    const result = await this.notificationService.sendBulkNotifications(
-      tenantId,
-      dto.notifications.map(n => ({
+    // Filter out undefined values for each notification to comply with exactOptionalPropertyTypes
+    const notifications = dto.notifications.map(n => {
+      const notification: {
+        type: string;
+        recipients: string[];
+        templateId?: string;
+        subject?: string;
+        message: string;
+        htmlContent?: string;
+        priority?: 'low' | 'medium' | 'high' | 'urgent';
+        scheduledAt?: Date;
+        channels?: string[];
+        variables?: Record<string, any>;
+        actions?: Array<{
+          id: string;
+          label: string;
+          url?: string;
+          action?: string;
+          style?: 'primary' | 'secondary' | 'danger';
+        }>;
+        groupId?: string;
+        threadId?: string;
+        metadata?: Record<string, any>;
+      } = {
         type: n.type,
         recipients: n.recipients,
-        templateId: n.templateId,
-        subject: n.subject,
         message: n.message,
-        htmlContent: n.htmlContent,
-        priority: n.priority,
-        scheduledAt: n.scheduledAt,
-        channels: n.channels,
-        variables: n.variables,
-        actions: n.actions,
-        groupId: n.groupId,
-        threadId: n.threadId,
-        metadata: n.metadata,
-      })),
-      dto.options,
+      };
+
+      if (n.templateId !== undefined) notification.templateId = n.templateId;
+      if (n.subject !== undefined) notification.subject = n.subject;
+      if (n.htmlContent !== undefined) notification.htmlContent = n.htmlContent;
+      if (n.priority !== undefined) notification.priority = n.priority;
+      if (n.scheduledAt !== undefined) notification.scheduledAt = n.scheduledAt;
+      if (n.channels !== undefined) notification.channels = n.channels;
+      if (n.variables !== undefined) notification.variables = n.variables;
+      if (n.actions !== undefined) notification.actions = n.actions;
+      if (n.groupId !== undefined) notification.groupId = n.groupId;
+      if (n.threadId !== undefined) notification.threadId = n.threadId;
+      if (n.metadata !== undefined) notification.metadata = n.metadata;
+
+      return notification;
+    });
+
+    // Filter out undefined values from options to comply with exactOptionalPropertyTypes
+    const options: {
+      batchSize?: number;
+      delayBetweenBatches?: number;
+      priority?: 'low' | 'medium' | 'high' | 'urgent';
+    } | undefined = dto.options ? {} : undefined;
+
+    if (dto.options) {
+      if (dto.options.batchSize !== undefined) options!.batchSize = dto.options.batchSize;
+      if (dto.options.delayBetweenBatches !== undefined) options!.delayBetweenBatches = dto.options.delayBetweenBatches;
+      if (dto.options.priority !== undefined) {
+        options!.priority = dto.options.priority as 'low' | 'medium' | 'high' | 'urgent';
+      }
+    }
+
+    const result = await this.notificationService.sendBulkNotifications(
+      tenantId,
+      notifications,
+      options,
     );
 
     return {

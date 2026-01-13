@@ -101,7 +101,9 @@ export class MobileOptimizationService {
         },
       };
     } catch (error) {
-      this.logger.error(`Mobile optimization failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Mobile optimization failed: ${errorMessage}`, errorStack);
       
       // Return original data if optimization fails
       return {

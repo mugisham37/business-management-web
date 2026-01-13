@@ -218,7 +218,9 @@ export class OfflineDataSyncService {
         errors,
       };
     } catch (error) {
-      this.logger.error(`Sync failed for ${queueKey}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Sync failed for ${queueKey}: ${errorMessage}`, errorStack);
       return {
         success: false,
         syncedItems: 0,
@@ -291,8 +293,9 @@ export class OfflineDataSyncService {
 
       return { success: syncResult.success, error: syncResult.error };
     } catch (error) {
-      this.logger.error(`Failed to sync item ${item.id}: ${error.message}`);
-      return { success: false, error: error.message };
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to sync item ${item.id}: ${errorMessage}`);
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -373,7 +376,7 @@ export class OfflineDataSyncService {
       item,
       serverData,
       timestamp: new Date(),
-    }, 86400); // 24 hours
+    }, { ttl: 86400 }); // 24 hours
 
     this.logger.warn(`Queued conflict for manual resolution: ${conflictKey}`);
   }

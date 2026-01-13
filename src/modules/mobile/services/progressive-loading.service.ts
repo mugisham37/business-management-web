@@ -96,7 +96,7 @@ export class ProgressiveLoadingService {
         await this.cacheService.set(
           `${cacheKey}:page:${page}`,
           result,
-          600, // 10 minutes
+          { ttl: 600 }, // 10 minutes
         );
         result.metadata.cachedPages.push(page);
       }
@@ -119,7 +119,9 @@ export class ProgressiveLoadingService {
 
       return result;
     } catch (error) {
-      this.logger.error(`Progressive loading failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Progressive loading failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -184,7 +186,9 @@ export class ProgressiveLoadingService {
         totalLoadTime,
       };
     } catch (error) {
-      this.logger.error(`Chunk loading failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Chunk loading failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -251,7 +255,8 @@ export class ProgressiveLoadingService {
         return cached;
       }
     } catch (error) {
-      this.logger.warn(`Failed to get cached page: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Failed to get cached page: ${errorMessage}`);
     }
 
     return null;
@@ -282,20 +287,21 @@ export class ProgressiveLoadingService {
   private optimizeDataForMobile<T>(data: T[], priorityFields: string[]): T[] {
     return data.map(item => {
       if (typeof item === 'object' && item !== null) {
-        const optimized: any = {};
+        const optimized: Record<string, any> = {};
+        const itemRecord = item as Record<string, any>;
         
         // Always include priority fields
         priorityFields.forEach(field => {
-          if (field in item) {
-            optimized[field] = item[field];
+          if (field in itemRecord) {
+            optimized[field] = itemRecord[field];
           }
         });
 
         // Include other essential fields
         const essentialFields = ['createdAt', 'updatedAt'];
         essentialFields.forEach(field => {
-          if (field in item && !priorityFields.includes(field)) {
-            optimized[field] = item[field];
+          if (field in itemRecord && !priorityFields.includes(field)) {
+            optimized[field] = itemRecord[field];
           }
         });
 

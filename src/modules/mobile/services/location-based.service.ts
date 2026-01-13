@@ -115,7 +115,9 @@ export class LocationBasedService {
         nearbyLocations,
       };
     } catch (error) {
-      this.logger.error(`Location tracking failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Location tracking failed: ${errorMessage}`, errorStack);
       return {
         events: [],
         recommendations: [],
@@ -262,7 +264,9 @@ export class LocationBasedService {
         popularAreas,
       };
     } catch (error) {
-      this.logger.error(`Location analytics failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Location analytics failed: ${errorMessage}`, errorStack);
       return {
         totalEvents: 0,
         uniqueUsers: 0,
@@ -506,7 +510,7 @@ export class LocationBasedService {
         existingEvents.splice(0, existingEvents.length - 1000);
       }
 
-      await this.cacheService.set(cacheKey, existingEvents, 86400 * 7); // 7 days
+      await this.cacheService.set(cacheKey, existingEvents, { ttl: 86400 * 7 }); // 7 days
     }
   }
 

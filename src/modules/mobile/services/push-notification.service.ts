@@ -110,10 +110,12 @@ export class PushNotificationService {
         invalidTokens,
       };
     } catch (error) {
-      this.logger.error(`Failed to send push notification: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to send push notification: ${errorMessage}`, errorStack);
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         deliveredTokens: 0,
         failedTokens: 0,
         invalidTokens: [],
@@ -148,10 +150,12 @@ export class PushNotificationService {
       
       return this.sendToUsers(tenantId, userIds, payload);
     } catch (error) {
-      this.logger.error(`Failed to send tenant-wide push notification: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to send tenant-wide push notification: ${errorMessage}`, errorStack);
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         deliveredTokens: 0,
         failedTokens: 0,
         invalidTokens: [],
@@ -204,7 +208,9 @@ export class PushNotificationService {
       this.logger.log(`Registered new device token for user ${userId} on ${platform}`);
       return deviceToken;
     } catch (error) {
-      this.logger.error(`Failed to register device token: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to register device token: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -222,7 +228,9 @@ export class PushNotificationService {
         this.logger.log(`Unregistered device token: ${token.substring(0, 20)}...`);
       }
     } catch (error) {
-      this.logger.error(`Failed to unregister device token: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to unregister device token: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -291,12 +299,12 @@ export class PushNotificationService {
     const tokenCacheKey = `device_token:${deviceToken.token}`;
     const userCacheKey = `device_tokens:user:${deviceToken.tenantId}:${deviceToken.userId}`;
     
-    await this.cacheService.set(tokenCacheKey, deviceToken, 86400 * 30); // 30 days
+    await this.cacheService.set(tokenCacheKey, deviceToken, { ttl: 86400 * 30 }); // 30 days
     
     // Update user's token list
     const userTokens = await this.getUserDeviceTokens(deviceToken.tenantId, deviceToken.userId);
     userTokens.push(deviceToken);
-    await this.cacheService.set(userCacheKey, userTokens, 86400 * 30);
+    await this.cacheService.set(userCacheKey, userTokens, { ttl: 86400 * 30 });
   }
 
   /**
@@ -304,7 +312,7 @@ export class PushNotificationService {
    */
   private async updateDeviceToken(deviceToken: DeviceToken): Promise<void> {
     const cacheKey = `device_token:${deviceToken.token}`;
-    await this.cacheService.set(cacheKey, deviceToken, 86400 * 30);
+    await this.cacheService.set(cacheKey, deviceToken, { ttl: 86400 * 30 });
   }
 
   /**
@@ -346,10 +354,12 @@ export class PushNotificationService {
           throw new Error(`Unsupported platform: ${platform}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to send to ${platform}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to send to ${platform}: ${errorMessage}`, errorStack);
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         deliveredTokens: 0,
         failedTokens: tokens.length,
         invalidTokens: [],
@@ -448,7 +458,7 @@ export class PushNotificationService {
           optimized.sound = 'default';
         }
         // iOS has stricter payload size limits
-        if (optimized.body.length > 178) {
+        if (optimized.body && optimized.body.length > 178) {
           optimized.body = optimized.body.substring(0, 175) + '...';
         }
         break;
@@ -481,7 +491,8 @@ export class PushNotificationService {
       try {
         await this.unregisterDeviceToken(token);
       } catch (error) {
-        this.logger.warn(`Failed to remove invalid token: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.logger.warn(`Failed to remove invalid token: ${errorMessage}`);
       }
     }
   }

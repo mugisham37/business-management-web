@@ -86,7 +86,9 @@ export class PayloadCompressionService {
         algorithm: opts.algorithm,
       };
     } catch (error) {
-      this.logger.error(`Payload compression failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Payload compression failed: ${errorMessage}`, errorStack);
       return null;
     }
   }
@@ -118,7 +120,9 @@ export class PayloadCompressionService {
       const jsonString = decompressed.toString('utf8');
       return JSON.parse(jsonString);
     } catch (error) {
-      this.logger.error(`Payload decompression failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Payload decompression failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }

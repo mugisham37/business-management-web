@@ -134,7 +134,9 @@ export class IntelligentSyncSchedulerService {
 
       return schedule;
     } catch (error) {
-      this.logger.error(`Failed to schedule intelligent sync: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to schedule intelligent sync: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -196,7 +198,9 @@ export class IntelligentSyncSchedulerService {
         alternatives: await this.getAlternativeSyncTimes(context, priority),
       };
     } catch (error) {
-      this.logger.error(`Failed to get sync recommendation: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get sync recommendation: ${errorMessage}`, errorStack);
       
       // Return safe default
       return {
@@ -281,16 +285,18 @@ export class IntelligentSyncSchedulerService {
         executedAt: new Date(startTime),
         duration,
         dataUsed: syncResult.dataUsed,
-        error: syncResult.error,
+        ...(syncResult.error && { error: syncResult.error }),
       };
     } catch (error) {
-      this.logger.error(`Sync execution failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Sync execution failed: ${errorMessage}`, errorStack);
       return {
         success: false,
         executedAt: new Date(),
         duration: 0,
         dataUsed: 0,
-        error: error.message,
+        ...(errorMessage && { error: errorMessage }),
       };
     }
   }
@@ -327,7 +333,9 @@ export class IntelligentSyncSchedulerService {
       
       return false;
     } catch (error) {
-      this.logger.error(`Failed to cancel sync schedule: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to cancel sync schedule: ${errorMessage}`, errorStack);
       return false;
     }
   }
@@ -578,7 +586,7 @@ export class IntelligentSyncSchedulerService {
    */
   private estimateSyncDuration(dataType: string, dataSize: number): number {
     // Base duration estimates (seconds)
-    const baseDurations = {
+    const baseDurations: Record<string, number> = {
       transactions: 30,
       customers: 45,
       products: 60,
@@ -738,7 +746,7 @@ export class IntelligentSyncSchedulerService {
       schedules.push(schedule);
     }
 
-    await this.cacheService.set(cacheKey, schedules, 86400 * 7); // 7 days
+    await this.cacheService.set(cacheKey, schedules, { ttl: 86400 * 7 }); // 7 days
   }
 
   /**
@@ -783,7 +791,9 @@ export class IntelligentSyncSchedulerService {
       try {
         await this.evaluateDueSyncs();
       } catch (error) {
-        this.logger.error(`Periodic sync evaluation failed: ${error.message}`, error.stack);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        this.logger.error(`Periodic sync evaluation failed: ${errorMessage}`, errorStack);
       }
     }, 5 * 60 * 1000); // 5 minutes
   }

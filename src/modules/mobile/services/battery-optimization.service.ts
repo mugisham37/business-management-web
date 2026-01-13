@@ -102,7 +102,9 @@ export class BatteryOptimizationService {
         appliedOptimizations,
       };
     } catch (error) {
-      this.logger.error(`Battery optimization failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Battery optimization failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -138,7 +140,9 @@ export class BatteryOptimizationService {
       this.logger.log(`Created power consumption profile for user ${userId}`);
       return profile;
     } catch (error) {
-      this.logger.error(`Failed to create power consumption profile: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create power consumption profile: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -197,7 +201,9 @@ export class BatteryOptimizationService {
         deferredData,
       };
     } catch (error) {
-      this.logger.error(`Failed to get intelligent sync schedule: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get intelligent sync schedule: ${errorMessage}`, errorStack);
       
       // Return default schedule on error
       return {
@@ -287,7 +293,7 @@ export class BatteryOptimizationService {
       const recommendations = [];
 
       // Analyze current settings and usage patterns
-      if (profile?.averageBatteryDrain > 15) { // > 15% per hour is high
+      if (profile && profile.averageBatteryDrain > 15) { // > 15% per hour is high
         recommendations.push({
           type: 'setting' as const,
           title: 'Reduce Sync Frequency',
@@ -333,7 +339,9 @@ export class BatteryOptimizationService {
         currentOptimizationLevel,
       };
     } catch (error) {
-      this.logger.error(`Failed to get battery recommendations: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get battery recommendations: ${errorMessage}`, errorStack);
       return {
         recommendations: [],
         currentOptimizationLevel: 0,

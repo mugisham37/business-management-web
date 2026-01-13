@@ -112,7 +112,9 @@ export class CameraIntegrationService {
       this.logger.log(`Barcode scan completed: ${mockResults.length} codes detected`);
       return mockResults;
     } catch (error) {
-      this.logger.error(`Barcode scanning failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Barcode scanning failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -141,7 +143,9 @@ export class CameraIntegrationService {
       this.logger.log(`Document scan completed: ${documentType} with ${mockResult.confidence}% confidence`);
       return mockResult;
     } catch (error) {
-      this.logger.error(`Document scanning failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Document scanning failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -167,7 +171,9 @@ export class CameraIntegrationService {
       this.logger.log(`Image analysis completed: ${mockResult.objects.length} objects detected`);
       return mockResult;
     } catch (error) {
-      this.logger.error(`Image analysis failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Image analysis failed: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -210,7 +216,9 @@ export class CameraIntegrationService {
 
       return capabilities;
     } catch (error) {
-      this.logger.error(`Failed to get camera capabilities: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get camera capabilities: ${errorMessage}`, errorStack);
       
       // Return minimal capabilities on error
       return {
@@ -368,7 +376,7 @@ export class CameraIntegrationService {
     // Simulate processing time
     await this.delay(500 + Math.random() * 1000);
 
-    const mockTexts = {
+    const mockTexts: Record<string, string> = {
       receipt: 'Store Name\n123 Main St\nItem 1: $10.99\nItem 2: $5.50\nTotal: $16.49\nThank you!',
       invoice: 'INVOICE #12345\nDate: 2024-01-15\nBill To: Customer Name\nAmount Due: $250.00',
       id_card: 'John Doe\nID: 123456789\nDOB: 01/01/1990\nExpires: 01/01/2030',
@@ -376,7 +384,7 @@ export class CameraIntegrationService {
       document: 'This is a sample document with various text content that has been extracted using OCR technology.',
     };
 
-    const mockFields = {
+    const mockFields: Record<string, Record<string, string>> = {
       receipt: {
         store_name: 'Store Name',
         total: '$16.49',
@@ -429,7 +437,7 @@ export class CameraIntegrationService {
       'person', 'car', 'building', 'tree', 'sign', 'phone', 'laptop', 'book', 'bottle', 'chair'
     ];
 
-    const objects = [];
+    const objects: Array<{ name: string; confidence: number; boundingBox: { x: number; y: number; width: number; height: number } }> = [];
     const numObjects = Math.floor(Math.random() * 5) + 1;
 
     for (let i = 0; i < numObjects; i++) {
@@ -445,16 +453,13 @@ export class CameraIntegrationService {
       });
     }
 
-    return {
-      objects,
-      text: Math.random() > 0.5 ? 'Some text detected in the image' : undefined,
-      faces: Math.random() > 0.7 ? [
-        {
-          confidence: 0.9 + Math.random() * 0.1,
-          boundingBox: {
-            x: 100,
-            y: 50,
-            width: 80,
+    const faces: Array<{ confidence: number; boundingBox: { x: number; y: number; width: number; height: number }; attributes?: { age?: number; gender?: string; emotion?: string } }> | undefined = Math.random() > 0.7 ? [
+      {
+        confidence: 0.9 + Math.random() * 0.1,
+        boundingBox: {
+          x: 100,
+          y: 50,
+          width: 80,
             height: 100,
           },
           attributes: {
@@ -463,7 +468,12 @@ export class CameraIntegrationService {
             emotion: ['happy', 'neutral', 'surprised'][Math.floor(Math.random() * 3)],
           },
         },
-      ] : undefined,
+      ] : undefined;
+
+    return {
+      objects,
+      text: Math.random() > 0.5 ? 'Some text detected in the image' : undefined,
+      faces,
     };
   }
 
