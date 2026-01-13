@@ -74,7 +74,7 @@ export class MobileOptimizationService {
 
         // Cache optimized data
         if (cacheKey) {
-          await this.cacheService.set(cacheKey, optimizedData, 300); // 5 minutes
+          await this.cacheService.set(cacheKey, optimizedData, { ttl: 300 }); // 5 minutes
           optimizationsApplied.push('cached');
         }
       }

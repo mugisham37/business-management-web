@@ -60,10 +60,12 @@ export class CompressionInterceptor implements NestInterceptor {
             return data;
           }
         } catch (error) {
-          this.logger.error(`Compression failed: ${error.message}`, error.stack);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorStack = error instanceof Error ? error.stack : '';
+          this.logger.error(`Compression failed: ${errorMessage}`, errorStack);
           
           // Return original data if compression fails
-          response.setHeader('X-Compression-Error', error.message);
+          response.setHeader('X-Compression-Error', errorMessage);
           return data;
         }
       }),

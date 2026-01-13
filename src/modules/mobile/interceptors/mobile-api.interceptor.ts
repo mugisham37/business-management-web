@@ -56,11 +56,13 @@ export class MobileApiInterceptor implements NestInterceptor {
             _mobile: optimizedResponse.metadata,
           };
         } catch (error) {
-          this.logger.error(`Mobile optimization failed: ${error.message}`, error.stack);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorStack = error instanceof Error ? error.stack : '';
+          this.logger.error(`Mobile optimization failed: ${errorMessage}`, errorStack);
           
           // Return original data if optimization fails
           response.setHeader('X-Mobile-Optimized', 'false');
-          response.setHeader('X-Optimization-Error', error.message);
+          response.setHeader('X-Optimization-Error', errorMessage);
           return data;
         }
       }),
@@ -100,11 +102,11 @@ export class MobileApiInterceptor implements NestInterceptor {
     return {
       deviceType,
       connectionType: detectedConnectionType,
-      batteryLevel,
-      dataUsageLimit,
+      ...(batteryLevel !== undefined && { batteryLevel }),
+      ...(dataUsageLimit !== undefined && { dataUsageLimit }),
       compressionEnabled: acceptEncoding.includes('gzip') || acceptEncoding.includes('deflate'),
       progressiveLoading: deviceType === 'phone' || detectedConnectionType === 'cellular',
-    };
+    } as MobileOptimizationOptions;
   }
 
   /**

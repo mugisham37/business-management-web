@@ -28,6 +28,7 @@ import { APIPerformanceService } from './api-performance.service';
     AdvancedCacheService,
     HorizontalScalingService,
     APIPerformanceService,
+    NestCacheModule,
   ],
 })
-export class CacheConfigModule {}
+export class CacheModule {}

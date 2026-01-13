@@ -107,7 +107,7 @@ export class CameraIntegrationService {
       
       // Cache results for potential retry
       const cacheKey = `barcode_scan:${tenantId}:${userId}:${Date.now()}`;
-      await this.cacheService.set(cacheKey, mockResults, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, mockResults, { ttl: 300 }); // 5 minutes
 
       this.logger.log(`Barcode scan completed: ${mockResults.length} codes detected`);
       return mockResults;
@@ -136,7 +136,7 @@ export class CameraIntegrationService {
       
       // Cache results
       const cacheKey = `document_scan:${tenantId}:${userId}:${Date.now()}`;
-      await this.cacheService.set(cacheKey, mockResult, 600); // 10 minutes
+      await this.cacheService.set(cacheKey, mockResult, { ttl: 600 }); // 10 minutes
 
       this.logger.log(`Document scan completed: ${documentType} with ${mockResult.confidence}% confidence`);
       return mockResult;
@@ -162,7 +162,7 @@ export class CameraIntegrationService {
       
       // Cache results
       const cacheKey = `image_analysis:${tenantId}:${userId}:${Date.now()}`;
-      await this.cacheService.set(cacheKey, mockResult, 600); // 10 minutes
+      await this.cacheService.set(cacheKey, mockResult, { ttl: 600 }); // 10 minutes
 
       this.logger.log(`Image analysis completed: ${mockResult.objects.length} objects detected`);
       return mockResult;
@@ -319,7 +319,7 @@ export class CameraIntegrationService {
       };
 
       // Cache result
-      await this.cacheService.set(cacheKey, result, 3600); // 1 hour
+      await this.cacheService.set(cacheKey, result, { ttl: 3600 }); // 1 hour
 
       return result;
     } catch (error) {

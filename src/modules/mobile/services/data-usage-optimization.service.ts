@@ -170,7 +170,7 @@ export class DataUsageOptimizationService {
         stats.compressionSavings += (estimatedUncompressedSize - bytes);
       }
 
-      await this.cacheService.set(cacheKey, stats, 86400); // 24 hours
+      await this.cacheService.set(cacheKey, stats, { ttl: 86400 }); // 24 hours
 
       // Check data limits
       const dataLimit = await this.getDataUsageLimit(userId, tenantId);
@@ -377,7 +377,7 @@ export class DataUsageOptimizationService {
       };
 
       const cacheKey = `offline_config:${tenantId}:${userId}`;
-      await this.cacheService.set(cacheKey, offlineConfig, 86400); // 24 hours
+      await this.cacheService.set(cacheKey, offlineConfig, { ttl: 86400 }); // 24 hours
 
       this.logger.log(
         `Created offline-first experience for user ${userId}: ` +
@@ -614,7 +614,7 @@ export class DataUsageOptimizationService {
     settings: any,
   ): Promise<void> {
     const cacheKey = `data_optimized_settings:${tenantId}:${userId}`;
-    await this.cacheService.set(cacheKey, settings, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, settings, { ttl: 3600 }); // 1 hour
   }
 
   /**

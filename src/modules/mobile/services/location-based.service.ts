@@ -459,7 +459,7 @@ export class LocationBasedService {
     location: LocationCoordinates,
   ): Promise<void> {
     const cacheKey = `user_location:${tenantId}:${userId}:${deviceId}`;
-    await this.cacheService.set(cacheKey, location, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, location, { ttl: 3600 }); // 1 hour
   }
 
   /**
@@ -488,7 +488,7 @@ export class LocationBasedService {
       geofences.push(geofence);
     }
 
-    await this.cacheService.set(cacheKey, geofences, 86400); // 24 hours
+    await this.cacheService.set(cacheKey, geofences, { ttl: 86400 }); // 24 hours
   }
 
   /**

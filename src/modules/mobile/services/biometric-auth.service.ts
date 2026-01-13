@@ -372,13 +372,12 @@ export class BiometricAuthService {
 
     return registrations;
   }
-
   /**
    * Save biometric registration
    */
   private async saveBiometricRegistration(registration: BiometricRegistration): Promise<void> {
     const cacheKey = `biometric_reg:${registration.tenantId}:${registration.userId}:${registration.deviceId}:${registration.biometricType}`;
-    await this.cacheService.set(cacheKey, registration, 86400 * 30); // 30 days
+    await this.cacheService.set(cacheKey, registration, { ttl: 86400 * 30 }); // 30 days
   }
 
   /**
@@ -477,10 +476,15 @@ export class BiometricAuthService {
    */
   private async encryptEnrollmentData(data: string): Promise<string> {
     // In production, use proper encryption with tenant-specific keys
-    const cipher = crypto.createCipher('aes-256-cbc', this.configService.get('BIOMETRIC_ENCRYPTION_KEY', 'default-key'));
+    const key = this.configService.get('BIOMETRIC_ENCRYPTION_KEY', 'default-key-32-chars-minimum0000');
+    const iv = crypto.randomBytes(16);
+    // Use first 32 characters of key for AES-256
+    const keyBuffer = Buffer.from(key.substring(0, 32).padEnd(32, '0'), 'utf8');
+    const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, iv);
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return encrypted;
+    // Prepend IV to encrypted data for decryption
+    return iv.toString('hex') + ':' + encrypted;
   }
 
   /**

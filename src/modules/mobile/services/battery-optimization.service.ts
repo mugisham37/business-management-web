@@ -289,39 +289,39 @@ export class BatteryOptimizationService {
       // Analyze current settings and usage patterns
       if (profile?.averageBatteryDrain > 15) { // > 15% per hour is high
         recommendations.push({
-          type: 'setting',
+          type: 'setting' as const,
           title: 'Reduce Sync Frequency',
           description: 'Sync data less frequently to save battery',
-          impact: 'high',
+          impact: 'high' as const,
           estimatedSavings: 25,
         });
       }
 
       if (batteryStatus.level < 30) {
         recommendations.push({
-          type: 'feature',
+          type: 'feature' as const,
           title: 'Enable Low Power Mode',
           description: 'Automatically optimize settings for battery saving',
-          impact: 'high',
+          impact: 'high' as const,
           estimatedSavings: 30,
         });
       }
 
       if (profile?.heavyUsagePatterns.includes('real_time_updates')) {
         recommendations.push({
-          type: 'behavior',
+          type: 'behavior' as const,
           title: 'Limit Real-time Updates',
           description: 'Reduce frequency of live data updates',
-          impact: 'medium',
+          impact: 'medium' as const,
           estimatedSavings: 15,
         });
       }
 
       recommendations.push({
-        type: 'setting',
+        type: 'setting' as const,
         title: 'Compress Data Transfers',
         description: 'Enable data compression to reduce network usage',
-        impact: 'medium',
+        impact: 'medium' as const,
         estimatedSavings: 10,
       });
 
@@ -496,9 +496,10 @@ export class BatteryOptimizationService {
   private async getPowerConsumptionProfile(
     userId: string,
     tenantId: string,
-  ): Promise<PowerConsumptionProfile | null> {
+  ): Promise<PowerConsumptionProfile | undefined> {
     const cacheKey = `power_profile:${tenantId}:${userId}`;
-    return this.cacheService.get<PowerConsumptionProfile>(cacheKey);
+    const cached = await this.cacheService.get<PowerConsumptionProfile>(cacheKey);
+    return cached || undefined;
   }
 
   /**
@@ -506,7 +507,7 @@ export class BatteryOptimizationService {
    */
   private async savePowerConsumptionProfile(profile: PowerConsumptionProfile): Promise<void> {
     const cacheKey = `power_profile:${profile.tenantId}:${profile.userId}`;
-    await this.cacheService.set(cacheKey, profile, 86400 * 7); // 7 days
+    await this.cacheService.set(cacheKey, profile, { ttl: 86400 * 7 }); // 7 days
   }
 
   /**
@@ -518,7 +519,7 @@ export class BatteryOptimizationService {
     settings: any,
   ): Promise<void> {
     const cacheKey = `optimized_settings:${tenantId}:${userId}`;
-    await this.cacheService.set(cacheKey, settings, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, settings, { ttl: 3600 }); // 1 hour
   }
 
   /**

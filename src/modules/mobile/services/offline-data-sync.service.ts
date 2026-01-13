@@ -410,7 +410,7 @@ export class OfflineDataSyncService {
    */
   private async persistOfflineQueue(queueKey: string): Promise<void> {
     const items = this.syncQueue.get(queueKey) || [];
-    await this.cacheService.set(`offline:queue:${queueKey}`, items, 86400); // 24 hours
+    await this.cacheService.set(`offline:queue:${queueKey}`, items, { ttl: 86400 }); // 24 hours
   }
 
   /**
