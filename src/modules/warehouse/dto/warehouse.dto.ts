@@ -277,19 +277,19 @@ export class CreateWarehouseZoneDto {
   @ApiProperty({ description: 'Warehouse ID' })
   @IsUUID()
   @IsNotEmpty()
-  warehouseId: string;
+  warehouseId!: string;
 
   @ApiProperty({ description: 'Zone code' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 50)
-  zoneCode: string;
+  zoneCode!: string;
 
   @ApiProperty({ description: 'Zone name' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ description: 'Zone description' })
   @IsOptional()
@@ -299,7 +299,7 @@ export class CreateWarehouseZoneDto {
 
   @ApiProperty({ description: 'Zone type', enum: WarehouseZoneType })
   @IsEnum(WarehouseZoneType)
-  zoneType: WarehouseZoneType;
+  zoneType!: WarehouseZoneType;
 
   @ApiPropertyOptional({ description: 'Priority level' })
   @IsOptional()
@@ -464,24 +464,24 @@ export class CreateBinLocationDto {
   @ApiProperty({ description: 'Zone ID' })
   @IsUUID()
   @IsNotEmpty()
-  zoneId: string;
+  zoneId!: string;
 
   @ApiProperty({ description: 'Warehouse ID' })
   @IsUUID()
   @IsNotEmpty()
-  warehouseId: string;
+  warehouseId!: string;
 
   @ApiProperty({ description: 'Bin code' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 50)
-  binCode: string;
+  binCode!: string;
 
   @ApiProperty({ description: 'Display name' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 100)
-  displayName: string;
+  displayName!: string;
 
   @ApiPropertyOptional({ description: 'Aisle' })
   @IsOptional()
@@ -875,79 +875,79 @@ export class BinLocationQueryDto {
 export class WarehouseCapacityDto {
   @ApiProperty({ description: 'Warehouse ID' })
   @IsUUID()
-  warehouseId: string;
+  warehouseId!: string;
 
   @ApiProperty({ description: 'Total capacity units' })
   @IsNumber()
   @Min(0)
-  totalCapacity: number;
+  totalCapacity!: number;
 
   @ApiProperty({ description: 'Used capacity units' })
   @IsNumber()
   @Min(0)
-  usedCapacity: number;
+  usedCapacity!: number;
 
   @ApiProperty({ description: 'Available capacity units' })
   @IsNumber()
   @Min(0)
-  availableCapacity: number;
+  availableCapacity!: number;
 
   @ApiProperty({ description: 'Capacity utilization percentage' })
   @IsNumber()
   @Min(0)
   @Max(100)
-  utilizationPercentage: number;
+  utilizationPercentage!: number;
 
   @ApiProperty({ description: 'Total bin locations' })
   @IsNumber()
   @Min(0)
-  totalBinLocations: number;
+  totalBinLocations!: number;
 
   @ApiProperty({ description: 'Occupied bin locations' })
   @IsNumber()
   @Min(0)
-  occupiedBinLocations: number;
+  occupiedBinLocations!: number;
 
   @ApiProperty({ description: 'Available bin locations' })
   @IsNumber()
   @Min(0)
-  availableBinLocations: number;
+  availableBinLocations!: number;
 }
 
 export class BulkCreateBinLocationsDto {
   @ApiProperty({ description: 'Zone ID' })
   @IsUUID()
   @IsNotEmpty()
-  zoneId: string;
+  zoneId!: string;
 
   @ApiProperty({ description: 'Warehouse ID' })
   @IsUUID()
   @IsNotEmpty()
-  warehouseId: string;
+  warehouseId!: string;
 
   @ApiProperty({ description: 'Aisle prefix' })
   @IsString()
   @IsNotEmpty()
   @Length(1, 5)
-  aislePrefix: string;
+  aislePrefix!: string;
 
   @ApiProperty({ description: 'Number of aisles' })
   @IsNumber()
   @Min(1)
   @Max(50)
-  aisleCount: number;
+  aisleCount!: number;
 
   @ApiProperty({ description: 'Number of bays per aisle' })
   @IsNumber()
   @Min(1)
   @Max(100)
-  bayCount: number;
+  bayCount!: number;
 
   @ApiProperty({ description: 'Number of levels per bay' })
   @IsNumber()
   @Min(1)
   @Max(20)
-  levelCount: number;
+  levelCount!: number;
 
   @ApiPropertyOptional({ description: 'Bin dimensions' })
   @IsOptional()

@@ -21,8 +21,8 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors';
-import { CacheInterceptor } from '../../common/interceptors';
+import { LoggingInterceptor } from '../../../common/interceptors';
+import { CacheInterceptor } from '../../../common/interceptors';
 import { LotTrackingService, CreateLotDto, UpdateLotDto, CreateRecallDto } from '../services/lot-tracking.service';
 
 @Controller('api/v1/warehouse/lot-tracking')
@@ -117,20 +117,27 @@ export class LotTrackingController {
   @ApiResponse({ status: 200, description: 'Product lots retrieved successfully' })
   async getProductLots(
     @Param('productId', ParseUUIDPipe) productId: string,
+    @CurrentTenant() tenantId: string,
     @Query('warehouseId') warehouseId?: string,
     @Query('qualityStatus') qualityStatus?: string,
     @Query('includeExpired') includeExpired?: string,
     @Query('sortBy') sortBy?: 'expiryDate' | 'receivedDate' | 'quantity',
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
-    @CurrentTenant() tenantId: string,
   ) {
-    const options = {
-      warehouseId,
-      qualityStatus,
+    const options: {
+      warehouseId?: string;
+      qualityStatus?: string;
+      includeExpired?: boolean;
+      sortBy?: 'expiryDate' | 'receivedDate' | 'quantity';
+      sortOrder?: 'asc' | 'desc';
+    } = {
       includeExpired: includeExpired === 'true',
-      sortBy,
-      sortOrder,
     };
+
+    if (warehouseId) options.warehouseId = warehouseId;
+    if (qualityStatus) options.qualityStatus = qualityStatus;
+    if (sortBy) options.sortBy = sortBy;
+    if (sortOrder) options.sortOrder = sortOrder;
 
     const lots = await this.lotTrackingService.getLotsForProduct(tenantId, productId, options);
     
@@ -193,10 +200,10 @@ export class LotTrackingController {
       pickData.warehouseId,
       pickData.quantity,
       {
-        orderId: pickData.orderId,
-        pickListId: pickData.pickListId,
+        ...(pickData.orderId && { orderId: pickData.orderId }),
+        ...(pickData.pickListId && { pickListId: pickData.pickListId }),
         userId: user.id,
-        notes: pickData.notes,
+        ...(pickData.notes && { notes: pickData.notes }),
       },
     );
     
@@ -256,8 +263,8 @@ export class LotTrackingController {
   @ApiResponse({ status: 200, description: 'Expiring lots retrieved successfully' })
   async getExpiringLots(
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
-    @Query('daysAhead') daysAhead?: string,
     @CurrentTenant() tenantId: string,
+    @Query('daysAhead') daysAhead?: string,
   ) {
     const days = daysAhead ? parseInt(daysAhead, 10) : 30;
     
@@ -322,8 +329,8 @@ export class LotTrackingController {
   @ApiResponse({ status: 200, description: 'Product recalls retrieved successfully' })
   async getProductRecalls(
     @Param('productId', ParseUUIDPipe) productId: string,
-    @Query('status') status?: string,
     @CurrentTenant() tenantId: string,
+    @Query('status') status?: string,
   ) {
     // This would retrieve recalls from database
     // For now, returning placeholder response
@@ -379,8 +386,8 @@ export class LotTrackingController {
   @ApiResponse({ status: 200, description: 'FIFO rules retrieved successfully' })
   async getFIFORules(
     @Param('productId', ParseUUIDPipe) productId: string,
-    @Query('warehouseId') warehouseId?: string,
     @CurrentTenant() tenantId: string,
+    @Query('warehouseId') warehouseId?: string,
   ) {
     // This would retrieve FIFO rules from database
     // For now, returning default rule
@@ -430,10 +437,10 @@ export class LotTrackingController {
           update.lotNumber,
           update.productId,
           {
-            quantity: update.quantity,
-            binLocationId: update.binLocationId,
-            qualityStatus: update.qualityStatus,
-            notes: update.notes,
+            ...(update.quantity !== undefined && { quantity: update.quantity }),
+            ...(update.binLocationId && { binLocationId: update.binLocationId }),
+            ...(update.qualityStatus && { qualityStatus: update.qualityStatus }),
+            ...(update.notes && { notes: update.notes }),
             userId: user.id,
           },
         );
@@ -443,11 +450,11 @@ export class LotTrackingController {
           success: true,
           lot,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         errors.push({
           index,
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           update,
         });
       }
@@ -493,7 +500,7 @@ export class LotTrackingController {
       {
         qualityStatus: testData.qualityStatus,
         testResults: testData.testResults,
-        notes: testData.notes,
+        ...(testData.notes && { notes: testData.notes }),
         userId: user.id,
       },
     );

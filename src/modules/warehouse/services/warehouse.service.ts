@@ -7,7 +7,8 @@ import {
   CreateWarehouseDto, 
   UpdateWarehouseDto, 
   WarehouseQueryDto,
-  WarehouseCapacityDto 
+  WarehouseCapacityDto,
+  WarehouseZoneType
 } from '../dto/warehouse.dto';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { QueueService } from '../../queue/queue.service';
@@ -86,7 +87,7 @@ export class WarehouseService {
 
     if (!warehouse) {
       warehouse = await this.warehouseRepository.findById(tenantId, id);
-      await this.cacheService.set(cacheKey, warehouse, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, warehouse, { ttl: 300 }); // 5 minutes
     }
 
     return warehouse;
@@ -98,7 +99,7 @@ export class WarehouseService {
 
     if (!warehouse) {
       warehouse = await this.warehouseRepository.findByCode(tenantId, warehouseCode);
-      await this.cacheService.set(cacheKey, warehouse, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, warehouse, { ttl: 300 }); // 5 minutes
     }
 
     return warehouse;
@@ -112,11 +113,11 @@ export class WarehouseService {
     totalPages: number;
   }> {
     const cacheKey = `warehouses:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{ warehouses: any[]; total: number; page: number; limit: number; totalPages: number; }>(cacheKey);
 
     if (!result) {
       result = await this.warehouseRepository.findMany(tenantId, query);
-      await this.cacheService.set(cacheKey, result, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, result, { ttl: 180 }); // 3 minutes
     }
 
     return result;
@@ -162,7 +163,7 @@ export class WarehouseService {
 
     if (!capacity) {
       capacity = await this.warehouseRepository.getCapacity(tenantId, warehouseId);
-      await this.cacheService.set(cacheKey, capacity, 120); // 2 minutes
+      await this.cacheService.set(cacheKey, capacity, { ttl: 120 }); // 2 minutes
     }
 
     return capacity;
@@ -201,7 +202,7 @@ export class WarehouseService {
     if (!warehouse) {
       warehouse = await this.warehouseRepository.findByLocationId(tenantId, locationId);
       if (warehouse) {
-        await this.cacheService.set(cacheKey, warehouse, 300); // 5 minutes
+        await this.cacheService.set(cacheKey, warehouse, { ttl: 300 }); // 5 minutes
       }
     }
 
@@ -214,7 +215,7 @@ export class WarehouseService {
 
     if (!warehouses) {
       warehouses = await this.warehouseRepository.findActiveWarehouses(tenantId);
-      await this.cacheService.set(cacheKey, warehouses, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, warehouses, { ttl: 300 }); // 5 minutes
     }
 
     return warehouses;
@@ -226,7 +227,7 @@ export class WarehouseService {
 
     if (!metrics) {
       metrics = await this.warehouseRepository.getWarehouseMetrics(tenantId, warehouseId);
-      await this.cacheService.set(cacheKey, metrics, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, metrics, { ttl: 180 }); // 3 minutes
     }
 
     return metrics;
@@ -240,35 +241,35 @@ export class WarehouseService {
       {
         zoneCode: 'REC-01',
         name: 'Receiving Zone',
-        zoneType: 'receiving' as const,
+        zoneType: WarehouseZoneType.RECEIVING,
         priority: 1,
         description: 'Primary receiving area for incoming goods',
       },
       {
         zoneCode: 'STO-01',
         name: 'Storage Zone',
-        zoneType: 'storage' as const,
+        zoneType: WarehouseZoneType.STORAGE,
         priority: 2,
         description: 'Main storage area for inventory',
       },
       {
         zoneCode: 'PIC-01',
         name: 'Picking Zone',
-        zoneType: 'picking' as const,
+        zoneType: WarehouseZoneType.PICKING,
         priority: 3,
         description: 'Primary picking area for order fulfillment',
       },
       {
         zoneCode: 'PAC-01',
         name: 'Packing Zone',
-        zoneType: 'packing' as const,
+        zoneType: WarehouseZoneType.PACKING,
         priority: 4,
         description: 'Order packing and preparation area',
       },
       {
         zoneCode: 'SHP-01',
         name: 'Shipping Zone',
-        zoneType: 'shipping' as const,
+        zoneType: WarehouseZoneType.SHIPPING,
         priority: 5,
         description: 'Outbound shipping area',
       },
@@ -280,9 +281,9 @@ export class WarehouseService {
           ...zoneData,
           warehouseId: warehouse.id,
         }, userId);
-      } catch (error) {
+      } catch (error: unknown) {
         // Zone might already exist, continue with next zone
-        console.warn(`Failed to create zone ${zoneData.zoneCode}:`, error.message);
+        console.warn(`Failed to create zone ${zoneData.zoneCode}:`, error instanceof Error ? error.message : 'Unknown error');
       }
     }
 
@@ -309,7 +310,7 @@ export class WarehouseService {
     const optimizationResults = {
       warehouseId,
       optimizationDate: new Date(),
-      recommendations: [],
+      recommendations: [] as Array<{ type: string; priority: string; description: string; estimatedImpact?: string; }>,
       estimatedImprovements: {
         pickingTimeReduction: 0,
         spaceUtilizationImprovement: 0,

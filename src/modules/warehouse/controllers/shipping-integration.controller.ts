@@ -21,8 +21,8 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors';
-import { CacheInterceptor } from '../../common/interceptors';
+import { LoggingInterceptor } from '../../../common/interceptors';
+import { CacheInterceptor } from '../../../common/interceptors';
 import { ShippingIntegrationService, CreateShipmentDto } from '../services/shipping-integration.service';
 
 @Controller('api/v1/warehouse/shipping')
@@ -131,22 +131,30 @@ export class ShippingIntegrationController {
   @ApiResponse({ status: 200, description: 'Shipments retrieved successfully' })
   async getWarehouseShipments(
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
+    @CurrentTenant() tenantId: string,
     @Query('status') status?: string,
     @Query('carrierId') carrierId?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @CurrentTenant() tenantId: string,
   ) {
-    const options = {
-      status,
-      carrierId,
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
+    const options: {
+      status?: string;
+      carrierId?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      page: number;
+      limit: number;
+    } = {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
     };
+
+    if (status) options.status = status;
+    if (carrierId) options.carrierId = carrierId;
+    if (dateFrom) options.dateFrom = new Date(dateFrom);
+    if (dateTo) options.dateTo = new Date(dateTo);
 
     const result = await this.shippingService.getShipmentsByWarehouse(tenantId, warehouseId, options);
     
@@ -323,11 +331,11 @@ export class ShippingIntegrationController {
           success: true,
           shipment,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         errors.push({
           index,
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           shipmentData,
         });
       }

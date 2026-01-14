@@ -244,7 +244,7 @@ export class KittingAssemblyService {
       isSubstitutable: comp.isSubstitutable || false,
       substitutes: comp.substitutes || [],
       position: comp.position || index + 1,
-      notes: comp.notes,
+      ...(comp.notes && { notes: comp.notes }),
     }));
 
     // Build quality checks
@@ -262,18 +262,18 @@ export class KittingAssemblyService {
       kitId,
       kitSku: data.kitSku,
       kitName: data.kitName,
-      description: data.description,
+      ...(data.description && { description: data.description }),
       kitType: data.kitType,
       isActive: true,
       components,
-      assemblyInstructions: data.assemblyInstructions,
-      assemblyTime: data.assemblyTime,
+      ...(data.assemblyInstructions && { assemblyInstructions: data.assemblyInstructions }),
+      ...(data.assemblyTime !== undefined && { assemblyTime: data.assemblyTime }),
       skillLevel: data.skillLevel || 'basic',
       qualityChecks,
-      packaging: data.packaging,
-      costCalculation: data.costCalculation,
-      markup: data.markup,
-      fixedPrice: data.fixedPrice,
+      ...(data.packaging && { packaging: data.packaging }),
+      ...(data.costCalculation && { costCalculation: data.costCalculation }),
+      ...(data.markup !== undefined && { markup: data.markup }),
+      ...(data.fixedPrice !== undefined && { fixedPrice: data.fixedPrice }),
     };
 
     // Store kit definition
@@ -302,22 +302,39 @@ export class KittingAssemblyService {
     }
 
     // Update kit definition
+    const { qualityChecks: dataQualityChecks, components: dataComponents, ...restData } = data;
+    
+    const updatedComponents = dataComponents ? dataComponents.map((comp, index) => ({
+      componentId: this.generateComponentId(),
+      productId: comp.productId,
+      sku: '', // This would be fetched from product service
+      name: '', // This would be fetched from product service
+      quantity: comp.quantity,
+      unitOfMeasure: comp.unitOfMeasure,
+      isOptional: comp.isOptional || false,
+      isSubstitutable: comp.isSubstitutable || false,
+      substitutes: comp.substitutes || [],
+      position: comp.position || index + 1,
+      ...(comp.notes && { notes: comp.notes }),
+    })) : kit.components;
+
+    const updatedQualityChecks: QualityCheck[] = dataQualityChecks !== undefined 
+      ? dataQualityChecks.map(check => ({
+          checkId: this.generateCheckId(),
+          checkName: check.checkName,
+          checkType: check.checkType,
+          description: check.description,
+          isRequired: check.isRequired,
+          acceptanceCriteria: check.acceptanceCriteria,
+          tools: check.tools || [],
+        })) 
+      : (kit.qualityChecks || []);
+    
     const updatedKit: KitDefinition = {
       ...kit,
-      ...data,
-      components: data.components ? data.components.map((comp, index) => ({
-        componentId: this.generateComponentId(),
-        productId: comp.productId,
-        sku: '', // This would be fetched from product service
-        name: '', // This would be fetched from product service
-        quantity: comp.quantity,
-        unitOfMeasure: comp.unitOfMeasure,
-        isOptional: comp.isOptional || false,
-        isSubstitutable: comp.isSubstitutable || false,
-        substitutes: comp.substitutes || [],
-        position: comp.position || index + 1,
-        notes: comp.notes,
-      })) : kit.components,
+      ...Object.fromEntries(Object.entries(restData).filter(([_, v]) => v !== undefined)),
+      components: updatedComponents,
+      qualityChecks: updatedQualityChecks,
     };
 
     // Store updated kit
@@ -382,7 +399,7 @@ export class KittingAssemblyService {
   }> {
     const cacheKey = `kits:${tenantId}:${JSON.stringify(options)}`;
     
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{ kits: KitDefinition[]; total: number; page: number; limit: number; totalPages: number; }>(cacheKey);
     if (result) {
       return result;
     }
@@ -451,12 +468,12 @@ export class KittingAssemblyService {
       quantityToAssemble: data.quantityToAssemble,
       status: 'pending',
       priority: data.priority || 'normal',
-      scheduledDate: data.scheduledDate,
-      assignedTo: data.assignedTo,
+      ...(data.scheduledDate && { scheduledDate: data.scheduledDate }),
+      ...(data.assignedTo && { assignedTo: data.assignedTo }),
       warehouseId: data.warehouseId,
-      workStationId: data.workStationId,
+      ...(data.workStationId && { workStationId: data.workStationId }),
       components,
-      notes: data.notes,
+      ...(data.notes && { notes: data.notes }),
       createdBy: data.userId,
       createdAt: new Date(),
     };
@@ -594,7 +611,7 @@ export class KittingAssemblyService {
   }> {
     const cacheKey = `assembly-work-orders:${tenantId}:${JSON.stringify(options)}`;
     
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{ workOrders: AssemblyWorkOrder[]; total: number; page: number; limit: number; totalPages: number; }>(cacheKey);
     if (result) {
       return result;
     }
@@ -609,7 +626,7 @@ export class KittingAssemblyService {
       totalPages: 0,
     };
 
-    await this.cacheService.set(cacheKey, result, 1800); // 30 minutes
+    await this.cacheService.set(cacheKey, result, { ttl: 1800 }); // 30 minutes
 
     return result;
   }
@@ -640,8 +657,8 @@ export class KittingAssemblyService {
         if (allocated.success) {
           component.allocatedQuantity = component.requiredQuantity;
           component.status = 'allocated';
-          component.lotNumbers = allocated.lotNumbers;
-          component.binLocations = allocated.binLocations;
+          if (allocated.lotNumbers) component.lotNumbers = allocated.lotNumbers;
+          if (allocated.binLocations) component.binLocations = allocated.binLocations;
           allocatedComponents.push(component.componentId);
         } else {
           component.status = 'shortage';
@@ -822,7 +839,7 @@ export class KittingAssemblyService {
   }> {
     const cacheKey = `assembly-metrics:${tenantId}:${warehouseId}:${dateRange.from.getTime()}-${dateRange.to.getTime()}`;
     
-    let metrics = await this.cacheService.get(cacheKey);
+    let metrics = await this.cacheService.get<any>(cacheKey);
     if (metrics) {
       return metrics;
     }
@@ -840,7 +857,7 @@ export class KittingAssemblyService {
       productivityByWorker: [],
     };
 
-    await this.cacheService.set(cacheKey, metrics, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, metrics, { ttl: 3600 }); // 1 hour
 
     return metrics;
   }
@@ -882,17 +899,17 @@ export class KittingAssemblyService {
 
   private async storeKitDefinition(tenantId: string, kit: KitDefinition): Promise<void> {
     const cacheKey = `kit:${tenantId}:${kit.kitId}`;
-    await this.cacheService.set(cacheKey, kit, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, kit, { ttl: 3600 }); // 1 hour
     
     const skuCacheKey = `kit:${tenantId}:sku:${kit.kitSku}`;
-    await this.cacheService.set(skuCacheKey, kit, 3600); // 1 hour
+    await this.cacheService.set(skuCacheKey, kit, { ttl: 3600 }); // 1 hour
     
     // This would also store in database
   }
 
   private async storeAssemblyWorkOrder(tenantId: string, workOrder: AssemblyWorkOrder): Promise<void> {
     const cacheKey = `assembly-work-order:${tenantId}:${workOrder.workOrderId}`;
-    await this.cacheService.set(cacheKey, workOrder, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, workOrder, { ttl: 3600 }); // 1 hour
     
     // This would also store in database
   }

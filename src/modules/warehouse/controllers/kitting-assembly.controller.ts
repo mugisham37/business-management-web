@@ -21,8 +21,8 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors';
-import { CacheInterceptor } from '../../common/interceptors';
+import { LoggingInterceptor } from '../../../common/interceptors';
+import { CacheInterceptor } from '../../../common/interceptors';
 import { 
   KittingAssemblyService, 
   CreateKitDto, 
@@ -242,6 +242,7 @@ export class KittingAssemblyController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   @ApiResponse({ status: 200, description: 'Work orders retrieved successfully' })
   async getAssemblyWorkOrders(
+    @CurrentTenant() tenantId: string,
     @Query('warehouseId') warehouseId?: string,
     @Query('status') status?: string,
     @Query('assignedTo') assignedTo?: string,
@@ -251,19 +252,29 @@ export class KittingAssemblyController {
     @Query('dateTo') dateTo?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @CurrentTenant() tenantId: string,
   ) {
-    const options = {
-      warehouseId,
-      status,
-      assignedTo,
-      kitId,
-      priority,
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
+    const options: {
+      warehouseId?: string;
+      status?: string;
+      assignedTo?: string;
+      kitId?: string;
+      priority?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+      page: number;
+      limit: number;
+    } = {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
     };
+
+    if (warehouseId) options.warehouseId = warehouseId;
+    if (status) options.status = status;
+    if (assignedTo) options.assignedTo = assignedTo;
+    if (kitId) options.kitId = kitId;
+    if (priority) options.priority = priority;
+    if (dateFrom) options.dateFrom = new Date(dateFrom);
+    if (dateTo) options.dateTo = new Date(dateTo);
 
     const result = await this.kittingAssemblyService.getAssemblyWorkOrders(tenantId, options);
     
@@ -406,11 +417,11 @@ export class KittingAssemblyController {
           success: true,
           kit,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         errors.push({
           index,
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           kitData,
         });
       }
@@ -458,11 +469,11 @@ export class KittingAssemblyController {
           success: true,
           workOrder,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         errors.push({
           index,
           success: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           workOrderData,
         });
       }
@@ -518,27 +529,29 @@ export class KittingAssemblyController {
         productId: comp.productId,
         quantity: comp.quantity,
         unitOfMeasure: comp.unitOfMeasure,
-        isOptional: comp.isOptional,
-        isSubstitutable: comp.isSubstitutable,
-        substitutes: comp.substitutes,
-        position: comp.position,
-        notes: comp.notes,
+        ...(comp.isOptional !== undefined && { isOptional: comp.isOptional }),
+        ...(comp.isSubstitutable !== undefined && { isSubstitutable: comp.isSubstitutable }),
+        ...(comp.substitutes && { substitutes: comp.substitutes }),
+        ...(comp.position !== undefined && { position: comp.position }),
+        ...(comp.notes && { notes: comp.notes }),
       })),
-      assemblyInstructions: originalKit.assemblyInstructions,
-      assemblyTime: originalKit.assemblyTime,
+      ...(originalKit.assemblyInstructions && { assemblyInstructions: originalKit.assemblyInstructions }),
+      ...(originalKit.assemblyTime !== undefined && { assemblyTime: originalKit.assemblyTime }),
       skillLevel: originalKit.skillLevel,
-      qualityChecks: originalKit.qualityChecks?.map(check => ({
-        checkName: check.checkName,
-        checkType: check.checkType,
-        description: check.description,
-        isRequired: check.isRequired,
-        acceptanceCriteria: check.acceptanceCriteria,
-        tools: check.tools,
-      })),
-      packaging: originalKit.packaging,
-      costCalculation: originalKit.costCalculation,
-      markup: originalKit.markup,
-      fixedPrice: originalKit.fixedPrice,
+      ...(originalKit.qualityChecks && {
+        qualityChecks: originalKit.qualityChecks.map(check => ({
+          checkName: check.checkName,
+          checkType: check.checkType,
+          description: check.description,
+          isRequired: check.isRequired,
+          acceptanceCriteria: check.acceptanceCriteria,
+          ...(check.tools && { tools: check.tools }),
+        }))
+      }),
+      ...(originalKit.packaging && { packaging: originalKit.packaging }),
+      ...(originalKit.costCalculation && { costCalculation: originalKit.costCalculation }),
+      ...(originalKit.markup !== undefined && { markup: originalKit.markup }),
+      ...(originalKit.fixedPrice !== undefined && { fixedPrice: originalKit.fixedPrice }),
       userId: user.id,
     });
     
@@ -558,8 +571,8 @@ export class KittingAssemblyController {
   @ApiQuery({ name: 'warehouseId', required: false, description: 'Filter by warehouse' })
   @ApiResponse({ status: 200, description: 'Work stations retrieved successfully' })
   async getWorkStations(
-    @Query('warehouseId') warehouseId?: string,
     @CurrentTenant() tenantId: string,
+    @Query('warehouseId') warehouseId?: string,
   ) {
     // This would typically come from a work station management service
     // For now, returning mock data

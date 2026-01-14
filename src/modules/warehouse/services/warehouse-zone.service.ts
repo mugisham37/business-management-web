@@ -70,7 +70,7 @@ export class WarehouseZoneService {
 
     if (!zone) {
       zone = await this.zoneRepository.findById(tenantId, id);
-      await this.cacheService.set(cacheKey, zone, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zone, { ttl: 300 }); // 5 minutes
     }
 
     return zone;
@@ -82,7 +82,7 @@ export class WarehouseZoneService {
 
     if (!zone) {
       zone = await this.zoneRepository.findByCode(tenantId, warehouseId, zoneCode);
-      await this.cacheService.set(cacheKey, zone, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zone, { ttl: 300 }); // 5 minutes
     }
 
     return zone;
@@ -94,7 +94,7 @@ export class WarehouseZoneService {
 
     if (!zones) {
       zones = await this.zoneRepository.findByWarehouse(tenantId, warehouseId);
-      await this.cacheService.set(cacheKey, zones, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zones, { ttl: 300 }); // 5 minutes
     }
 
     return zones;
@@ -106,7 +106,7 @@ export class WarehouseZoneService {
 
     if (!zones) {
       zones = await this.zoneRepository.findByType(tenantId, warehouseId, zoneType);
-      await this.cacheService.set(cacheKey, zones, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zones, { ttl: 300 }); // 5 minutes
     }
 
     return zones;
@@ -138,11 +138,11 @@ export class WarehouseZoneService {
     utilizationPercentage: number;
   }> {
     const cacheKey = `zone:${tenantId}:${zoneId}:capacity`;
-    let capacity = await this.cacheService.get(cacheKey);
+    let capacity = await this.cacheService.get<{ maxBinLocations: number; currentBinLocations: number; availableBinLocations: number; utilizationPercentage: number; }>(cacheKey);
 
     if (!capacity) {
       capacity = await this.zoneRepository.getZoneCapacity(tenantId, zoneId);
-      await this.cacheService.set(cacheKey, capacity, 120); // 2 minutes
+      await this.cacheService.set(cacheKey, capacity, { ttl: 120 }); // 2 minutes
     }
 
     return capacity;
@@ -178,7 +178,7 @@ export class WarehouseZoneService {
 
     if (!zones) {
       zones = await this.zoneRepository.findAvailableZones(tenantId, warehouseId, zoneType);
-      await this.cacheService.set(cacheKey, zones, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zones, { ttl: 300 }); // 5 minutes
     }
 
     return zones;
@@ -190,7 +190,7 @@ export class WarehouseZoneService {
 
     if (!metrics) {
       metrics = await this.zoneRepository.getZoneMetrics(tenantId, zoneId);
-      await this.cacheService.set(cacheKey, metrics, 180); // 3 minutes
+      await this.cacheService.set(cacheKey, metrics, { ttl: 180 }); // 3 minutes
     }
 
     return metrics;
@@ -209,7 +209,7 @@ export class WarehouseZoneService {
       zoneType: zone.zoneType,
       optimizationDate: new Date(),
       currentMetrics: metrics,
-      recommendations: [],
+      recommendations: [] as Array<{ type: string; priority: string; description: string; action?: string; }>,
       estimatedImprovements: {
         spaceUtilization: 0,
         pickingEfficiency: 0,
@@ -292,7 +292,7 @@ export class WarehouseZoneService {
 
     if (!zones) {
       zones = await this.zoneRepository.findZonesByCoordinates(tenantId, warehouseId, x, y, radius);
-      await this.cacheService.set(cacheKey, zones, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, zones, { ttl: 300 }); // 5 minutes
     }
 
     return zones;

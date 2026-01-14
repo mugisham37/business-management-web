@@ -28,9 +28,9 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors';
-import { CacheInterceptor } from '../../common/interceptors';
-import { ValidationPipe } from '../../common/rest/pipes';
+import { LoggingInterceptor } from '../../../common/interceptors';
+import { CacheInterceptor } from '../../../common/interceptors';
+import { ValidationPipe } from '../../../common/rest/pipes';
 import { WarehouseZoneService } from '../services/warehouse-zone.service';
 import { 
   CreateWarehouseZoneDto, 
@@ -110,8 +110,8 @@ export class WarehouseZoneController {
   @ApiResponse({ status: 200, description: 'Available warehouse zones retrieved successfully' })
   async getAvailableZones(
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
-    @Query('zoneType') zoneType?: string,
     @CurrentTenant() tenantId: string,
+    @Query('zoneType') zoneType?: string,
   ): Promise<WarehouseZone[]> {
     return this.warehouseZoneService.getAvailableZones(tenantId, warehouseId, zoneType);
   }
@@ -187,8 +187,8 @@ export class WarehouseZoneController {
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
     @Query('x') x: number,
     @Query('y') y: number,
-    @Query('radius') radius?: number,
     @CurrentTenant() tenantId: string,
+    @Query('radius') radius?: number,
   ): Promise<WarehouseZone[]> {
     return this.warehouseZoneService.findZonesByCoordinates(
       tenantId, 

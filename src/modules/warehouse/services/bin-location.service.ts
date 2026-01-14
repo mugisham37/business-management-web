@@ -136,7 +136,13 @@ export class BinLocationService {
     totalPages: number;
   }> {
     const cacheKey = `bins:${tenantId}:${JSON.stringify(query)}`;
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{
+      binLocations: any[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(cacheKey);
 
     if (!result) {
       result = await this.binLocationRepository.findMany(tenantId, query);
@@ -432,7 +438,13 @@ export class BinLocationService {
       zoneId,
       optimizationDate: new Date(),
       currentMetrics: metrics,
-      recommendations: [],
+      recommendations: [] as Array<{
+        type: string;
+        priority: string;
+        description: string;
+        binLocationIds?: any[];
+        action?: string;
+      }>,
       estimatedImprovements: {
         pickingEfficiency: 0,
         spaceUtilization: 0,

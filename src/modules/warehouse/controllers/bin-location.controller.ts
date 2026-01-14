@@ -28,9 +28,9 @@ import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
 import { RequirePermission } from '../../auth/decorators/auth.decorators';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { LoggingInterceptor } from '../../common/interceptors';
-import { CacheInterceptor } from '../../common/interceptors';
-import { ValidationPipe } from '../../common/rest/pipes';
+import { LoggingInterceptor } from '../../../common/interceptors';
+import { CacheInterceptor } from '../../../common/interceptors';
+import { ValidationPipe } from '../../../common/rest/pipes';
 import { BinLocationService } from '../services/bin-location.service';
 import { 
   CreateBinLocationDto, 
@@ -163,8 +163,8 @@ export class BinLocationController {
   @ApiQuery({ name: 'zoneId', required: false, type: String, description: 'Filter by zone ID' })
   @ApiResponse({ status: 200, description: 'Available bin locations retrieved successfully' })
   async getAvailableBinLocations(
-    @CurrentTenant() tenantId: string,
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
+    @CurrentTenant() tenantId: string,
     @Query('zoneId') zoneId?: string,
   ): Promise<BinLocation[]> {
     return this.binLocationService.getAvailableBinLocations(tenantId, warehouseId, zoneId);
@@ -177,8 +177,8 @@ export class BinLocationController {
   @ApiQuery({ name: 'variantId', required: false, type: String, description: 'Product variant ID' })
   @ApiResponse({ status: 200, description: 'Bin locations retrieved successfully' })
   async getBinLocationsByProduct(
-    @CurrentTenant() tenantId: string,
     @Param('productId', ParseUUIDPipe) productId: string,
+    @CurrentTenant() tenantId: string,
     @Query('variantId') variantId?: string,
   ): Promise<BinLocation[]> {
     return this.binLocationService.getBinLocationsByProduct(tenantId, productId, variantId);
@@ -191,8 +191,8 @@ export class BinLocationController {
   @ApiQuery({ name: 'zoneId', required: false, type: String, description: 'Filter by zone ID' })
   @ApiResponse({ status: 200, description: 'Bin location metrics retrieved successfully' })
   async getBinLocationMetrics(
-    @CurrentTenant() tenantId: string,
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
+    @CurrentTenant() tenantId: string,
     @Query('zoneId') zoneId?: string,
   ): Promise<any> {
     return this.binLocationService.getBinLocationMetrics(tenantId, warehouseId, zoneId);
@@ -205,8 +205,8 @@ export class BinLocationController {
   @ApiQuery({ name: 'zoneId', required: false, type: String, description: 'Filter by zone ID' })
   @ApiResponse({ status: 200, description: 'Bin location report generated successfully' })
   async generateBinLocationReport(
-    @CurrentTenant() tenantId: string,
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
+    @CurrentTenant() tenantId: string,
     @Query('zoneId') zoneId?: string,
   ): Promise<any> {
     return this.binLocationService.generateBinLocationReport(tenantId, warehouseId, zoneId);
@@ -223,9 +223,9 @@ export class BinLocationController {
   @ApiQuery({ name: 'zoneType', required: false, type: String, description: 'Preferred zone type' })
   @ApiResponse({ status: 200, description: 'Optimal bin location found' })
   async findOptimalBinLocation(
-    @CurrentTenant() tenantId: string,
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
     @Query('productId', ParseUUIDPipe) productId: string,
+    @CurrentTenant() tenantId: string,
     @Query('variantId') variantId?: string,
     @Query('requiredVolume') requiredVolume?: number,
     @Query('requiredWeight') requiredWeight?: number,
@@ -360,8 +360,8 @@ export class BinLocationController {
   @ApiQuery({ name: 'zoneId', required: false, type: String, description: 'Filter by zone ID' })
   @ApiResponse({ status: 200, description: 'Bin location optimization completed' })
   async optimizeBinLocationLayout(
-    @CurrentTenant() tenantId: string,
     @Param('warehouseId', ParseUUIDPipe) warehouseId: string,
+    @CurrentTenant() tenantId: string,
     @Query('zoneId') zoneId?: string,
   ): Promise<any> {
     return this.binLocationService.optimizeBinLocationLayout(tenantId, warehouseId, zoneId);

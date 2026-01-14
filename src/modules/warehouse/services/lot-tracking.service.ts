@@ -199,21 +199,21 @@ export class LotTrackingService {
     // Create lot record
     const lot: LotInfo = {
       lotNumber: data.lotNumber,
-      batchNumber: data.batchNumber,
+      ...(data.batchNumber && { batchNumber: data.batchNumber }),
       productId: data.productId,
       warehouseId: data.warehouseId,
-      binLocationId: data.binLocationId,
+      ...(data.binLocationId && { binLocationId: data.binLocationId }),
       quantity: data.quantity,
       unitOfMeasure: data.unitOfMeasure,
-      manufactureDate: data.manufactureDate,
-      expiryDate: data.expiryDate,
+      ...(data.manufactureDate && { manufactureDate: data.manufactureDate }),
+      ...(data.expiryDate && { expiryDate: data.expiryDate }),
       receivedDate: data.receivedDate || new Date(),
-      supplierId: data.supplierId,
-      supplierLotNumber: data.supplierLotNumber,
+      ...(data.supplierId && { supplierId: data.supplierId }),
+      ...(data.supplierLotNumber && { supplierLotNumber: data.supplierLotNumber }),
       qualityStatus: data.qualityStatus || 'pending',
-      certificationNumber: data.certificationNumber,
-      testResults: data.testResults,
-      notes: data.notes,
+      ...(data.certificationNumber && { certificationNumber: data.certificationNumber }),
+      ...(data.testResults && { testResults: data.testResults }),
+      ...(data.notes && { notes: data.notes }),
     };
 
     // Store lot data
@@ -323,7 +323,7 @@ export class LotTrackingService {
     lot = null;
 
     if (lot) {
-      await this.cacheService.set(cacheKey, lot, 3600); // 1 hour
+      await this.cacheService.set(cacheKey, lot, { ttl: 3600 }); // 1 hour
     }
 
     return lot;
@@ -373,7 +373,7 @@ export class LotTrackingService {
       });
     }
 
-    await this.cacheService.set(cacheKey, lots, 1800); // 30 minutes
+    await this.cacheService.set(cacheKey, lots, { ttl: 1800 }); // 30 minutes
 
     return lots;
   }
@@ -414,8 +414,8 @@ export class LotTrackingService {
       selectedLots.push({
         lotNumber: lot.lotNumber,
         quantity: quantityToTake,
-        expiryDate: lot.expiryDate,
-        binLocationId: lot.binLocationId,
+        ...(lot.expiryDate && { expiryDate: lot.expiryDate }),
+        ...(lot.binLocationId && { binLocationId: lot.binLocationId }),
       });
 
       remainingQuantity -= quantityToTake;
@@ -477,16 +477,16 @@ export class LotTrackingService {
           unitOfMeasure: lot.unitOfMeasure,
           movementDate: new Date(),
           userId: options.userId,
-          orderId: options.orderId,
-          pickListId: options.pickListId,
+          ...(options.orderId && { orderId: options.orderId }),
+          ...(options.pickListId && { pickListId: options.pickListId }),
           reason: 'Order fulfillment',
-          notes: options.notes,
+          ...(options.notes && { notes: options.notes }),
         });
 
         pickedLots.push({
           lotNumber: lotPick.lotNumber,
           quantity: lotPick.quantity,
-          binLocationId: lotPick.binLocationId,
+          ...(lotPick.binLocationId && { binLocationId: lotPick.binLocationId }),
         });
 
         totalPicked += lotPick.quantity;
@@ -598,7 +598,7 @@ export class LotTrackingService {
   }>> {
     const cacheKey = `expiring-lots:${tenantId}:${warehouseId}:${daysAhead}`;
     
-    let expiringLots = await this.cacheService.get(cacheKey);
+    let expiringLots = await this.cacheService.get<any[]>(cacheKey);
     if (expiringLots) {
       return expiringLots;
     }
@@ -634,7 +634,7 @@ export class LotTrackingService {
       })
       .sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
 
-    await this.cacheService.set(cacheKey, expiringLots, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, expiringLots, { ttl: 3600 }); // 1 hour
 
     return expiringLots;
   }
@@ -651,7 +651,7 @@ export class LotTrackingService {
     // For now, returning empty array as placeholder
     movements = [];
 
-    await this.cacheService.set(cacheKey, movements, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, movements, { ttl: 3600 }); // 1 hour
 
     return movements;
   }
@@ -701,8 +701,8 @@ export class LotTrackingService {
       {
         date: lot.receivedDate,
         status: lot.qualityStatus,
-        testResults: lot.testResults,
-        notes: lot.notes,
+        ...(lot.testResults && { testResults: lot.testResults }),
+        ...(lot.notes && { notes: lot.notes }),
         userId: 'system', // This would be the actual user ID
       },
     ];
@@ -741,21 +741,21 @@ export class LotTrackingService {
       requireLotTracking: true,
     };
 
-    await this.cacheService.set(cacheKey, rule, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, rule, { ttl: 3600 }); // 1 hour
 
     return rule;
   }
 
   private async storeLotData(tenantId: string, lot: LotInfo): Promise<void> {
     const cacheKey = `lot:${tenantId}:${lot.productId}:${lot.lotNumber}`;
-    await this.cacheService.set(cacheKey, lot, 3600); // 1 hour
+    await this.cacheService.set(cacheKey, lot, { ttl: 3600 }); // 1 hour
     
     // This would also store in database
   }
 
   private async storeRecallData(tenantId: string, recall: RecallInfo): Promise<void> {
     const cacheKey = `recall:${tenantId}:${recall.recallId}`;
-    await this.cacheService.set(cacheKey, recall, 86400); // 24 hours
+    await this.cacheService.set(cacheKey, recall, { ttl: 86400 }); // 24 hours
     
     // This would also store in database
   }

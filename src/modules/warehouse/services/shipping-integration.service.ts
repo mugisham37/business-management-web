@@ -228,7 +228,7 @@ export class ShippingIntegrationService {
     rates = carrierRates.flat().sort((a, b) => a.cost - b.cost); // Sort by cost
 
     // Cache rates for 15 minutes
-    await this.cacheService.set(cacheKey, rates, 900);
+    await this.cacheService.set(cacheKey, rates, { ttl: 900 });
 
     return rates;
   }
@@ -299,9 +299,9 @@ export class ShippingIntegrationService {
         estimatedDelivery,
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to create shipment with ${shipmentData.carrierId}:`, error);
-      throw new BadRequestException(`Failed to create shipment: ${error.message}`);
+      throw new BadRequestException(`Failed to create shipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -314,7 +314,7 @@ export class ShippingIntegrationService {
     const cacheKey = `shipping:tracking:${tenantId}:${trackingNumber}`;
     
     // Check cache first
-    let trackingData = await this.cacheService.get(cacheKey);
+    let trackingData = await this.cacheService.get<any>(cacheKey);
     if (trackingData) {
       return trackingData;
     }
@@ -341,7 +341,9 @@ export class ShippingIntegrationService {
       // Check for delivery
       if (isDelivered && !shipment.deliveredAt) {
         const deliveryEvent = trackingEvents.find(event => event.isDelivered);
-        await this.markShipmentDelivered(tenantId, shipment.id, deliveryEvent);
+        if (deliveryEvent) {
+          await this.markShipmentDelivered(tenantId, shipment.id, deliveryEvent);
+        }
       }
 
       // Check for exceptions
@@ -360,13 +362,13 @@ export class ShippingIntegrationService {
       };
 
       // Cache tracking data for 30 minutes
-      await this.cacheService.set(cacheKey, trackingData, 1800);
+      await this.cacheService.set(cacheKey, trackingData, { ttl: 1800 });
 
       return trackingData;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to track shipment ${trackingNumber}:`, error);
-      throw new BadRequestException(`Failed to track shipment: ${error.message}`);
+      throw new BadRequestException(`Failed to track shipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -397,9 +399,9 @@ export class ShippingIntegrationService {
 
       return cancelled;
 
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to cancel shipment ${shipmentId}:`, error);
-      throw new BadRequestException(`Failed to cancel shipment: ${error.message}`);
+      throw new BadRequestException(`Failed to cancel shipment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -419,7 +421,7 @@ export class ShippingIntegrationService {
   }> {
     const cacheKey = `shipping:warehouse:${tenantId}:${warehouseId}:${JSON.stringify(options)}`;
     
-    let result = await this.cacheService.get(cacheKey);
+    let result = await this.cacheService.get<{ shipments: any[]; total: number; page: number; limit: number; totalPages: number; }>(cacheKey);
     if (result) {
       return result;
     }
@@ -435,7 +437,7 @@ export class ShippingIntegrationService {
     };
 
     // Cache for 5 minutes
-    await this.cacheService.set(cacheKey, result, 300);
+    await this.cacheService.set(cacheKey, result, { ttl: 300 });
 
     return result;
   }
@@ -459,7 +461,7 @@ export class ShippingIntegrationService {
   }> {
     const cacheKey = `shipping:metrics:${tenantId}:${warehouseId}:${dateRange.from.getTime()}-${dateRange.to.getTime()}`;
     
-    let metrics = await this.cacheService.get(cacheKey);
+    let metrics = await this.cacheService.get<any>(cacheKey);
     if (metrics) {
       return metrics;
     }
@@ -482,7 +484,7 @@ export class ShippingIntegrationService {
     };
 
     // Cache for 1 hour
-    await this.cacheService.set(cacheKey, metrics, 3600);
+    await this.cacheService.set(cacheKey, metrics, { ttl: 3600 });
 
     return metrics;
   }
@@ -511,7 +513,7 @@ export class ShippingIntegrationService {
     // This would store shipment data in database
     // For now, just cache it
     const cacheKey = `shipment:${tenantId}:${shipmentId}`;
-    await this.cacheService.set(cacheKey, data, 86400); // 24 hours
+    await this.cacheService.set(cacheKey, data, { ttl: 86400 }); // 24 hours
   }
 
   private async getShipment(tenantId: string, shipmentId: string): Promise<any> {
@@ -532,7 +534,7 @@ export class ShippingIntegrationService {
       shipment.updatedBy = userId;
       
       const cacheKey = `shipment:${tenantId}:${shipmentId}`;
-      await this.cacheService.set(cacheKey, shipment, 86400);
+      await this.cacheService.set(cacheKey, shipment, { ttl: 86400 });
     }
   }
 

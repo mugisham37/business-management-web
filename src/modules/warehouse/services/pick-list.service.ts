@@ -483,7 +483,7 @@ export class PickListService {
 
     // Optimize within each zone and combine
     const optimized: any[] = [];
-    Object.values(zoneGroups).forEach(zoneLocations => {
+    (Object.values(zoneGroups) as any[][]).forEach((zoneLocations) => {
       const zoneOptimized = this.optimizeByDistance(zoneLocations);
       optimized.push(...zoneOptimized);
     });
@@ -504,7 +504,7 @@ export class PickListService {
     let reverse = false;
 
     Object.keys(aisleGroups).sort().forEach(aisle => {
-      const aisleLocations = aisleGroups[aisle].sort((a, b) => {
+      const aisleLocations = aisleGroups[aisle].sort((a: any, b: any) => {
         const bayA = parseInt(a.bay || '0');
         const bayB = parseInt(b.bay || '0');
         return reverse ? bayB - bayA : bayA - bayB;
