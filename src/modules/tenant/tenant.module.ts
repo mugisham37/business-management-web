@@ -11,11 +11,11 @@ import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking
 import { FeatureFlagController } from './controllers/feature-flag.controller';
 import { TenantMetricsController } from './controllers/tenant-metrics.controller';
 import { DatabaseModule } from '../database/database.module';
-import { CacheConfigModule } from '../cache/cache.module';
+import { CacheModule } from '../cache/cache.module';
 import { LoggerModule } from '../logger/logger.module';
 
 @Module({
-  imports: [DatabaseModule, CacheConfigModule, LoggerModule],
+  imports: [DatabaseModule, CacheModule, LoggerModule],
   controllers: [TenantController, FeatureFlagController, TenantMetricsController],
   providers: [
     TenantService,

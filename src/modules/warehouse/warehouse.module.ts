@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
-import { CacheConfigModule } from '../cache/cache.module';
+import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
 
@@ -37,7 +37,7 @@ import { PickListRepository } from './repositories/pick-list.repository';
 @Module({
   imports: [
     DatabaseModule,
-    CacheConfigModule,
+    CacheModule,
     QueueModule,
     TenantModule,
   ],
