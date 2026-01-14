@@ -31,7 +31,7 @@ import {
   CreateSupplierCommunicationDto,
   CreateSupplierEvaluationDto,
 } from '../dto/supplier.dto';
-import { AuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { FeatureGuard } from '../../tenant/guards/feature.guard';
 import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
@@ -41,7 +41,7 @@ import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 
 @Controller('api/v1/suppliers')
-@UseGuards(AuthGuard, TenantGuard, FeatureGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
 @RequireFeature('supplier-management')
 @ApiBearerAuth()
 @ApiTags('Suppliers')
@@ -97,9 +97,9 @@ export class SupplierController {
   @ApiQuery({ name: 'limit', description: 'Limit results', required: false })
   @ApiResponse({ status: 200, description: 'Search results retrieved successfully' })
   async searchSuppliers(
+    @CurrentTenant() tenantId: string,
     @Query('q') searchTerm: string,
     @Query('limit') limit?: number,
-    @CurrentTenant() tenantId: string,
   ) {
     return await this.supplierService.searchSuppliers(tenantId, searchTerm, limit);
   }
@@ -112,9 +112,9 @@ export class SupplierController {
   @ApiResponse({ status: 200, description: 'Supplier retrieved successfully', type: SupplierResponseDto })
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   async getSupplier(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Query('include') include?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     const includeRelations = include === 'relations';
     
@@ -132,9 +132,9 @@ export class SupplierController {
   @ApiResponse({ status: 200, description: 'Supplier updated successfully', type: SupplierResponseDto })
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   async updateSupplier(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateSupplierDto: UpdateSupplierDto,
-    @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.updateSupplier(tenantId, id, updateSupplierDto, user.id);
@@ -148,8 +148,8 @@ export class SupplierController {
   @ApiResponse({ status: 204, description: 'Supplier deleted successfully' })
   @ApiResponse({ status: 404, description: 'Supplier not found' })
   async deleteSupplier(
-    @Param('id', ParseUUIDPipe) id: string,
     @CurrentTenant() tenantId: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.supplierService.deleteSupplier(tenantId, id, user.id);
@@ -163,9 +163,9 @@ export class SupplierController {
   @ApiParam({ name: 'id', description: 'Supplier ID' })
   @ApiResponse({ status: 201, description: 'Contact created successfully' })
   async createSupplierContact(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) supplierId: string,
     @Body() createContactDto: CreateSupplierContactDto,
-    @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.createSupplierContact(
@@ -194,9 +194,9 @@ export class SupplierController {
   @ApiParam({ name: 'contactId', description: 'Contact ID' })
   @ApiResponse({ status: 200, description: 'Contact updated successfully' })
   async updateSupplierContact(
+    @CurrentTenant() tenantId: string,
     @Param('contactId', ParseUUIDPipe) contactId: string,
     @Body() updateContactDto: UpdateSupplierContactDto,
-    @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.updateSupplierContact(
@@ -214,8 +214,8 @@ export class SupplierController {
   @ApiParam({ name: 'contactId', description: 'Contact ID' })
   @ApiResponse({ status: 204, description: 'Contact deleted successfully' })
   async deleteSupplierContact(
-    @Param('contactId', ParseUUIDPipe) contactId: string,
     @CurrentTenant() tenantId: string,
+    @Param('contactId', ParseUUIDPipe) contactId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.supplierService.deleteSupplierContact(tenantId, contactId, user.id);
@@ -227,8 +227,8 @@ export class SupplierController {
   @ApiParam({ name: 'contactId', description: 'Contact ID' })
   @ApiResponse({ status: 200, description: 'Primary contact set successfully' })
   async setPrimaryContact(
-    @Param('contactId', ParseUUIDPipe) contactId: string,
     @CurrentTenant() tenantId: string,
+    @Param('contactId', ParseUUIDPipe) contactId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.setPrimaryContact(tenantId, contactId, user.id);
@@ -256,10 +256,10 @@ export class SupplierController {
   @ApiQuery({ name: 'offset', description: 'Offset results', required: false })
   @ApiResponse({ status: 200, description: 'Communications retrieved successfully' })
   async getSupplierCommunications(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) supplierId: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
-    @CurrentTenant() tenantId: string,
   ) {
     return await this.supplierService.getSupplierCommunications(
       tenantId,
@@ -275,8 +275,8 @@ export class SupplierController {
   @ApiQuery({ name: 'before', description: 'Before date', required: false })
   @ApiResponse({ status: 200, description: 'Pending follow-ups retrieved successfully' })
   async getPendingFollowUps(
-    @Query('before') before?: string,
     @CurrentTenant() tenantId: string,
+    @Query('before') before?: string,
   ) {
     const beforeDate = before ? new Date(before) : undefined;
     return await this.supplierService.getPendingFollowUps(tenantId, beforeDate);
@@ -288,8 +288,8 @@ export class SupplierController {
   @ApiParam({ name: 'communicationId', description: 'Communication ID' })
   @ApiResponse({ status: 200, description: 'Follow-up marked as complete' })
   async markFollowUpComplete(
-    @Param('communicationId', ParseUUIDPipe) communicationId: string,
     @CurrentTenant() tenantId: string,
+    @Param('communicationId', ParseUUIDPipe) communicationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.markFollowUpComplete(tenantId, communicationId, user.id);
@@ -317,10 +317,10 @@ export class SupplierController {
   @ApiQuery({ name: 'offset', description: 'Offset results', required: false })
   @ApiResponse({ status: 200, description: 'Evaluations retrieved successfully' })
   async getSupplierEvaluations(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) supplierId: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
-    @CurrentTenant() tenantId: string,
   ) {
     return await this.supplierService.getSupplierEvaluations(tenantId, supplierId, limit, offset);
   }
@@ -351,8 +351,8 @@ export class SupplierController {
   @ApiParam({ name: 'evaluationId', description: 'Evaluation ID' })
   @ApiResponse({ status: 200, description: 'Evaluation approved successfully' })
   async approveEvaluation(
-    @Param('evaluationId', ParseUUIDPipe) evaluationId: string,
     @CurrentTenant() tenantId: string,
+    @Param('evaluationId', ParseUUIDPipe) evaluationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.approveEvaluation(tenantId, evaluationId, user.id);
@@ -364,8 +364,8 @@ export class SupplierController {
   @ApiParam({ name: 'evaluationId', description: 'Evaluation ID' })
   @ApiResponse({ status: 200, description: 'Evaluation rejected successfully' })
   async rejectEvaluation(
-    @Param('evaluationId', ParseUUIDPipe) evaluationId: string,
     @CurrentTenant() tenantId: string,
+    @Param('evaluationId', ParseUUIDPipe) evaluationId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return await this.supplierService.rejectEvaluation(tenantId, evaluationId, user.id);
@@ -380,10 +380,10 @@ export class SupplierController {
   @ApiQuery({ name: 'endDate', description: 'End date', required: false })
   @ApiResponse({ status: 200, description: 'Performance metrics retrieved successfully' })
   async getSupplierPerformance(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) supplierId: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
@@ -403,9 +403,9 @@ export class SupplierController {
   @ApiQuery({ name: 'months', description: 'Number of months', required: false })
   @ApiResponse({ status: 200, description: 'Performance trends retrieved successfully' })
   async getSupplierTrends(
+    @CurrentTenant() tenantId: string,
     @Param('id', ParseUUIDPipe) supplierId: string,
     @Query('months') months?: number,
-    @CurrentTenant() tenantId: string,
   ) {
     return await this.supplierService.getSupplierTrends(tenantId, supplierId, months);
   }
@@ -418,10 +418,10 @@ export class SupplierController {
   @ApiQuery({ name: 'endDate', description: 'End date', required: false })
   @ApiResponse({ status: 200, description: 'Evaluation statistics retrieved successfully' })
   async getEvaluationStats(
+    @CurrentTenant() tenantId: string,
     @Query('supplierId') supplierId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
@@ -437,10 +437,10 @@ export class SupplierController {
   @ApiQuery({ name: 'endDate', description: 'End date', required: false })
   @ApiResponse({ status: 200, description: 'Communication statistics retrieved successfully' })
   async getCommunicationStats(
+    @CurrentTenant() tenantId: string,
     @Query('supplierId') supplierId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @CurrentTenant() tenantId: string,
   ) {
     const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;

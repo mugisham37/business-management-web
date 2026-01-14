@@ -180,25 +180,36 @@ export class ProcurementAnalyticsController {
       }),
     );
 
+    // Filter out undefined values
+    const validComparisons = comparisons.filter((c): c is NonNullable<typeof c> => c !== undefined && c !== null);
+
     // Calculate averages for comparison
     const averages = {
-      overallScore: comparisons.reduce((sum, s) => sum + s.overallScore, 0) / comparisons.length,
-      qualityScore: comparisons.reduce((sum, s) => sum + s.qualityScore, 0) / comparisons.length,
-      deliveryScore: comparisons.reduce((sum, s) => sum + s.deliveryScore, 0) / comparisons.length,
-      serviceScore: comparisons.reduce((sum, s) => sum + s.serviceScore, 0) / comparisons.length,
-      onTimeDeliveryRate: comparisons.reduce((sum, s) => sum + s.onTimeDeliveryRate, 0) / comparisons.length,
-      totalSpend: comparisons.reduce((sum, s) => sum + s.totalSpend, 0),
+      overallScore: validComparisons.length > 0 ? validComparisons.reduce((sum, s) => sum + s.overallScore, 0) / validComparisons.length : 0,
+      qualityScore: validComparisons.length > 0 ? validComparisons.reduce((sum, s) => sum + s.qualityScore, 0) / validComparisons.length : 0,
+      deliveryScore: validComparisons.length > 0 ? validComparisons.reduce((sum, s) => sum + s.deliveryScore, 0) / validComparisons.length : 0,
+      serviceScore: validComparisons.length > 0 ? validComparisons.reduce((sum, s) => sum + s.serviceScore, 0) / validComparisons.length : 0,
+      onTimeDeliveryRate: validComparisons.length > 0 ? validComparisons.reduce((sum, s) => sum + s.onTimeDeliveryRate, 0) / validComparisons.length : 0,
+      totalSpend: validComparisons.reduce((sum, s) => sum + s.totalSpend, 0),
     };
 
+    const bestPerformer = validComparisons.length > 0 
+      ? validComparisons.reduce((best, current) => 
+          current.overallScore > best.overallScore ? current : best
+        )
+      : null;
+
+    const worstPerformer = validComparisons.length > 0
+      ? validComparisons.reduce((worst, current) => 
+          current.overallScore < worst.overallScore ? current : worst
+        )
+      : null;
+
     return {
-      suppliers: comparisons,
+      suppliers: validComparisons,
       averages,
-      bestPerformer: comparisons.reduce((best, current) => 
-        current.overallScore > best.overallScore ? current : best
-      ),
-      worstPerformer: comparisons.reduce((worst, current) => 
-        current.overallScore < worst.overallScore ? current : worst
-      ),
+      bestPerformer,
+      worstPerformer,
     };
   }
 

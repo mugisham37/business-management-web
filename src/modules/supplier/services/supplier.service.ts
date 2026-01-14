@@ -518,12 +518,19 @@ export class SupplierService {
     // Calculate averages
     const totalEvaluations = evaluations.length;
     const scores = evaluations.reduce(
-      (acc, eval) => ({
-        overall: acc.overall + (eval.overallScore || 0),
-        quality: acc.quality + (eval.qualityScore || 0),
-        delivery: acc.delivery + (eval.deliveryScore || 0),
-        service: acc.service + (eval.serviceScore || 0),
-      }),
+      (acc, evaluation) => {
+        const overallScore = typeof evaluation.overallScore === 'number' ? evaluation.overallScore : parseFloat(evaluation.overallScore || '0');
+        const qualityScore = typeof evaluation.qualityScore === 'number' ? evaluation.qualityScore : parseFloat(evaluation.qualityScore || '0');
+        const deliveryScore = typeof evaluation.deliveryScore === 'number' ? evaluation.deliveryScore : parseFloat(evaluation.deliveryScore || '0');
+        const serviceScore = typeof evaluation.serviceScore === 'number' ? evaluation.serviceScore : parseFloat(evaluation.serviceScore || '0');
+        
+        return {
+          overall: acc.overall + overallScore,
+          quality: acc.quality + qualityScore,
+          delivery: acc.delivery + deliveryScore,
+          service: acc.service + serviceScore,
+        };
+      },
       { overall: 0, quality: 0, delivery: 0, service: 0 },
     );
 

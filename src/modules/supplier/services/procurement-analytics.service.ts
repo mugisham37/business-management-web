@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { PurchaseOrderRepository } from '../repositories/purchase-order.repository';
 import { SupplierEvaluationRepository } from '../repositories/supplier-evaluation.repository';
+import { PurchaseOrderStatus } from '../dto/purchase-order.dto';
 
 export interface SpendAnalysisResult {
   totalSpend: number;
@@ -212,17 +213,17 @@ export class ProcurementAnalyticsService {
       const metrics: SupplierPerformanceMetrics = {
         supplierId: supplier.id,
         supplierName: supplier.name,
-        overallScore: latestEvaluation?.overallScore || 0,
-        qualityScore: latestEvaluation?.qualityScore || 0,
-        deliveryScore: latestEvaluation?.deliveryScore || 0,
-        serviceScore: latestEvaluation?.serviceScore || 0,
+        overallScore: typeof latestEvaluation?.overallScore === 'number' ? latestEvaluation.overallScore : parseFloat(latestEvaluation?.overallScore || '0'),
+        qualityScore: typeof latestEvaluation?.qualityScore === 'number' ? latestEvaluation.qualityScore : parseFloat(latestEvaluation?.qualityScore || '0'),
+        deliveryScore: typeof latestEvaluation?.deliveryScore === 'number' ? latestEvaluation.deliveryScore : parseFloat(latestEvaluation?.deliveryScore || '0'),
+        serviceScore: typeof latestEvaluation?.serviceScore === 'number' ? latestEvaluation.serviceScore : parseFloat(latestEvaluation?.serviceScore || '0'),
         onTimeDeliveryRate: supplierStats.onTimeDeliveryRate || 0,
-        qualityDefectRate: latestEvaluation?.qualityDefectRate || 0,
-        averageResponseTime: latestEvaluation?.responseTime || 0,
+        qualityDefectRate: typeof latestEvaluation?.qualityDefectRate === 'number' ? latestEvaluation.qualityDefectRate : parseFloat(latestEvaluation?.qualityDefectRate || '0'),
+        averageResponseTime: typeof latestEvaluation?.responseTime === 'number' ? latestEvaluation.responseTime : parseFloat(latestEvaluation?.responseTime || '0'),
         totalOrders: supplierStats.totalOrders || 0,
         totalSpend: supplierStats.totalSpend || 0,
         averageOrderValue: supplierStats.averageOrderValue || 0,
-        lastEvaluationDate: latestEvaluation?.evaluationDate,
+        ...(latestEvaluation?.evaluationDate && { lastEvaluationDate: latestEvaluation.evaluationDate }),
         trend,
       };
 
@@ -405,8 +406,15 @@ export class ProcurementAnalyticsService {
       return 'stable';
     }
 
-    const olderAverage = olderEvaluations.reduce((sum, e) => sum + (e.overallScore || 0), 0) / olderEvaluations.length;
-    const recentAverage = recentEvaluations.reduce((sum, e) => sum + (e.overallScore || 0), 0) / recentEvaluations.length;
+    const olderAverage = olderEvaluations.reduce((sum, e) => {
+      const score = typeof e.overallScore === 'number' ? e.overallScore : parseFloat(e.overallScore || '0');
+      return sum + score;
+    }, 0) / olderEvaluations.length;
+    
+    const recentAverage = recentEvaluations.reduce((sum, e) => {
+      const score = typeof e.overallScore === 'number' ? e.overallScore : parseFloat(e.overallScore || '0');
+      return sum + score;
+    }, 0) / recentEvaluations.length;
 
     const difference = recentAverage - olderAverage;
 
@@ -607,14 +615,19 @@ export class ProcurementAnalyticsService {
     message: string;
     priority: 'high' | 'medium' | 'low';
   }>> {
-    const alerts = [];
+    const alerts: Array<{
+      type: 'warning' | 'error' | 'info';
+      title: string;
+      message: string;
+      priority: 'high' | 'medium' | 'low';
+    }> = [];
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(endDate.getMonth() - 1);
 
     // Check for overdue purchase orders
     const overdueOrders = await this.purchaseOrderRepository.findMany(tenantId, {
-      status: 'sent_to_supplier',
+      status: PurchaseOrderStatus.SENT_TO_SUPPLIER,
       deliveryDateTo: endDate.toISOString(),
       page: 1,
       limit: 100,
@@ -622,10 +635,10 @@ export class ProcurementAnalyticsService {
 
     if (overdueOrders.purchaseOrders.length > 0) {
       alerts.push({
-        type: 'warning',
+        type: 'warning' as const,
         title: 'Overdue Purchase Orders',
         message: `${overdueOrders.purchaseOrders.length} purchase orders are overdue for delivery`,
-        priority: 'high',
+        priority: 'high' as const,
       });
     }
 
@@ -633,10 +646,10 @@ export class ProcurementAnalyticsService {
     const suppliersNeedingEvaluation = await this.supplierRepository.findSuppliersNeedingEvaluation(tenantId);
     if (suppliersNeedingEvaluation.length > 0) {
       alerts.push({
-        type: 'info',
+        type: 'info' as const,
         title: 'Supplier Evaluations Due',
         message: `${suppliersNeedingEvaluation.length} suppliers are due for performance evaluation`,
-        priority: 'medium',
+        priority: 'medium' as const,
       });
     }
 

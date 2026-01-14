@@ -247,7 +247,7 @@ export class EDIIntegrationService {
 
     } catch (error) {
       document.status = EDITransactionStatus.FAILED;
-      document.errorMessage = error.message;
+      document.errorMessage = error instanceof Error ? error.message : 'Unknown error';
       document.updatedAt = new Date();
 
       // Emit failure event
@@ -256,7 +256,7 @@ export class EDIIntegrationService {
         new EDIDocumentFailedEvent(tenantId, document.id, documentType, supplierId, error instanceof Error ? error.message : 'Unknown error'),
       );
 
-      this.logger.error(`Failed to process EDI document: ${document.id}`, error instanceof Error ? error.stack : error);
+      this.logger.error(`Failed to process EDI document: ${document.id}`, error instanceof Error ? error.stack : String(error));
       throw error;
     }
   }

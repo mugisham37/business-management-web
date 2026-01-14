@@ -337,13 +337,25 @@ export class PurchaseOrderRepository {
     // Build order by clause
     const validSortColumns = ['poNumber', 'orderDate', 'status', 'priority', 'totalAmount', 'supplierId', 'requestedDeliveryDate'];
     const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'orderDate';
-    const orderByColumn = purchaseOrders[sortColumn as keyof typeof purchaseOrders];
     
-    if (!orderByColumn) {
-      throw new Error(`Invalid sort column: ${sortBy}`);
+    let orderByClause;
+    if (sortColumn === 'poNumber') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.poNumber) : asc(purchaseOrders.poNumber);
+    } else if (sortColumn === 'orderDate') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.orderDate) : asc(purchaseOrders.orderDate);
+    } else if (sortColumn === 'status') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.status) : asc(purchaseOrders.status);
+    } else if (sortColumn === 'priority') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.priority) : asc(purchaseOrders.priority);
+    } else if (sortColumn === 'totalAmount') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.totalAmount) : asc(purchaseOrders.totalAmount);
+    } else if (sortColumn === 'supplierId') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.supplierId) : asc(purchaseOrders.supplierId);
+    } else if (sortColumn === 'requestedDeliveryDate') {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.requestedDeliveryDate) : asc(purchaseOrders.requestedDeliveryDate);
+    } else {
+      orderByClause = sortOrder === 'desc' ? desc(purchaseOrders.orderDate) : asc(purchaseOrders.orderDate);
     }
-    
-    const orderByClause = sortOrder === 'desc' ? desc(orderByColumn) : asc(orderByColumn);
 
     // Get paginated results
     const offset = (page - 1) * limit;

@@ -36,7 +36,7 @@ export class SupplierEvaluationRepository {
         complianceScore: data.complianceScore !== undefined ? data.complianceScore.toString() : null,
         onTimeDeliveryRate: data.onTimeDeliveryRate !== undefined ? data.onTimeDeliveryRate.toString() : null,
         qualityDefectRate: data.qualityDefectRate !== undefined ? data.qualityDefectRate.toString() : null,
-        responseTime: data.responseTime !== undefined ? data.responseTime.toString() : null,
+        responseTime: data.responseTime !== undefined ? data.responseTime : null,
         strengths: data.strengths,
         weaknesses: data.weaknesses,
         recommendations: data.recommendations,

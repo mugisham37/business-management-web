@@ -227,13 +227,23 @@ export class SupplierRepository {
     // Build order by clause
     const validSortColumns = ['name', 'supplierCode', 'status', 'supplierType', 'overallRating', 'createdAt'];
     const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'name';
-    const orderByColumn = suppliers[sortColumn as keyof typeof suppliers];
     
-    if (!orderByColumn) {
-      throw new Error(`Invalid sort column: ${sortBy}`);
+    let orderByClause;
+    if (sortColumn === 'name') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.name) : asc(suppliers.name);
+    } else if (sortColumn === 'supplierCode') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.supplierCode) : asc(suppliers.supplierCode);
+    } else if (sortColumn === 'status') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.status) : asc(suppliers.status);
+    } else if (sortColumn === 'supplierType') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.supplierType) : asc(suppliers.supplierType);
+    } else if (sortColumn === 'overallRating') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.overallRating) : asc(suppliers.overallRating);
+    } else if (sortColumn === 'createdAt') {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.createdAt) : asc(suppliers.createdAt);
+    } else {
+      orderByClause = sortOrder === 'desc' ? desc(suppliers.name) : asc(suppliers.name);
     }
-    
-    const orderByClause = sortOrder === 'desc' ? desc(orderByColumn) : asc(orderByColumn);
 
     // Get paginated results
     const offset = (page - 1) * limit;
