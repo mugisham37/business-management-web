@@ -145,6 +145,7 @@ export class MetricsCalculationService {
             });
           }
         } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
           this.logger.warn(`Failed to calculate metric ${metric.name}:`, error);
           // Add zero value for failed metrics
           metrics.push({
@@ -152,14 +153,14 @@ export class MetricsCalculationService {
             value: 0,
             timestamp: new Date(),
             dimensions: { tenant_id: tenantId },
-            metadata: { error: error.message },
+            metadata: { error: err.message },
           });
         }
       }
 
       // Cache results
       const cacheKey = `realtime-metrics:${tenantId}`;
-      await this.cacheService.set(cacheKey, metrics, 300); // 5 minutes
+      await this.cacheService.set(cacheKey, metrics, { ttl: 300 }); // 5 minutes
 
       return metrics;
     } catch (error) {
@@ -189,9 +190,9 @@ export class MetricsCalculationService {
         }
       }
 
-      // Cache results
+      // Cache results - use default TTL since kpiDef is out of scope
       const cacheKey = `kpis:${tenantId}`;
-      await this.cacheService.set(cacheKey, kpis, kpiDef => kpiDef.refreshInterval * 60); // Convert minutes to seconds
+      await this.cacheService.set(cacheKey, kpis, { ttl: 3600 }); // 1 hour default
 
       return kpis;
     } catch (error) {
@@ -312,8 +313,8 @@ export class MetricsCalculationService {
         timestamp: agg.periodStart,
       }));
 
-      const current = history.length > 0 ? history[history.length - 1].value : 0;
-      const previous = history.length > 1 ? history[history.length - 2].value : 0;
+      const current = history.length > 0 ? (history[history.length - 1]?.value ?? 0) : 0;
+      const previous = history.length > 1 ? (history[history.length - 2]?.value ?? 0) : 0;
 
       // Calculate trend
       let direction: 'up' | 'down' | 'stable' = 'stable';
@@ -456,10 +457,18 @@ export class MetricsCalculationService {
       // Get aggregations for each metric
       for (const metricName of metricsToQuery) {
         try {
+          // Map interval from 'hourly|daily|weekly|monthly' to 'hour|day|week|month'
+          const periodMap: Record<string, 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year'> = {
+            'hourly': 'hour',
+            'daily': 'day',
+            'weekly': 'week',
+            'monthly': 'month',
+          };
+          const period = periodMap[interval] || 'day';
           const aggregations = await this.calculateAggregations(
             tenantId,
             metricName,
-            interval,
+            period,
             startDate,
             endDate
           );
@@ -623,23 +632,28 @@ export class MetricsCalculationService {
     const value = result.data.length > 0 ? (result.data[0].value || 0) : 0;
 
     // Calculate variance from target
-    let variance: number | undefined;
-    if (kpiDef.target) {
-      variance = ((value - kpiDef.target) / kpiDef.target) * 100;
-    }
+    const variance: number | undefined = kpiDef.target ? ((value - kpiDef.target) / kpiDef.target) * 100 : undefined;
 
     // Get trend (simplified - would compare with previous period)
     const trend = await this.calculateKPITrend(tenantId, kpiDef.name, value);
 
-    return {
+    const kpiValue: Record<string, any> = {
       kpiName: kpiDef.name,
       value,
-      target: kpiDef.target,
-      variance,
       trend,
       timestamp: new Date(),
       dimensions: { tenant_id: tenantId },
     };
+
+    // Only add optional properties if they have values
+    if (kpiDef.target !== undefined) {
+      kpiValue.target = kpiDef.target;
+    }
+    if (variance !== undefined) {
+      kpiValue.variance = variance;
+    }
+
+    return kpiValue as any;
   }
 
   private async calculateKPITrend(tenantId: string, kpiName: string, currentValue: number): Promise<{
@@ -775,15 +789,18 @@ export class MetricsCalculationService {
   }
 
   private formatPeriod(date: Date, period: string): string {
+    const isoString = date.toISOString();
+    const dateOnly = isoString.split('T')[0] || isoString;
+    
     switch (period) {
       case 'day':
-        return date.toISOString().split('T')[0];
+        return dateOnly;
       case 'week':
-        return `Week of ${date.toISOString().split('T')[0]}`;
+        return `Week of ${dateOnly}`;
       case 'month':
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       default:
-        return date.toISOString().split('T')[0];
+        return dateOnly;
     }
   }
 

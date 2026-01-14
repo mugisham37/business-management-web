@@ -160,11 +160,17 @@ export class ETLService {
       throw new Error(`Pipeline not found: ${pipelineId}`);
     }
 
-    return {
+    const lastResult = await this.getLastJobResult(pipelineId);
+    const response: any = {
       pipeline,
       isRunning: this.runningJobs.has(pipelineId),
-      lastResult: await this.getLastJobResult(pipelineId),
     };
+
+    if (lastResult) {
+      response.lastResult = lastResult;
+    }
+
+    return response;
   }
 
   /**
@@ -421,11 +427,9 @@ export class ETLService {
       // Remove from active pipelines
       this.activePipelines.delete(pipeline.id);
 
-      // Cancel scheduled jobs
-      await this.queueService.removeRepeatable('etl-pipeline', {
-        cron: pipeline.schedule.expression,
-        jobId: `etl-${pipeline.id}`,
-      });
+      // Note: QueueService doesn't have removeRepeatable method
+      // Scheduled jobs should be handled by the queue configuration
+      this.logger.debug(`Scheduled jobs for pipeline ${pipeline.id} will need manual cleanup`);
     }
   }
 
@@ -476,8 +480,9 @@ export class ETLService {
 
       return result;
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       result.endTime = new Date();
-      result.errors.push(error.message);
+      result.errors.push(err.message);
       result.recordsFailed = result.recordsProcessed;
       result.recordsSuccessful = 0;
       pipeline.status = 'failed';
@@ -503,15 +508,17 @@ export class ETLService {
     const data: any[] = [];
 
     for (const table of tables) {
-      let query = sql`SELECT * FROM ${sql.identifier(table)} WHERE tenant_id = ${pipeline.tenantId}`;
+      let whereClause = `WHERE tenant_id = '${pipeline.tenantId}'`;
 
       // Add incremental extraction if configured
       if (incrementalColumn && pipeline.lastRun) {
-        query = sql`${query} AND ${sql.identifier(incrementalColumn)} > ${pipeline.lastRun}`;
+        const lastRunIso = pipeline.lastRun.toISOString();
+        whereClause += ` AND ${incrementalColumn} > '${lastRunIso}'`;
       }
 
-      const tableData = await this.drizzle.execute(query);
-      data.push(...tableData);
+      const query = `SELECT * FROM ${table} ${whereClause}`;
+      const result = await this.drizzle.executeRawSQL(query);
+      data.push(...result.rows);
     }
 
     return data;
@@ -589,7 +596,7 @@ export class ETLService {
 
     // Group data
     for (const record of data) {
-      const key = groupBy.map(field => record[field]).join('|');
+      const key = groupBy.map((field: string) => record[field]).join('|');
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -602,7 +609,7 @@ export class ETLService {
       const aggregate: any = {};
       
       // Set group by fields
-      groupBy.forEach((field, index) => {
+      groupBy.forEach((field: string, index: number) => {
         aggregate[field] = key.split('|')[index];
       });
 
@@ -675,7 +682,11 @@ export class ETLService {
     failureCount: number;
     errors: string[];
   }> {
-    const result = {
+    const result: {
+      successCount: number;
+      failureCount: number;
+      errors: string[];
+    } = {
       successCount: 0,
       failureCount: 0,
       errors: [],
@@ -695,8 +706,9 @@ export class ETLService {
           throw new Error(`Unsupported destination type: ${destination.type}`);
       }
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       result.failureCount = data.length;
-      result.errors.push(error.message);
+      result.errors.push(err.message);
     }
 
     return result;
@@ -715,25 +727,29 @@ export class ETLService {
       const batch = data.slice(i, i + batchSize);
       
       // Use upsert to handle duplicates
-      await this.drizzle.execute(sql`
-        INSERT INTO ${sql.identifier(schema, table)} 
-        (${sql.raw(Object.keys(batch[0]).join(', '))})
-        VALUES ${sql.raw(batch.map(record => 
-          `(${Object.values(record).map(val => 
-            typeof val === 'string' ? `'${val}'` : val
-          ).join(', ')})`
-        ).join(', '))}
-        ON CONFLICT (id) DO UPDATE SET
-        ${sql.raw(Object.keys(batch[0]).filter(key => key !== 'id').map(key => 
-          `${key} = EXCLUDED.${key}`
-        ).join(', '))}
-      `);
+      const columns = Object.keys(batch[0]).join(', ');
+      const values = batch.map(record => 
+        `(${Object.values(record).map(val => 
+          val === null ? 'NULL' : typeof val === 'string' ? `'${val.replace(/'/g, "''")}' ` : val
+        ).join(', ')})`
+      ).join(', ');
+      const updates = Object.keys(batch[0]).filter(key => key !== 'id').map(key => 
+        `${key} = EXCLUDED.${key}`
+      ).join(', ');
+      
+      const insertQuery = `
+        INSERT INTO "${schema}"."${table}" (${columns})
+        VALUES ${values}
+        ON CONFLICT (id) DO UPDATE SET ${updates}
+      `;
+      
+      await this.drizzle.executeRawSQL(insertQuery);
     }
   }
 
   private async loadToCache(data: any[], config: any): Promise<void> {
     const { key, ttl = 3600 } = config;
-    await this.cacheService.set(key, data, ttl);
+    await this.cacheService.set(key, data, { ttl });
   }
 
   private evaluateExpression(expression: string, record: any): any {

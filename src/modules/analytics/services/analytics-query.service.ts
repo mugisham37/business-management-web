@@ -207,9 +207,9 @@ export class AnalyticsQueryService {
   } {
     const result = {
       isValid: true,
-      errors: [],
-      warnings: [],
-      securityIssues: [],
+      errors: [] as string[],
+      warnings: [] as string[],
+      securityIssues: [] as string[],
     };
 
     try {
@@ -260,8 +260,9 @@ export class AnalyticsQueryService {
         }
       }
 
-    } catch (error) {
-      result.errors.push(`Query validation error: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (err) {
+      const error = err as Error;
+      result.errors.push(`Query validation error: ${error.message}`);
       result.isValid = false;
     }
 
@@ -337,7 +338,6 @@ export class AnalyticsQueryService {
     return Object.keys(firstRow).map((key: string) => ({
       name: key,
       type: typeof firstRow[key],
-      description: undefined,
     }));
   }
 

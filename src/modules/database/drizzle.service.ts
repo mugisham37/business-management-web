@@ -193,6 +193,19 @@ export class DrizzleService implements OnModuleDestroy {
     return pool.connect();
   }
 
+  /**
+   * Execute raw SQL query - use for DDL, DML, or when ORM is not suitable
+   */
+  async executeRawSQL(sql: string, parameters: any[] = [], useReadReplica: boolean = false): Promise<any> {
+    const client = await this.getClient(useReadReplica);
+    try {
+      const result = await client.query(sql, parameters);
+      return result;
+    } finally {
+      client.release();
+    }
+  }
+
   async testConnections(): Promise<void> {
     // Test primary connection
     if (this.primaryPool) {

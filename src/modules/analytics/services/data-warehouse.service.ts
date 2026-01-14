@@ -80,8 +80,12 @@ export class DataWarehouseService {
       const schemaName = `analytics_${tenantId.replace(/-/g, '_')}`;
 
       // Create schema
-      const db = this.drizzle.getDb();
-      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(schemaName)}`);
+      const client = await this.drizzle.getClient();
+      try {
+        await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
+      } finally {
+        client.release();
+      }
 
       // Create fact tables
       await this.createFactTables(schemaName);
@@ -110,12 +114,16 @@ export class DataWarehouseService {
       const schemaName = `analytics_${tenantId.replace(/-/g, '_')}`;
       
       // Test basic query
-      const db = this.drizzle.getDb();
-      const result = await db.execute(
-        sql`SELECT 1 as test FROM information_schema.schemata WHERE schema_name = ${schemaName} LIMIT 1`
-      );
-
-      return result.length > 0;
+      const client = await this.drizzle.getClient();
+      try {
+        const result = await client.query(
+          'SELECT 1 as test FROM information_schema.schemata WHERE schema_name = $1 LIMIT 1',
+          [schemaName]
+        );
+        return result.rows.length > 0;
+      } finally {
+        client.release();
+      }
     } catch (error) {
       this.logger.error(`Data warehouse connection test failed for tenant ${tenantId}:`, error);
       return false;
@@ -167,41 +175,46 @@ export class DataWarehouseService {
 
       // Execute query with timeout
       const timeoutMs = options.timeout || 30000; // 30 second default
-      const db = this.drizzle.getDb();
-      const queryPromise = db.execute(sql.raw(query, ...parameters));
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), timeoutMs)
-      );
+      const client = await this.drizzle.getClient();
+      try {
+        const queryPromise = client.query(query, parameters);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), timeoutMs)
+        );
 
-      const result = await Promise.race([queryPromise, timeoutPromise]) as any[];
-      const executionTime = Date.now() - startTime;
+        const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+        const data = result.rows || [];
+        const executionTime = Date.now() - startTime;
 
-      // Cache result if enabled
-      if (options.useCache !== false && result.length > 0) {
-        const cacheKey = `analytics-query:${tenantId}:${queryId}`;
-        const cacheTTL = options.cacheTTL || 300; // 5 minutes default
-        await this.cacheService.set(cacheKey, result, cacheTTL);
-      }
+        // Cache result if enabled
+        if (options.useCache !== false && data.length > 0) {
+          const cacheKey = `analytics-query:${tenantId}:${queryId}`;
+          const cacheTTL = options.cacheTTL || 300; // 5 minutes default
+          await this.cacheService.set(cacheKey, data, { ttl: cacheTTL });
+        }
 
-      // Log performance stats
-      await this.logQueryPerformance({
-        queryId,
-        executionTime,
-        rowsReturned: result.length,
-        bytesProcessed: this.estimateDataSize(result),
-        cacheHit: false,
-        timestamp: new Date(),
-      });
-
-      return {
-        data: result,
-        metadata: {
-          executionTime,
-          rowCount: result.length,
-          fromCache: false,
+        // Log performance stats
+        await this.logQueryPerformance({
           queryId,
-        },
-      };
+          executionTime,
+          rowsReturned: data.length,
+          bytesProcessed: this.estimateDataSize(data),
+          cacheHit: false,
+          timestamp: new Date(),
+        });
+
+        return {
+          data,
+          metadata: {
+            executionTime,
+            rowCount: data.length,
+            fromCache: false,
+            queryId,
+          },
+        };
+      } finally {
+        client.release();
+      }
     } catch (error) {
       this.logger.error(`Analytics query failed for tenant ${tenantId}:`, error);
       throw error;
@@ -226,22 +239,23 @@ export class DataWarehouseService {
       const schemaName = `analytics_${tenantId.replace(/-/g, '_')}`;
 
       // Get schema size and table count
-      const schemaStats = await this.drizzle.execute(sql`
+      const schemaStatsResult = await this.drizzle.executeRawSQL(`
         SELECT 
           COUNT(*) as table_count,
           COALESCE(SUM(pg_total_relation_size(schemaname||'.'||tablename)), 0) as schema_size
         FROM pg_tables 
-        WHERE schemaname = ${schemaName}
-      `);
+        WHERE schemaname = $1
+      `, [schemaName]);
+      const schemaStats = schemaStatsResult.rows;
 
       // Get total row count across all fact tables
-      const rowCountQuery = sql`
+      const rowStatsResult = await this.drizzle.executeRawSQL(`
         SELECT SUM(n_tup_ins + n_tup_upd) as total_rows
         FROM pg_stat_user_tables 
-        WHERE schemaname = ${schemaName}
+        WHERE schemaname = $1
         AND tablename LIKE 'fact_%'
-      `;
-      const rowStats = await this.drizzle.execute(rowCountQuery);
+      `, [schemaName]);
+      const rowStats = rowStatsResult.rows;
 
       // Get query performance stats (would come from performance log)
       const performanceStats = await this.getQueryPerformanceStats(tenantId);
@@ -273,21 +287,21 @@ export class DataWarehouseService {
       const optimizations: string[] = [];
 
       // Analyze table statistics
-      await this.drizzle.execute(sql`ANALYZE`);
+      await this.drizzle.executeRawSQL('ANALYZE');
       optimizations.push('Updated table statistics');
 
       // Vacuum and reindex large tables
       const largeTables = await this.getLargeTables(schemaName);
       for (const table of largeTables) {
-        await this.drizzle.execute(sql`VACUUM ANALYZE ${sql.identifier(schemaName, table)}`);
-        await this.drizzle.execute(sql`REINDEX TABLE ${sql.identifier(schemaName, table)}`);
+        await this.drizzle.executeRawSQL(`VACUUM ANALYZE "${schemaName}"."${table}"`);
+        await this.drizzle.executeRawSQL(`REINDEX TABLE "${schemaName}"."${table}"`);
         optimizations.push(`Optimized table: ${table}`);
       }
 
       // Update materialized views
       const materializedViews = await this.getMaterializedViews(schemaName);
       for (const view of materializedViews) {
-        await this.drizzle.execute(sql`REFRESH MATERIALIZED VIEW ${sql.identifier(schemaName, view)}`);
+        await this.drizzle.executeRawSQL(`REFRESH MATERIALIZED VIEW "${schemaName}"."${view}"`);
         optimizations.push(`Refreshed materialized view: ${view}`);
       }
 
@@ -343,8 +357,8 @@ export class DataWarehouseService {
 
   private async createFactTables(schemaName: string): Promise<void> {
     // Transaction facts table
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'fact_transactions')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."fact_transactions" (
         id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         transaction_date DATE NOT NULL,
@@ -364,8 +378,8 @@ export class DataWarehouseService {
     `);
 
     // Inventory facts table
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'fact_inventory')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."fact_inventory" (
         id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         snapshot_date DATE NOT NULL,
@@ -383,8 +397,8 @@ export class DataWarehouseService {
     `);
 
     // Customer facts table
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'fact_customers')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."fact_customers" (
         id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         snapshot_date DATE NOT NULL,
@@ -403,8 +417,8 @@ export class DataWarehouseService {
 
   private async createDimensionTables(schemaName: string): Promise<void> {
     // Date dimension
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'dim_date')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."dim_date" (
         date_key DATE PRIMARY KEY,
         year INTEGER,
         quarter INTEGER,
@@ -423,8 +437,8 @@ export class DataWarehouseService {
     `);
 
     // Location dimension
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'dim_location')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."dim_location" (
         location_id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         location_name VARCHAR(255),
@@ -442,8 +456,8 @@ export class DataWarehouseService {
     `);
 
     // Product dimension
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'dim_product')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."dim_product" (
         product_id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         sku VARCHAR(100),
@@ -459,8 +473,8 @@ export class DataWarehouseService {
     `);
 
     // Customer dimension
-    await this.drizzle.execute(sql`
-      CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, 'dim_customer')} (
+    await this.drizzle.executeRawSQL(`
+      CREATE TABLE IF NOT EXISTS "${schemaName}"."dim_customer" (
         customer_id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
         customer_type VARCHAR(50),
@@ -476,8 +490,8 @@ export class DataWarehouseService {
 
   private async createMaterializedViews(schemaName: string): Promise<void> {
     // Daily sales summary
-    await this.drizzle.execute(sql`
-      CREATE MATERIALIZED VIEW IF NOT EXISTS ${sql.identifier(schemaName, 'mv_daily_sales')} AS
+    await this.drizzle.executeRawSQL(`
+      CREATE MATERIALIZED VIEW IF NOT EXISTS "${schemaName}"."mv_daily_sales" AS
       SELECT 
         transaction_date,
         location_id,
@@ -485,13 +499,13 @@ export class DataWarehouseService {
         SUM(total_amount) as total_revenue,
         AVG(total_amount) as avg_order_value,
         COUNT(DISTINCT customer_id) as unique_customers
-      FROM ${sql.identifier(schemaName, 'fact_transactions')}
+      FROM "${schemaName}"."fact_transactions"
       GROUP BY transaction_date, location_id
     `);
 
     // Product performance summary
-    await this.drizzle.execute(sql`
-      CREATE MATERIALIZED VIEW IF NOT EXISTS ${sql.identifier(schemaName, 'mv_product_performance')} AS
+    await this.drizzle.executeRawSQL(`
+      CREATE MATERIALIZED VIEW IF NOT EXISTS "${schemaName}"."mv_product_performance" AS
       SELECT 
         product_id,
         location_id,
@@ -499,13 +513,13 @@ export class DataWarehouseService {
         SUM(quantity) as units_sold,
         SUM(total_amount) as revenue,
         COUNT(DISTINCT customer_id) as unique_buyers
-      FROM ${sql.identifier(schemaName, 'fact_transactions')}
+      FROM "${schemaName}"."fact_transactions"
       GROUP BY product_id, location_id, DATE_TRUNC('month', transaction_date)
     `);
 
     // Customer lifetime value
-    await this.drizzle.execute(sql`
-      CREATE MATERIALIZED VIEW IF NOT EXISTS ${sql.identifier(schemaName, 'mv_customer_ltv')} AS
+    await this.drizzle.executeRawSQL(`
+      CREATE MATERIALIZED VIEW IF NOT EXISTS "${schemaName}"."mv_customer_ltv" AS
       SELECT 
         customer_id,
         location_id,
@@ -514,7 +528,7 @@ export class DataWarehouseService {
         AVG(total_amount) as avg_order_value,
         MAX(transaction_date) as last_purchase_date,
         MIN(transaction_date) as first_purchase_date
-      FROM ${sql.identifier(schemaName, 'fact_transactions')}
+      FROM "${schemaName}"."fact_transactions"
       WHERE customer_id IS NOT NULL
       GROUP BY customer_id, location_id
     `);
@@ -543,11 +557,11 @@ export class DataWarehouseService {
 
     for (const index of indexes) {
       const indexName = `idx_${index.table}_${index.columns.join('_')}`;
-      const columnList = index.columns.map(col => sql.identifier(col)).join(', ');
+      const columnList = index.columns.join(', ');
       
-      await this.drizzle.execute(sql`
-        CREATE INDEX IF NOT EXISTS ${sql.identifier(indexName)} 
-        ON ${sql.identifier(schemaName, index.table)} (${sql.raw(columnList)})
+      await this.drizzle.executeRawSQL(`
+        CREATE INDEX IF NOT EXISTS "${indexName}" 
+        ON "${schemaName}"."${index.table}" (${columnList})
       `);
     }
   }
@@ -581,24 +595,24 @@ export class DataWarehouseService {
   }
 
   private async getLargeTables(schemaName: string): Promise<string[]> {
-    const result = await this.drizzle.execute(sql`
+    const result = await this.drizzle.executeRawSQL(`
       SELECT tablename 
       FROM pg_tables 
-      WHERE schemaname = ${schemaName}
-      AND pg_total_relation_size(schemaname||'.'||tablename) > 100000000 -- 100MB
-    `);
+      WHERE schemaname = $1
+      AND pg_total_relation_size(schemaname||'.'||tablename) > 100000000
+    `, [schemaName]);
     
-    return result.map(row => row.tablename);
+    return result.rows.map((row: any) => row.tablename);
   }
 
   private async getMaterializedViews(schemaName: string): Promise<string[]> {
-    const result = await this.drizzle.execute(sql`
+    const result = await this.drizzle.executeRawSQL(`
       SELECT matviewname 
       FROM pg_matviews 
-      WHERE schemaname = ${schemaName}
-    `);
+      WHERE schemaname = $1
+    `, [schemaName]);
     
-    return result.map(row => row.matviewname);
+    return result.rows.map((row: any) => row.matviewname);
   }
 
   private async analyzeMissingIndexes(schemaName: string): Promise<DataWarehouseIndex[]> {
@@ -608,12 +622,12 @@ export class DataWarehouseService {
   }
 
   private async createIndex(schemaName: string, index: DataWarehouseIndex): Promise<void> {
-    const columnList = index.columns.map(col => sql.identifier(col)).join(', ');
+    const columnList = index.columns.join(', ');
     
-    await this.drizzle.execute(sql`
-      CREATE INDEX IF NOT EXISTS ${sql.identifier(index.name)}
-      ON ${sql.identifier(schemaName, index.table)} 
-      USING ${sql.raw(index.type)} (${sql.raw(columnList)})
+    await this.drizzle.executeRawSQL(`
+      CREATE INDEX IF NOT EXISTS "${index.name}"
+      ON "${schemaName}"."${index.table}" 
+      USING ${index.type} (${columnList})
     `);
   }
 
@@ -635,11 +649,11 @@ export class DataWarehouseService {
       
       const partitionName = `${tableName}_${partitionDate.getFullYear()}_${String(partitionDate.getMonth() + 1).padStart(2, '0')}`;
       
-      await this.drizzle.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, partitionName)}
-        PARTITION OF ${sql.identifier(schemaName, tableName)}
-        FOR VALUES FROM (${partitionDate.toISOString().split('T')[0]}) 
-        TO (${nextMonth.toISOString().split('T')[0]})
+      await this.drizzle.executeRawSQL(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."${partitionName}"
+        PARTITION OF "${schemaName}"."${tableName}"
+        FOR VALUES FROM ('${partitionDate.toISOString().split('T')[0]}') 
+        TO ('${nextMonth.toISOString().split('T')[0]}')
       `);
     }
   }
@@ -653,9 +667,9 @@ export class DataWarehouseService {
     for (let i = 0; i < strategy.partitionCount; i++) {
       const partitionName = `${tableName}_hash_${i}`;
       
-      await this.drizzle.execute(sql`
-        CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName, partitionName)}
-        PARTITION OF ${sql.identifier(schemaName, tableName)}
+      await this.drizzle.executeRawSQL(`
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."${partitionName}"
+        PARTITION OF "${schemaName}"."${tableName}"
         FOR VALUES WITH (MODULUS ${strategy.partitionCount}, REMAINDER ${i})
       `);
     }

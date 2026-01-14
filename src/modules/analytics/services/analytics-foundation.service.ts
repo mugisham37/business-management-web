@@ -99,7 +99,7 @@ export class AnalyticsFoundationService {
     try {
       const fullEvent: AnalyticsEvent = {
         ...event,
-        id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         timestamp: new Date(),
       };
 
@@ -265,11 +265,12 @@ export class AnalyticsFoundationService {
           message: 'Connection successful',
           timestamp: new Date(),
         });
-      } catch (error) {
+      } catch (err) {
+        const error = err as Error;
         checks.push({
           name: 'Data Warehouse Connection',
           status: 'fail' as const,
-          message: `Connection failed: ${error instanceof Error ? error.message : String(error)}`,
+          message: `Connection failed: ${error.message}`,
           timestamp: new Date(),
         });
         overallStatus = 'unhealthy';
@@ -281,7 +282,7 @@ export class AnalyticsFoundationService {
       
       checks.push({
         name: 'ETL Pipeline',
-        status: etlHealthy ? 'pass' : 'warn',
+        status: etlHealthy ? ('pass' as const) : ('warn' as const),
         message: etlHealthy ? 'ETL running normally' : 'ETL pipeline may be delayed',
         timestamp: new Date(),
       });
@@ -296,7 +297,7 @@ export class AnalyticsFoundationService {
       
       checks.push({
         name: 'Data Freshness',
-        status: dataFresh ? 'pass' : 'warn',
+        status: dataFresh ? ('pass' as const) : ('warn' as const),
         message: `Data is ${dataFreshness} minutes old`,
         timestamp: new Date(),
       });
@@ -307,7 +308,7 @@ export class AnalyticsFoundationService {
       
       checks.push({
         name: 'Error Rate',
-        status: errorRateOk ? 'pass' : 'warn',
+        status: errorRateOk ? ('pass' as const) : ('warn' as const),
         message: `${errorRate.toFixed(2)}% error rate in last hour`,
         timestamp: new Date(),
       });
@@ -319,7 +320,8 @@ export class AnalyticsFoundationService {
         dataFreshness,
         errorRate,
       };
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to get analytics health for tenant ${tenantId}:`, error);
       throw error;
     }
@@ -522,7 +524,8 @@ export class AnalyticsFoundationService {
 
       await this.cacheService.set(cacheKey, metrics, { ttl });
     } catch (error) {
-      this.logger.warn(`Failed to update real-time metrics: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Failed to update real-time metrics: ${errorMessage}`);
     }
   }
 

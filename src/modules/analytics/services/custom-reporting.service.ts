@@ -241,8 +241,9 @@ export class CustomReportingService {
       this.logger.log(`Report created: ${report.id} for tenant ${tenantId}`);
       return report;
     } catch (error) {
-      this.logger.error(`Failed to create report: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create report: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -290,7 +291,8 @@ export class CustomReportingService {
       this.logger.log(`Report updated: ${reportId} for tenant ${tenantId}`);
       return updatedReport;
     } catch (error) {
-      this.logger.error(`Failed to update report: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update report: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -306,14 +308,15 @@ export class CustomReportingService {
       if (!report) {
         report = await this.loadReportDefinition(tenantId, reportId);
         if (report) {
-          await this.cacheService.set(cacheKey, report, 3600); // Cache for 1 hour
+          await this.cacheService.set(cacheKey, report, { ttl: 3600 }); // Cache for 1 hour
         }
       }
 
       return report;
     } catch (error) {
-      this.logger.error(`Failed to get report: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get report: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -348,13 +351,14 @@ export class CustomReportingService {
 
       if (!result) {
         result = await this.loadReportsList(tenantId, userId, options);
-        await this.cacheService.set(cacheKey, result, 1800); // Cache for 30 minutes
+        await this.cacheService.set(cacheKey, result, { ttl: 1800 }); // Cache for 30 minutes
       }
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to list reports: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to list reports: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -414,8 +418,9 @@ export class CustomReportingService {
 
       return execution;
     } catch (error) {
-      this.logger.error(`Failed to execute report: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to execute report: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -455,8 +460,9 @@ export class CustomReportingService {
       this.logger.log(`Dashboard created: ${dashboard.id} for tenant ${tenantId}`);
       return dashboard;
     } catch (error) {
-      this.logger.error(`Failed to create dashboard: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create dashboard: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -512,11 +518,15 @@ export class CustomReportingService {
             
             if (widget.type === 'report' && widget.configuration.reportId) {
               // Execute referenced report
+              const reportOptions: any = {};
+              if (options.filters) {
+                reportOptions.parameters = options.filters;
+              }
               const execution = await this.executeReport(
                 tenantId,
                 widget.configuration.reportId,
                 userId,
-                { parameters: options.filters }
+                reportOptions
               );
               data = await this.getExecutionResult(execution.id);
             } else if (widget.configuration.query) {
@@ -539,12 +549,13 @@ export class CustomReportingService {
               executionTime: Date.now() - startTime,
             };
           } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
             return {
               id: widget.id,
               data: null,
               lastUpdated: new Date(),
               executionTime: Date.now() - startTime,
-              error: error.message,
+              error: err.message,
             };
           }
         })
@@ -558,11 +569,12 @@ export class CustomReportingService {
 
       // Cache result for dashboard refresh interval
       const cacheTTL = dashboard.configuration.refreshInterval || 300; // Default 5 minutes
-      await this.cacheService.set(cacheKey, result, cacheTTL);
+      await this.cacheService.set(cacheKey, result, { ttl: cacheTTL });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to get dashboard data: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get dashboard data: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -605,8 +617,9 @@ export class CustomReportingService {
 
       this.logger.log(`Report scheduled: ${reportId} for tenant ${tenantId}`);
     } catch (error) {
-      this.logger.error(`Failed to schedule report: ${error.message}`, error.stack);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to schedule report: ${err.message}`, err.stack);
+      throw err;
     }
   }
 
@@ -640,7 +653,8 @@ export class CustomReportingService {
 
       return outputUrl;
     } catch (error) {
-      this.logger.error(`Failed to generate report output: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to generate report output: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -679,7 +693,8 @@ export class CustomReportingService {
           { useCache: false, timeout: 5000 }
         );
       } catch (error) {
-        throw new Error(`Data source validation failed: ${error.message}`);
+        const err = error instanceof Error ? error : new Error(String(error));
+        throw new Error(`Data source validation failed: ${err.message}`);
       }
     }
   }
@@ -738,15 +753,16 @@ export class CustomReportingService {
 
     } catch (error) {
       // Update execution with error
+      const err = error instanceof Error ? error : new Error(String(error));
       const failedExecution: ReportExecution = {
         ...execution,
         status: 'failed',
         endTime: new Date(),
-        errorMessage: error.message,
+        errorMessage: err.message,
       };
 
       await this.storeReportExecution(failedExecution);
-      throw error;
+      throw err;
     }
   }
 
@@ -784,7 +800,9 @@ export class CustomReportingService {
 
   private calculateNextRunTime(schedule: ReportSchedule): Date {
     const now = new Date();
-    const [hours, minutes] = schedule.time.split(':').map(Number);
+    const timeParts = schedule.time.split(':').map(part => Number(part) || 0);
+    const hours = timeParts[0] ?? 0;
+    const minutes = timeParts[1] ?? 0;
     
     let nextRun = new Date(now);
     nextRun.setHours(hours, minutes, 0, 0);

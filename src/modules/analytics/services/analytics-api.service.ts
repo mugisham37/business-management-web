@@ -220,7 +220,7 @@ export class AnalyticsAPIService {
 
       // Generate ID if not provided
       if (!query.id) {
-        query.id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        query.id = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       }
 
       // Store query (in production, this would go to database)
@@ -296,7 +296,7 @@ export class AnalyticsAPIService {
   async saveDashboard(tenantId: string, dashboard: Omit<Dashboard, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Dashboard> {
     try {
       const now = new Date();
-      const dashboardId = `dashboard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const dashboardId = `dashboard_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       const fullDashboard: Dashboard = {
         ...dashboard,
         id: dashboardId,
@@ -415,7 +415,7 @@ export class AnalyticsAPIService {
     downloadUrl?: string;
   }> {
     try {
-      const exportId = `export_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const exportId = `export_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       
       // This would queue the export job in a real implementation
       // For now, return mock response
@@ -533,9 +533,9 @@ export class AnalyticsAPIService {
       case 'lte':
         return `${filter.field} <= '${filter.value}'`;
       case 'in':
-        return `${filter.field} IN (${filter.value.map(v => `'${v}'`).join(', ')})`;
+        return `${filter.field} IN (${filter.value.map((v: any) => `'${v}'`).join(', ')})`;
       case 'not_in':
-        return `${filter.field} NOT IN (${filter.value.map(v => `'${v}'`).join(', ')})`;
+        return `${filter.field} NOT IN (${filter.value.map((v: any) => `'${v}'`).join(', ')})`;
       case 'like':
         return `${filter.field} LIKE '%${filter.value}%'`;
       case 'between':
@@ -569,7 +569,6 @@ export class AnalyticsAPIService {
     return Object.keys(firstRow).map((key: string) => ({
       name: key,
       type: typeof firstRow[key],
-      description: undefined,
     }));
   }
 

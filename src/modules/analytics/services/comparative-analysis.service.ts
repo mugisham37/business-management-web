@@ -301,10 +301,11 @@ export class ComparativeAnalysisService {
 
       // Cache results
       const cacheKey = `period-comparison:${tenantId}:${comparison.id}`;
-      await this.cacheService.set(cacheKey, comparison, 3600); // Cache for 1 hour
+      await this.cacheService.set(cacheKey, comparison, { ttl: 3600 }); // Cache for 1 hour
 
       return comparison;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to create period comparison: ${error.message}`, error.stack);
       throw error;
     }
@@ -358,10 +359,11 @@ export class ComparativeAnalysisService {
 
       // Cache results
       const cacheKey = `location-benchmark:${tenantId}:${benchmark.id}`;
-      await this.cacheService.set(cacheKey, benchmark, 1800); // Cache for 30 minutes
+      await this.cacheService.set(cacheKey, benchmark, { ttl: 1800 }); // Cache for 30 minutes
 
       return benchmark;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to create location benchmark: ${error.message}`, error.stack);
       throw error;
     }
@@ -418,10 +420,11 @@ export class ComparativeAnalysisService {
 
       // Cache results
       const cacheKey = `industry-benchmark:${tenantId}:${benchmark.id}`;
-      await this.cacheService.set(cacheKey, benchmark, 7200); // Cache for 2 hours
+      await this.cacheService.set(cacheKey, benchmark, { ttl: 7200 }); // Cache for 2 hours
 
       return benchmark;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to create industry benchmark: ${error.message}`, error.stack);
       throw error;
     }
@@ -493,10 +496,11 @@ export class ComparativeAnalysisService {
 
       // Cache results
       const cacheKey = `trend-analysis:${tenantId}:${analysis.id}`;
-      await this.cacheService.set(cacheKey, analysis, 1800); // Cache for 30 minutes
+      await this.cacheService.set(cacheKey, analysis, { ttl: 1800 }); // Cache for 30 minutes
 
       return analysis;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to create trend analysis: ${error.message}`, error.stack);
       throw error;
     }
@@ -531,12 +535,13 @@ export class ComparativeAnalysisService {
         }
 
         if (analysis) {
-          await this.cacheService.set(cacheKey, analysis, 1800);
+          await this.cacheService.set(cacheKey, analysis, { ttl: 1800 });
         }
       }
 
       return analysis;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to get comparative analysis: ${error.message}`, error.stack);
       throw error;
     }
@@ -571,11 +576,12 @@ export class ComparativeAnalysisService {
 
       if (!result) {
         result = await this.loadComparativeAnalysesList(tenantId, options);
-        await this.cacheService.set(cacheKey, result, 900); // Cache for 15 minutes
+        await this.cacheService.set(cacheKey, result, { ttl: 900 }); // Cache for 15 minutes
       }
 
       return result;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to list comparative analyses: ${error.message}`, error.stack);
       throw error;
     }
@@ -636,7 +642,8 @@ export class ComparativeAnalysisService {
       });
 
       return report;
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to generate comparative report: ${error.message}`, error.stack);
       throw error;
     }
@@ -700,7 +707,8 @@ export class ComparativeAnalysisService {
         executionTime: Date.now() - startTime,
         dataPoints: currentData.length + comparisonData.length,
       };
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to calculate period comparison: ${error.message}`, error.stack);
       throw error;
     }
@@ -710,7 +718,12 @@ export class ComparativeAnalysisService {
     const startTime = Date.now();
 
     try {
-      const locationData = [];
+      const locationData: Array<{
+        locationId: string;
+        locationName: string;
+        value: number;
+        normalizedValue: number;
+      }> = [];
 
       // Get data for each location
       for (const locationId of benchmark.configuration.locations) {
@@ -773,7 +786,8 @@ export class ComparativeAnalysisService {
         executionTime: Date.now() - startTime,
         locationsAnalyzed: benchmark.configuration.locations.length,
       };
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to calculate location benchmark: ${error.message}`, error.stack);
       throw error;
     }
@@ -856,7 +870,8 @@ export class ComparativeAnalysisService {
         sampleSize: 1000, // Mock sample size
         confidence: 0.95,
       };
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to calculate industry benchmark: ${error.message}`, error.stack);
       throw error;
     }
@@ -909,7 +924,8 @@ export class ComparativeAnalysisService {
         dataPoints: timeSeriesData.length,
         modelVersion: '1.0',
       };
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       this.logger.error(`Failed to calculate trend analysis: ${error.message}`, error.stack);
       throw error;
     }
@@ -1020,7 +1036,8 @@ export class ComparativeAnalysisService {
     const comparisonByDimension = this.groupByDimensions(comparisonData, dimensions);
 
     for (const dimension of Object.keys(currentByDimension)) {
-      const currentValue = this.aggregateMetricData(currentByDimension[dimension]);
+      const currentData = currentByDimension[dimension];
+      const currentValue = this.aggregateMetricData(currentData ?? []);
       const comparisonValue = this.aggregateMetricData(comparisonByDimension[dimension] || []);
       const change = currentValue - comparisonValue;
       const changePercent = comparisonValue !== 0 ? (change / comparisonValue) * 100 : 0;
@@ -1057,9 +1074,10 @@ export class ComparativeAnalysisService {
   private calculateMedian(values: number[]): number {
     const sorted = [...values].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
+    if (sorted.length === 0) return 0;
     return sorted.length % 2 === 0 
-      ? (sorted[mid - 1] + sorted[mid]) / 2 
-      : sorted[mid];
+      ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2 
+      : (sorted[mid] ?? 0);
   }
 
   private calculateStandardDeviation(values: number[]): number {
@@ -1318,7 +1336,7 @@ export class ComparativeAnalysisService {
     
     const sumX = x.reduce((sum, val) => sum + val, 0);
     const sumY = y.reduce((sum, val) => sum + val, 0);
-    const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+    const sumXY = x.reduce((sum, val, i) => sum + val * (y[i] ?? 0), 0);
     const sumXX = x.reduce((sum, val) => sum + val * val, 0);
     
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
@@ -1378,20 +1396,29 @@ export class ComparativeAnalysisService {
     const mean = this.calculateMean(values);
     const stdDev = this.calculateStandardDeviation(values);
     
-    const anomalies = [];
+    const anomalies: Array<{
+      date: Date;
+      value: number;
+      expectedValue: number;
+      deviation: number;
+      severity: 'low' | 'medium' | 'high';
+      type: 'spike' | 'dip' | 'shift';
+    }> = [];
     
     for (let i = 0; i < data.length; i++) {
-      const zScore = Math.abs((data[i].value - mean) / stdDev);
+      const dataPoint = data[i];
+      if (!dataPoint) continue;
+      const zScore = Math.abs((dataPoint.value - mean) / stdDev);
       
       if (zScore > 2) { // 2 standard deviations
-        const severity = zScore > 3 ? 'high' : zScore > 2.5 ? 'medium' : 'low';
-        const type = data[i].value > mean ? 'spike' : 'dip';
+        const severity: 'low' | 'medium' | 'high' = zScore > 3 ? 'high' : zScore > 2.5 ? 'medium' : 'low';
+        const type: 'spike' | 'dip' | 'shift' = dataPoint.value > mean ? 'spike' : 'dip';
         
         anomalies.push({
-          date: data[i].period,
-          value: data[i].value,
+          date: dataPoint.period,
+          value: dataPoint.value,
           expectedValue: mean,
-          deviation: data[i].value - mean,
+          deviation: dataPoint.value - mean,
           severity,
           type,
         });
@@ -1416,10 +1443,19 @@ export class ComparativeAnalysisService {
     model: string;
   } {
     // Simple linear extrapolation for forecasting
+    if (!data || data.length === 0) {
+      return {
+        nextPeriods: [],
+        accuracy: 0,
+        model: 'linear',
+      };
+    }
+    
     const values = data.map(d => d.value);
     const trend = this.analyzeTrend(values);
-    const lastValue = values[values.length - 1];
-    const lastDate = data[data.length - 1].period;
+    const lastValue = values[values.length - 1] || 0;
+    const lastDateObj = data[data.length - 1];
+    const lastDate = lastDateObj ? lastDateObj.period : new Date();
     
     const forecasts = [];
     for (let i = 1; i <= 12; i++) { // Forecast next 12 periods

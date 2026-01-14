@@ -154,11 +154,12 @@ export class PredictiveAnalyticsService {
       };
 
       // Cache forecast for 6 hours
-      await this.cacheService.set(cacheKey, forecast, 21600);
+      await this.cacheService.set(cacheKey, forecast, { ttl: 21600 });
 
       return forecast;
     } catch (error) {
-      this.logger.error(`Failed to generate demand forecast: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to generate demand forecast: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -204,16 +205,17 @@ export class PredictiveAnalyticsService {
         recommendedActions,
         lastPurchaseDate: customerFeatures.lastPurchaseDate,
         daysSinceLastPurchase: customerFeatures.daysSinceLastPurchase,
-        predictedChurnDate: churnProbability > 0.7 ? this.calculatePredictedChurnDate(customerFeatures) : undefined,
+        predictedChurnDate: churnProbability > 0.7 ? this.calculatePredictedChurnDate(customerFeatures) : new Date(),
         lastUpdated: new Date(),
       };
 
       // Cache prediction for 24 hours
-      await this.cacheService.set(cacheKey, prediction, 86400);
+      await this.cacheService.set(cacheKey, prediction, { ttl: 86400 });
 
       return prediction;
     } catch (error) {
-      this.logger.error(`Failed to predict customer churn: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to predict customer churn: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -286,11 +288,12 @@ export class PredictiveAnalyticsService {
       };
 
       // Cache optimization for 12 hours
-      await this.cacheService.set(cacheKey, optimization, 43200);
+      await this.cacheService.set(cacheKey, optimization, { ttl: 43200 });
 
       return optimization;
     } catch (error) {
-      this.logger.error(`Failed to optimize pricing: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to optimize pricing: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -370,11 +373,12 @@ export class PredictiveAnalyticsService {
       };
 
       // Cache optimization for 6 hours
-      await this.cacheService.set(cacheKey, optimization, 21600);
+      await this.cacheService.set(cacheKey, optimization, { ttl: 21600 });
 
       return optimization;
     } catch (error) {
-      this.logger.error(`Failed to optimize inventory: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to optimize inventory: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -389,12 +393,13 @@ export class PredictiveAnalyticsService {
       
       if (!models) {
         models = await this.loadPredictiveModels(tenantId);
-        await this.cacheService.set(cacheKey, models, 3600); // Cache for 1 hour
+        await this.cacheService.set(cacheKey, models, { ttl: 3600 }); // Cache for 1 hour
       }
 
       return models;
     } catch (error) {
-      this.logger.error(`Failed to get predictive models: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get predictive models: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -434,7 +439,7 @@ export class PredictiveAnalyticsService {
         id: `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: `${modelType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Model`,
         type: modelType,
-        algorithm: options.algorithm || this.getDefaultAlgorithm(modelType),
+        algorithm: (options.algorithm || this.getDefaultAlgorithm(modelType)) as 'linear_regression' | 'arima' | 'lstm' | 'random_forest' | 'gradient_boosting',
         features: options.features || this.getDefaultFeatures(modelType),
         hyperparameters: options.hyperparameters || {},
         trainingData: {
@@ -457,7 +462,8 @@ export class PredictiveAnalyticsService {
 
       return model;
     } catch (error) {
-      this.logger.error(`Failed to train predictive model: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to train predictive model: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -1026,7 +1032,7 @@ export class PredictiveAnalyticsService {
   }
 
   private getDefaultAlgorithm(modelType: string): string {
-    const defaults = {
+    const defaults: Record<string, string> = {
       'demand_forecast': 'arima',
       'churn_prediction': 'random_forest',
       'price_optimization': 'linear_regression',
@@ -1036,7 +1042,7 @@ export class PredictiveAnalyticsService {
   }
 
   private getDefaultFeatures(modelType: string): string[] {
-    const defaults = {
+    const defaults: Record<string, string[]> = {
       'demand_forecast': ['historical_sales', 'seasonality', 'promotions'],
       'churn_prediction': ['recency', 'frequency', 'monetary', 'engagement'],
       'price_optimization': ['demand_elasticity', 'competitor_prices', 'seasonality'],

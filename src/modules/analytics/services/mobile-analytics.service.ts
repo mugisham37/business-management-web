@@ -251,7 +251,8 @@ export class MobileAnalyticsService {
       this.logger.log(`Mobile dashboard created: ${dashboard.id} for tenant ${tenantId}`);
       return dashboard;
     } catch (error) {
-      this.logger.error(`Failed to create mobile dashboard: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create mobile dashboard: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -326,7 +327,8 @@ export class MobileAnalyticsService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to get mobile dashboard: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get mobile dashboard: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -359,7 +361,8 @@ export class MobileAnalyticsService {
       this.logger.log(`Mobile report created: ${report.id} for tenant ${tenantId}`);
       return report;
     } catch (error) {
-      this.logger.error(`Failed to create mobile report: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create mobile report: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -455,7 +458,7 @@ export class MobileAnalyticsService {
       const dataSize = JSON.stringify(data).length;
 
       // Generate visualization if requested
-      let visualization;
+      let visualization: { type: string; config: any; imageUrl?: string } | undefined;
       if (options.format === 'image' || report.configuration.visualization) {
         visualization = await this.generateMobileVisualization(
           data,
@@ -464,7 +467,7 @@ export class MobileAnalyticsService {
         );
       }
 
-      return {
+      const result: any = {
         data,
         metadata: {
           executionTime,
@@ -472,10 +475,16 @@ export class MobileAnalyticsService {
           fromCache,
           optimized,
         },
-        visualization,
       };
+
+      if (visualization) {
+        result.visualization = visualization;
+      }
+
+      return result;
     } catch (error) {
-      this.logger.error(`Failed to execute mobile report: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to execute mobile report: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -516,7 +525,7 @@ export class MobileAnalyticsService {
 
       for (const entity of entitiesToSync) {
         try {
-          const data = await this.fetchEntityData(tenantId, entity);
+          let data = await this.fetchEntityData(tenantId, entity);
           
           // Check size limits
           const dataSize = JSON.stringify(data).length;
@@ -530,10 +539,11 @@ export class MobileAnalyticsService {
           syncResults.synced++;
           syncResults.totalSize += dataSize;
         } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
           syncResults.failed++;
           syncResults.errors.push({
             entityId: entity.id,
-            error: error.message,
+            error: err.message,
           });
         }
       }
@@ -541,7 +551,8 @@ export class MobileAnalyticsService {
       this.logger.log(`Offline sync completed: ${syncResults.synced} synced, ${syncResults.failed} failed`);
       return syncResults;
     } catch (error) {
-      this.logger.error(`Failed to sync offline data: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to sync offline data: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -620,7 +631,8 @@ export class MobileAnalyticsService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to get mobile usage stats: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get mobile usage stats: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -890,7 +902,7 @@ export class MobileAnalyticsService {
           },
         },
       },
-      imageUrl: deviceType === 'phone' ? 'https://example.com/chart-mobile.png' : undefined,
+      ...(deviceType === 'phone' && { imageUrl: 'https://example.com/chart-mobile.png' }),
     };
   }
 

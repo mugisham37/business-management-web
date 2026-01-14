@@ -104,7 +104,7 @@ export class AnalyticsRepository {
 
       const results = await db.execute(query);
 
-      return (results as any[]).map((row: any) => ({
+      return (Array.isArray(results) ? results : []).map((row: any) => ({
         id: row.id,
         tenantId: row.tenant_id,
         eventType: row.event_type,
@@ -119,3 +119,8 @@ export class AnalyticsRepository {
       throw error;
     }
   }
+
+  /**
+   * Additional repository methods can be added here
+   */
+}
