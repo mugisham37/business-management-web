@@ -264,6 +264,9 @@ export class SmsReceiptService {
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
       
+      // Skip if message is undefined (shouldn't happen but TypeScript safety)
+      if (!message) continue;
+      
       // Simulate SMS sending based on provider
       const result = await this.sendSingleSms(message, phoneNumber);
       results.push(result);

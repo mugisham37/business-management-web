@@ -1,7 +1,7 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, IsDateString, Length, Min, Max, IsUUID, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { InputType, Field, Float, Int } from '@nestjs/graphql';
+import { InputType, Field, Float } from '@nestjs/graphql';
 
 export enum B2BOrderStatus {
   DRAFT = 'draft',
@@ -30,13 +30,13 @@ export class B2BOrderItemDto {
   @Field()
   @ApiProperty({ description: 'Product ID' })
   @IsUUID()
-  productId: string;
+  productId!: string;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Quantity ordered' })
   @IsNumber()
   @Min(0.001)
-  quantity: number;
+  quantity!: number;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Item description override' })
@@ -46,7 +46,7 @@ export class B2BOrderItemDto {
   description?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Item metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Item metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -56,7 +56,7 @@ export class CreateB2BOrderDto {
   @Field()
   @ApiProperty({ description: 'Customer ID' })
   @IsUUID()
-  customerId: string;
+  customerId!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Quote ID if converting from quote' })
@@ -79,7 +79,7 @@ export class CreateB2BOrderDto {
   @Field()
   @ApiProperty({ description: 'Payment terms', enum: PaymentTerms })
   @IsEnum(PaymentTerms)
-  paymentTerms: PaymentTerms;
+  paymentTerms!: PaymentTerms;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Shipping method' })
@@ -89,8 +89,8 @@ export class CreateB2BOrderDto {
   shippingMethod?: string;
 
   @Field()
-  @ApiProperty({ description: 'Shipping address', type: 'object' })
-  shippingAddress: {
+  @ApiProperty({ description: 'Shipping address' })
+  shippingAddress!: {
     line1: string;
     line2?: string;
     city: string;
@@ -100,8 +100,8 @@ export class CreateB2BOrderDto {
   };
 
   @Field()
-  @ApiProperty({ description: 'Billing address', type: 'object' })
-  billingAddress: {
+  @ApiProperty({ description: 'Billing address' })
+  billingAddress!: {
     line1: string;
     line2?: string;
     city: string;
@@ -115,7 +115,7 @@ export class CreateB2BOrderDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => B2BOrderItemDto)
-  items: B2BOrderItemDto[];
+  items!: B2BOrderItemDto[];
 
   @Field(() => Float, { nullable: true })
   @ApiPropertyOptional({ description: 'Discount amount' })
@@ -151,7 +151,7 @@ export class CreateB2BOrderDto {
   internalNotes?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Order metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Order metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -212,7 +212,7 @@ export class UpdateB2BOrderDto {
   internalNotes?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Order metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Order metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -302,12 +302,12 @@ export class ApproveOrderDto {
   @ApiProperty({ description: 'Approval notes' })
   @IsString()
   @Length(1, 1000)
-  approvalNotes: string;
+  approvalNotes!: string;
 }
 
 export class RejectOrderDto {
   @ApiProperty({ description: 'Rejection reason' })
   @IsString()
   @Length(1, 1000)
-  rejectionReason: string;
+  rejectionReason!: string;
 }

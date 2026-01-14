@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, IsUUID, Length, Min, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
 
 export enum TerritoryType {
@@ -17,13 +17,13 @@ export class CreateTerritoryDto {
   @ApiProperty({ description: 'Territory code (unique identifier)' })
   @IsString()
   @Length(1, 50)
-  territoryCode: string;
+  territoryCode!: string;
 
   @Field()
   @ApiProperty({ description: 'Territory name' })
   @IsString()
   @Length(1, 255)
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Territory description' })
@@ -34,10 +34,10 @@ export class CreateTerritoryDto {
   @Field()
   @ApiProperty({ description: 'Territory type', enum: TerritoryType })
   @IsEnum(TerritoryType)
-  territoryType: TerritoryType;
+  territoryType!: TerritoryType;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Geographic boundaries (countries, states, zip codes)', type: 'object' })
+  @ApiPropertyOptional({ description: 'Geographic boundaries (countries, states, zip codes)' })
   @IsOptional()
   geographicBounds?: Record<string, any>;
 
@@ -49,7 +49,7 @@ export class CreateTerritoryDto {
   industryCriteria?: string[];
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Account size criteria (min/max revenue, employee count)', type: 'object' })
+  @ApiPropertyOptional({ description: 'Account size criteria (min/max revenue, employee count)' })
   @IsOptional()
   accountSizeCriteria?: Record<string, any>;
 
@@ -61,7 +61,7 @@ export class CreateTerritoryDto {
   productLineCriteria?: string[];
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Custom criteria configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Custom criteria configuration' })
   @IsOptional()
   customCriteria?: Record<string, any>;
 
@@ -106,12 +106,12 @@ export class CreateTerritoryDto {
   customerAcquisitionTarget?: number;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Commission structure configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Commission structure configuration' })
   @IsOptional()
   commissionStructure?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -138,7 +138,7 @@ export class UpdateTerritoryDto {
   isActive?: boolean;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Geographic boundaries', type: 'object' })
+  @ApiPropertyOptional({ description: 'Geographic boundaries' })
   @IsOptional()
   geographicBounds?: Record<string, any>;
 
@@ -150,7 +150,7 @@ export class UpdateTerritoryDto {
   industryCriteria?: string[];
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Account size criteria', type: 'object' })
+  @ApiPropertyOptional({ description: 'Account size criteria' })
   @IsOptional()
   accountSizeCriteria?: Record<string, any>;
 
@@ -162,7 +162,7 @@ export class UpdateTerritoryDto {
   productLineCriteria?: string[];
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Custom criteria configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Custom criteria configuration' })
   @IsOptional()
   customCriteria?: Record<string, any>;
 
@@ -207,12 +207,12 @@ export class UpdateTerritoryDto {
   customerAcquisitionTarget?: number;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Commission structure configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Commission structure configuration' })
   @IsOptional()
   commissionStructure?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -289,7 +289,7 @@ export class AssignCustomerToTerritoryDto {
   @Field()
   @ApiProperty({ description: 'Customer ID to assign' })
   @IsUUID()
-  customerId: string;
+  customerId!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Assignment reason' })
@@ -305,7 +305,7 @@ export class BulkAssignCustomersDto {
   @ApiProperty({ description: 'Customer IDs to assign', type: [String] })
   @IsArray()
   @IsUUID(undefined, { each: true })
-  customerIds: string[];
+  customerIds!: string[];
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Assignment reason' })

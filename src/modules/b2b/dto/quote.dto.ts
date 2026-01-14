@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, IsDateString, Length, Min, Max, IsUUID, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
 
 export enum QuoteStatus {
@@ -29,13 +29,13 @@ export class QuoteItemDto {
   @Field()
   @ApiProperty({ description: 'Product ID' })
   @IsUUID()
-  productId: string;
+  productId!: string;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Quantity quoted' })
   @IsNumber()
   @Min(0.001)
-  quantity: number;
+  quantity!: number;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Item description override' })
@@ -45,7 +45,7 @@ export class QuoteItemDto {
   description?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Item metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Item metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -55,7 +55,7 @@ export class CreateQuoteDto {
   @Field()
   @ApiProperty({ description: 'Customer ID' })
   @IsUUID()
-  customerId: string;
+  customerId!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Quote date' })
@@ -74,7 +74,7 @@ export class CreateQuoteDto {
   @Field()
   @ApiProperty({ description: 'Payment terms', enum: PaymentTerms })
   @IsEnum(PaymentTerms)
-  paymentTerms: PaymentTerms;
+  paymentTerms!: PaymentTerms;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Delivery terms' })
@@ -95,7 +95,7 @@ export class CreateQuoteDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => QuoteItemDto)
-  items: QuoteItemDto[];
+  items!: QuoteItemDto[];
 
   @Field(() => Float, { nullable: true })
   @ApiPropertyOptional({ description: 'Discount amount' })
@@ -131,7 +131,7 @@ export class CreateQuoteDto {
   internalNotes?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Quote metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Quote metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -199,7 +199,7 @@ export class UpdateQuoteDto {
   internalNotes?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Quote metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Quote metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -290,21 +290,21 @@ export class ApproveQuoteDto {
   @ApiProperty({ description: 'Approval notes' })
   @IsString()
   @Length(1, 1000)
-  approvalNotes: string;
+  approvalNotes!: string;
 }
 
 export class RejectQuoteDto {
   @ApiProperty({ description: 'Rejection reason' })
   @IsString()
   @Length(1, 1000)
-  rejectionReason: string;
+  rejectionReason!: string;
 }
 
 export class SendQuoteDto {
   @ApiProperty({ description: 'Recipient email addresses', type: [String] })
   @IsArray()
   @IsString({ each: true })
-  recipients: string[];
+  recipients!: string[];
 
   @ApiPropertyOptional({ description: 'Email subject override' })
   @IsOptional()

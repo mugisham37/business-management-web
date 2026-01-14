@@ -15,4 +15,5 @@ export * from './location-features.schema';
 export * from './warehouse.schema';
 export * from './franchise.schema';
 export * from './integration.schema';
+export * from './b2b.schema';
 export * from './enums';

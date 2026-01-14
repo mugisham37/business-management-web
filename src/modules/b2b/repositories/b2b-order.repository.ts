@@ -63,11 +63,12 @@ export class B2BOrderRepository {
 
   async create(orderData: any) {
     try {
-      const [order] = await this.drizzle.getDb()
+      const result = await this.drizzle.getDb()
         .insert(b2bOrders)
         .values(orderData)
         .returning();
 
+      const order = Array.isArray(result) ? result[0] : result;
       return order;
     } catch (error) {
       this.logger.error(`Failed to create B2B order:`, error);

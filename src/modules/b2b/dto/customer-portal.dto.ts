@@ -1,7 +1,7 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, IsDateString, Length, Min, Max, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { InputType, Field, Float, Int } from '@nestjs/graphql';
+import { Type } from 'class-transformer';
+import { InputType, Field, Float } from '@nestjs/graphql';
 
 export enum PortalOrderStatus {
   DRAFT = 'draft',
@@ -18,13 +18,13 @@ export class CustomerPortalLoginDto {
   @Field()
   @ApiProperty({ description: 'Customer email address' })
   @IsString()
-  email: string;
+  email!: string;
 
   @Field()
   @ApiProperty({ description: 'Customer password' })
   @IsString()
   @Length(6, 100)
-  password: string;
+  password!: string;
 }
 
 @InputType()
@@ -33,36 +33,36 @@ export class CustomerPortalRegistrationDto {
   @ApiProperty({ description: 'Company name' })
   @IsString()
   @Length(1, 255)
-  companyName: string;
+  companyName!: string;
 
   @Field()
   @ApiProperty({ description: 'Primary contact first name' })
   @IsString()
   @Length(1, 100)
-  firstName: string;
+  firstName!: string;
 
   @Field()
   @ApiProperty({ description: 'Primary contact last name' })
   @IsString()
   @Length(1, 100)
-  lastName: string;
+  lastName!: string;
 
   @Field()
   @ApiProperty({ description: 'Email address' })
   @IsString()
-  email: string;
+  email!: string;
 
   @Field()
   @ApiProperty({ description: 'Phone number' })
   @IsString()
   @Length(1, 50)
-  phone: string;
+  phone!: string;
 
   @Field()
   @ApiProperty({ description: 'Password' })
   @IsString()
   @Length(6, 100)
-  password: string;
+  password!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Tax ID or EIN' })
@@ -119,13 +119,13 @@ export class PortalOrderItemDto {
   @Field()
   @ApiProperty({ description: 'Product ID' })
   @IsUUID()
-  productId: string;
+  productId!: string;
 
   @Field(() => Float)
   @ApiProperty({ description: 'Quantity to order' })
   @IsNumber()
   @Min(0.001)
-  quantity: number;
+  quantity!: number;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Special instructions for this item' })
@@ -141,7 +141,7 @@ export class CreatePortalOrderDto {
   @ApiProperty({ description: 'Order items', type: [PortalOrderItemDto] })
   @IsArray()
   @Type(() => PortalOrderItemDto)
-  items: PortalOrderItemDto[];
+  items!: PortalOrderItemDto[];
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Requested delivery date' })
@@ -164,7 +164,7 @@ export class CreatePortalOrderDto {
   purchaseOrderNumber?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Shipping address (if different from default)', type: 'object' })
+  @ApiPropertyOptional({ description: 'Shipping address (if different from default)' })
   @IsOptional()
   shippingAddress?: {
     line1: string;
@@ -407,19 +407,19 @@ export class ChangePasswordDto {
   @Field()
   @ApiProperty({ description: 'Current password' })
   @IsString()
-  currentPassword: string;
+  currentPassword!: string;
 
   @Field()
   @ApiProperty({ description: 'New password' })
   @IsString()
   @Length(6, 100)
-  newPassword: string;
+  newPassword!: string;
 
   @Field()
   @ApiProperty({ description: 'Confirm new password' })
   @IsString()
   @Length(6, 100)
-  confirmPassword: string;
+  confirmPassword!: string;
 }
 
 export class InvoiceQueryDto {

@@ -1,6 +1,6 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, IsDateString, Length, Min, Max, IsUUID } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsDateString, Length, Min, Max, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
 
 export enum ContractType {
@@ -31,18 +31,18 @@ export class CreateContractDto {
   @Field()
   @ApiProperty({ description: 'Customer ID' })
   @IsUUID()
-  customerId: string;
+  customerId!: string;
 
   @Field()
   @ApiProperty({ description: 'Contract type', enum: ContractType })
   @IsEnum(ContractType)
-  contractType: ContractType;
+  contractType!: ContractType;
 
   @Field()
   @ApiProperty({ description: 'Contract title' })
   @IsString()
   @Length(1, 255)
-  title: string;
+  title!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Contract description' })
@@ -53,12 +53,12 @@ export class CreateContractDto {
   @Field()
   @ApiProperty({ description: 'Contract start date' })
   @IsDateString()
-  startDate: string;
+  startDate!: string;
 
   @Field()
   @ApiProperty({ description: 'Contract end date' })
   @IsDateString()
-  endDate: string;
+  endDate!: string;
 
   @Field({ nullable: true })
   @ApiPropertyOptional({ description: 'Enable auto renewal' })
@@ -100,25 +100,25 @@ export class CreateContractDto {
   @ApiProperty({ description: 'Payment terms' })
   @IsString()
   @Length(1, 50)
-  paymentTerms: string;
+  paymentTerms!: string;
 
   @Field()
   @ApiProperty({ description: 'Pricing model', enum: PricingModel })
   @IsEnum(PricingModel)
-  pricingModel: PricingModel;
+  pricingModel!: PricingModel;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Pricing terms configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Pricing terms configuration' })
   @IsOptional()
   pricingTerms?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Performance metrics', type: 'object' })
+  @ApiPropertyOptional({ description: 'Performance metrics' })
   @IsOptional()
   performanceMetrics?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Compliance requirements', type: 'object' })
+  @ApiPropertyOptional({ description: 'Compliance requirements' })
   @IsOptional()
   complianceRequirements?: Record<string, any>;
 
@@ -147,7 +147,7 @@ export class CreateContractDto {
   specialTerms?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -223,17 +223,17 @@ export class UpdateContractDto {
   pricingModel?: PricingModel;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Pricing terms configuration', type: 'object' })
+  @ApiPropertyOptional({ description: 'Pricing terms configuration' })
   @IsOptional()
   pricingTerms?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Performance metrics', type: 'object' })
+  @ApiPropertyOptional({ description: 'Performance metrics' })
   @IsOptional()
   performanceMetrics?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Compliance requirements', type: 'object' })
+  @ApiPropertyOptional({ description: 'Compliance requirements' })
   @IsOptional()
   complianceRequirements?: Record<string, any>;
 
@@ -262,7 +262,7 @@ export class UpdateContractDto {
   specialTerms?: string;
 
   @Field({ nullable: true })
-  @ApiPropertyOptional({ description: 'Additional metadata', type: 'object' })
+  @ApiPropertyOptional({ description: 'Additional metadata' })
   @IsOptional()
   metadata?: Record<string, any>;
 }
@@ -375,7 +375,7 @@ export class ApproveContractDto {
   @ApiProperty({ description: 'Approval notes' })
   @IsString()
   @Length(1, 1000)
-  approvalNotes: string;
+  approvalNotes!: string;
 }
 
 export class SignContractDto {
@@ -388,7 +388,7 @@ export class SignContractDto {
 export class RenewContractDto {
   @ApiProperty({ description: 'New end date for renewed contract' })
   @IsDateString()
-  newEndDate: string;
+  newEndDate!: string;
 
   @ApiPropertyOptional({ description: 'Updated contract value' })
   @IsOptional()
@@ -396,7 +396,7 @@ export class RenewContractDto {
   @Min(0)
   contractValue?: number;
 
-  @ApiPropertyOptional({ description: 'Updated pricing terms', type: 'object' })
+  @ApiPropertyOptional({ description: 'Updated pricing terms' })
   @IsOptional()
   pricingTerms?: Record<string, any>;
 
