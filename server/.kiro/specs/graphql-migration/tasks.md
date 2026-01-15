@@ -318,14 +318,14 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 10: Subscription Tenant Filtering** - Test inventory subscriptions filter by tenant
     - **Validates: Requirements 2.3, 5.2, 5.5**
 
-- [ ] 5.4 Implement POS module resolvers (3 resolvers)
-  - [ ] 5.4.1 Create pos.resolver.ts for POS operations
+- [x] 5.4 Implement POS module resolvers (3 resolvers)
+  - [x] 5.4.1 Create pos.resolver.ts for POS operations
     - Implement POS session operations (open, close, get)
     - Implement getPOSConfiguration query
     - Add field resolvers (employee, transactions)
     - _Requirements: 24.1-24.6_
   
-  - [ ] 5.4.2 Create transaction.resolver.ts for transaction management
+  - [x] 5.4.2 Create transaction.resolver.ts for transaction management
     - Implement transaction CRUD operations
     - Implement voidTransaction mutation
     - Implement refundTransaction mutation
@@ -333,7 +333,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement transactionCreated subscription
     - _Requirements: 24.1-24.6_
   
-  - [ ] 5.4.3 Create offline.resolver.ts for offline sync
+  - [x] 5.4.3 Create offline.resolver.ts for offline sync
     - Implement getOfflineQueue query
     - Implement syncOfflineTransactions mutation
     - Implement resolveConflict mutation

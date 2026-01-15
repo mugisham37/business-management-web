@@ -3,11 +3,17 @@ import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
 // Controllers
 import { POSController } from './controllers/pos.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OfflineController } from './controllers/offline.controller';
+
+// Resolvers
+import { POSResolver } from './resolvers/pos.resolver';
+import { TransactionResolver } from './resolvers/transaction.resolver';
+import { OfflineResolver } from './resolvers/offline.resolver';
 
 // Services
 import { POSService } from './services/pos.service';
@@ -41,6 +47,7 @@ import { MobileMoneyProvider } from './providers/mobile-money.provider';
     CacheModule,
     QueueModule,
     TenantModule,
+    GraphQLCommonModule,
   ],
   controllers: [
     POSController,
@@ -48,6 +55,11 @@ import { MobileMoneyProvider } from './providers/mobile-money.provider';
     OfflineController,
   ],
   providers: [
+    // GraphQL Resolvers
+    POSResolver,
+    TransactionResolver,
+    OfflineResolver,
+    
     // Core services
     POSService,
     TransactionService,
