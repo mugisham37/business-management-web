@@ -29,6 +29,10 @@ import { CommunicationRepository } from './repositories/communication.repository
 // Resolvers (GraphQL)
 import { CustomerResolver } from './resolvers/customer.resolver';
 import { LoyaltyResolver } from './resolvers/loyalty.resolver';
+import { B2BCustomerResolver } from './resolvers/b2b-customer.resolver';
+import { CommunicationResolver } from './resolvers/communication.resolver';
+import { CustomerAnalyticsResolver } from './resolvers/customer-analytics.resolver';
+import { SegmentationResolver } from './resolvers/segmentation.resolver';
 
 // Event Handlers
 import { CustomerEventHandler } from './handlers/customer-event.handler';
@@ -66,6 +70,10 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     // GraphQL Resolvers
     CustomerResolver,
     LoyaltyResolver,
+    B2BCustomerResolver,
+    CommunicationResolver,
+    CustomerAnalyticsResolver,
+    SegmentationResolver,
     
     // Event Handlers
     CustomerEventHandler,

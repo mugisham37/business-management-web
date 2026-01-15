@@ -38,6 +38,12 @@ import { MultiCurrencyController } from './controllers/multi-currency.controller
 // Resolvers
 import { AccountingResolver } from './resolvers/accounting.resolver';
 import { ChartOfAccountsResolver } from './resolvers/chart-of-accounts.resolver';
+import { AccountsReceivablePayableResolver } from './resolvers/accounts-receivable-payable.resolver';
+import { BudgetResolver } from './resolvers/budget.resolver';
+import { JournalEntryResolver } from './resolvers/journal-entry.resolver';
+import { MultiCurrencyResolver } from './resolvers/multi-currency.resolver';
+import { ReconciliationResolver } from './resolvers/reconciliation.resolver';
+import { TaxResolver } from './resolvers/tax.resolver';
 
 // Event Handlers
 import { TransactionPostedHandler } from './handlers/transaction-posted.handler';
@@ -73,6 +79,12 @@ import { TransactionPostedHandler } from './handlers/transaction-posted.handler'
     // Resolvers
     AccountingResolver,
     ChartOfAccountsResolver,
+    AccountsReceivablePayableResolver,
+    BudgetResolver,
+    JournalEntryResolver,
+    MultiCurrencyResolver,
+    ReconciliationResolver,
+    TaxResolver,
     
     // Event Handlers
     TransactionPostedHandler,

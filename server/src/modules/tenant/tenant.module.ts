@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TenantService } from './services/tenant.service';
 import { TenantController } from './controllers/tenant.controller';
 import { TenantResolver } from './resolvers/tenant.resolver';
+import { FeatureFlagResolver } from './resolvers/feature-flag.resolver';
+import { TenantMetricsResolver } from './resolvers/tenant-metrics.resolver';
 import { TenantGuard } from './guards/tenant.guard';
 import { FeatureGuard } from './guards/feature.guard';
 import { TenantInterceptor } from './interceptors/tenant.interceptor';
@@ -20,6 +22,8 @@ import { LoggerModule } from '../logger/logger.module';
   providers: [
     TenantService,
     TenantResolver,
+    FeatureFlagResolver,
+    TenantMetricsResolver,
     TenantGuard,
     FeatureGuard,
     TenantInterceptor,

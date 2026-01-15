@@ -81,7 +81,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 9: Subscription Authentication** - Test subscription auth requirements
     - **Validates: Requirements 3.6, 5.4**
 
-- [-] 3.2 Implement Employee module resolvers (4 resolvers)
+- [ ] 3.2 Implement Employee module resolvers (4 resolvers)
   - [x] 3.2.1 Create employee.resolver.ts for employee management
     - Implement CRUD operations (get, list, create, update, terminate)
     - Implement field resolvers (manager, directReports, department)
@@ -118,15 +118,15 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 21: Async Operation Job Enqueueing** - Test payroll processing enqueues jobs
     - **Validates: Requirements 2.3, 12.1**
 
-- [ ] 3.3 Enhance Tenant module with additional resolvers (2 new resolvers)
-  - [ ] 3.3.1 Create feature-flag.resolver.ts for feature flag management
+- [x] 3.3 Enhance Tenant module with additional resolvers (2 new resolvers)
+  - [x] 3.3.1 Create feature-flag.resolver.ts for feature flag management
     - Implement getFeatureFlags query
     - Implement updateFeatureFlag mutation
     - Implement enableFeature and disableFeature mutations
     - Add caching for feature flags
     - _Requirements: 1.1-1.6_
   
-  - [ ] 3.3.2 Create tenant-metrics.resolver.ts for tenant metrics
+  - [x] 3.3.2 Create tenant-metrics.resolver.ts for tenant metrics
     - Implement getTenantMetrics query
     - Implement getTenantUsage query
     - Implement getTenantLimits query
@@ -142,19 +142,19 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
   - Ensure all core module tests pass, ask the user if questions arise.
 
 
-- [ ] 5. Phase 3: Business Modules (CRM, Financial, Inventory, POS)
+- [-] 5. Phase 3: Business Modules (CRM, Financial, Inventory, POS)
   - Implement resolvers for core business operations
   - _Requirements: 16.1-16.6, 17.1-17.6, 19.1-19.6, 24.1-24.6_
 
-- [ ] 5.1 Implement CRM module resolvers (4 additional resolvers)
-  - [ ] 5.1.1 Create b2b-customer.resolver.ts for B2B customer management
+- [x] 5.1 Implement CRM module resolvers (4 additional resolvers)
+  - [x] 5.1.1 Create b2b-customer.resolver.ts for B2B customer management
     - Implement CRUD operations for B2B customers
     - Implement getB2BCustomerHierarchy query
     - Add field resolvers (parentCustomer, childCustomers, contracts, orders)
     - Add DataLoader for relationship loading
     - _Requirements: 19.1-19.6_
   
-  - [ ] 5.1.2 Create communication.resolver.ts for communication history
+  - [x] 5.1.2 Create communication.resolver.ts for communication history
     - Implement getCommunications query
     - Implement recordCommunication mutation
     - Implement getCommunicationTimeline query
@@ -163,7 +163,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement communicationScheduled subscription
     - _Requirements: 19.1-19.6_
   
-  - [ ] 5.1.3 Create customer-analytics.resolver.ts for customer insights
+  - [x] 5.1.3 Create customer-analytics.resolver.ts for customer insights
     - Implement getCustomerLifetimeValue query
     - Implement getCustomerSegment query
     - Implement getPurchasePatterns query
@@ -172,7 +172,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add caching with 1-hour TTL
     - _Requirements: 19.1-19.6_
   
-  - [ ] 5.1.4 Create segmentation.resolver.ts for dynamic segmentation
+  - [x] 5.1.4 Create segmentation.resolver.ts for dynamic segmentation
     - Implement segment CRUD operations
     - Implement getSegmentMembers query
     - Implement evaluateSegmentMembership query
@@ -184,8 +184,8 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 6: DataLoader Request Deduplication** - Test customer relationship loading
     - **Validates: Requirements 2.3, 4.4**
 
-- [ ] 5.2 Implement Financial module resolvers (6 additional resolvers)
-  - [ ] 5.2.1 Create accounts-receivable-payable.resolver.ts for AR/AP
+- [x] 5.2 Implement Financial module resolvers (6 additional resolvers)
+  - [x] 5.2.1 Create accounts-receivable-payable.resolver.ts for AR/AP
     - Implement getReceivables and getPayables queries
     - Implement recordPayment mutation
     - Implement getAgingReport query
@@ -193,14 +193,14 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add field resolvers (customer, supplier, invoiceLineItems)
     - _Requirements: 16.1-16.6_
   
-  - [ ] 5.2.2 Create budget.resolver.ts for budget management
+  - [x] 5.2.2 Create budget.resolver.ts for budget management
     - Implement budget CRUD operations
     - Implement getBudgetVariance query
     - Implement approveBudget mutation
     - Add field resolvers (actualSpending, variance)
     - _Requirements: 16.1-16.6_
   
-  - [ ] 5.2.3 Create journal-entry.resolver.ts for journal entries
+  - [x] 5.2.3 Create journal-entry.resolver.ts for journal entries
     - Implement journal entry CRUD operations
     - Implement postJournalEntry mutation
     - Implement reverseJournalEntry mutation
@@ -208,7 +208,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Validate debits equal credits
     - _Requirements: 16.1-16.6_
   
-  - [ ] 5.2.4 Create multi-currency.resolver.ts for currency operations
+  - [x] 5.2.4 Create multi-currency.resolver.ts for currency operations
     - Implement convertCurrency query
     - Implement getExchangeRates query
     - Implement updateExchangeRate mutation
@@ -216,7 +216,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add caching for exchange rates (1-hour TTL)
     - _Requirements: 16.1-16.6_
   
-  - [ ] 5.2.5 Create reconciliation.resolver.ts for reconciliation
+  - [x] 5.2.5 Create reconciliation.resolver.ts for reconciliation
     - Implement reconciliation workflow operations
     - Implement startReconciliation mutation
     - Implement matchTransaction mutation
@@ -224,7 +224,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Enqueue auto-matching to Bull queue
     - _Requirements: 16.1-16.6, 12.1-12.2_
   
-  - [ ] 5.2.6 Create tax.resolver.ts for tax calculations
+  - [x] 5.2.6 Create tax.resolver.ts for tax calculations
     - Implement calculateTax query
     - Implement getTaxReport query
     - Implement getTaxRates query
