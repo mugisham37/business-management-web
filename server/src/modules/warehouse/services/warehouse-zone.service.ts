@@ -329,6 +329,21 @@ export class WarehouseZoneService {
     return report;
   }
 
+  // Batch loading method for DataLoader
+  async batchLoadByWarehouseIds(warehouseIds: readonly string[]): Promise<any[][]> {
+    const zones = await this.zoneRepository.findByWarehouseIds([...warehouseIds]);
+    
+    const zoneMap = new Map<string, any[]>();
+    zones.forEach(zone => {
+      if (!zoneMap.has(zone.warehouseId)) {
+        zoneMap.set(zone.warehouseId, []);
+      }
+      zoneMap.get(zone.warehouseId)!.push(zone);
+    });
+
+    return warehouseIds.map(warehouseId => zoneMap.get(warehouseId) || []);
+  }
+
   private async invalidateZoneCache(tenantId: string, warehouseId: string, zoneId?: string): Promise<void> {
     if (zoneId) {
       await this.cacheService.invalidatePattern(`zone:${tenantId}:${zoneId}:*`);

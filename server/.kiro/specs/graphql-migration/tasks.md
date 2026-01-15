@@ -350,39 +350,39 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
   - Ensure all business module tests pass, ask the user if questions arise.
 
 
-- [ ] 7. Phase 4: Operations Modules (Warehouse, Location, Supplier, B2B)
+- [-] 7. Phase 4: Operations Modules (Warehouse, Location, Supplier, B2B)
   - Implement resolvers for operational features
   - _Requirements: 18.1-18.6, 20.1-20.6, 21.1-21.6, 27.1-27.6_
 
-- [ ] 7.1 Implement Warehouse module resolvers (8 resolvers)
-  - [ ] 7.1.1 Create warehouse.resolver.ts for core warehouse operations
+- [x] 7.1 Implement Warehouse module resolvers (8 resolvers)
+  - [x] 7.1.1 Create warehouse.resolver.ts for core warehouse operations
     - Implement warehouse CRUD operations
     - Add field resolvers (zones, inventory, employees)
     - Add DataLoader for relationship loading
     - _Requirements: 20.1-20.6_
   
-  - [ ] 7.1.2 Create bin-location.resolver.ts for bin management
+  - [x] 7.1.2 Create bin-location.resolver.ts for bin management
     - Implement bin location CRUD operations
     - Implement getBinInventory query
     - Add field resolvers (zone, inventory)
     - _Requirements: 20.1-20.6_
   
-  - [ ] 7.1.3 Create kitting-assembly.resolver.ts for kitting
+  - [x] 7.1.3 Create kitting-assembly.resolver.ts for kitting
     - Implement kit definition CRUD operations
     - Implement assembleKit mutation
     - Implement disassembleKit mutation
     - Enqueue assembly operations to Bull queue
     - _Requirements: 20.1-20.6, 12.1-12.2_
   
-  - [ ] 7.1.4 Create lot-tracking.resolver.ts for lot tracking
+  - [x] 7.1.4 Create lot-tracking.resolver.ts for lot tracking
     - Implement lot CRUD operations
     - Implement getLotInventory query
     - Implement traceLot query
-    - Implement getLotExpiration query
+    - Implement getLotExpiration query (implemented as getExpiringLots)
     - Add field resolvers (product, movements)
     - _Requirements: 20.1-20.6_
   
-  - [ ] 7.1.5 Create pick-list.resolver.ts for pick list management
+  - [x] 7.1.5 Create pick-list.resolver.ts for pick list management
     - Implement pick list workflow operations
     - Implement assignPickList mutation
     - Implement recordPick mutation
@@ -390,14 +390,14 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement pickListAssigned and pickListCompleted subscriptions
     - _Requirements: 20.1-20.6_
   
-  - [ ] 7.1.6 Create picking-wave.resolver.ts for wave picking
+  - [x] 7.1.6 Create picking-wave.resolver.ts for wave picking
     - Implement picking wave operations
     - Implement releasePickingWave mutation
     - Implement getWaveProgress query
     - Enqueue wave optimization to Bull queue
     - _Requirements: 20.1-20.6, 12.1-12.2_
   
-  - [ ] 7.1.7 Create shipping-integration.resolver.ts for shipping
+  - [x] 7.1.7 Create shipping-integration.resolver.ts for shipping
     - Implement getShippingRates query
     - Implement createShipment mutation
     - Implement printShippingLabel mutation
@@ -406,7 +406,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Handle carrier API errors gracefully
     - _Requirements: 20.1-20.6_
   
-  - [ ] 7.1.8 Create warehouse-zone.resolver.ts for zone management
+  - [x] 7.1.8 Create warehouse-zone.resolver.ts for zone management
     - Implement zone CRUD operations
     - Add field resolvers (warehouse, bins)
     - Add DataLoader for relationship loading

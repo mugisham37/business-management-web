@@ -3,6 +3,7 @@ import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
 // Controllers
 import { WarehouseController } from './controllers/warehouse.controller';
@@ -31,6 +32,16 @@ import { BinLocationRepository } from './repositories/bin-location.repository';
 import { PickingWaveRepository } from './repositories/picking-wave.repository';
 import { PickListRepository } from './repositories/pick-list.repository';
 
+// Resolvers
+import { WarehouseResolver } from './resolvers/warehouse.resolver';
+import { BinLocationResolver } from './resolvers/bin-location.resolver';
+import { KittingAssemblyResolver } from './resolvers/kitting-assembly.resolver';
+import { LotTrackingResolver } from './resolvers/lot-tracking.resolver';
+import { PickListResolver } from './resolvers/pick-list.resolver';
+import { PickingWaveResolver } from './resolvers/picking-wave.resolver';
+import { ShippingIntegrationResolver } from './resolvers/shipping-integration.resolver';
+import { WarehouseZoneResolver } from './resolvers/warehouse-zone.resolver';
+
 // Event handlers (to be implemented in future tasks)
 // import { WarehouseEventHandler } from './handlers/warehouse-event.handler';
 
@@ -40,6 +51,7 @@ import { PickListRepository } from './repositories/pick-list.repository';
     CacheModule,
     QueueModule,
     TenantModule,
+    GraphQLCommonModule,
   ],
   controllers: [
     WarehouseController,
@@ -68,6 +80,16 @@ import { PickListRepository } from './repositories/pick-list.repository';
     BinLocationRepository,
     PickingWaveRepository,
     PickListRepository,
+    
+    // GraphQL Resolvers
+    WarehouseResolver,
+    BinLocationResolver,
+    KittingAssemblyResolver,
+    LotTrackingResolver,
+    PickListResolver,
+    PickingWaveResolver,
+    ShippingIntegrationResolver,
+    WarehouseZoneResolver,
     
     // Event handlers (to be implemented)
     // WarehouseEventHandler,

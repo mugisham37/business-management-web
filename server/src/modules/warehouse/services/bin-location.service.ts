@@ -529,6 +529,21 @@ export class BinLocationService {
     return report;
   }
 
+  // Batch loading method for DataLoader
+  async batchLoadByWarehouseIds(warehouseIds: readonly string[]): Promise<any[][]> {
+    const binLocations = await this.binLocationRepository.findByWarehouseIds([...warehouseIds]);
+    
+    const binMap = new Map<string, any[]>();
+    binLocations.forEach(bin => {
+      if (!binMap.has(bin.warehouseId)) {
+        binMap.set(bin.warehouseId, []);
+      }
+      binMap.get(bin.warehouseId)!.push(bin);
+    });
+
+    return warehouseIds.map(warehouseId => binMap.get(warehouseId) || []);
+  }
+
   private async invalidateBinLocationCache(
     tenantId: string, 
     warehouseId: string, 
