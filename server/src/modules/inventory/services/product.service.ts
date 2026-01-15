@@ -230,6 +230,25 @@ export class ProductService {
     await this.invalidateProductCache(tenantId);
   }
 
+  /**
+   * Batch load products by IDs for DataLoader
+   * Used to prevent N+1 queries in GraphQL resolvers
+   */
+  async batchLoadByIds(ids: readonly string[]): Promise<(ProductWithVariants | Error)[]> {
+    try {
+      const products = await this.productRepository.findByIds([...ids]);
+      const productMap = new Map<string, ProductWithVariants>();
+      
+      products.forEach(product => {
+        productMap.set(product.id, product);
+      });
+
+      return ids.map(id => productMap.get(id) || new Error(`Product not found: ${id}`));
+    } catch (error) {
+      return ids.map(() => error as Error);
+    }
+  }
+
   private async invalidateProductCache(tenantId: string): Promise<void> {
     await this.cacheService.invalidatePattern(`products:${tenantId}:*`);
     await this.cacheService.invalidatePattern(`product:${tenantId}:*`);

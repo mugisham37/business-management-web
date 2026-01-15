@@ -42,6 +42,7 @@ import { CycleCountingRepository } from './repositories/cycle-counting.repositor
 
 // Resolvers (GraphQL)
 import { ProductResolver } from './resolvers/product.resolver';
+import { InventoryResolver } from './resolvers/inventory.resolver';
 
 // Event handlers
 // import { InventoryEventHandler } from './handlers/inventory-event.handler';

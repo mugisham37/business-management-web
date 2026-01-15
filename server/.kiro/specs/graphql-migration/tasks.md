@@ -238,8 +238,8 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Validates: Requirements 2.3, 11.2**
 
 
-- [ ] 5.3 Implement Inventory module resolvers (10 additional resolvers)
-  - [ ] 5.3.1 Create inventory.resolver.ts for core inventory operations
+- [x] 5.3 Implement Inventory module resolvers (10 additional resolvers)
+  - [x] 5.3.1 Create inventory.resolver.ts for core inventory operations
     - Implement getInventory query
     - Implement adjustInventory mutation
     - Implement transferInventory mutation
@@ -248,27 +248,27 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement inventoryChanged subscription
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.2 Create batch-tracking.resolver.ts for batch tracking
+  - [x] 5.3.2 Create batch-tracking.resolver.ts for batch tracking
     - Implement batch CRUD operations
     - Implement getBatchInventory query
     - Implement traceBatch query
     - Add field resolvers (movements)
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.3 Create brand.resolver.ts for brand management
+  - [x] 5.3.3 Create brand.resolver.ts for brand management
     - Implement brand CRUD operations
     - Add field resolvers (products)
     - Add DataLoader for product loading
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.4 Create category.resolver.ts for category hierarchy
+  - [x] 5.3.4 Create category.resolver.ts for category hierarchy
     - Implement category CRUD operations
     - Implement getCategoryTree query
     - Implement moveCategory mutation
     - Add field resolvers (parent, children, products)
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.5 Create cycle-counting.resolver.ts for cycle counts
+  - [x] 5.3.5 Create cycle-counting.resolver.ts for cycle counts
     - Implement cycle count workflow operations
     - Implement createCycleCount mutation
     - Implement recordCount mutation
@@ -276,35 +276,35 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Enqueue variance analysis to Bull queue
     - _Requirements: 17.1-17.6, 12.1-12.2_
   
-  - [ ] 5.3.6 Create inventory-accuracy-reporting.resolver.ts
+  - [x] 5.3.6 Create inventory-accuracy-reporting.resolver.ts
     - Implement getAccuracyReport query
     - Implement getVarianceAnalysis query
     - Implement getCountAccuracy query
     - Add caching with 1-hour TTL
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.7 Create inventory-movement-tracking.resolver.ts
+  - [x] 5.3.7 Create inventory-movement-tracking.resolver.ts
     - Implement getMovements query
     - Implement getMovementHistory query
     - Implement getLocationMovements query
     - Add field resolvers (product, fromLocation, toLocation)
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.8 Create inventory-reporting.resolver.ts
+  - [x] 5.3.8 Create inventory-reporting.resolver.ts
     - Implement getStockReport query
     - Implement getValuationReport query
     - Implement getTurnoverReport query
     - Add caching with 30-minute TTL
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.9 Create perpetual-inventory.resolver.ts
+  - [x] 5.3.9 Create perpetual-inventory.resolver.ts
     - Implement getCurrentInventory query
     - Implement getInventoryValue query
     - Implement reconcileInventory mutation
     - Support real-time updates via subscriptions
     - _Requirements: 17.1-17.6_
   
-  - [ ] 5.3.10 Create reorder.resolver.ts for reorder management
+  - [x] 5.3.10 Create reorder.resolver.ts for reorder management
     - Implement getReorderPoints query
     - Implement updateReorderPoint mutation
     - Implement getReorderSuggestions query

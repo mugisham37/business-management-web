@@ -587,4 +587,52 @@ export class ProductRepository {
       variants: [], // Would be populated if needed
     }));
   }
+
+  /**
+   * Find products by multiple IDs for batch loading
+   * Used by DataLoader to prevent N+1 queries
+   */
+  async findByIds(ids: string[]): Promise<ProductWithVariants[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const db = this.drizzle.getDb();
+    
+    const productResults = await db
+      .select()
+      .from(products)
+      .where(and(
+        inArray(products.id, ids),
+        eq(products.isActive, true)
+      ));
+
+    // Get variants for all products
+    const productIds = productResults.map(p => p.id);
+    const variantResults = productIds.length > 0
+      ? await db
+          .select()
+          .from(productVariants)
+          .where(and(
+            inArray(productVariants.productId, productIds),
+            eq(productVariants.isActive, true)
+          ))
+      : [];
+
+    // Group variants by product ID
+    const variantsByProduct = new Map<string, any[]>();
+    variantResults.forEach(variant => {
+      if (!variantsByProduct.has(variant.productId)) {
+        variantsByProduct.set(variant.productId, []);
+      }
+      variantsByProduct.get(variant.productId)!.push(variant);
+    });
+
+    return productResults.map(product => ({
+      ...product,
+      tags: Array.isArray(product.tags) ? product.tags as string[] : [],
+      images: Array.isArray(product.images) ? product.images : [],
+      variants: variantsByProduct.get(product.id) || [],
+    }));
+  }
 }
