@@ -4,6 +4,10 @@ import { GqlOptionsFactory } from '@nestjs/graphql';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { join } from 'path';
+import { QueryComplexityPlugin } from '../common/graphql/query-complexity.plugin';
+import { PerformanceMonitoringPlugin } from '../common/graphql/performance-monitoring.plugin';
+import { GraphQLErrorHandler } from '../common/graphql/error-handler.util';
+import { GraphQLErrorCode } from '../common/graphql/error-codes.enum';
 
 @Injectable()
 export class GraphQLConfigService implements GqlOptionsFactory {
@@ -20,6 +24,9 @@ export class GraphQLConfigService implements GqlOptionsFactory {
       
       // Development features
       introspection: !isProduction,
+      
+      // Query complexity and depth limits
+      validationRules: [],
       
       // Context setup for authentication and DataLoader
       context: ({ req, res, connection }: { req: any; res: any; connection?: any }) => {
@@ -41,7 +48,7 @@ export class GraphQLConfigService implements GqlOptionsFactory {
         };
       },
 
-      // Enhanced error formatting
+      // Enhanced error formatting with comprehensive error codes
       formatError: (formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError => {
         const originalError = error as GraphQLError;
         
@@ -57,22 +64,22 @@ export class GraphQLConfigService implements GqlOptionsFactory {
         }
 
         // Don't expose internal errors in production
-        if (isProduction && originalError.extensions?.code === 'INTERNAL_SERVER_ERROR') {
+        if (isProduction && originalError.extensions?.code === GraphQLErrorCode.INTERNAL_SERVER_ERROR) {
           return {
             message: 'Internal server error',
             extensions: {
-              code: 'INTERNAL_SERVER_ERROR',
+              code: GraphQLErrorCode.INTERNAL_SERVER_ERROR,
               timestamp: new Date().toISOString(),
             },
           };
         }
 
         // Format validation errors
-        if (originalError.extensions?.code === 'BAD_USER_INPUT') {
+        if (originalError.extensions?.code === 'BAD_USER_INPUT' || originalError.extensions?.code === GraphQLErrorCode.VALIDATION_ERROR) {
           return {
             message: originalError.message,
             extensions: {
-              code: 'VALIDATION_ERROR',
+              code: GraphQLErrorCode.VALIDATION_ERROR,
               timestamp: new Date().toISOString(),
               validationErrors: originalError.extensions.validationErrors,
             },
@@ -80,67 +87,81 @@ export class GraphQLConfigService implements GqlOptionsFactory {
         }
 
         // Format authentication errors
-        if (originalError.extensions?.code === 'UNAUTHENTICATED') {
+        if (originalError.extensions?.code === GraphQLErrorCode.UNAUTHENTICATED) {
           return {
             message: 'Authentication required',
             extensions: {
-              code: 'UNAUTHENTICATED',
+              code: GraphQLErrorCode.UNAUTHENTICATED,
               timestamp: new Date().toISOString(),
             },
           };
         }
 
         // Format authorization errors
-        if (originalError.extensions?.code === 'FORBIDDEN') {
+        if (originalError.extensions?.code === GraphQLErrorCode.FORBIDDEN) {
           return {
             message: 'Insufficient permissions',
             extensions: {
-              code: 'FORBIDDEN',
+              code: GraphQLErrorCode.FORBIDDEN,
               timestamp: new Date().toISOString(),
             },
           };
         }
 
-        // Default error formatting
+        // Format query complexity errors
+        if (originalError.extensions?.code === GraphQLErrorCode.QUERY_TOO_COMPLEX) {
+          return {
+            message: originalError.message,
+            extensions: {
+              code: GraphQLErrorCode.QUERY_TOO_COMPLEX,
+              complexity: originalError.extensions.complexity,
+              maxComplexity: originalError.extensions.maxComplexity,
+              timestamp: new Date().toISOString(),
+            },
+          };
+        }
+
+        // Format query depth errors
+        if (originalError.extensions?.code === GraphQLErrorCode.QUERY_TOO_DEEP) {
+          return {
+            message: originalError.message,
+            extensions: {
+              code: GraphQLErrorCode.QUERY_TOO_DEEP,
+              depth: originalError.extensions.depth,
+              maxDepth: originalError.extensions.maxDepth,
+              timestamp: new Date().toISOString(),
+            },
+          };
+        }
+
+        // Format tenant isolation errors
+        if (originalError.extensions?.code === GraphQLErrorCode.CROSS_TENANT_ACCESS) {
+          return {
+            message: 'Access denied: Cross-tenant access not allowed',
+            extensions: {
+              code: GraphQLErrorCode.CROSS_TENANT_ACCESS,
+              timestamp: new Date().toISOString(),
+            },
+          };
+        }
+
+        // Default error formatting with timestamp
         return {
           message: originalError.message,
           ...(originalError.locations && { locations: originalError.locations }),
           ...(originalError.path && { path: originalError.path }),
           extensions: {
-            code: originalError.extensions?.code || 'UNKNOWN_ERROR',
+            code: originalError.extensions?.code || GraphQLErrorCode.INTERNAL_SERVER_ERROR,
             timestamp: new Date().toISOString(),
+            ...originalError.extensions,
           },
         };
       },
 
-      // Performance optimizations
+      // Performance optimizations and monitoring plugins
       plugins: [
-        // Query complexity analysis
-        {
-          async requestDidStart() {
-            return {
-              async didResolveOperation(requestContext: any) {
-                const { request } = requestContext;
-                
-                // Log query in development
-                if (isDevelopment && request.query) {
-                  console.log('GraphQL Query:', request.query);
-                  if (request.variables) {
-                    console.log('Variables:', request.variables);
-                  }
-                }
-              },
-              
-              async willSendResponse(requestContext: any) {
-                // Add performance headers
-                const { response } = requestContext;
-                if (response.http) {
-                  response.http.headers.set('X-GraphQL-Execution-Time', Date.now().toString());
-                }
-              },
-            };
-          },
-        },
+        new QueryComplexityPlugin(1000, 10), // Max complexity: 1000, Max depth: 10
+        new PerformanceMonitoringPlugin(1000), // Slow query threshold: 1000ms
       ],
 
       // Subscription configuration for real-time features
@@ -160,7 +181,9 @@ export class GraphQLConfigService implements GqlOptionsFactory {
             };
           },
           onDisconnect: () => {
-            console.log('GraphQL WebSocket disconnected');
+            if (isDevelopment) {
+              console.log('GraphQL WebSocket disconnected');
+            }
           },
         },
       },

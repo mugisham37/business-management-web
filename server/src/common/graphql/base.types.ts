@@ -54,11 +54,11 @@ export class PageInfo {
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Cursor for the first item in the page', required: false })
-  startCursor?: string;
+  startCursor?: string | null;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'Cursor for the last item in the page', required: false })
-  endCursor?: string;
+  endCursor?: string | null;
 }
 
 /**
