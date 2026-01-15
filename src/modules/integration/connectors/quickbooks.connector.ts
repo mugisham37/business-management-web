@@ -28,7 +28,7 @@ export class QuickBooksConnector extends BaseConnector {
     super();
   }
 
-  async initialize(config: ConnectorConfig): Promise<void> {
+  override async initialize(config: ConnectorConfig): Promise<void> {
     await super.initialize(config);
     this.logger.log('QuickBooks connector initialized');
   }
@@ -184,10 +184,13 @@ export class QuickBooksConnector extends BaseConnector {
       };
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorResponse = (error as any)?.response?.data;
+      
       return {
         success: false,
-        error: error.message,
-        details: { error: error.response?.data },
+        error: errorMessage,
+        details: { error: errorResponse },
         responseTime: Date.now() - startTime,
       };
     }
@@ -216,9 +219,10 @@ export class QuickBooksConnector extends BaseConnector {
           errors.push(...entityResult.errors);
           warnings.push(...entityResult.warnings);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
           this.logger.error(`Failed to sync entity ${entity}:`, error);
           errors.push({
-            error: `Failed to sync ${entity}: ${error.message}`,
+            error: `Failed to sync ${entity}: ${errorMessage}`,
             code: 'ENTITY_SYNC_FAILED',
           });
         }
@@ -241,13 +245,14 @@ export class QuickBooksConnector extends BaseConnector {
       };
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
         recordsProcessed,
         recordsSucceeded,
         recordsFailed: recordsProcessed - recordsSucceeded,
         recordsSkipped: 0,
-        errors: [{ error: error.message, code: 'SYNC_FAILED' }],
+        errors: [{ error: errorMessage, code: 'SYNC_FAILED' }],
         warnings,
         summary: {},
         duration: Date.now() - startTime,
@@ -279,7 +284,8 @@ export class QuickBooksConnector extends BaseConnector {
       };
 
     } catch (error) {
-      throw this.createError(`Failed to read ${entity}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw this.createError(`Failed to read ${entity}: ${errorMessage}`);
     }
   }
 
@@ -308,11 +314,14 @@ export class QuickBooksConnector extends BaseConnector {
 
         recordsSucceeded++;
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        const errorCode = (error as any)?.code || 'UNKNOWN_ERROR';
+        
         recordsFailed++;
         errors.push({
           record: record.data,
-          error: error.message,
-          code: error.code,
+          error: errorMessage,
+          code: errorCode,
         });
       }
     }
@@ -344,7 +353,7 @@ export class QuickBooksConnector extends BaseConnector {
   }
 
   getEntitySchema(entity: string): any {
-    const schemas = {
+    const schemas: Record<string, any> = {
       customers: {
         type: 'object',
         properties: {

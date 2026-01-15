@@ -65,8 +65,8 @@ export class DisasterRecoveryProceduresService {
 
       // Execute steps in order
       const executedSteps = [];
-      const errors = [];
-      const warnings = [];
+      const errors: string[] = [];
+      const warnings: string[] = [];
 
       for (const step of steps) {
         try {
@@ -94,12 +94,7 @@ export class DisasterRecoveryProceduresService {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           this.logger.error(`Step ${step.name} failed: ${errorMessage}`);
           
-          errors.push({
-            stepId: step.id,
-            stepName: step.name,
-            error: errorMessage,
-            timestamp: new Date(),
-          });
+          errors.push(`${step.name}: ${errorMessage}`);
 
           executedSteps.push({
             stepId: step.id,
@@ -396,18 +391,25 @@ export class DisasterRecoveryProceduresService {
   private async executeDatabaseStep(step: RecoveryStep, context: ExecutionContext): Promise<any> {
     switch (step.id) {
       case 'failover-database':
+        // Find database failover config
+        const dbConfigs = await this.failoverService.listFailoverConfigs(context.plan.tenantId);
+        const dbConfig = dbConfigs.find(c => c.serviceName === 'database');
+        
+        if (!dbConfig) {
+          throw new Error('Database failover configuration not found');
+        }
+        
         return await this.failoverService.executeFailover({
           tenantId: context.plan.tenantId,
-          serviceName: 'database',
-          targetRegion: context.plan.secondaryRegions[0],
+          configId: dbConfig.id,
+          failoverType: dbConfig.failoverType,
           userId: context.userId,
         });
 
       case 'restore-database':
-        return await this.backupService.restoreBackup({
-          tenantId: context.plan.tenantId,
+        return await this.backupService.restoreFromBackup({
           backupId: step.parameters?.backupId,
-          targetLocation: step.parameters?.targetLocation,
+          targetTenantId: context.plan.tenantId,
           userId: context.userId,
         });
 
@@ -419,10 +421,18 @@ export class DisasterRecoveryProceduresService {
   private async executeApplicationStep(step: RecoveryStep, context: ExecutionContext): Promise<any> {
     switch (step.id) {
       case 'failover-application':
+        // Find application failover config
+        const appConfigs = await this.failoverService.listFailoverConfigs(context.plan.tenantId);
+        const appConfig = appConfigs.find(c => c.serviceName === 'application');
+        
+        if (!appConfig) {
+          throw new Error('Application failover configuration not found');
+        }
+        
         return await this.failoverService.executeFailover({
           tenantId: context.plan.tenantId,
-          serviceName: 'application',
-          targetRegion: context.plan.secondaryRegions[0],
+          configId: appConfig.id,
+          failoverType: appConfig.failoverType,
           userId: context.userId,
         });
 

@@ -107,7 +107,9 @@ export class DisasterRecoveryService {
       return plan;
 
     } catch (error) {
-      this.logger.error(`Failed to create DR plan: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create DR plan: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -164,7 +166,9 @@ export class DisasterRecoveryService {
       return execution;
 
     } catch (error) {
-      this.logger.error(`Failed to execute DR: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to execute DR: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -195,7 +199,9 @@ export class DisasterRecoveryService {
       return execution;
 
     } catch (error) {
-      this.logger.error(`Failed to test DR plan: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to test DR plan: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -261,15 +267,15 @@ export class DisasterRecoveryService {
 
       // Update plan
       const updatedPlan = await this.drRepository.updatePlan(planId, {
-        name: updates.name,
-        description: updates.description,
-        disasterTypes: updates.disasterTypes,
-        rtoMinutes: updates.rtoMinutes,
-        rpoMinutes: updates.rpoMinutes,
-        primaryRegion: updates.primaryRegion,
-        secondaryRegions: updates.secondaryRegions,
-        automaticFailover: updates.automaticFailover,
-        configuration: updates.configuration,
+        ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.disasterTypes !== undefined && { disasterTypes: updates.disasterTypes }),
+        ...(updates.rtoMinutes !== undefined && { rtoMinutes: updates.rtoMinutes }),
+        ...(updates.rpoMinutes !== undefined && { rpoMinutes: updates.rpoMinutes }),
+        ...(updates.primaryRegion !== undefined && { primaryRegion: updates.primaryRegion }),
+        ...(updates.secondaryRegions !== undefined && { secondaryRegions: updates.secondaryRegions }),
+        ...(updates.automaticFailover !== undefined && { automaticFailover: updates.automaticFailover }),
+        ...(updates.configuration !== undefined && { configuration: updates.configuration }),
       });
 
       // Update replication if regions changed
@@ -293,7 +299,9 @@ export class DisasterRecoveryService {
       return updatedPlan;
 
     } catch (error) {
-      this.logger.error(`Failed to update DR plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update DR plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -326,7 +334,9 @@ export class DisasterRecoveryService {
       this.logger.log(`DR plan ${planId} deleted successfully`);
 
     } catch (error) {
-      this.logger.error(`Failed to delete DR plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to delete DR plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -353,14 +363,17 @@ export class DisasterRecoveryService {
             userId: 'system',
           });
         } catch (error) {
-          this.logger.error(`Failed to test DR plan ${plan.id}: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Failed to test DR plan ${plan.id}: ${errorMessage}`);
         }
       }
 
       this.logger.log(`Scheduled DR testing completed for ${plansToTest.length} plans`);
 
     } catch (error) {
-      this.logger.error(`Scheduled DR testing failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Scheduled DR testing failed: ${errorMessage}`, errorStack);
     }
   }
 
@@ -385,7 +398,7 @@ export class DisasterRecoveryService {
             await this.executeDR({
               tenantId: plan.tenantId,
               planId: plan.id,
-              disasterType: healthStatus.disasterType,
+              disasterType: healthStatus.disasterType!,
               isTest: false,
               userId: 'system',
             });
@@ -394,7 +407,9 @@ export class DisasterRecoveryService {
       }
 
     } catch (error) {
-      this.logger.error(`DR health monitoring failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`DR health monitoring failed: ${errorMessage}`, errorStack);
     }
   }
 

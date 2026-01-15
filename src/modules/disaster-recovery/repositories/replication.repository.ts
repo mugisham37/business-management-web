@@ -446,4 +446,72 @@ export class ReplicationRepository {
 
     return results;
   }
+
+  // Alias methods for service compatibility
+  async createConfig(data: InsertReplicationConfiguration): Promise<ReplicationConfiguration> {
+    return this.createConfiguration(data);
+  }
+
+  async findConfigById(configId: string): Promise<ReplicationConfiguration | null> {
+    return this.findConfigurationById(configId);
+  }
+
+  async findConfigsByTenant(tenantId: string): Promise<ReplicationConfiguration[]> {
+    return this.findConfigurationsByTenant(tenantId);
+  }
+
+  async findConfigsByPlan(planId: string): Promise<ReplicationConfiguration[]> {
+    // For now, return empty array as plan-config relationship needs to be established
+    // In a full implementation, you'd add a planId field to replicationConfigurations
+    return [];
+  }
+
+  async findActiveConfigs(tenantId: string): Promise<ReplicationConfiguration[]> {
+    const db = this.databaseService.getDatabase();
+    
+    const configs = await db
+      .select()
+      .from(replicationConfigurations)
+      .where(
+        and(
+          eq(replicationConfigurations.tenantId, tenantId),
+          eq(replicationConfigurations.isActive, true)
+        )
+      )
+      .orderBy(desc(replicationConfigurations.createdAt));
+
+    return configs as ReplicationConfiguration[];
+  }
+
+  async findAllActiveConfigs(): Promise<ReplicationConfiguration[]> {
+    const db = this.databaseService.getDatabase();
+    
+    const configs = await db
+      .select()
+      .from(replicationConfigurations)
+      .where(eq(replicationConfigurations.isActive, true))
+      .orderBy(desc(replicationConfigurations.createdAt));
+
+    return configs as ReplicationConfiguration[];
+  }
+
+  async updateConfig(configId: string, updates: Partial<InsertReplicationConfiguration>): Promise<ReplicationConfiguration> {
+    return this.updateConfiguration(configId, updates);
+  }
+
+  async deleteConfig(configId: string): Promise<void> {
+    this.logger.log(`Deleting replication configuration ${configId}`);
+
+    const db = this.databaseService.getDatabase();
+    
+    // Delete associated status records first
+    await db
+      .delete(replicationStatusTable)
+      .where(eq(replicationStatusTable.configurationId, configId));
+
+    // Delete the configuration
+    await db
+      .delete(replicationConfigurations)
+      .where(eq(replicationConfigurations.id, configId));
+  }
 }

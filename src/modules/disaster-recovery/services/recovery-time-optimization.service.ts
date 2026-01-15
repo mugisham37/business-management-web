@@ -61,7 +61,9 @@ export class RecoveryTimeOptimizationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to analyze RTO performance: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to analyze RTO performance: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -96,7 +98,9 @@ export class RecoveryTimeOptimizationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to optimize recovery procedures: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to optimize recovery procedures: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -144,7 +148,9 @@ export class RecoveryTimeOptimizationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to monitor RTO trends: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to monitor RTO trends: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -187,7 +193,9 @@ export class RecoveryTimeOptimizationService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to generate RTO improvement plan: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to generate RTO improvement plan: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -305,9 +313,10 @@ export class RecoveryTimeOptimizationService {
     variance: number;
   } {
     if (executions.length < 3) {
+      const firstExecution = executions[0];
       return {
         direction: 'stable',
-        averageRto: executions.length > 0 ? executions[0].actualRtoMinutes : 0,
+        averageRto: firstExecution ? (firstExecution.actualRtoMinutes ?? 0) : 0,
         variance: 0,
       };
     }
@@ -318,7 +327,7 @@ export class RecoveryTimeOptimizationService {
     );
 
     // Calculate trend
-    const rtoValues = sortedExecutions.map(e => e.actualRtoMinutes);
+    const rtoValues = sortedExecutions.map(e => e.actualRtoMinutes ?? 0);
     const averageRto = rtoValues.reduce((sum, rto) => sum + rto, 0) / rtoValues.length;
     
     // Calculate variance

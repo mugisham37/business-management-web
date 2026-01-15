@@ -53,11 +53,10 @@ export class CreateDRPlanDto {
   @IsBoolean()
   automaticFailover!: boolean;
 
-  @ApiPropertyOptional({ description: 'Additional configuration options' })
-  @Field(() => String, { nullable: true })
-  @IsOptional()
+  @ApiProperty({ description: 'Additional configuration options', default: {} })
+  @Field(() => String)
   @IsObject()
-  configuration?: Record<string, any>;
+  configuration!: Record<string, any>;
 }
 
 @InputType()

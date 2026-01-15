@@ -112,9 +112,10 @@ export class ShopifyConnector extends BaseConnector {
         },
       };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         details: {},
       };
     }

@@ -186,7 +186,6 @@ export class DataManagementService {
     const archivalPolicy: DataArchivalPolicy = {
       id: `archival-${Date.now()}`,
       ...policy,
-      lastExecutedAt: undefined,
     };
 
     this.archivalPolicies.set(archivalPolicy.id, archivalPolicy);
@@ -247,7 +246,7 @@ export class DataManagementService {
         archivedTables: archiveResult.tables,
         archiveSize: archiveResult.size,
         archiveLocation: archiveResult.location,
-        compressionRatio: archiveResult.compressionRatio,
+        ...(archiveResult.compressionRatio !== undefined && { compressionRatio: archiveResult.compressionRatio }),
       };
 
     } catch (error) {
@@ -441,7 +440,9 @@ export class DataManagementService {
       // Update destruction record
       destruction.status = 'completed';
       destruction.executedAt = new Date();
-      destruction.verifiedAt = verificationStatus ? new Date() : undefined;
+      if (verificationStatus) {
+        destruction.verifiedAt = new Date();
+      }
       destruction.certificateGenerated = true;
 
       // Emit completion event
@@ -457,7 +458,7 @@ export class DataManagementService {
         destructionId,
         status: 'completed',
         destroyedRecords,
-        verificationStatus,
+        ...(verificationStatus && { verificationStatus }),
         certificatePath,
         errors,
       };
@@ -647,7 +648,7 @@ export class DataManagementService {
     tables: string[];
     size: number;
     location: string;
-    compressionRatio?: number;
+    compressionRatio: number | undefined;
   }> {
     this.logger.log(`Creating archive for policy ${policy.name}`);
     

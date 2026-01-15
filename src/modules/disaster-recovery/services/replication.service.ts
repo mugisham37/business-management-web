@@ -72,7 +72,9 @@ export class ReplicationService {
       return config;
 
     } catch (error) {
-      this.logger.error(`Failed to create replication: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create replication: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -117,13 +119,27 @@ export class ReplicationService {
     try {
       const config = await this.getReplicationConfig(configId, tenantId);
 
-      const updatedConfig = await this.replicationRepository.updateConfig(configId, {
-        sourceEndpoint: updates.sourceRegion ? this.buildDatabaseEndpoint(updates.sourceRegion) : undefined,
-        targetEndpoint: updates.targetRegion ? this.buildDatabaseEndpoint(updates.targetRegion) : undefined,
-        sourceRegion: updates.sourceRegion,
-        targetRegion: updates.targetRegion,
-        configuration: updates.configuration,
-      });
+      const updateData: Partial<{
+        sourceEndpoint: string;
+        targetEndpoint: string;
+        sourceRegion: string;
+        targetRegion: string;
+        configuration: Record<string, any>;
+      }> = {};
+
+      if (updates.sourceRegion !== undefined) {
+        updateData.sourceEndpoint = this.buildDatabaseEndpoint(updates.sourceRegion);
+        updateData.sourceRegion = updates.sourceRegion;
+      }
+      if (updates.targetRegion !== undefined) {
+        updateData.targetEndpoint = this.buildDatabaseEndpoint(updates.targetRegion);
+        updateData.targetRegion = updates.targetRegion;
+      }
+      if (updates.configuration !== undefined) {
+        updateData.configuration = updates.configuration;
+      }
+
+      const updatedConfig = await this.replicationRepository.updateConfig(configId, updateData);
 
       // Restart replication if endpoints changed
       if (updates.sourceRegion || updates.targetRegion) {
@@ -142,7 +158,9 @@ export class ReplicationService {
       return updatedConfig;
 
     } catch (error) {
-      this.logger.error(`Failed to update replication config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update replication config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -173,7 +191,9 @@ export class ReplicationService {
       this.logger.log(`Replication config ${configId} deleted successfully`);
 
     } catch (error) {
-      this.logger.error(`Failed to delete replication config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to delete replication config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -204,7 +224,9 @@ export class ReplicationService {
       this.logger.log(`Replication config ${configId} paused successfully`);
 
     } catch (error) {
-      this.logger.error(`Failed to pause replication config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to pause replication config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -235,7 +257,9 @@ export class ReplicationService {
       this.logger.log(`Replication config ${configId} resumed successfully`);
 
     } catch (error) {
-      this.logger.error(`Failed to resume replication config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to resume replication config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -277,7 +301,7 @@ export class ReplicationService {
 
       // Update or create configurations for current regions
       for (const targetRegion of updates.targetRegions) {
-        const existingConfig = configs.find(c => c.targetRegion === targetRegion);
+        const existingConfig = configs.find((c: ReplicationConfiguration) => c.targetRegion === targetRegion);
         
         if (existingConfig) {
           // Update existing configuration
@@ -301,7 +325,9 @@ export class ReplicationService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to update replication for plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update replication for plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -320,7 +346,9 @@ export class ReplicationService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to cleanup replication for plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to cleanup replication for plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -334,7 +362,7 @@ export class ReplicationService {
   })
   async monitorReplicationLag(): Promise<void> {
     try {
-      const activeConfigs = await this.replicationRepository.findActiveConfigs();
+      const activeConfigs = await this.replicationRepository.findAllActiveConfigs();
       
       for (const config of activeConfigs) {
         try {
@@ -359,7 +387,8 @@ export class ReplicationService {
           }
 
         } catch (error) {
-          this.logger.error(`Failed to monitor replication lag for config ${config.id}: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Failed to monitor replication lag for config ${config.id}: ${errorMessage}`);
           
           // Update status to failed
           await this.replicationRepository.updateConfig(config.id, {
@@ -369,7 +398,9 @@ export class ReplicationService {
       }
 
     } catch (error) {
-      this.logger.error(`Replication lag monitoring failed: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Replication lag monitoring failed: ${errorMessage}`, errorStack);
     }
   }
 
@@ -392,7 +423,9 @@ export class ReplicationService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to initialize replication: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to initialize replication: ${errorMessage}`, errorStack);
       
       // Update status to failed
       await this.replicationRepository.updateConfig(config.id, {

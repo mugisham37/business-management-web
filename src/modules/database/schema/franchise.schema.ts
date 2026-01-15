@@ -17,8 +17,8 @@ export const franchiseStatusEnum = pgTable('franchise_statuses', {
   label: varchar('label', { length: 100 }).notNull(),
 });
 
-// Territory types enum
-export const territoryTypeEnum = pgTable('territory_types', {
+// Territory types enum (for franchise territories)
+export const franchiseTerritoryTypeEnum = pgTable('franchise_territory_types', {
   value: varchar('value', { length: 50 }).primaryKey(),
   label: varchar('label', { length: 100 }).notNull(),
 });

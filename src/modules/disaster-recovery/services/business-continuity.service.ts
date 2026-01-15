@@ -269,14 +269,24 @@ export class BusinessContinuityService {
     testId: string;
     testType: string;
     status: 'running' | 'completed' | 'failed';
-    results: any[];
+    results: Array<{
+      test: string;
+      status: 'passed' | 'failed';
+      message: string;
+      duration: number;
+    }>;
     startTime: Date;
     endTime?: Date;
   }> {
     this.logger.log(`Starting business continuity test: ${testType} for tenant ${tenantId}`);
 
     const testId = `bc-test-${Date.now()}`;
-    const testResults = [];
+    const testResults: Array<{
+      test: string;
+      status: 'passed' | 'failed';
+      message: string;
+      duration: number;
+    }> = [];
 
     try {
       const startTime = new Date();
@@ -524,8 +534,8 @@ export class BusinessContinuityService {
       if (serviceConfig) {
         await this.failoverService.executeFailover({
           tenantId: 'system',
-          serviceName,
-          targetRegion: 'secondary',
+          configId: serviceConfig.id,
+          failoverType: serviceConfig.failoverType,
           userId: 'system',
         });
       }

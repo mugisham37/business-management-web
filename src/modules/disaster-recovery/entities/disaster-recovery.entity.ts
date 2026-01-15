@@ -11,6 +11,8 @@ export enum DisasterType {
   HUMAN_ERROR = 'human_error',
   SOFTWARE_FAILURE = 'software_failure',
   POWER_OUTAGE = 'power_outage',
+  DATA_CORRUPTION = 'data_corruption',
+  SECURITY_BREACH = 'security_breach',
 }
 
 export enum RecoveryStatus {
@@ -19,6 +21,7 @@ export enum RecoveryStatus {
   INITIATING = 'initiating',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
+  COMPLETED_WITH_ERRORS = 'completed_with_errors',
   FAILED = 'failed',
   TESTING = 'testing',
   ROLLBACK = 'rollback',

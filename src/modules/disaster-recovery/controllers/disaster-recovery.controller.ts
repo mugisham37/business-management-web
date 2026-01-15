@@ -69,6 +69,7 @@ export class DisasterRecoveryController {
     const plan = await this.drService.createDRPlan({
       tenantId,
       ...createDRPlanDto,
+      configuration: createDRPlanDto.configuration || {},
       userId: user.id,
     });
 
@@ -301,7 +302,6 @@ export class DisasterRecoveryController {
     const config = await this.failoverService.createFailoverConfig({
       tenantId,
       ...createFailoverConfigDto,
-      userId: user.id,
     });
 
     return {
@@ -335,9 +335,19 @@ export class DisasterRecoveryController {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
   ): Promise<{ success: boolean; data: any; message: string }> {
+    // Find the failover configuration for the service
+    const configs = await this.failoverService.listFailoverConfigs(tenantId);
+    const config = configs.find(c => c.serviceName === executeFailoverDto.serviceName);
+    
+    if (!config) {
+      throw new Error(`No failover configuration found for service ${executeFailoverDto.serviceName}`);
+    }
+
     const execution = await this.failoverService.executeFailover({
       tenantId,
-      ...executeFailoverDto,
+      configId: config.id,
+      failoverType: config.failoverType,
+      targetEndpoint: executeFailoverDto.targetRegion,
       userId: user.id,
     });
 

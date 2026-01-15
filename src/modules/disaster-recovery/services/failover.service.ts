@@ -80,7 +80,9 @@ export class FailoverService {
       return config;
 
     } catch (error) {
-      this.logger.error(`Failed to create failover config: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to create failover config: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -137,7 +139,9 @@ export class FailoverService {
       };
 
     } catch (error) {
-      this.logger.error(`Failed to execute failover: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to execute failover: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -167,14 +171,17 @@ export class FailoverService {
         try {
           await this.executeFailback(configId, tenantId, userId);
         } catch (error) {
-          this.logger.error(`Automatic failback after test failed: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Automatic failback after test failed: ${errorMessage}`);
         }
       }, 60000); // 1 minute
 
       return result;
 
     } catch (error) {
-      this.logger.error(`Failed to test failover: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to test failover: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -208,7 +215,9 @@ export class FailoverService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to execute failback: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to execute failback: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -246,14 +255,25 @@ export class FailoverService {
     try {
       const config = await this.getFailoverConfig(configId, tenantId);
 
-      const updatedConfig = await this.failoverRepository.updateConfig(configId, {
-        serviceName: updates.serviceName,
-        primaryEndpoint: updates.primaryEndpoint,
-        secondaryEndpoints: updates.secondaryEndpoints,
-        failoverType: updates.automaticFailover ? FailoverType.AUTOMATIC : FailoverType.MANUAL,
-        healthCheckConfig: updates.healthCheckConfig,
-        thresholds: updates.thresholds,
-      });
+      const updateData: Partial<{
+        serviceName: string;
+        primaryEndpoint: string;
+        secondaryEndpoints: string[];
+        failoverType: FailoverType;
+        healthCheckConfig: Record<string, any>;
+        thresholds: Record<string, any>;
+      }> = {};
+
+      if (updates.serviceName !== undefined) updateData.serviceName = updates.serviceName;
+      if (updates.primaryEndpoint !== undefined) updateData.primaryEndpoint = updates.primaryEndpoint;
+      if (updates.secondaryEndpoints !== undefined) updateData.secondaryEndpoints = updates.secondaryEndpoints;
+      if (updates.automaticFailover !== undefined) {
+        updateData.failoverType = updates.automaticFailover ? FailoverType.AUTOMATIC : FailoverType.MANUAL;
+      }
+      if (updates.healthCheckConfig !== undefined) updateData.healthCheckConfig = updates.healthCheckConfig;
+      if (updates.thresholds !== undefined) updateData.thresholds = updates.thresholds;
+
+      const updatedConfig = await this.failoverRepository.updateConfig(configId, updateData);
 
       // Update health monitoring if automatic failover setting changed
       if (updates.automaticFailover !== undefined) {
@@ -275,7 +295,9 @@ export class FailoverService {
       return updatedConfig;
 
     } catch (error) {
-      this.logger.error(`Failed to update failover config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update failover config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -305,7 +327,9 @@ export class FailoverService {
       this.logger.log(`Failover config ${configId} deleted successfully`);
 
     } catch (error) {
-      this.logger.error(`Failed to delete failover config ${configId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to delete failover config ${configId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -334,7 +358,9 @@ export class FailoverService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to update failover for plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to update failover for plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -353,7 +379,9 @@ export class FailoverService {
       }
 
     } catch (error) {
-      this.logger.error(`Failed to cleanup failover for plan ${planId}: ${error.message}`, error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to cleanup failover for plan ${planId}: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -365,15 +393,20 @@ export class FailoverService {
     try {
       // Implement health check logic based on configuration
       // This is a placeholder implementation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), healthCheckConfig.timeout || 5000);
+      
       const response = await fetch(`${endpoint}/health`, {
         method: 'GET',
-        timeout: healthCheckConfig.timeout || 5000,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       return response.ok;
 
     } catch (error) {
-      this.logger.warn(`Health check failed for endpoint ${endpoint}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Health check failed for endpoint ${endpoint}: ${errorMessage}`);
       return false;
     }
   }
@@ -381,7 +414,7 @@ export class FailoverService {
   /**
    * Private helper methods
    */
-  private selectBestSecondaryEndpoint(config: FailoverConfiguration): string | null {
+  private selectBestSecondaryEndpoint(config: FailoverConfiguration): string | null | undefined {
     // Simple round-robin selection for now
     // In production, this would consider health, latency, capacity, etc.
     const availableEndpoints = config.secondaryEndpoints.filter(endpoint => 

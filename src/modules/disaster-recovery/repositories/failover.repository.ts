@@ -371,4 +371,31 @@ export class FailoverRepository {
       })
       .where(eq(failoverConfigurations.id, configId));
   }
+
+  // Alias methods for service compatibility
+  async createConfig(data: InsertFailoverConfiguration): Promise<FailoverConfiguration> {
+    return this.createConfiguration(data);
+  }
+
+  async findConfigById(configId: string): Promise<FailoverConfiguration | null> {
+    return this.findConfigurationById(configId);
+  }
+
+  async findConfigsByTenant(tenantId: string): Promise<FailoverConfiguration[]> {
+    return this.findConfigurationsByTenant(tenantId);
+  }
+
+  async findConfigsByPlan(planId: string): Promise<FailoverConfiguration[]> {
+    // For now, return empty array as plan-config relationship needs to be established
+    // In a full implementation, you'd add a planId field to failoverConfigurations
+    return [];
+  }
+
+  async updateConfig(configId: string, updates: Partial<InsertFailoverConfiguration>): Promise<FailoverConfiguration> {
+    return this.updateConfiguration(configId, updates);
+  }
+
+  async deleteConfig(configId: string): Promise<void> {
+    return this.deleteConfiguration(configId);
+  }
 }
