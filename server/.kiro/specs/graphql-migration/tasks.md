@@ -527,8 +527,8 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 8: Domain Event to Subscription Propagation** - Test PO events emit subscriptions
     - **Validates: Requirements 2.3, 5.2**
 
-- [ ] 7.4 Implement B2B module resolvers (3 additional resolvers)
-  - [ ] 7.4.1 Create contract.resolver.ts for contract lifecycle
+- [x] 7.4 Implement B2B module resolvers (3 additional resolvers)
+  - [x] 7.4.1 Create contract.resolver.ts for contract lifecycle
     - Implement contract CRUD operations
     - Implement approveContract mutation
     - Implement renewContract mutation
@@ -537,7 +537,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement contractExpiring subscription
     - _Requirements: 27.1-27.6_
   
-  - [ ] 7.4.2 Create customer-portal.resolver.ts for customer portal
+  - [x] 7.4.2 Create customer-portal.resolver.ts for customer portal
     - Implement getPortalDashboard query
     - Implement getPortalOrders query
     - Implement getPortalInvoices query
@@ -545,7 +545,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Apply customer-specific permissions
     - _Requirements: 27.1-27.6_
   
-  - [ ] 7.4.3 Create territory.resolver.ts (B2B-specific)
+  - [x] 7.4.3 Create territory.resolver.ts (B2B-specific)
     - Implement B2B territory CRUD operations
     - Implement assignCustomerToTerritory mutation
     - Implement getTerritoryPerformance query

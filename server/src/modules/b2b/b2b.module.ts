@@ -29,6 +29,9 @@ import { TerritoryRepository } from './repositories/territory.repository';
 // Resolvers
 import { B2BOrderResolver } from './resolvers/b2b-order.resolver';
 import { QuoteResolver } from './resolvers/quote.resolver';
+import { ContractResolver } from './resolvers/contract.resolver';
+import { CustomerPortalResolver } from './resolvers/customer-portal.resolver';
+import { TerritoryResolver } from './resolvers/territory.resolver';
 
 @Module({
   imports: [
@@ -66,6 +69,9 @@ import { QuoteResolver } from './resolvers/quote.resolver';
     // Resolvers
     B2BOrderResolver,
     QuoteResolver,
+    ContractResolver,
+    CustomerPortalResolver,
+    TerritoryResolver,
   ],
   exports: [
     B2BOrderService,
