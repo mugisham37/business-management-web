@@ -47,12 +47,12 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
 - [ ] 2. Checkpoint - Foundation Complete
   - Ensure all foundation tests pass, ask the user if questions arise.
 
-- [ ] 3. Phase 2: Core Modules (Auth, Tenant, Employee)
+- [-] 3. Phase 2: Core Modules (Auth, Tenant, Employee)
   - Implement resolvers for authentication, tenant management, and employee modules
   - _Requirements: 14.1-14.6, 15.1-15.6_
 
-- [ ] 3.1 Implement Auth module resolvers (3 resolvers)
-  - [ ] 3.1.1 Create auth.resolver.ts with login, logout, register, password reset mutations
+- [x] 3.1 Implement Auth module resolvers (3 resolvers)
+  - [x] 3.1.1 Create auth.resolver.ts with login, logout, register, password reset mutations
     - Implement login mutation with JWT token generation
     - Implement logout mutation with token invalidation
     - Implement register mutation with validation
@@ -60,7 +60,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Apply rate limiting to login attempts
     - _Requirements: 14.1-14.6_
   
-  - [ ] 3.1.2 Create mfa.resolver.ts for multi-factor authentication
+  - [x] 3.1.2 Create mfa.resolver.ts for multi-factor authentication
     - Implement MFA setup with QR code generation
     - Implement MFA verification
     - Implement MFA enable/disable mutations
@@ -68,7 +68,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Use speakeasy for TOTP
     - _Requirements: 14.1-14.6_
   
-  - [ ] 3.1.3 Create permissions.resolver.ts for permission management
+  - [x] 3.1.3 Create permissions.resolver.ts for permission management
     - Implement getPermissions query
     - Implement getRoles query
     - Implement assignRole and revokeRole mutations
@@ -81,15 +81,15 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - **Property 9: Subscription Authentication** - Test subscription auth requirements
     - **Validates: Requirements 3.6, 5.4**
 
-- [ ] 3.2 Implement Employee module resolvers (4 resolvers)
-  - [ ] 3.2.1 Create employee.resolver.ts for employee management
+- [-] 3.2 Implement Employee module resolvers (4 resolvers)
+  - [x] 3.2.1 Create employee.resolver.ts for employee management
     - Implement CRUD operations (get, list, create, update, terminate)
     - Implement field resolvers (manager, directReports, department)
     - Add DataLoader for manager and department loading
     - Implement employeeStatusChanged subscription
     - _Requirements: 15.1-15.6_
   
-  - [ ] 3.2.2 Create compliance.resolver.ts for compliance tracking
+  - [x] 3.2.2 Create compliance.resolver.ts for compliance tracking
     - Implement getComplianceStatus query
     - Implement getRequiredTraining query
     - Implement recordTrainingCompletion mutation
@@ -97,7 +97,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Implement complianceExpiring subscription
     - _Requirements: 15.1-15.6_
   
-  - [ ] 3.2.3 Create payroll.resolver.ts for payroll processing
+  - [x] 3.2.3 Create payroll.resolver.ts for payroll processing
     - Implement getPayroll and getPaystub queries
     - Implement processPayroll mutation (enqueue to Bull queue)
     - Implement updatePayrollSettings mutation
@@ -105,7 +105,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add audit logging for all payroll access
     - _Requirements: 15.1-15.6, 12.1-12.2_
   
-  - [ ] 3.2.4 Create performance.resolver.ts for performance management
+  - [x] 3.2.4 Create performance.resolver.ts for performance management
     - Implement performance review CRUD operations
     - Implement goal management operations
     - Implement feedback operations

@@ -9,6 +9,9 @@ import { MfaService } from './services/mfa.service';
 import { AuthController } from './controllers/auth.controller';
 import { PermissionsController } from './controllers/permissions.controller';
 import { MfaController } from './controllers/mfa.controller';
+import { AuthResolver } from './resolvers/auth.resolver';
+import { MfaResolver } from './resolvers/mfa.resolver';
+import { PermissionsResolver } from './resolvers/permissions.resolver';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -16,6 +19,8 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { DrizzleService } from '../database/drizzle.service';
+import { DataLoaderService } from '../../common/graphql/dataloader.service';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
   imports: [
@@ -42,13 +47,18 @@ import { DrizzleService } from '../database/drizzle.service';
       },
       inject: [ConfigService],
     }),
+    CacheModule,
   ],
   controllers: [AuthController, PermissionsController, MfaController],
   providers: [
     DrizzleService,
+    DataLoaderService,
     AuthService,
     PermissionsService,
     MfaService,
+    AuthResolver,
+    MfaResolver,
+    PermissionsResolver,
     JwtStrategy,
     LocalStrategy,
     JwtAuthGuard,
@@ -60,6 +70,9 @@ import { DrizzleService } from '../database/drizzle.service';
     AuthService,
     PermissionsService,
     MfaService,
+    AuthResolver,
+    MfaResolver,
+    PermissionsResolver,
     JwtAuthGuard,
     LocalAuthGuard,
     PermissionsGuard,

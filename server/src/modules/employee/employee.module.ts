@@ -17,15 +17,23 @@ import {
 import { PayrollController, PayrollReportsController } from './controllers/payroll.controller';
 import { PerformanceController } from './controllers/performance.controller';
 import { ComplianceController } from './controllers/compliance.controller';
+import { EmployeeResolver } from './resolvers/employee.resolver';
+import { ComplianceResolver } from './resolvers/compliance.resolver';
+import { PayrollResolver } from './resolvers/payroll.resolver';
+import { PerformanceResolver } from './resolvers/performance.resolver';
 import { DatabaseModule } from '../database/database.module';
 import { AuthModule } from '../auth/auth.module';
 import { TenantModule } from '../tenant/tenant.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
+import { PubSubModule } from '../../common/graphql/pubsub.module';
 
 @Module({
   imports: [
     DatabaseModule,
     AuthModule,
     TenantModule,
+    GraphQLCommonModule,
+    PubSubModule,
   ],
   controllers: [
     EmployeeController,
@@ -47,6 +55,10 @@ import { TenantModule } from '../tenant/tenant.module';
     EmployeeRepository,
     PayrollRepository,
     ComplianceRepository,
+    EmployeeResolver,
+    ComplianceResolver,
+    PayrollResolver,
+    PerformanceResolver,
   ],
   exports: [
     EmployeeService,
