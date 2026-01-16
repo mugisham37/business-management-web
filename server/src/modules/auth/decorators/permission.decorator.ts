@@ -13,3 +13,6 @@ export const Permission = (...permissions: string[]) => SetMetadata('permissions
 
 // Export with alternate name for compatibility
 export const Permissions = Permission;
+
+// Alias for GraphQL usage pattern
+export const RequirePermissions = Permission;

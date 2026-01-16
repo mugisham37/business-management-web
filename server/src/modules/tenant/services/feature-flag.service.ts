@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { eq, and, or } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
@@ -29,6 +30,7 @@ export class FeatureFlagService {
     private readonly cacheService: IntelligentCacheService,
     private readonly businessMetricsService: BusinessMetricsService,
     private readonly logger: CustomLoggerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -365,7 +367,17 @@ export class FeatureFlagService {
         // Invalidate cache
         await this.invalidateFeatureCache(tenantId, featureName);
 
-        return this.mapFeatureFlagToEntity(updatedFlag);
+        // Emit feature flag changed event
+        const mappedFlag = this.mapFeatureFlagToEntity(updatedFlag);
+        this.eventEmitter.emit('feature-flag.changed', {
+          tenantId,
+          featureName,
+          featureFlag: mappedFlag,
+          action: 'updated',
+          timestamp: new Date(),
+        });
+
+        return mappedFlag;
       } else {
         // Create new flag
         const [newFlag] = await this.drizzle.getDb()
@@ -384,7 +396,17 @@ export class FeatureFlagService {
         // Invalidate cache
         await this.invalidateFeatureCache(tenantId, featureName);
 
-        return this.mapFeatureFlagToEntity(newFlag);
+        // Emit feature flag changed event
+        const mappedFlag = this.mapFeatureFlagToEntity(newFlag);
+        this.eventEmitter.emit('feature-flag.changed', {
+          tenantId,
+          featureName,
+          featureFlag: mappedFlag,
+          action: 'created',
+          timestamp: new Date(),
+        });
+
+        return mappedFlag;
       }
     } catch (error) {
       const errorMessage = (error as Error).message || 'Unknown error';

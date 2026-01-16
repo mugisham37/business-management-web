@@ -3,6 +3,19 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { Reflector } from '@nestjs/core';
 
 /**
+ * Type representing an authenticated user in GraphQL context
+ * Used by resolvers to access user information from the request
+ */
+export interface AuthenticatedUser {
+  id: string;
+  tenantId: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  [key: string]: any;
+}
+
+/**
  * Guard to enforce tenant isolation in GraphQL resolvers
  * Ensures that users can only access data from their own tenant
  */

@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, ObjectType, Field, Int } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -9,9 +9,8 @@ import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../decorators/tenant.decorators';
 import { RequirePermissions } from '../../auth/decorators/permission.decorator';
 import { AuthenticatedUser } from '../guards/tenant.guard';
-import { FeatureFlag, FEATURE_DEFINITIONS, FeatureDefinition } from '../entities/feature-flag.entity';
+import { FeatureFlag, FeatureDefinition, FeatureFlagStatus, FeatureRule, FEATURE_DEFINITIONS } from '../entities/feature-flag.entity';
 import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from '../dto/feature-flag.dto';
-import { ObjectType, Field } from '@nestjs/graphql';
 
 @ObjectType()
 class FeatureDefinitionType {
@@ -58,6 +57,42 @@ class FeatureAccessResponse {
   reason?: string;
 }
 
+@ObjectType()
+class FeaturesByTierResponse {
+  @Field()
+  tier!: string;
+
+  @Field(() => [FeatureDefinitionType])
+  features!: FeatureDefinition[];
+
+  @Field(() => Int)
+  count!: number;
+}
+
+@ObjectType()
+class FeatureCategoriesResponse {
+  @Field()
+  category!: string;
+
+  @Field(() => [FeatureDefinitionType])
+  features!: FeatureDefinition[];
+
+  @Field(() => Int)
+  count!: number;
+}
+
+@ObjectType()
+class FeatureDependenciesResponse {
+  @Field()
+  featureName!: string;
+
+  @Field(() => [String])
+  dependencies!: string[];
+
+  @Field(() => [FeatureAccessResponse])
+  dependenciesStatus!: FeatureAccessResponse[];
+}
+
 @Resolver(() => FeatureFlag)
 @UseGuards(JwtAuthGuard, TenantGuard)
 @UseInterceptors(TenantInterceptor)
@@ -65,6 +100,50 @@ export class FeatureFlagResolver {
   constructor(
     private readonly featureFlagService: FeatureFlagService,
   ) {}
+
+  /**
+   * Field Resolvers - Computed fields for FeatureFlag type
+   */
+  @ResolveField(() => String, { name: 'displayName' })
+  async getDisplayName(@Parent() featureFlag: FeatureFlag): Promise<string> {
+    const definition = FEATURE_DEFINITIONS[featureFlag.featureName];
+    return definition?.displayName || featureFlag.featureName;
+  }
+
+  @ResolveField(() => String, { name: 'category' })
+  async getCategory(@Parent() featureFlag: FeatureFlag): Promise<string> {
+    const definition = FEATURE_DEFINITIONS[featureFlag.featureName];
+    return definition?.category || 'uncategorized';
+  }
+
+  @ResolveField(() => [String], { name: 'dependencies', nullable: true })
+  async getDependencies(@Parent() featureFlag: FeatureFlag): Promise<string[] | null> {
+    const definition = FEATURE_DEFINITIONS[featureFlag.featureName];
+    return definition?.dependencies || null;
+  }
+
+  @ResolveField(() => Boolean, { name: 'isFullyRolledOut' })
+  async getIsFullyRolledOut(@Parent() featureFlag: FeatureFlag): Promise<boolean> {
+    return featureFlag.rolloutPercentage === 100 && featureFlag.isEnabled;
+  }
+
+  @ResolveField(() => Int, { name: 'daysEnabled', nullable: true })
+  async getDaysEnabled(@Parent() featureFlag: FeatureFlag): Promise<number | null> {
+    if (!featureFlag.enabledAt) return null;
+    const now = new Date();
+    const enabled = new Date(featureFlag.enabledAt);
+    const diffTime = now.getTime() - enabled.getTime();
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  @ResolveField(() => Int, { name: 'daysDisabled', nullable: true })
+  async getDaysDisabled(@Parent() featureFlag: FeatureFlag): Promise<number | null> {
+    if (!featureFlag.disabledAt) return null;
+    const now = new Date();
+    const disabled = new Date(featureFlag.disabledAt);
+    const diffTime = now.getTime() - disabled.getTime();
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  }
 
   @Query(() => [FeatureDefinitionType], { name: 'featureDefinitions' })
   async getFeatureDefinitions(): Promise<FeatureDefinition[]> {
@@ -136,19 +215,122 @@ export class FeatureFlagResolver {
     return this.featureFlagService.getFeaturesByCategory(category);
   }
 
+  @Query(() => [FeatureDefinitionType], { name: 'featuresByTier' })
+  async getFeaturesByTier(
+    @Args('tier') tier: string,
+  ): Promise<FeatureDefinition[]> {
+    return this.featureFlagService.getFeaturesByTier(tier as any);
+  }
+
+  @Query(() => FeatureCategoriesResponse, { name: 'featureCategoryDetails' })
+  async getFeatureCategoryDetails(
+    @Args('category') category: string,
+  ): Promise<FeatureCategoriesResponse> {
+    const features = this.featureFlagService.getFeaturesByCategory(category);
+    return {
+      category,
+      features,
+      count: features.length,
+    };
+  }
+
+  @Query(() => FeaturesByTierResponse, { name: 'featureTierDetails' })
+  async getFeatureTierDetails(
+    @Args('tier') tier: string,
+  ): Promise<FeaturesByTierResponse> {
+    const features = this.featureFlagService.getFeaturesByTier(tier as any);
+    return {
+      tier,
+      features,
+      count: features.length,
+    };
+  }
+
+  @Query(() => FeatureDependenciesResponse, { name: 'featureDependencies' })
+  async getFeatureDependencies(
+    @Args('featureName') featureName: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<FeatureDependenciesResponse> {
+    const definitions = this.featureFlagService.getFeatureDefinitions();
+    const featureDef = definitions[featureName];
+    
+    if (!featureDef) {
+      throw new Error(`Feature '${featureName}' not found`);
+    }
+
+    const dependencies = featureDef.dependencies || [];
+    const dependenciesStatus: FeatureAccessResponse[] = [];
+
+    for (const depFeature of dependencies) {
+      const hasAccess = await this.featureFlagService.hasFeature(
+        tenantId,
+        depFeature,
+        {
+          userId: user.id,
+          userRoles: [user.role],
+        },
+      );
+
+      dependenciesStatus.push({
+        featureName: depFeature,
+        hasAccess,
+        reason: hasAccess ? 'Available' : 'Not available',
+      });
+    }
+
+    return {
+      featureName,
+      dependencies,
+      dependenciesStatus,
+    };
+  }
+
+  @Mutation(() => FeatureFlag, { name: 'createFeatureFlag' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions('features:create')
+  async createFeatureFlag(
+    @Args('input') input: CreateFeatureFlagDto,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() _user: AuthenticatedUser,
+  ): Promise<FeatureFlag> {
+    const options: {
+      rolloutPercentage?: number;
+      customRules?: FeatureRule[];
+      status?: FeatureFlagStatus;
+    } = {};
+
+    if (input.rolloutPercentage !== undefined) {
+      options.rolloutPercentage = input.rolloutPercentage;
+    }
+    if (input.customRules !== undefined) {
+      options.customRules = input.customRules;
+    }
+    if (input.status !== undefined) {
+      options.status = input.status;
+    }
+
+    return this.featureFlagService.setTenantFeatureFlag(
+      tenantId,
+      input.featureName,
+      input.isEnabled ?? true,
+      options,
+    );
+  }
+
   @Mutation(() => FeatureFlag, { name: 'enableFeature' })
   @UseGuards(PermissionsGuard)
   @RequirePermissions('features:update')
   async enableFeature(
     @Args('featureName') featureName: string,
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() _user: AuthenticatedUser,
   ): Promise<FeatureFlag> {
     return this.featureFlagService.setTenantFeatureFlag(
       tenantId,
       featureName,
       true,
-      { rolloutPercentage: 100 },
+      { rolloutPercentage: 100, status: FeatureFlagStatus.ENABLED },
     );
   }
 
@@ -158,12 +340,13 @@ export class FeatureFlagResolver {
   async disableFeature(
     @Args('featureName') featureName: string,
     @CurrentTenant() tenantId: string,
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() _user: AuthenticatedUser,
   ): Promise<FeatureFlag> {
     return this.featureFlagService.setTenantFeatureFlag(
       tenantId,
       featureName,
       false,
+      { status: FeatureFlagStatus.DISABLED },
     );
   }
 
@@ -200,6 +383,50 @@ export class FeatureFlagResolver {
     );
   }
 
+  @Mutation(() => [FeatureFlag], { name: 'bulkUpdateFeatureFlags' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions('features:update')
+  async bulkUpdateFeatureFlags(
+    @Args('updates', { type: () => [UpdateFeatureFlagDto] }) updates: UpdateFeatureFlagDto[],
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() _user: AuthenticatedUser,
+  ): Promise<FeatureFlag[]> {
+    const results: FeatureFlag[] = [];
+
+    for (const update of updates) {
+      if (!update.featureName) {
+        throw new Error('Feature name is required for bulk update');
+      }
+
+      const options: {
+        rolloutPercentage?: number;
+        customRules?: FeatureRule[];
+        status?: FeatureFlagStatus;
+      } = {};
+
+      if (update.rolloutPercentage !== undefined) {
+        options.rolloutPercentage = update.rolloutPercentage;
+      }
+      if (update.customRules !== undefined) {
+        options.customRules = update.customRules;
+      }
+      if (update.status !== undefined) {
+        options.status = update.status;
+      }
+
+      const result = await this.featureFlagService.setTenantFeatureFlag(
+        tenantId,
+        update.featureName,
+        update.isEnabled ?? true,
+        options,
+      );
+
+      results.push(result);
+    }
+
+    return results;
+  }
+
   @Mutation(() => Boolean, { name: 'invalidateFeatureCache' })
   @UseGuards(PermissionsGuard)
   @RequirePermissions('features:update')
@@ -208,6 +435,16 @@ export class FeatureFlagResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<boolean> {
     await this.featureFlagService.invalidateFeatureCache(tenantId, featureName);
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'invalidateAllFeatureCache' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions('features:update')
+  async invalidateAllFeatureCache(
+    @CurrentTenant() tenantId: string,
+  ): Promise<boolean> {
+    await this.featureFlagService.invalidateFeatureCache(tenantId);
     return true;
   }
 }

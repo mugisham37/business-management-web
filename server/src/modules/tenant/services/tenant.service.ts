@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { eq, and, or, like, desc, asc, count } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { tenants, auditLogs } from '../../database/schema';
@@ -18,6 +19,7 @@ export class TenantService {
     private readonly drizzle: DrizzleService,
     private readonly businessMetricsService: BusinessMetricsService,
     private readonly logger: CustomLoggerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -73,6 +75,13 @@ export class TenantService {
 
       // Log audit event
       await this.logAuditEvent('create', newTenant.id, null, newTenant, createdBy);
+
+      // Emit tenant created event
+      this.eventEmitter.emit('tenant.created', {
+        tenantId: newTenant.id,
+        tenant: this.mapToEntity(newTenant),
+        timestamp: new Date(),
+      });
 
       return this.mapToEntity(newTenant);
     } catch (error) {
@@ -215,7 +224,16 @@ export class TenantService {
       // Log audit event
       await this.logAuditEvent('update', id, existingTenant, updatedTenant, updatedBy);
 
-      return this.mapToEntity(updatedTenant);
+      // Emit tenant updated event
+      const mappedTenant = this.mapToEntity(updatedTenant);
+      this.eventEmitter.emit('tenant.updated', {
+        tenantId: id,
+        tenant: mappedTenant,
+        previousData: existingTenant,
+        timestamp: new Date(),
+      });
+
+      return mappedTenant;
     } catch (error) {
       const errorMessage = (error as Error).message || 'Unknown error';
       const errorStack = (error as Error).stack;
@@ -269,7 +287,30 @@ export class TenantService {
       // Log audit event
       await this.logAuditEvent('update', id, existingTenant, updatedTenant, updatedBy);
 
-      return this.mapToEntity(updatedTenant);
+      // Emit metrics updated event
+      const mappedTenant = this.mapToEntity(updatedTenant);
+      this.eventEmitter.emit('tenant.metrics.updated', {
+        tenantId: id,
+        tenant: mappedTenant,
+        previousMetrics: existingTenant.metrics,
+        newMetrics: updatedMetrics,
+        previousTier: existingTenant.businessTier,
+        newTier: newBusinessTier,
+        timestamp: new Date(),
+      });
+
+      // If tier changed, emit tier change event
+      if (existingTenant.businessTier !== newBusinessTier) {
+        this.eventEmitter.emit('tenant.tier.changed', {
+          tenantId: id,
+          previousTier: existingTenant.businessTier,
+          newTier: newBusinessTier,
+          metrics: updatedMetrics,
+          timestamp: new Date(),
+        });
+      }
+
+      return mappedTenant;
     } catch (error) {
       const errorMessage = (error as Error).message || 'Unknown error';
       const errorStack = (error as Error).stack;
@@ -302,6 +343,13 @@ export class TenantService {
 
       // Log audit event
       await this.logAuditEvent('delete', id, existingTenant, null, deletedBy);
+
+      // Emit tenant deleted event
+      this.eventEmitter.emit('tenant.deleted', {
+        tenantId: id,
+        tenant: existingTenant,
+        timestamp: new Date(),
+      });
     } catch (error) {
       const errorMessage = (error as Error).message || 'Unknown error';
       const errorStack = (error as Error).stack;
