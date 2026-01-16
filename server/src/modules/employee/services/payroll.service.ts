@@ -2,15 +2,15 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PayrollRepository } from '../repositories/payroll.repository';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { 
-  CreatePayrollPeriodDto,
-  UpdatePayrollPeriodDto,
-  CreateCommissionRecordDto,
-  PayrollCalculationDto,
-  PayrollReportQueryDto,
+  CreatePayrollPeriodInput,
+  UpdatePayrollPeriodInput,
+  CreateCommissionRecordInput,
+  PayrollCalculationInput,
+  PayrollReportQueryInput,
   PayrollStatus,
   CommissionStatus,
-} from '../dto/payroll.dto';
-import { EmploymentStatus } from '../dto/employee.dto';
+} from '../inputs/payroll.input';
+import { EmploymentStatus } from '../inputs/employee.input';
 import { PayrollPeriod, PayrollRecord, CommissionRecord } from '../entities/payroll.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -23,7 +23,7 @@ export class PayrollService {
   ) {}
 
   // Payroll Period Management
-  async createPayrollPeriod(tenantId: string, data: CreatePayrollPeriodDto, createdBy: string): Promise<PayrollPeriod> {
+  async createPayrollPeriod(tenantId: string, data: CreatePayrollPeriodInput, createdBy: string): Promise<PayrollPeriod> {
     // Validate dates
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
@@ -61,7 +61,7 @@ export class PayrollService {
     return period;
   }
 
-  async findPayrollPeriods(tenantId: string, query: PayrollReportQueryDto): Promise<{ periods: PayrollPeriod[]; total: number }> {
+  async findPayrollPeriods(tenantId: string, query: PayrollReportQueryInput): Promise<{ periods: PayrollPeriod[]; total: number }> {
     return this.payrollRepository.findPayrollPeriods(tenantId, query);
   }
 
@@ -73,7 +73,7 @@ export class PayrollService {
     return period;
   }
 
-  async updatePayrollPeriod(tenantId: string, id: string, data: UpdatePayrollPeriodDto, updatedBy: string): Promise<PayrollPeriod> {
+  async updatePayrollPeriod(tenantId: string, id: string, data: UpdatePayrollPeriodInput, updatedBy: string): Promise<PayrollPeriod> {
     // Verify period exists and is not processed
     const period = await this.findPayrollPeriodById(tenantId, id);
     
@@ -196,7 +196,7 @@ export class PayrollService {
     const netPay = grossPay.total - taxes.total - deductions.total;
 
     // Create payroll record
-    const payrollData: PayrollCalculationDto = {
+    const payrollData: PayrollCalculationInput = {
       employeeId,
       payrollPeriodId: periodId,
       ...hours,
@@ -353,7 +353,7 @@ export class PayrollService {
   }
 
   // Commission Management
-  async createCommissionRecord(tenantId: string, data: CreateCommissionRecordDto, createdBy: string): Promise<CommissionRecord> {
+  async createCommissionRecord(tenantId: string, data: CreateCommissionRecordInput, createdBy: string): Promise<CommissionRecord> {
     // Verify employee exists
     await this.employeeRepository.findEmployeeById(tenantId, data.employeeId);
 

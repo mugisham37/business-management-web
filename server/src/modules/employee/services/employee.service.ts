@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { 
-  CreateEmployeeDto, 
-  UpdateEmployeeDto,
-  CreateEmployeeScheduleDto,
-  UpdateEmployeeScheduleDto,
-  CreateTimeEntryDto,
-  UpdateTimeEntryDto,
-  ClockInDto,
-  ClockOutDto,
-  CreatePerformanceReviewDto,
-  UpdatePerformanceReviewDto,
-  CreateTrainingRecordDto,
-  UpdateTrainingRecordDto,
-  CreateEmployeeGoalDto,
-  UpdateEmployeeGoalDto,
-  EmployeeQueryDto,
-  TimeEntryQueryDto
-} from '../dto/employee.dto';
+  CreateEmployeeInput, 
+  UpdateEmployeeInput,
+  CreateEmployeeScheduleInput,
+  UpdateEmployeeScheduleInput,
+  CreateTimeEntryInput,
+  UpdateTimeEntryInput,
+  ClockInInput,
+  ClockOutInput,
+  CreatePerformanceReviewInput,
+  UpdatePerformanceReviewInput,
+  CreateTrainingRecordInput,
+  UpdateTrainingRecordInput,
+  CreateEmployeeGoalInput,
+  UpdateEmployeeGoalInput,
+  EmployeeQueryInput,
+  TimeEntryQueryInput
+} from '../inputs/employee.input';
 import { Employee, EmployeeSchedule, TimeEntry, PerformanceReview, TrainingRecord, EmployeeGoal } from '../entities/employee.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -29,7 +29,7 @@ export class EmployeeService {
   ) {}
 
   // Employee management
-  async createEmployee(tenantId: string, data: CreateEmployeeDto, createdBy: string): Promise<Employee> {
+  async createEmployee(tenantId: string, data: CreateEmployeeInput, createdBy: string): Promise<Employee> {
     // Check if employee number already exists
     const existingEmployee = await this.employeeRepository.findEmployeeByNumber(tenantId, data.employeeNumber);
     if (existingEmployee) {
@@ -65,7 +65,7 @@ export class EmployeeService {
     return employee;
   }
 
-  async findEmployees(tenantId: string, query: EmployeeQueryDto): Promise<{ employees: Employee[]; total: number; page: number; limit: number }> {
+  async findEmployees(tenantId: string, query: EmployeeQueryInput): Promise<{ employees: Employee[]; total: number; page: number; limit: number }> {
     const result = await this.employeeRepository.findEmployees(tenantId, query);
     
     return {
@@ -75,7 +75,7 @@ export class EmployeeService {
     };
   }
 
-  async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeDto, updatedBy: string): Promise<Employee> {
+  async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeInput, updatedBy: string): Promise<Employee> {
     // Verify employee exists
     await this.findEmployeeById(tenantId, id);
 
@@ -117,7 +117,7 @@ export class EmployeeService {
   }
 
   // Employee scheduling
-  async createSchedule(tenantId: string, data: CreateEmployeeScheduleDto, createdBy: string): Promise<EmployeeSchedule> {
+  async createSchedule(tenantId: string, data: CreateEmployeeScheduleInput, createdBy: string): Promise<EmployeeSchedule> {
     // Verify employee exists
     await this.findEmployeeById(tenantId, data.employeeId);
 
@@ -169,7 +169,7 @@ export class EmployeeService {
     return this.employeeRepository.findSchedulesByEmployee(tenantId, employeeId, startDate, endDate);
   }
 
-  async updateSchedule(tenantId: string, id: string, data: UpdateEmployeeScheduleDto, updatedBy: string): Promise<EmployeeSchedule> {
+  async updateSchedule(tenantId: string, id: string, data: UpdateEmployeeScheduleInput, updatedBy: string): Promise<EmployeeSchedule> {
     const schedule = await this.employeeRepository.updateSchedule(tenantId, id, data, updatedBy);
 
     // Emit event for schedule update
@@ -185,7 +185,7 @@ export class EmployeeService {
   }
 
   // Time tracking
-  async clockIn(tenantId: string, data: ClockInDto, createdBy: string): Promise<TimeEntry> {
+  async clockIn(tenantId: string, data: ClockInInput, createdBy: string): Promise<TimeEntry> {
     // Verify employee exists
     await this.findEmployeeById(tenantId, data.employeeId);
 
@@ -195,11 +195,10 @@ export class EmployeeService {
       throw new ConflictException('Employee is already clocked in');
     }
 
-    const timeEntryData: CreateTimeEntryDto = {
+    const timeEntryData: CreateTimeEntryInput = {
       employeeId: data.employeeId,
       clockInTime: new Date().toISOString(),
       ...(data.locationId && { locationId: data.locationId }),
-      ...(data.location && { clockInLocation: data.location }),
       ...(data.notes && { notes: data.notes }),
     };
 
@@ -217,12 +216,11 @@ export class EmployeeService {
     return timeEntry;
   }
 
-  async clockOut(tenantId: string, data: ClockOutDto, updatedBy: string): Promise<TimeEntry> {
+  async clockOut(tenantId: string, data: ClockOutInput, updatedBy: string): Promise<TimeEntry> {
     const clockOutTime = new Date();
     
-    const updateData: UpdateTimeEntryDto = {
+    const updateData: UpdateTimeEntryInput = {
       clockOutTime: clockOutTime.toISOString(),
-      ...(data.location && { clockOutLocation: data.location }),
       ...(data.notes && { notes: data.notes }),
     };
 
@@ -255,7 +253,7 @@ export class EmployeeService {
     return updatedTimeEntry;
   }
 
-  async findTimeEntries(tenantId: string, query: TimeEntryQueryDto): Promise<{ timeEntries: TimeEntry[]; total: number; page: number; limit: number }> {
+  async findTimeEntries(tenantId: string, query: TimeEntryQueryInput): Promise<{ timeEntries: TimeEntry[]; total: number; page: number; limit: number }> {
     const result = await this.employeeRepository.findTimeEntries(tenantId, query);
     
     return {
@@ -266,7 +264,7 @@ export class EmployeeService {
   }
 
   async approveTimeEntry(tenantId: string, timeEntryId: string, approvedBy: string): Promise<TimeEntry> {
-    const updateData: UpdateTimeEntryDto = {
+    const updateData: UpdateTimeEntryInput = {
       isApproved: true,
       approvedBy,
       approvedAt: new Date().toISOString(),
@@ -286,7 +284,7 @@ export class EmployeeService {
   }
 
   // Performance management
-  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewDto, createdBy: string): Promise<PerformanceReview> {
+  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewInput, createdBy: string): Promise<PerformanceReview> {
     // Verify employee and reviewer exist
     await this.findEmployeeById(tenantId, data.employeeId);
     await this.findEmployeeById(tenantId, data.reviewerId);
@@ -313,7 +311,7 @@ export class EmployeeService {
   }
 
   // Training management
-  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordDto, createdBy: string): Promise<TrainingRecord> {
+  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordInput, createdBy: string): Promise<TrainingRecord> {
     // Verify employee exists
     await this.findEmployeeById(tenantId, data.employeeId);
 
@@ -339,7 +337,7 @@ export class EmployeeService {
   }
 
   // Goal management
-  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalDto, createdBy: string): Promise<EmployeeGoal> {
+  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalInput, createdBy: string): Promise<EmployeeGoal> {
     // Verify employee exists
     await this.findEmployeeById(tenantId, data.employeeId);
 

@@ -43,55 +43,55 @@ registerEnumType(GoalPriority, {
 @ObjectType({ description: 'Performance review record' })
 export class PerformanceReviewType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
+
   declare id: string;
 
   @Field(() => ID)
-  @ApiProperty()
+
   employeeId!: string;
 
   @Field(() => ID)
-  @ApiProperty()
+
   reviewerId!: string;
 
   @Field()
-  @ApiProperty()
+
   reviewPeriodStart!: Date;
 
   @Field()
-  @ApiProperty()
+
   reviewPeriodEnd!: Date;
 
   @Field(() => PerformanceReviewStatus)
-  @ApiProperty({ enum: PerformanceReviewStatus })
+
   status!: PerformanceReviewStatus;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   overallRating?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   strengths?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   areasForImprovement?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   goals?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   comments?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   completedAt?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   acknowledgedAt?: Date;
 
   // Field resolvers
@@ -102,124 +102,124 @@ export class PerformanceReviewType extends BaseEntity {
 @ObjectType({ description: 'Employee goal' })
 export class EmployeeGoalType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
+
   declare id: string;
 
   @Field(() => ID)
-  @ApiProperty()
+
   employeeId!: string;
 
   @Field()
-  @ApiProperty()
+
   title!: string;
 
   @Field()
-  @ApiProperty()
+
   description!: string;
 
   @Field(() => GoalStatus)
-  @ApiProperty({ enum: GoalStatus })
+
   status!: GoalStatus;
 
   @Field(() => GoalPriority)
-  @ApiProperty({ enum: GoalPriority })
+
   priority!: GoalPriority;
 
   @Field()
-  @ApiProperty()
+
   startDate!: Date;
 
   @Field()
-  @ApiProperty()
+
   targetDate!: Date;
 
   @Field(() => Int)
-  @ApiProperty()
+
   progress!: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   completedDate?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   lastReviewDate?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   notes?: string;
 }
 
 @ObjectType({ description: 'Performance feedback' })
 export class PerformanceFeedbackType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
+
   declare id: string;
 
   @Field(() => ID)
-  @ApiProperty()
+
   employeeId!: string;
 
   @Field(() => ID)
-  @ApiProperty()
+
   providedBy!: string;
 
   @Field()
-  @ApiProperty()
+
   feedbackDate!: Date;
 
   @Field()
-  @ApiProperty()
+
   feedbackType!: string;
 
   @Field()
-  @ApiProperty()
+
   content!: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   isAnonymous?: boolean;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
+
   isAcknowledged?: boolean;
 }
 
 @ObjectType({ description: 'Performance review connection' })
 export class PerformanceReviewConnection {
   @Field(() => [PerformanceReviewType])
-  @ApiProperty({ type: [PerformanceReviewType] })
+
   reviews!: PerformanceReviewType[];
 
   @Field(() => Int)
-  @ApiProperty()
+
   total!: number;
 
   @Field(() => Int)
-  @ApiProperty()
+
   page!: number;
 
   @Field(() => Int)
-  @ApiProperty()
+
   limit!: number;
 }
 
 @ObjectType({ description: 'Employee goal connection' })
 export class EmployeeGoalConnection {
   @Field(() => [EmployeeGoalType])
-  @ApiProperty({ type: [EmployeeGoalType] })
+
   goals!: EmployeeGoalType[];
 
   @Field(() => Int)
-  @ApiProperty()
+
   total!: number;
 
   @Field(() => Int)
-  @ApiProperty()
+
   page!: number;
 
   @Field(() => Int)
-  @ApiProperty()
+
   limit!: number;
 }
 

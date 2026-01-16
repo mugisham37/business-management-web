@@ -2,15 +2,14 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { ComplianceRepository } from '../repositories/compliance.repository';
 import { 
-  ComplianceCheckDto,
-  BreakTimeDto,
-  ComplianceReportDto,
-  LaborLawViolationDto,
+  CreateComplianceCheckInput,
+  RecordBreakTimeInput,
+  ComplianceReportQueryInput,
   ComplianceCheckType,
   ComplianceStatus,
   ViolationType,
   ViolationSeverity
-} from '../dto/compliance.dto';
+} from '../inputs/compliance.input';
 import { ComplianceCheck, BreakTimeRecord, LaborLawViolation } from '../entities/compliance.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -66,7 +65,7 @@ export class ComplianceService {
     const restPeriodViolations = this.checkRestPeriodCompliance(timeEntries.timeEntries);
     violations.push(...restPeriodViolations);
 
-    const complianceData: ComplianceCheckDto = {
+    const complianceData: CreateComplianceCheckInput = {
       employeeId,
       checkDate: checkDate.toISOString(),
       checkType: ComplianceCheckType.LABOR_LAW_COMPLIANCE,
@@ -104,7 +103,7 @@ export class ComplianceService {
   }
 
   // Break Time Management
-  async recordBreakTime(tenantId: string, data: BreakTimeDto, recordedBy: string): Promise<BreakTimeRecord> {
+  async recordBreakTime(tenantId: string, data: RecordBreakTimeInput, recordedBy: string): Promise<BreakTimeRecord> {
     // Verify employee exists
     const employee = await this.employeeRepository.findEmployeeById(tenantId, data.employeeId);
     if (!employee) {
@@ -143,7 +142,7 @@ export class ComplianceService {
   }
 
   // Compliance Reporting
-  async generateComplianceReport(tenantId: string, query: ComplianceReportDto): Promise<any> {
+  async generateComplianceReport(tenantId: string, query: ComplianceReportQueryInput): Promise<any> {
     const startDate = new Date(query.startDate);
     const endDate = new Date(query.endDate);
 

@@ -6,13 +6,12 @@ import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { RequirePermission, CurrentUser } from '../../auth/decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
 import {
-  ComplianceStatus,
+  ComplianceStatusType,
   TrainingRequirement,
   Certification,
   ComplianceCheckGQL,
@@ -35,13 +34,13 @@ export class ComplianceResolver extends BaseResolver {
     super(dataLoaderService);
   }
 
-  @Query(() => ComplianceStatus, { description: 'Get employee compliance status' })
+  @Query(() => ComplianceStatusType, { description: 'Get employee compliance status' })
   @UseGuards(PermissionsGuard)
   @RequirePermission('employees:read', 'compliance:read')
   async getComplianceStatus(
     @Args('employeeId') employeeId: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<ComplianceStatus> {
+  ): Promise<ComplianceStatusType> {
     // Get recent compliance checks
     const endDate = new Date();
     const startDate = new Date();
@@ -73,7 +72,10 @@ export class ComplianceResolver extends BaseResolver {
     const openViolations = totalViolations; // Simplified - in production, filter by status
     const resolvedViolations = 0;
 
+    const now = new Date();
     return {
+      id: `compliance-${employeeId}-${Date.now()}`,
+      tenantId,
       employeeId,
       isCompliant: totalViolations === 0,
       totalViolations,
@@ -83,6 +85,9 @@ export class ComplianceResolver extends BaseResolver {
       requiredTraining,
       certifications,
       lastCheckDate: new Date(complianceCheck.checkDate),
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
     };
   }
 
@@ -94,34 +99,39 @@ export class ComplianceResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<TrainingRequirement[]> {
     // Mock implementation - in production, fetch from training repository
+    const now = new Date().toISOString();
     const mockTraining: TrainingRequirement[] = [
       {
         id: '1',
-        name: 'Safety Training',
-        description: 'Annual workplace safety training',
+        tenantId,
+        employeeId: '123',
+        trainingName: 'Safety Training',
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        isRequired: true,
-        isCompleted: false,
-      },
+        status: 'pending',
+        completionDate: undefined,
+        createdAt: now,
+        updatedAt: now,
+        version: 1,
+      } as unknown as TrainingRequirement,
       {
         id: '2',
-        name: 'Compliance Training',
-        description: 'Labor law compliance training',
+        tenantId,
+        employeeId: '123',
+        trainingName: 'Compliance Training',
         dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-        isRequired: true,
-        isCompleted: false,
-      },
+        status: 'pending',
+        completionDate: undefined,
+        createdAt: now,
+        updatedAt: now,
+        version: 1,
+      } as unknown as TrainingRequirement,
     ];
 
     let filtered = mockTraining;
 
-    if (!query.includeCompleted) {
-      filtered = filtered.filter(t => !t.isCompleted);
-    }
-
     if (query.onlyOverdue) {
       const now = new Date();
-      filtered = filtered.filter(t => t.dueDate && new Date(t.dueDate) < now && !t.isCompleted);
+      filtered = filtered.filter(t => t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed');
     }
 
     return filtered;

@@ -6,8 +6,7 @@ import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { RequirePermission, CurrentUser } from '../../auth/decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
@@ -110,19 +109,17 @@ export class PayrollResolver extends BaseResolver {
       employeeName: 'Employee Name', // Would be fetched from employee service
       periodStart: new Date(period.startDate),
       periodEnd: new Date(period.endDate),
-      payDate: new Date(period.payDate),
-      regularHours: 80,
-      overtimeHours: 5,
       grossPay: 2500,
-      federalTax: 300,
-      stateTax: 125,
-      socialSecurityTax: 155,
-      medicareTax: 36.25,
       totalTaxes: 616.25,
       totalDeductions: 200,
       netPay: 1683.75,
-      yearToDateGross: 30000,
-      yearToDateNet: 20000,
+      taxes: [
+        { name: 'Federal Tax', amount: 300 },
+        { name: 'State Tax', amount: 125 },
+        { name: 'Social Security Tax', amount: 155 },
+        { name: 'Medicare Tax', amount: 36.25 },
+      ],
+      deductions: [],
     };
 
     return paystub;
@@ -151,11 +148,16 @@ export class PayrollResolver extends BaseResolver {
 
       // Return job tracking information
       const job: PayrollProcessingJob = {
-        jobId: `job-${Date.now()}`,
-        periodId: input.periodId,
-        status: 'processing',
-        message: 'Payroll processing has been queued',
+        id: `job-${Date.now()}`,
+        tenantId,
+        payrollPeriodId: input.periodId,
+        jobStatus: 'processing',
+        totalEmployees: 0,
+        processedEmployees: 0,
+        startedAt: new Date(),
         createdAt: new Date(),
+        updatedAt: new Date(),
+        version: 1,
       };
 
       // Audit log for successful enqueue
@@ -164,7 +166,7 @@ export class PayrollResolver extends BaseResolver {
         userId: user.id,
         tenantId,
         periodId: input.periodId,
-        jobId: job.jobId,
+        jobId: job.id,
         timestamp: new Date().toISOString(),
       });
 
@@ -204,6 +206,7 @@ export class PayrollResolver extends BaseResolver {
     // Mock implementation - in production, update settings in database
     const settings: PayrollSettingsType = {
       id: `settings-${tenantId}`,
+      tenantId,
       federalTaxRate: input.federalTaxRate ?? 0.12,
       stateTaxRate: input.stateTaxRate ?? 0.05,
       socialSecurityRate: input.socialSecurityRate ?? 0.062,
@@ -211,6 +214,9 @@ export class PayrollResolver extends BaseResolver {
       overtimeMultiplier: input.overtimeMultiplier ?? 1.5,
       payPeriodDays: input.payPeriodDays ?? 14,
       payFrequency: input.payFrequency ?? 'biweekly',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      version: 1,
     };
 
     // Audit log for successful update

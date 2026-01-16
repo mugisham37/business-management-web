@@ -1,83 +1,64 @@
 import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '../../../common/graphql/base.types';
+import { EmploymentType, EmploymentStatus } from '../inputs/employee.input';
 
 @ObjectType()
 export class Employee extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
-  id!: string;
+  declare id: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   userId?: string;
 
   @Field()
-  @ApiProperty()
   employeeNumber!: string;
 
   @Field()
-  @ApiProperty()
   firstName!: string;
 
   @Field()
-  @ApiProperty()
   lastName!: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   middleName?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   displayName?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   email?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   phone?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   department?: string;
 
   @Field()
-  @ApiProperty()
   position!: string;
 
-  @Field()
-  @ApiProperty()
-  employmentType!: string;
+  @Field(() => EmploymentType)
+  employmentType!: EmploymentType;
+
+  @Field(() => EmploymentStatus)
+  employmentStatus!: EmploymentStatus;
 
   @Field()
-  @ApiProperty()
-  employmentStatus!: string;
-
-  @Field()
-  @ApiProperty()
   hireDate!: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   terminationDate?: Date;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   baseSalary?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   hourlyRate?: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
+  @Field(() => ID, { nullable: true })
   managerId?: string;
 
   @Field()
-  @ApiProperty()
   isActive!: boolean;
 
   // Field resolvers
@@ -101,4 +82,241 @@ export class EmployeeConnection {
 
   @Field(() => Int)
   limit!: number;
+
+  @Field(() => Int)
+  totalPages!: number;
+}
+
+@ObjectType()
+export class EmployeeScheduleType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field()
+  scheduleDate!: Date;
+
+  @Field()
+  startTime!: Date;
+
+  @Field()
+  endTime!: Date;
+
+  @Field(() => Int, { nullable: true })
+  breakDuration?: number;
+
+  @Field({ nullable: true })
+  lunchBreakStart?: Date;
+
+  @Field({ nullable: true })
+  lunchBreakEnd?: Date;
+
+  @Field({ nullable: true })
+  scheduleType?: string;
+
+  @Field({ nullable: true })
+  status?: string;
+
+  @Field(() => ID, { nullable: true })
+  locationId?: string;
+
+  @Field({ nullable: true })
+  department?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+
+@ObjectType()
+export class TimeEntryType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field()
+  clockInTime!: Date;
+
+  @Field({ nullable: true })
+  clockOutTime?: Date;
+
+  @Field({ nullable: true })
+  breakStartTime?: Date;
+
+  @Field({ nullable: true })
+  breakEndTime?: Date;
+
+  @Field({ nullable: true })
+  entryType?: string;
+
+  @Field(() => Float, { nullable: true })
+  totalHours?: number;
+
+  @Field(() => Float, { nullable: true })
+  regularHours?: number;
+
+  @Field(() => Float, { nullable: true })
+  overtimeHours?: number;
+
+  @Field({ nullable: true })
+  isApproved?: boolean;
+
+  @Field(() => ID, { nullable: true })
+  approvedBy?: string;
+
+  @Field({ nullable: true })
+  approvedAt?: Date;
+
+  @Field(() => ID, { nullable: true })
+  locationId?: string;
+
+  @Field({ nullable: true })
+  department?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+
+@ObjectType()
+export class PerformanceReviewType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field(() => ID)
+  reviewerId!: string;
+
+  @Field()
+  reviewPeriodStart!: Date;
+
+  @Field()
+  reviewPeriodEnd!: Date;
+
+  @Field({ nullable: true })
+  reviewType?: string;
+
+  @Field({ nullable: true })
+  overallRating?: string;
+
+  @Field({ nullable: true })
+  reviewerComments?: string;
+
+  @Field({ nullable: true })
+  employeeComments?: string;
+
+  @Field({ nullable: true })
+  nextReviewDate?: Date;
+
+  @Field({ nullable: true })
+  status?: string;
+
+  @Field({ nullable: true })
+  completedAt?: Date;
+
+  @Field({ nullable: true })
+  acknowledgedAt?: Date;
+}
+
+@ObjectType()
+export class TrainingRecordType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field()
+  trainingName!: string;
+
+  @Field({ nullable: true })
+  trainingType?: string;
+
+  @Field({ nullable: true })
+  provider?: string;
+
+  @Field({ nullable: true })
+  startDate?: Date;
+
+  @Field({ nullable: true })
+  completionDate?: Date;
+
+  @Field({ nullable: true })
+  expirationDate?: Date;
+
+  @Field(() => Int, { nullable: true })
+  duration?: number;
+
+  @Field({ nullable: true })
+  certificateNumber?: string;
+
+  @Field({ nullable: true })
+  certificationBody?: string;
+
+  @Field({ nullable: true })
+  status?: string;
+
+  @Field(() => Float, { nullable: true })
+  score?: number;
+
+  @Field(() => Float, { nullable: true })
+  passingScore?: number;
+
+  @Field(() => Float, { nullable: true })
+  cost?: number;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+
+@ObjectType()
+export class EmployeeGoalType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field()
+  title!: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  category?: string;
+
+  @Field()
+  startDate!: Date;
+
+  @Field()
+  targetDate!: Date;
+
+  @Field({ nullable: true })
+  completedDate?: Date;
+
+  @Field({ nullable: true })
+  status?: string;
+
+  @Field(() => Int, { nullable: true })
+  progress?: number;
+
+  @Field(() => Float, { nullable: true })
+  targetValue?: number;
+
+  @Field(() => Float, { nullable: true })
+  currentValue?: number;
+
+  @Field(() => ID, { nullable: true })
+  approvedBy?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
+
+  @Field({ nullable: true })
+  lastReviewDate?: Date;
 }

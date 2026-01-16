@@ -6,18 +6,7 @@ import { ComplianceService } from './services/compliance.service';
 import { EmployeeRepository } from './repositories/employee.repository';
 import { PayrollRepository } from './repositories/payroll.repository';
 import { ComplianceRepository } from './repositories/compliance.repository';
-import {
-  EmployeeController,
-  EmployeeScheduleController,
-  TimeTrackingController,
-  PerformanceReviewController,
-  TrainingRecordController,
-  EmployeeGoalController,
-} from './controllers/employee.controller';
-import { PayrollController, PayrollReportsController } from './controllers/payroll.controller';
-import { PerformanceController } from './controllers/performance.controller';
-import { ComplianceController } from './controllers/compliance.controller';
-import { EmployeeResolver } from './resolvers/employee.resolver';
+import { EmployeeEnhancedResolver } from './resolvers/employee.resolver';
 import { ComplianceResolver } from './resolvers/compliance.resolver';
 import { PayrollResolver } from './resolvers/payroll.resolver';
 import { PerformanceResolver } from './resolvers/performance.resolver';
@@ -35,18 +24,6 @@ import { PubSubModule } from '../../common/graphql/pubsub.module';
     GraphQLCommonModule,
     PubSubModule,
   ],
-  controllers: [
-    EmployeeController,
-    EmployeeScheduleController,
-    TimeTrackingController,
-    PerformanceReviewController,
-    TrainingRecordController,
-    EmployeeGoalController,
-    PayrollController,
-    PayrollReportsController,
-    PerformanceController,
-    ComplianceController,
-  ],
   providers: [
     EmployeeService,
     PayrollService,
@@ -55,7 +32,7 @@ import { PubSubModule } from '../../common/graphql/pubsub.module';
     EmployeeRepository,
     PayrollRepository,
     ComplianceRepository,
-    EmployeeResolver,
+    EmployeeEnhancedResolver,
     ComplianceResolver,
     PayrollResolver,
     PerformanceResolver,

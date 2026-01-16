@@ -4,7 +4,7 @@ import {
   ViolationType, 
   ViolationSeverity, 
   BreakType 
-} from '../dto/compliance.dto';
+} from '../inputs/compliance.input';
 
 export interface ComplianceCheck {
   id: string;

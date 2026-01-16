@@ -1,261 +1,273 @@
-import { ObjectType, Field, ID, Float, Int, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
+import { ObjectType, Field, ID, Float, Int } from '@nestjs/graphql';
 import { BaseEntity } from '../../../common/graphql/base.types';
-import { PayrollStatus } from '../dto/payroll.dto';
-
-// Register enum for GraphQL
-registerEnumType(PayrollStatus, {
-  name: 'PayrollStatus',
-  description: 'Status of payroll record or period',
-});
+import { PayrollStatus, CommissionStatus } from '../inputs/payroll.input';
 
 @ObjectType({ description: 'Payroll record for an employee' })
 export class PayrollRecordType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
   declare id: string;
 
   @Field(() => ID)
-  @ApiProperty()
   employeeId!: string;
 
   @Field(() => ID)
-  @ApiProperty()
   payrollPeriodId!: string;
 
   @Field(() => Float)
-  @ApiProperty()
   regularHours!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   overtimeHours!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   regularRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   overtimeRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   regularPay!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   overtimePay!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   grossPay!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   totalTaxes!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   totalDeductions!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   netPay!: number;
 
   @Field(() => PayrollStatus)
-  @ApiProperty({ enum: PayrollStatus })
   status!: PayrollStatus;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   approvedBy?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   approvedAt?: Date;
 }
 
 @ObjectType({ description: 'Paystub details' })
 export class PaystubType {
   @Field(() => ID)
-  @ApiProperty()
   id!: string;
 
   @Field(() => ID)
-  @ApiProperty()
   employeeId!: string;
 
   @Field()
-  @ApiProperty()
   employeeName!: string;
 
   @Field()
-  @ApiProperty()
   periodStart!: Date;
 
   @Field()
-  @ApiProperty()
   periodEnd!: Date;
 
-  @Field()
-  @ApiProperty()
-  payDate!: Date;
-
   @Field(() => Float)
-  @ApiProperty()
-  regularHours!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
-  overtimeHours!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
   grossPay!: number;
 
   @Field(() => Float)
-  @ApiProperty()
-  federalTax!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
-  stateTax!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
-  socialSecurityTax!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
-  medicareTax!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
-  totalTaxes!: number;
-
-  @Field(() => Float)
-  @ApiProperty()
   totalDeductions!: number;
 
   @Field(() => Float)
-  @ApiProperty()
+  totalTaxes!: number;
+
+  @Field(() => Float)
   netPay!: number;
 
-  @Field(() => Float)
-  @ApiProperty()
-  yearToDateGross!: number;
+  @Field(() => [TaxLineItemType])
+  taxes!: TaxLineItemType[];
 
-  @Field(() => Float)
-  @ApiProperty()
-  yearToDateNet!: number;
+  @Field(() => [DeductionLineItemType])
+  deductions!: DeductionLineItemType[];
+
+  @Field({ nullable: true })
+  notes?: string;
 }
 
-@ObjectType({ description: 'Payroll period' })
+@ObjectType({ description: 'Tax line item' })
+export class TaxLineItemType {
+  @Field()
+  name!: string;
+
+  @Field(() => Float)
+  amount!: number;
+
+  @Field({ nullable: true })
+  percentage?: number;
+}
+
+@ObjectType({ description: 'Deduction line item' })
+export class DeductionLineItemType {
+  @Field()
+  name!: string;
+
+  @Field(() => Float)
+  amount!: number;
+
+  @Field({ nullable: true })
+  percentage?: number;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@ObjectType({ description: 'Payroll period record' })
 export class PayrollPeriodType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
   declare id: string;
 
   @Field()
-  @ApiProperty()
   periodName!: string;
 
   @Field()
-  @ApiProperty()
   startDate!: Date;
 
   @Field()
-  @ApiProperty()
   endDate!: Date;
 
   @Field()
-  @ApiProperty()
   payDate!: Date;
 
+  @Field()
+  periodType!: string;
+
   @Field(() => PayrollStatus)
-  @ApiProperty({ enum: PayrollStatus })
   status!: PayrollStatus;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   totalGrossPay?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   totalNetPay?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   totalTaxes?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
   totalDeductions?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   processedAt?: Date;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
+  @Field(() => ID, { nullable: true })
   processedBy?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+
+@ObjectType({ description: 'Commission record' })
+export class CommissionRecordType extends BaseEntity {
+  @Field(() => ID)
+  declare id: string;
+
+  @Field(() => ID)
+  employeeId!: string;
+
+  @Field(() => ID, { nullable: true })
+  transactionId?: string;
+
+  @Field(() => Float)
+  saleAmount!: number;
+
+  @Field(() => Float)
+  commissionRate!: number;
+
+  @Field(() => Float)
+  commissionAmount!: number;
+
+  @Field()
+  saleDate!: Date;
+
+  @Field({ nullable: true })
+  commissionType?: string;
+
+  @Field({ nullable: true })
+  productCategory?: string;
+
+  @Field({ nullable: true })
+  customerType?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field(() => CommissionStatus)
+  status!: CommissionStatus;
+
+  @Field(() => ID, { nullable: true })
+  payrollPeriodId?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
 }
 
 @ObjectType({ description: 'Payroll settings' })
-export class PayrollSettingsType {
+export class PayrollSettingsType extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
-  id!: string;
+  declare id: string;
 
   @Field(() => Float)
-  @ApiProperty()
   federalTaxRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   stateTaxRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   socialSecurityRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   medicareRate!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   overtimeMultiplier!: number;
 
   @Field(() => Int)
-  @ApiProperty()
   payPeriodDays!: number;
 
   @Field()
-  @ApiProperty()
   payFrequency!: string;
+
+  @Field({ nullable: true })
+  notes?: string;
 }
 
 @ObjectType({ description: 'Payroll processing job' })
-export class PayrollProcessingJob {
+export class PayrollProcessingJob extends BaseEntity {
   @Field(() => ID)
-  @ApiProperty()
-  jobId!: string;
+  declare id: string;
 
   @Field(() => ID)
-  @ApiProperty()
-  periodId!: string;
+  payrollPeriodId!: string;
 
   @Field()
-  @ApiProperty()
-  status!: string;
+  jobStatus!: string;
+
+  @Field(() => Int)
+  totalEmployees!: number;
+
+  @Field(() => Int)
+  processedEmployees!: number;
+
+  @Field(() => Int, { nullable: true })
+  failedEmployees?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  message?: string;
+  startedAt?: Date;
 
-  @Field()
-  @ApiProperty()
-  createdAt!: Date;
+  @Field({ nullable: true })
+  completedAt?: Date;
+
+  @Field({ nullable: true })
+  errorMessage?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
 }

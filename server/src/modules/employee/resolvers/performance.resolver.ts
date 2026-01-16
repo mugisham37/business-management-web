@@ -7,8 +7,7 @@ import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { RequirePermission, CurrentUser } from '../../auth/decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
@@ -349,7 +348,7 @@ export class PerformanceResolver extends BaseResolver {
       },
     );
 
-    return loader.load(review.reviewerId);
+    return loader.load(review.reviewerId) as any;
   }
 
   @ResolveField(() => [EmployeeGoalType], { description: 'Goals associated with review' })

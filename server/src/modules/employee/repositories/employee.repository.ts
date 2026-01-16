@@ -9,21 +9,21 @@ import {
   employeeGoals 
 } from '../../database/schema';
 import { 
-  CreateEmployeeDto, 
-  UpdateEmployeeDto,
-  CreateEmployeeScheduleDto,
-  UpdateEmployeeScheduleDto,
-  CreateTimeEntryDto,
-  UpdateTimeEntryDto,
-  CreatePerformanceReviewDto,
-  UpdatePerformanceReviewDto,
-  CreateTrainingRecordDto,
-  UpdateTrainingRecordDto,
-  CreateEmployeeGoalDto,
-  UpdateEmployeeGoalDto,
-  EmployeeQueryDto,
-  TimeEntryQueryDto
-} from '../dto/employee.dto';
+  CreateEmployeeInput, 
+  UpdateEmployeeInput,
+  CreateEmployeeScheduleInput,
+  UpdateEmployeeScheduleInput,
+  CreateTimeEntryInput,
+  UpdateTimeEntryInput,
+  CreatePerformanceReviewInput,
+  UpdatePerformanceReviewInput,
+  CreateTrainingRecordInput,
+  UpdateTrainingRecordInput,
+  CreateEmployeeGoalInput,
+  UpdateEmployeeGoalInput,
+  EmployeeQueryInput,
+  TimeEntryQueryInput
+} from '../inputs/employee.input';
 import { eq, and, gte, lte, like, desc, asc, isNull, count, sql } from 'drizzle-orm';
 import { Employee, EmployeeSchedule, TimeEntry, PerformanceReview, TrainingRecord, EmployeeGoal } from '../entities/employee.entity';
 
@@ -32,7 +32,7 @@ export class EmployeeRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   // Employee CRUD operations
-  async createEmployee(tenantId: string, data: CreateEmployeeDto, createdBy: string): Promise<Employee> {
+  async createEmployee(tenantId: string, data: CreateEmployeeInput, createdBy: string): Promise<Employee> {
     const result = await this.drizzle.getDb()
       .insert(employees)
       .values({
@@ -103,7 +103,7 @@ export class EmployeeRepository {
     return employee ? this.mapEmployeeEntity(employee) : null;
   }
 
-  async findEmployees(tenantId: string, query: EmployeeQueryDto): Promise<{ employees: Employee[]; total: number }> {
+  async findEmployees(tenantId: string, query: EmployeeQueryInput): Promise<{ employees: Employee[]; total: number }> {
     const conditions = [
       eq(employees.tenantId, tenantId),
       isNull(employees.deletedAt)
@@ -171,7 +171,7 @@ export class EmployeeRepository {
     };
   }
 
-  async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeDto, updatedBy: string): Promise<Employee> {
+  async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeInput, updatedBy: string): Promise<Employee> {
     const [employee] = await this.drizzle.getDb()
       .update(employees)
       .set({
@@ -206,7 +206,7 @@ export class EmployeeRepository {
   }
 
   // Employee Schedule operations
-  async createSchedule(tenantId: string, data: CreateEmployeeScheduleDto, createdBy: string): Promise<EmployeeSchedule> {
+  async createSchedule(tenantId: string, data: CreateEmployeeScheduleInput, createdBy: string): Promise<EmployeeSchedule> {
     const now = new Date();
     const scheduleData: any = {
       ...data,
@@ -254,7 +254,7 @@ export class EmployeeRepository {
     return results.map(schedule => this.mapScheduleEntity(schedule));
   }
 
-  async updateSchedule(tenantId: string, id: string, data: UpdateEmployeeScheduleDto, updatedBy: string): Promise<EmployeeSchedule> {
+  async updateSchedule(tenantId: string, id: string, data: UpdateEmployeeScheduleInput, updatedBy: string): Promise<EmployeeSchedule> {
     const [schedule] = await this.drizzle.getDb()
       .update(employeeSchedules)
       .set({
@@ -285,7 +285,7 @@ export class EmployeeRepository {
   }
 
   // Time Entry operations
-  async createTimeEntry(tenantId: string, data: CreateTimeEntryDto, createdBy: string): Promise<TimeEntry> {
+  async createTimeEntry(tenantId: string, data: CreateTimeEntryInput, createdBy: string): Promise<TimeEntry> {
     const now = new Date();
     const timeEntryData: any = {
       ...data,
@@ -326,7 +326,7 @@ export class EmployeeRepository {
     return timeEntry ? this.mapTimeEntryEntity(timeEntry) : null;
   }
 
-  async findTimeEntries(tenantId: string, query: TimeEntryQueryDto): Promise<{ timeEntries: TimeEntry[]; total: number }> {
+  async findTimeEntries(tenantId: string, query: TimeEntryQueryInput): Promise<{ timeEntries: TimeEntry[]; total: number }> {
     const conditions = [
       eq(timeEntries.tenantId, tenantId),
       isNull(timeEntries.deletedAt)
@@ -373,7 +373,7 @@ export class EmployeeRepository {
     };
   }
 
-  async updateTimeEntry(tenantId: string, id: string, data: UpdateTimeEntryDto, updatedBy: string): Promise<TimeEntry> {
+  async updateTimeEntry(tenantId: string, id: string, data: UpdateTimeEntryInput, updatedBy: string): Promise<TimeEntry> {
     const updateData: any = {
       ...data,
       updatedBy,
@@ -401,7 +401,7 @@ export class EmployeeRepository {
   }
 
   // Performance Review operations
-  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewDto, createdBy: string): Promise<PerformanceReview> {
+  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewInput, createdBy: string): Promise<PerformanceReview> {
     const [review] = await this.drizzle.getDb()
       .insert(performanceReviews)
       .values({
@@ -432,7 +432,7 @@ export class EmployeeRepository {
   }
 
   // Training Record operations
-  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordDto, createdBy: string): Promise<TrainingRecord> {
+  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordInput, createdBy: string): Promise<TrainingRecord> {
     const now = new Date();
     const trainingData: any = {
       employeeId: data.employeeId,
@@ -486,7 +486,7 @@ export class EmployeeRepository {
   }
 
   // Employee Goal operations
-  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalDto, createdBy: string): Promise<EmployeeGoal> {
+  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalInput, createdBy: string): Promise<EmployeeGoal> {
     const now = new Date();
     const goalData: any = {
       employeeId: data.employeeId,
@@ -550,7 +550,7 @@ export class EmployeeRepository {
     return goal ? this.mapEmployeeGoalEntity(goal) : null;
   }
 
-  async updatePerformanceReview(tenantId: string, id: string, data: UpdatePerformanceReviewDto, updatedBy: string): Promise<PerformanceReview> {
+  async updatePerformanceReview(tenantId: string, id: string, data: UpdatePerformanceReviewInput, updatedBy: string): Promise<PerformanceReview> {
     const [review] = await this.drizzle.getDb()
       .update(performanceReviews)
       .set({
@@ -571,7 +571,7 @@ export class EmployeeRepository {
     return this.mapPerformanceReviewEntity(review);
   }
 
-  async updateEmployeeGoal(tenantId: string, id: string, data: UpdateEmployeeGoalDto, updatedBy: string): Promise<EmployeeGoal> {
+  async updateEmployeeGoal(tenantId: string, id: string, data: UpdateEmployeeGoalInput, updatedBy: string): Promise<EmployeeGoal> {
     const updateData: any = {
       updatedBy,
       updatedAt: new Date(),
@@ -582,7 +582,6 @@ export class EmployeeRepository {
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
-    if (data.startDate !== undefined) updateData.startDate = data.startDate;
     if (data.targetDate !== undefined) updateData.targetDate = data.targetDate;
     if (data.completedDate !== undefined) updateData.completedDate = data.completedDate;
     if (data.status !== undefined) updateData.status = data.status;
@@ -611,7 +610,7 @@ export class EmployeeRepository {
     return this.mapEmployeeGoalEntity(goal);
   }
 
-  async updateTrainingRecord(tenantId: string, id: string, data: UpdateTrainingRecordDto, updatedBy: string): Promise<TrainingRecord> {
+  async updateTrainingRecord(tenantId: string, id: string, data: UpdateTrainingRecordInput, updatedBy: string): Promise<TrainingRecord> {
     const updateData: any = {
       updatedBy,
       updatedAt: new Date(),

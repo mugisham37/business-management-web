@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
 import { 
-  ComplianceCheckDto, 
-  BreakTimeDto, 
-  LaborLawViolationDto,
+  CreateComplianceCheckInput, 
+  RecordBreakTimeInput, 
+  RecordLaborLawViolationInput,
   ComplianceCheckType,
   ViolationType,
   ViolationSeverity
-} from '../dto/compliance.dto';
+} from '../inputs/compliance.input';
 import { ComplianceCheck, BreakTimeRecord, LaborLawViolation, AuditEvent } from '../entities/compliance.entity';
 import { eq, and, gte, lte, desc, asc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,7 @@ export class ComplianceRepository {
   // Compliance Checks
   async createComplianceCheck(
     tenantId: string, 
-    data: ComplianceCheckDto, 
+    data: CreateComplianceCheckInput, 
     createdBy: string
   ): Promise<ComplianceCheck> {
     const id = uuidv4();
@@ -69,7 +69,7 @@ export class ComplianceRepository {
   // Break Time Records
   async createBreakTimeRecord(
     tenantId: string, 
-    data: BreakTimeDto & { duration: number }, 
+    data: RecordBreakTimeInput & { duration: number }, 
     createdBy: string
   ): Promise<BreakTimeRecord> {
     const id = uuidv4();
@@ -109,7 +109,7 @@ export class ComplianceRepository {
   // Labor Law Violations
   async createLaborLawViolation(
     tenantId: string, 
-    data: LaborLawViolationDto, 
+    data: RecordLaborLawViolationInput, 
     createdBy: string
   ): Promise<LaborLawViolation> {
     const id = uuidv4();
@@ -153,7 +153,7 @@ export class ComplianceRepository {
   async updateLaborLawViolation(
     tenantId: string, 
     id: string, 
-    data: Partial<LaborLawViolationDto>, 
+    data: Partial<RecordLaborLawViolationInput>, 
     updatedBy: string
   ): Promise<LaborLawViolation | null> {
     // TODO: Implement actual database update when schema is added

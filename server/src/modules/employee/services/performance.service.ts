@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { 
-  CreatePerformanceReviewDto,
-  UpdatePerformanceReviewDto,
-  CreateEmployeeGoalDto,
-  UpdateEmployeeGoalDto,
-  CreateTrainingRecordDto,
-  UpdateTrainingRecordDto,
+  CreatePerformanceReviewInput,
+  UpdatePerformanceReviewInput,
+  CreateEmployeeGoalInput,
+  UpdateEmployeeGoalInput,
+  CreateTrainingRecordInput,
+  UpdateTrainingRecordInput,
   EmploymentStatus,
-} from '../dto/employee.dto';
+} from '../inputs/employee.input';
 import { PerformanceReview, EmployeeGoal, TrainingRecord } from '../entities/employee.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -20,7 +20,7 @@ export class PerformanceService {
   ) {}
 
   // Performance Review Management
-  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewDto, createdBy: string): Promise<PerformanceReview> {
+  async createPerformanceReview(tenantId: string, data: CreatePerformanceReviewInput, createdBy: string): Promise<PerformanceReview> {
     // Verify employee and reviewer exist
     await this.employeeRepository.findEmployeeById(tenantId, data.employeeId);
     await this.employeeRepository.findEmployeeById(tenantId, data.reviewerId);
@@ -60,7 +60,7 @@ export class PerformanceService {
     return review;
   }
 
-  async updatePerformanceReview(tenantId: string, id: string, data: UpdatePerformanceReviewDto, updatedBy: string): Promise<PerformanceReview> {
+  async updatePerformanceReview(tenantId: string, id: string, data: UpdatePerformanceReviewInput, updatedBy: string): Promise<PerformanceReview> {
     const review = await this.employeeRepository.updatePerformanceReview(tenantId, id, data, updatedBy);
 
     // Emit event for performance review update
@@ -76,7 +76,7 @@ export class PerformanceService {
   }
 
   async completePerformanceReview(tenantId: string, id: string, completedBy: string): Promise<PerformanceReview> {
-    const updateData: UpdatePerformanceReviewDto = {
+    const updateData: UpdatePerformanceReviewInput = {
       status: 'completed',
       completedAt: new Date().toISOString(),
     };
@@ -95,7 +95,7 @@ export class PerformanceService {
   }
 
   async acknowledgePerformanceReview(tenantId: string, id: string, acknowledgedBy: string): Promise<PerformanceReview> {
-    const updateData: UpdatePerformanceReviewDto = {
+    const updateData: UpdatePerformanceReviewInput = {
       acknowledgedAt: new Date().toISOString(),
     };
 
@@ -113,7 +113,7 @@ export class PerformanceService {
   }
 
   // Goal Management
-  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalDto, createdBy: string): Promise<EmployeeGoal> {
+  async createEmployeeGoal(tenantId: string, data: CreateEmployeeGoalInput, createdBy: string): Promise<EmployeeGoal> {
     // Verify employee exists
     await this.employeeRepository.findEmployeeById(tenantId, data.employeeId);
 
@@ -139,7 +139,7 @@ export class PerformanceService {
     return goal;
   }
 
-  async updateEmployeeGoal(tenantId: string, id: string, data: UpdateEmployeeGoalDto, updatedBy: string): Promise<EmployeeGoal> {
+  async updateEmployeeGoal(tenantId: string, id: string, data: UpdateEmployeeGoalInput, updatedBy: string): Promise<EmployeeGoal> {
     const goal = await this.employeeRepository.updateEmployeeGoal(tenantId, id, data, updatedBy);
 
     // Emit event for goal update
@@ -159,9 +159,8 @@ export class PerformanceService {
       throw new BadRequestException('Progress must be between 0 and 100');
     }
 
-    const updateData: UpdateEmployeeGoalDto = {
+    const updateData: UpdateEmployeeGoalInput = {
       progress,
-      lastReviewDate: new Date().toISOString(),
     };
 
     if (progress === 100) {
@@ -199,7 +198,7 @@ export class PerformanceService {
   }
 
   async completeEmployeeGoal(tenantId: string, goalId: string, completedBy: string): Promise<EmployeeGoal> {
-    const updateData: UpdateEmployeeGoalDto = {
+    const updateData: UpdateEmployeeGoalInput = {
       status: 'completed',
       progress: 100,
       completedDate: new Date().toISOString(),
@@ -219,7 +218,7 @@ export class PerformanceService {
   }
 
   // Training Management
-  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordDto, createdBy: string): Promise<TrainingRecord> {
+  async createTrainingRecord(tenantId: string, data: CreateTrainingRecordInput, createdBy: string): Promise<TrainingRecord> {
     // Verify employee exists
     await this.employeeRepository.findEmployeeById(tenantId, data.employeeId);
 
@@ -247,7 +246,7 @@ export class PerformanceService {
     return training;
   }
 
-  async updateTrainingRecord(tenantId: string, id: string, data: UpdateTrainingRecordDto, updatedBy: string): Promise<TrainingRecord> {
+  async updateTrainingRecord(tenantId: string, id: string, data: UpdateTrainingRecordInput, updatedBy: string): Promise<TrainingRecord> {
     const training = await this.employeeRepository.updateTrainingRecord(tenantId, id, data, updatedBy);
 
     // Emit event for training record update
@@ -263,7 +262,7 @@ export class PerformanceService {
   }
 
   async completeTraining(tenantId: string, trainingId: string, completionData: { completionDate: string; score?: number; certificateNumber?: string }, completedBy: string): Promise<TrainingRecord> {
-    const updateData: UpdateTrainingRecordDto = {
+    const updateData: UpdateTrainingRecordInput = {
       ...completionData,
       status: 'completed',
     };

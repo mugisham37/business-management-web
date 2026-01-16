@@ -7,14 +7,15 @@ import {
   employees
 } from '../../database/schema';
 import { 
-  CreatePayrollPeriodDto,
-  UpdatePayrollPeriodDto,
-  PayrollCalculationDto,
-  CreateCommissionRecordDto,
-  UpdateCommissionRecordDto,
-  PayrollReportQueryDto,
-  CommissionQueryDto
-} from '../dto/payroll.dto';
+  CreatePayrollPeriodInput,
+  UpdatePayrollPeriodInput,
+  PayrollCalculationInput,
+  CreateCommissionRecordInput,
+  UpdateCommissionRecordInput,
+  PayrollQueryInput,
+  PayrollReportQueryInput,
+  CommissionQueryInput
+} from '../inputs/payroll.input';
 import { eq, and, gte, lte, desc, asc, isNull, count, sql, or } from 'drizzle-orm';
 import { PayrollPeriod, PayrollRecord, CommissionRecord } from '../entities/payroll.entity';
 
@@ -23,7 +24,7 @@ export class PayrollRepository {
   constructor(private readonly drizzle: DrizzleService) {}
 
   // Payroll Period operations
-  async createPayrollPeriod(tenantId: string, data: CreatePayrollPeriodDto, createdBy: string): Promise<PayrollPeriod> {
+  async createPayrollPeriod(tenantId: string, data: CreatePayrollPeriodInput, createdBy: string): Promise<PayrollPeriod> {
     const [period] = await this.drizzle.getDb()
       .insert(payrollPeriods)
       .values({
@@ -55,7 +56,7 @@ export class PayrollRepository {
     return period ? this.mapPayrollPeriodEntity(period) : null;
   }
 
-  async findPayrollPeriods(tenantId: string, query: PayrollReportQueryDto): Promise<{ periods: PayrollPeriod[]; total: number }> {
+  async findPayrollPeriods(tenantId: string, query: PayrollQueryInput): Promise<{ periods: PayrollPeriod[]; total: number }> {
     const conditions = [
       eq(payrollPeriods.tenantId, tenantId),
       isNull(payrollPeriods.deletedAt)
@@ -70,11 +71,11 @@ export class PayrollRepository {
     }
 
     if (query.periodType) {
-      conditions.push(eq(payrollPeriods.periodType, query.periodType));
+      conditions.push(eq(payrollPeriods.periodType, query.periodType as any));
     }
 
     if (query.status) {
-      conditions.push(eq(payrollPeriods.status, query.status));
+      conditions.push(eq(payrollPeriods.status, query.status as any));
     }
 
     const whereClause = and(...conditions);
@@ -145,7 +146,7 @@ export class PayrollRepository {
     return period ? this.mapPayrollPeriodEntity(period) : null;
   }
 
-  async updatePayrollPeriod(tenantId: string, id: string, data: UpdatePayrollPeriodDto, updatedBy: string): Promise<PayrollPeriod> {
+  async updatePayrollPeriod(tenantId: string, id: string, data: UpdatePayrollPeriodInput, updatedBy: string): Promise<PayrollPeriod> {
     const updateData: any = {
       updatedBy,
       updatedAt: new Date(),
@@ -185,7 +186,7 @@ export class PayrollRepository {
   }
 
   // Payroll Record operations
-  async createPayrollRecord(tenantId: string, data: PayrollCalculationDto, createdBy: string): Promise<PayrollRecord> {
+  async createPayrollRecord(tenantId: string, data: PayrollCalculationInput, createdBy: string): Promise<PayrollRecord> {
     const [record] = await this.drizzle.getDb()
       .insert(payrollRecords)
       .values({
@@ -265,7 +266,7 @@ export class PayrollRepository {
     });
   }
 
-  async updatePayrollRecord(tenantId: string, id: string, data: Partial<PayrollCalculationDto>, updatedBy: string): Promise<PayrollRecord> {
+  async updatePayrollRecord(tenantId: string, id: string, data: Partial<PayrollCalculationInput>, updatedBy: string): Promise<PayrollRecord> {
     const updateData: any = {
       ...data,
       updatedBy,
@@ -294,7 +295,7 @@ export class PayrollRepository {
   }
 
   // Commission Record operations
-  async createCommissionRecord(tenantId: string, data: CreateCommissionRecordDto & { commissionAmount: number }, createdBy: string): Promise<CommissionRecord> {
+  async createCommissionRecord(tenantId: string, data: CreateCommissionRecordInput & { commissionAmount: number }, createdBy: string): Promise<CommissionRecord> {
     const [commission] = await this.drizzle.getDb()
       .insert(commissionRecords)
       .values({
@@ -318,7 +319,7 @@ export class PayrollRepository {
     return this.mapCommissionRecordEntity(commission);
   }
 
-  async findCommissionRecords(tenantId: string, query: CommissionQueryDto): Promise<{ commissions: CommissionRecord[]; total: number }> {
+  async findCommissionRecords(tenantId: string, query: CommissionQueryInput): Promise<{ commissions: CommissionRecord[]; total: number }> {
     const conditions = [
       eq(commissionRecords.tenantId, tenantId),
       isNull(commissionRecords.deletedAt)
@@ -392,7 +393,7 @@ export class PayrollRepository {
     };
   }
 
-  async updateCommissionRecord(tenantId: string, id: string, data: UpdateCommissionRecordDto, updatedBy: string): Promise<CommissionRecord> {
+  async updateCommissionRecord(tenantId: string, id: string, data: UpdateCommissionRecordInput, updatedBy: string): Promise<CommissionRecord> {
     const updateData: any = {
       ...data,
       updatedBy,
