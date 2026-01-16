@@ -37,12 +37,19 @@ import { IntegrationAuthGuard } from './guards/integration-auth.guard';
 import { RateLimitGuard } from './guards/rate-limit.guard';
 import { IntegrationLoggingInterceptor } from './interceptors/integration-logging.interceptor';
 
+// Resolvers
+import { IntegrationResolver } from './resolvers/integration.resolver';
+import { ConnectorResolver } from './resolvers/connector.resolver';
+import { DeveloperPortalResolver } from './resolvers/developer-portal.resolver';
+import { WebhookResolver } from './resolvers/webhook.resolver';
+
 // External modules
 import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
 import { AuthModule } from '../auth/auth.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
 @Module({
   imports: [
@@ -56,6 +63,7 @@ import { AuthModule } from '../auth/auth.module';
     QueueModule,
     TenantModule,
     AuthModule,
+    GraphQLCommonModule,
   ],
   controllers: [
     IntegrationController,
@@ -92,6 +100,12 @@ import { AuthModule } from '../auth/auth.module';
     IntegrationAuthGuard,
     RateLimitGuard,
     IntegrationLoggingInterceptor,
+
+    // GraphQL Resolvers
+    IntegrationResolver,
+    ConnectorResolver,
+    DeveloperPortalResolver,
+    WebhookResolver,
   ],
   exports: [
     IntegrationService,

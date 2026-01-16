@@ -634,7 +634,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
 
 
 - [x] 9.2 Implement Integration module resolvers (4 resolvers)
-  - [ ] 9.2.1 Create integration.resolver.ts for integration CRUD
+  - [x] 9.2.1 Create integration.resolver.ts for integration CRUD
     - Implement integration CRUD operations
     - Implement testIntegration mutation
     - Implement enableIntegration mutation
@@ -642,7 +642,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add field resolvers (connector, webhooks)
     - _Requirements: 22.1-22.6_
   
-  - [ ] 9.2.2 Create connector.resolver.ts for connector management
+  - [x] 9.2.2 Create connector.resolver.ts for connector management
     - Implement connector CRUD operations
     - Implement installConnector mutation
     - Implement configureConnector mutation
@@ -650,7 +650,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Add field resolvers (integrations)
     - _Requirements: 22.1-22.6_
   
-  - [ ] 9.2.3 Create developer-portal.resolver.ts
+  - [x] 9.2.3 Create developer-portal.resolver.ts
     - Implement getAPIKeys query
     - Implement createAPIKey mutation
     - Implement revokeAPIKey mutation
@@ -660,7 +660,7 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
     - Audit all API key operations
     - _Requirements: 22.1-22.6_
   
-  - [ ] 9.2.4 Create webhook.resolver.ts for webhook management
+  - [x] 9.2.4 Create webhook.resolver.ts for webhook management
     - Implement webhook CRUD operations
     - Implement testWebhook mutation
     - Implement getWebhookDeliveries query
