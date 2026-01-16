@@ -743,12 +743,12 @@ Each task builds on previous tasks and includes clear acceptance criteria. The m
 - [ ] 10. Checkpoint - Advanced Modules Complete
   - Ensure all advanced module tests pass, ask the user if questions arise.
 
-- [ ] 11. Phase 6: Supporting Modules (Mobile)
+- [x] 11. Phase 6: Supporting Modules (Mobile)
   - Implement resolver for mobile-optimized operations
   - _Requirements: 25.1-25.6_
 
-- [ ] 11.1 Implement Mobile module resolver (1 resolver)
-  - [ ] 11.1.1 Create mobile-api.resolver.ts for mobile operations
+- [x] 11.1 Implement Mobile module resolver (1 resolver)
+  - [x] 11.1.1 Create mobile-api.resolver.ts for mobile operations
     - Implement getMobileConfig query
     - Implement getMobileDashboard query
     - Implement syncMobileData mutation

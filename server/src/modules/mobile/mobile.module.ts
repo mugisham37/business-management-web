@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MobileApiController } from './controllers/mobile-api.controller';
+import { MobileApiResolver } from './resolvers/mobile-api.resolver';
 import { MobileOptimizationService } from './services/mobile-optimization.service';
 import { PayloadCompressionService } from './services/payload-compression.service';
 import { ProgressiveLoadingService } from './services/progressive-loading.service';
@@ -16,11 +17,13 @@ import { CompressionInterceptor } from './interceptors/compression.interceptor';
 import { CacheModule } from '../cache/cache.module';
 import { DatabaseModule } from '../database/database.module';
 import { QueueModule } from '../queue/queue.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
 @Module({
-  imports: [CacheModule, DatabaseModule, QueueModule],
+  imports: [CacheModule, DatabaseModule, QueueModule, GraphQLCommonModule],
   controllers: [MobileApiController],
   providers: [
+    MobileApiResolver,
     MobileOptimizationService,
     PayloadCompressionService,
     ProgressiveLoadingService,
