@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RealtimeService } from './realtime.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
 
 export interface LiveCustomerActivity {
   type: 'purchase' | 'loyalty_earned' | 'loyalty_redeemed' | 'profile_updated' | 'registration' | 'login';
@@ -83,6 +84,7 @@ export class LiveCustomerActivityService {
   constructor(
     private readonly realtimeService: RealtimeService,
     private readonly cacheService: IntelligentCacheService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   /**
@@ -119,6 +121,12 @@ export class LiveCustomerActivityService {
         customerId: event.customerId,
         activityType: 'registration',
         details: activity.details,
+      });
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.CUSTOMER_ACTIVITY, {
+        customerActivityUpdated: JSON.stringify(activity),
+        tenantId: event.tenantId,
       });
 
       // Update activity feed cache

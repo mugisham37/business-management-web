@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { RealtimeService } from './realtime.service';
 import { InventoryLevelChangedEvent, LowStockAlertEvent, InventoryTransferEvent } from '../../inventory/services/inventory.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
 
 export interface LiveInventoryUpdate {
   type: 'level_changed' | 'low_stock' | 'transfer' | 'reservation';
@@ -55,6 +56,7 @@ export class LiveInventoryService {
   constructor(
     private readonly realtimeService: RealtimeService,
     private readonly cacheService: IntelligentCacheService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   /**
@@ -91,6 +93,12 @@ export class LiveInventoryService {
         newQuantity: event.newLevel,
         changeReason: event.changeReason,
         changedBy: event.userId,
+      });
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.INVENTORY_UPDATED, {
+        inventoryUpdated: JSON.stringify(update),
+        tenantId: event.tenantId,
       });
 
       // Update dashboard cache
@@ -135,6 +143,17 @@ export class LiveInventoryService {
         locationName: `Location ${event.locationId}`, // Would be fetched from location service
         currentQuantity: event.currentLevel,
         reorderPoint: event.reorderPoint,
+      });
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.INVENTORY_LOW_STOCK, {
+        lowStockAlert: JSON.stringify({
+          productId: event.productId,
+          locationId: event.locationId,
+          currentLevel: event.currentLevel,
+          reorderPoint: event.reorderPoint,
+        }),
+        tenantId: event.tenantId,
       });
 
       // Update dashboard cache

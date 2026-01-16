@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RealtimeService } from './realtime.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
 
 export interface LiveSalesUpdate {
   type: 'transaction_completed' | 'transaction_voided' | 'transaction_refunded' | 'milestone_achieved';
@@ -89,6 +90,7 @@ export class LiveSalesDashboardService {
   constructor(
     private readonly realtimeService: RealtimeService,
     private readonly cacheService: IntelligentCacheService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   /**
@@ -132,6 +134,12 @@ export class LiveSalesDashboardService {
         paymentMethod: event.transaction.paymentMethod,
         status: event.transaction.status,
         processedBy: event.userId,
+      });
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.SALES_UPDATED, {
+        salesUpdated: JSON.stringify(update),
+        tenantId: event.tenantId,
       });
 
       // Update dashboard cache

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RealtimeService } from './realtime.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
 
 export interface LiveAnalyticsData {
   overview: {
@@ -79,9 +80,9 @@ export interface AnalyticsAlert {
     metric: string;
     value: number;
     operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
-  };
+  } | undefined;
   timestamp: Date;
-  locationId?: string;
+  locationId?: string | undefined;
 }
 
 export interface KPIMetric {
@@ -102,6 +103,7 @@ export class LiveAnalyticsService {
   constructor(
     private readonly realtimeService: RealtimeService,
     private readonly cacheService: IntelligentCacheService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   /**
@@ -120,6 +122,17 @@ export class LiveAnalyticsService {
 
       // Update real-time analytics cache
       await this.updateAnalyticsCache(event.tenantId);
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.ANALYTICS_UPDATED, {
+        analyticsUpdated: JSON.stringify({
+          type: 'transaction_completed',
+          transactionId: event.transaction.id,
+          amount: event.transaction.total,
+          timestamp: new Date(),
+        }),
+        tenantId: event.tenantId,
+      });
 
       // Check for analytics alerts
       await this.checkAnalyticsAlerts(event.tenantId, event.transaction);
@@ -482,6 +495,12 @@ export class LiveAnalyticsService {
           alertData: alert.data,
           locationId: alert.locationId,
         },
+      });
+
+      // Publish to GraphQL subscriptions
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.ALERT_TRIGGERED, {
+        alertTriggered: JSON.stringify(alert),
+        tenantId,
       });
 
       // Store alert (this would go to a persistent store)

@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Subscription, Args, Int } from '@nestjs/graphql';
 import { UseGuards, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { JwtAuthGuard as GraphQLJwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
@@ -80,24 +80,46 @@ export class NotificationResolver {
         },
       );
 
-      const nodes: Notification[] = result.notifications.map(n => ({
-        id: n.id,
-        recipientId: n.recipientId,
-        type: n.type,
-        channel: n.channel,
-        subject: n.subject ?? undefined,
-        message: n.message,
-        status: n.status,
-        priority: (n.priority as NotificationPriority) ?? undefined,
-        scheduledAt: n.scheduledAt ?? undefined,
-        sentAt: n.sentAt ?? undefined,
-        deliveredAt: n.deliveredAt ?? undefined,
-        readAt: n.readAt ?? undefined,
-        deliveryAttempts: n.deliveryAttempts,
-        failureReason: n.failureReason ?? undefined,
-        metadata: n.metadata ? JSON.stringify(n.metadata) : undefined,
-        createdAt: n.createdAt,
-      }));
+      const nodes: Notification[] = result.notifications.map(n => {
+        const node: any = {
+          id: n.id,
+          recipientId: n.recipientId,
+          type: n.type,
+          channel: n.channel,
+          message: n.message,
+          status: n.status,
+          deliveryAttempts: n.deliveryAttempts,
+          createdAt: n.createdAt,
+        };
+
+        // Only include optional fields if they're defined
+        if (n.subject !== null && n.subject !== undefined) {
+          node.subject = n.subject;
+        }
+        if (n.priority !== null && n.priority !== undefined) {
+          node.priority = n.priority as NotificationPriority;
+        }
+        if (n.scheduledAt) {
+          node.scheduledAt = n.scheduledAt;
+        }
+        if (n.sentAt) {
+          node.sentAt = n.sentAt;
+        }
+        if (n.deliveredAt) {
+          node.deliveredAt = n.deliveredAt;
+        }
+        if (n.readAt) {
+          node.readAt = n.readAt;
+        }
+        if (n.failureReason !== null && n.failureReason !== undefined) {
+          node.failureReason = n.failureReason;
+        }
+        if (n.metadata) {
+          node.metadata = JSON.stringify(n.metadata);
+        }
+
+        return node as Notification;
+      });
 
       return {
         nodes,
@@ -139,28 +161,59 @@ export class NotificationResolver {
 
       const notification = result.notifications.find(n => n.id === input.notificationId);
 
-      return {
-        success: true,
-        message: 'Notification marked as read',
-        notification: notification ? {
+      let notifResponse: Notification | undefined;
+      if (notification) {
+        const notifData: any = {
           id: notification.id,
           recipientId: notification.recipientId,
           type: notification.type,
           channel: notification.channel,
-          subject: notification.subject ?? undefined,
           message: notification.message,
           status: notification.status,
-          priority: (notification.priority as NotificationPriority) ?? undefined,
-          scheduledAt: notification.scheduledAt ?? undefined,
-          sentAt: notification.sentAt ?? undefined,
-          deliveredAt: notification.deliveredAt ?? undefined,
-          readAt: notification.readAt ?? undefined,
           deliveryAttempts: notification.deliveryAttempts,
-          failureReason: notification.failureReason ?? undefined,
-          metadata: notification.metadata ? JSON.stringify(notification.metadata) : undefined,
           createdAt: notification.createdAt,
-        } : undefined,
+        };
+
+        // Only include optional fields if they're defined
+        if (notification.subject !== null && notification.subject !== undefined) {
+          notifData.subject = notification.subject;
+        }
+        if (notification.priority !== null && notification.priority !== undefined) {
+          notifData.priority = notification.priority as NotificationPriority;
+        }
+        if (notification.scheduledAt) {
+          notifData.scheduledAt = notification.scheduledAt;
+        }
+        if (notification.sentAt) {
+          notifData.sentAt = notification.sentAt;
+        }
+        if (notification.deliveredAt) {
+          notifData.deliveredAt = notification.deliveredAt;
+        }
+        if (notification.readAt) {
+          notifData.readAt = notification.readAt;
+        }
+        if (notification.failureReason !== null && notification.failureReason !== undefined) {
+          notifData.failureReason = notification.failureReason;
+        }
+        if (notification.metadata) {
+          notifData.metadata = JSON.stringify(notification.metadata);
+        }
+
+        notifResponse = notifData as Notification;
+      }
+
+      const responseData: any = {
+        success: true,
+        message: 'Notification marked as read',
       };
+
+      // Only include notification if it's defined
+      if (notifResponse !== undefined) {
+        responseData.notification = notifResponse;
+      }
+
+      return responseData;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error(`Failed to mark notification as read: ${err.message}`, err.stack);

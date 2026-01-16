@@ -37,7 +37,7 @@ export class OnlineUser {
   email!: string;
 
   @Field({ nullable: true })
-  displayName?: string;
+  displayName?: string | undefined;
 
   @Field(() => UserStatus)
   status!: UserStatus;

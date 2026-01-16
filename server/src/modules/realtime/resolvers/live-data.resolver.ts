@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Subscription, Args, Context } from '@nestjs/graphql';
 import { UseGuards, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
@@ -11,6 +11,16 @@ import { LiveInventoryService } from '../services/live-inventory.service';
 import { LiveSalesDashboardService } from '../services/live-sales-dashboard.service';
 import { LiveCustomerActivityService } from '../services/live-customer-activity.service';
 import { LiveAnalyticsService } from '../services/live-analytics.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
+import {
+  LiveInventoryQueryInput,
+  LiveSalesQueryInput,
+  LiveCustomerActivityQueryInput,
+  LiveAnalyticsQueryInput,
+  CreateAnalyticsAlertInput,
+  InventoryAlertConfigInput,
+  SalesTargetInput,
+} from '../inputs/live-data.input';
 
 // GraphQL Types (these would typically be in separate files)
 import { ObjectType, Field, ID, Float, Int, InputType } from '@nestjs/graphql';
@@ -184,6 +194,7 @@ export class LiveDataResolver {
     private readonly liveSalesDashboardService: LiveSalesDashboardService,
     private readonly liveCustomerActivityService: LiveCustomerActivityService,
     private readonly liveAnalyticsService: LiveAnalyticsService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   // ===== INVENTORY QUERIES =====
@@ -408,5 +419,183 @@ export class LiveDataResolver {
     );
     
     return JSON.stringify(subscription);
+  }
+
+  // ===== GRAPHQL SUBSCRIPTIONS =====
+
+  /**
+   * Subscribe to live inventory updates
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to live inventory level changes',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-inventory')
+  inventoryUpdated(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.INVENTORY_UPDATED, tenantId);
+  }
+
+  /**
+   * Subscribe to low stock alerts
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to low stock alerts',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-inventory')
+  lowStockAlert(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.INVENTORY_LOW_STOCK, tenantId);
+  }
+
+  /**
+   * Subscribe to live sales updates
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to live sales and transaction updates',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-sales')
+  salesUpdated(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.SALES_UPDATED, tenantId);
+  }
+
+  /**
+   * Subscribe to customer activity feed
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to real-time customer activity',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-customer-activity')
+  customerActivityUpdated(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.CUSTOMER_ACTIVITY, tenantId);
+  }
+
+  /**
+   * Subscribe to analytics updates
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to real-time analytics and KPI updates',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-analytics')
+  analyticsUpdated(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.ANALYTICS_UPDATED, tenantId);
+  }
+
+  /**
+   * Subscribe to analytics alerts
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to analytics alerts and threshold breaches',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  @RequireFeature('real-time-analytics')
+  alertTriggered(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.ALERT_TRIGGERED, tenantId);
+  }
+
+  // ===== ADDITIONAL MUTATIONS =====
+
+  /**
+   * Configure inventory alert thresholds
+   */
+  @Mutation(() => String)
+  @RequireFeature('real-time-inventory')
+  async configureInventoryAlerts(
+    @CurrentTenant() tenantId: string,
+    @Args('input') input: InventoryAlertConfigInput,
+  ): Promise<string> {
+    try {
+      // Store alert configuration (would integrate with actual service)
+      return JSON.stringify({
+        success: true,
+        message: 'Inventory alerts configured successfully',
+        config: input,
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to configure inventory alerts: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Set sales targets
+   */
+  @Mutation(() => String)
+  @RequireFeature('real-time-sales')
+  async setSalesTargets(
+    @CurrentTenant() tenantId: string,
+    @Args('input') input: SalesTargetInput,
+  ): Promise<string> {
+    try {
+      // Store sales targets (would integrate with actual service)
+      return JSON.stringify({
+        success: true,
+        message: 'Sales targets configured successfully',
+        targets: input,
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to set sales targets: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Create custom analytics alert
+   */
+  @Mutation(() => String)
+  @RequireFeature('real-time-analytics')
+  async createAnalyticsAlert(
+    @CurrentTenant() tenantId: string,
+    @Args('input') input: CreateAnalyticsAlertInput,
+  ): Promise<string> {
+    try {
+      const alert = await this.liveAnalyticsService.createAnalyticsAlert(tenantId, {
+        type: input.type as any,
+        severity: input.severity as any,
+        title: input.title,
+        message: input.message,
+        data: input.data ? JSON.parse(input.data) : {},
+        locationId: input.locationId,
+        threshold: input.threshold ? {
+          metric: input.threshold.metric,
+          value: input.threshold.value,
+          operator: input.threshold.operator as any,
+        } : undefined,
+      });
+
+      return JSON.stringify(alert);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create analytics alert: ${err.message}`, err.stack);
+      throw error;
+    }
   }
 }

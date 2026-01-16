@@ -1,7 +1,7 @@
-import { Resolver, Query, Mutation, Subscription, Args, Context } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Subscription, Args, Context, Int } from '@nestjs/graphql';
 import { UseGuards, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { JwtAuthGuard as GraphQLJwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
@@ -18,6 +18,17 @@ import {
   UserStatus,
   MessagePriority,
 } from '../types/realtime.types';
+import {
+  UpdateUserStatusInput,
+  JoinRoomInput,
+  LeaveRoomInput,
+  DirectMessageInput,
+  RoomMessageInput,
+  GetOnlineUsersInput,
+  TypingIndicatorInput,
+  MessageReactionInput,
+  MarkMessageReadInput,
+} from '../inputs/realtime.input';
 
 /**
  * Realtime Resolver
@@ -53,13 +64,33 @@ export class RealtimeResolver {
   async getOnlineUsers(
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Args('input', { nullable: true }) input?: GetOnlineUsersInput,
   ): Promise<OnlineUser[]> {
     try {
       this.logger.log(`Getting online users for tenant ${tenantId}`);
 
       const connections = this.realtimeService.getTenantConnections(tenantId);
+      let filteredConnections = connections;
 
-      return connections.map(conn => ({
+      // Apply filters
+      if (input?.status) {
+        // Filter by status (currently all are ONLINE, but this allows for future expansion)
+        filteredConnections = filteredConnections.filter(() => input.status === UserStatus.ONLINE);
+      }
+
+      if (input?.roomName) {
+        // Filter by room membership
+        filteredConnections = filteredConnections.filter(conn => 
+          conn.rooms.has(`room:${input.roomName}`)
+        );
+      }
+
+      // Apply pagination
+      const limit = input?.limit || 100;
+      const offset = input?.offset || 0;
+      const paginatedConnections = filteredConnections.slice(offset, offset + limit);
+
+      return paginatedConnections.map(conn => ({
         userId: conn.user.id,
         email: conn.user.email,
         displayName: conn.user.displayName || `${conn.user.email}`,
@@ -75,7 +106,138 @@ export class RealtimeResolver {
     }
   }
 
+  /**
+   * Get connection statistics
+   */
+  @Query(() => String, {
+    description: 'Get real-time connection statistics',
+  })
+  async getConnectionStats(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<string> {
+    try {
+      const stats = this.connectionManager.getSystemStats();
+      return JSON.stringify(stats);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get connection stats: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get connection health status
+   */
+  @Query(() => String, {
+    description: 'Get connection health status',
+  })
+  async getConnectionHealth(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<string> {
+    try {
+      const health = this.connectionManager.getHealth();
+      return JSON.stringify(health);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get connection health: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
   // ===== MUTATIONS =====
+
+  /**
+   * Update user online status
+   */
+  @Mutation(() => OnlineUser, {
+    description: 'Update user online status',
+  })
+  async updateUserStatus(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Args('input') input: UpdateUserStatusInput,
+  ): Promise<OnlineUser> {
+    try {
+      this.logger.log(`Updating user status for ${user.id} to ${input.status}`);
+
+      // Publish status change event
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.USER_STATUS_CHANGED, {
+        userStatusChanged: {
+          userId: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          status: input.status,
+          connectedAt: new Date(),
+          lastActivity: new Date(),
+          rooms: [],
+        },
+        tenantId,
+      });
+
+      return {
+        userId: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        status: input.status,
+        connectedAt: new Date(),
+        lastActivity: new Date(),
+        rooms: [],
+      };
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update user status: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Send direct message to a specific user
+   */
+  @Mutation(() => RealtimeMessage, {
+    description: 'Send direct message to a specific user',
+  })
+  async sendDirectMessage(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Args('input') input: DirectMessageInput,
+  ): Promise<RealtimeMessage> {
+    try {
+      this.logger.log(`User ${user.id} sending direct message to ${input.recipientId}`);
+
+      const messageId = `dm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const timestamp = new Date();
+
+      const message: any = {
+        id: messageId,
+        senderId: user.id,
+        senderName: user.email,
+        recipientIds: [input.recipientId],
+        content: input.content,
+        priority: input.priority,
+        timestamp,
+      };
+
+      if (input.metadata !== undefined) {
+        message.metadata = input.metadata;
+      }
+
+      const typedMessage = message as RealtimeMessage;
+
+      // Publish message event
+      await this.pubSubService.publish(SUBSCRIPTION_EVENTS.MESSAGE_RECEIVED, {
+        messageReceived: typedMessage,
+        tenantId,
+      });
+
+      return typedMessage;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send direct message: ${err.message}`, err.stack);
+      throw error;
+    }
+  }
 
   /**
    * Send real-time message to specific users
@@ -95,7 +257,7 @@ export class RealtimeResolver {
       const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const timestamp = new Date();
 
-      const message: RealtimeMessage = {
+      const message: any = {
         id: messageId,
         senderId: user.id,
         senderName: user.email,
@@ -103,18 +265,24 @@ export class RealtimeResolver {
         content: input.content,
         priority: input.priority,
         timestamp,
-        metadata: input.metadata || undefined,
       };
+
+      // Only include metadata if it's defined
+      if (input.metadata !== undefined) {
+        message.metadata = input.metadata;
+      }
+
+      const typedMessage = message as RealtimeMessage;
 
       // Publish message event for subscriptions
       await this.pubSubService.publish(SUBSCRIPTION_EVENTS.MESSAGE_RECEIVED, {
-        messageReceived: message,
+        messageReceived: typedMessage,
         tenantId,
       });
 
       this.logger.log(`Message ${messageId} sent successfully`);
 
-      return message;
+      return typedMessage;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       this.logger.error(`Failed to send message: ${err.message}`, err.stack);
@@ -148,7 +316,7 @@ export class RealtimeResolver {
       const messageId = `broadcast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const timestamp = new Date();
 
-      const message: RealtimeMessage = {
+      const message: any = {
         id: messageId,
         senderId: user.id,
         senderName: user.email,
@@ -156,12 +324,18 @@ export class RealtimeResolver {
         content: input.content,
         priority: input.priority,
         timestamp,
-        metadata: input.metadata || undefined,
       };
+
+      // Only include metadata if it's defined
+      if (input.metadata !== undefined) {
+        message.metadata = input.metadata;
+      }
+
+      const typedMessage = message as RealtimeMessage;
 
       // Publish broadcast message event
       await this.pubSubService.publish(SUBSCRIPTION_EVENTS.MESSAGE_RECEIVED, {
-        messageReceived: message,
+        messageReceived: typedMessage,
         tenantId,
       });
 
@@ -185,6 +359,40 @@ export class RealtimeResolver {
   }
 
   // ===== SUBSCRIPTIONS =====
+
+  /**
+   * Subscribe to user status changes
+   */
+  @Subscription(() => OnlineUser, {
+    description: 'Subscribe to user status changes',
+    filter: (payload, variables, context) => {
+      return payload.tenantId === context.req.user.tenantId;
+    },
+  })
+  userStatusChanged(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.USER_STATUS_CHANGED, tenantId);
+  }
+
+  /**
+   * Subscribe to typing indicators
+   */
+  @Subscription(() => String, {
+    description: 'Subscribe to typing indicators',
+    filter: (payload, variables, context) => {
+      const userId = context.req.user.id;
+      const tenantId = context.req.user.tenantId;
+      return payload.tenantId === tenantId && 
+             (payload.recipientId === userId || payload.roomName);
+    },
+  })
+  typingIndicator(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.pubSubService.asyncIterator(SUBSCRIPTION_EVENTS.TYPING_INDICATOR, tenantId);
+  }
 
   /**
    * Subscribe to user online events

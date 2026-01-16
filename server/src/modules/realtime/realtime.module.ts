@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
 import { RealtimeGateway } from './gateways/realtime.gateway';
 import { RealtimeService } from './services/realtime.service';
 import { ConnectionManagerService } from './services/connection-manager.service';
@@ -16,10 +15,6 @@ import { SlackIntegrationService } from '../communication/services/slack-integra
 import { TeamsIntegrationService } from '../communication/services/teams-integration.service';
 import { EmailNotificationService } from '../communication/services/email-notification.service';
 import { SMSNotificationService } from '../communication/services/sms-notification.service';
-import { RealtimeController } from './controllers/realtime.controller';
-import { NotificationController } from './controllers/notification.controller';
-import { LiveDataController } from './controllers/live-data.controller';
-import { CommunicationIntegrationController } from './controllers/communication-integration.controller';
 import { LiveDataResolver } from './resolvers/live-data.resolver';
 import { RealtimeResolver } from './resolvers/realtime.resolver';
 import { NotificationResolver } from './resolvers/notification.resolver';
@@ -31,6 +26,7 @@ import { LoggerModule } from '../logger/logger.module';
 import { DatabaseModule } from '../database/database.module';
 import { QueueModule } from '../queue/queue.module';
 import { CacheModule } from '../cache/cache.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
 @Module({
   imports: [
@@ -41,10 +37,7 @@ import { CacheModule } from '../cache/cache.module';
     DatabaseModule,
     QueueModule,
     CacheModule,
-    HttpModule.register({
-      timeout: 30000,
-      maxRedirects: 5,
-    }),
+    GraphQLCommonModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -56,12 +49,7 @@ import { CacheModule } from '../cache/cache.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [
-    RealtimeController, 
-    NotificationController, 
-    LiveDataController,
-    CommunicationIntegrationController,
-  ],
+  controllers: [],
   providers: [
     RealtimeGateway,
     RealtimeService,
