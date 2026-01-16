@@ -1,1 +1,0 @@
-export { ValidationPipe, QueryValidationPipe, FileValidationPipe } from './validation.pipe';
