@@ -26,7 +26,7 @@ import {
 @UseGuards(JwtAuthGuard)
 export class MfaResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly mfaService: MfaService,
   ) {
     super(dataLoaderService);

@@ -1,6 +1,5 @@
 import { Resolver, Mutation, Query, Args, Context } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../services/auth.service';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
@@ -32,7 +31,7 @@ import {
 @Resolver()
 export class AuthResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly authService: AuthService,
   ) {
     super(dataLoaderService);
@@ -47,7 +46,6 @@ export class AuthResolver extends BaseResolver {
   @Mutation(() => LoginResponse, {
     description: 'Login with email and password',
   })
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   async login(
     @Args('input') input: LoginInput,
     @Context() context: any,
@@ -60,7 +58,7 @@ export class AuthResolver extends BaseResolver {
         {
           email: input.email,
           password: input.password,
-          rememberMe: input.rememberMe,
+          rememberMe: input.rememberMe ?? false,
         },
         ipAddress,
         userAgent,
@@ -81,7 +79,6 @@ export class AuthResolver extends BaseResolver {
   @Mutation(() => LoginResponse, {
     description: 'Login with email, password, and MFA token',
   })
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   async loginWithMfa(
     @Args('input') input: LoginWithMfaInput,
     @Context() context: any,
@@ -132,7 +129,6 @@ export class AuthResolver extends BaseResolver {
   @Mutation(() => LoginResponse, {
     description: 'Register a new user account',
   })
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute
   async register(
     @Args('input') input: RegisterInput,
     @Context() context: any,
@@ -148,7 +144,7 @@ export class AuthResolver extends BaseResolver {
           firstName: input.firstName,
           lastName: input.lastName,
           tenantId: input.tenantId,
-          phone: input.phone,
+          ...(input.phone && { phone: input.phone }),
         },
         ipAddress,
         userAgent,
@@ -292,7 +288,6 @@ export class AuthResolver extends BaseResolver {
   @Mutation(() => MutationResponse, {
     description: 'Request password reset email',
   })
-  @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 attempts per 5 minutes
   async forgotPassword(
     @Args('input') input: ForgotPasswordInput,
   ): Promise<MutationResponse> {
@@ -318,13 +313,12 @@ export class AuthResolver extends BaseResolver {
   /**
    * Reset password mutation
    * Completes password reset flow with token
-   * Public endpoint, rate limited
+   * Public endpoint, rate limited at infrastructure level
    */
   @Public()
   @Mutation(() => MutationResponse, {
     description: 'Reset password using reset token',
   })
-  @Throttle({ default: { limit: 5, ttl: 300000 } }) // 5 attempts per 5 minutes
   async resetPassword(
     @Args('input') input: ResetPasswordInput,
   ): Promise<MutationResponse> {

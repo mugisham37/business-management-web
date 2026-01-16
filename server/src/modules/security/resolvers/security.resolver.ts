@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { SecurityMonitoringService } from '../services/security-monitoring.service';
@@ -28,7 +28,7 @@ import {
 @UseGuards(JwtAuthGuard)
 export class SecurityResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly securityMonitoringService: SecurityMonitoringService,
     private readonly threatDetectionService: ThreatDetectionService,
   ) {
@@ -196,7 +196,7 @@ export class SecurityResolver extends BaseResolver {
         investigated: true,
         investigatedBy: user.id,
         investigatedAt: new Date(),
-        resolution: input.resolution,
+        ...(input.resolution ? { resolution: input.resolution } : {}),
       };
     } catch (error) {
       this.handleError(error, 'Failed to investigate event');

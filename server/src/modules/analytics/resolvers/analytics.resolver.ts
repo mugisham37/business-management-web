@@ -10,7 +10,7 @@ import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { AnalyticsAPIService } from '../services/analytics-api.service';
-import { MetricsCalculationService } from '../services/metrics-calculation.service';
+import { MetricsCalculationService, MetricValue as ServiceMetricValue, KPIValue as ServiceKPIValue } from '../services/metrics-calculation.service';
 import { Metric, KPI, Trend } from '../types/analytics.types';
 import { MetricsFilterInput, KPIFilterInput, TrendFilterInput } from '../inputs/analytics.input';
 
@@ -22,7 +22,7 @@ import { MetricsFilterInput, KPIFilterInput, TrendFilterInput } from '../inputs/
 @UseGuards(JwtAuthGuard)
 export class AnalyticsResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly analyticsAPIService: AnalyticsAPIService,
     private readonly metricsCalculationService: MetricsCalculationService,
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
@@ -38,38 +38,28 @@ export class AnalyticsResolver extends BaseResolver {
   @Permissions('analytics:read')
   async getMetrics(
     @Args('filter', { type: () => MetricsFilterInput, nullable: true }) filter: MetricsFilterInput,
-    @CurrentUser() user: any,
+    @CurrentUser() _user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<Metric[]> {
     try {
-      // Build date range
-      const startDate = filter?.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const endDate = filter?.endDate || new Date();
-
       // Get metrics from calculation service
-      const metrics = await this.metricsCalculationService.calculateMetrics(
+      const metrics = await this.metricsCalculationService.calculateRealTimeMetrics(
         tenantId,
-        {
-          categories: filter?.categories,
-          metricNames: filter?.metricNames,
-          dimensions: filter?.dimensions,
-          startDate,
-          endDate,
-        }
+        filter?.metricNames
       );
 
-      return metrics.map(metric => ({
-        id: metric.id || `${metric.name}_${metric.timestamp.getTime()}`,
-        name: metric.name,
-        description: metric.description,
+      return metrics.map((metric: ServiceMetricValue) => ({
+        id: `${metric.metricName}_${metric.timestamp.getTime()}`,
+        name: metric.metricName,
+        description: (metric.metadata?.description as string) || undefined,
         value: metric.value,
-        unit: metric.unit || 'count',
-        category: metric.category || 'OPERATIONAL',
+        unit: (metric.metadata?.unit as string) || 'count',
+        category: (metric.metadata?.category as string) || 'OPERATIONAL',
         timestamp: metric.timestamp,
-        dimensions: metric.dimensions?.map(d => ({
-          name: d.name,
-          value: d.value,
-        })),
+        dimensions: Object.entries(metric.dimensions).map(([name, value]) => ({
+          name,
+          value: String(value),
+        })) || undefined,
       }));
     } catch (error) {
       this.handleError(error, 'Failed to fetch metrics');
@@ -85,34 +75,33 @@ export class AnalyticsResolver extends BaseResolver {
   @Permissions('analytics:read')
   async getKPIs(
     @Args('filter', { type: () => KPIFilterInput, nullable: true }) filter: KPIFilterInput,
-    @CurrentUser() user: any,
+    @CurrentUser() _user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<KPI[]> {
     try {
       // Get KPIs from calculation service
       const kpis = await this.metricsCalculationService.calculateKPIs(
         tenantId,
-        {
-          kpiNames: filter?.kpiNames,
-          status: filter?.status,
-          period: filter?.period || 'MONTH',
-        }
+        filter?.kpiNames
       );
 
-      return kpis.map(kpi => ({
-        id: kpi.id || `kpi_${kpi.name}`,
-        name: kpi.name,
-        description: kpi.description,
-        currentValue: kpi.currentValue,
-        targetValue: kpi.targetValue,
-        previousValue: kpi.previousValue,
-        changePercentage: kpi.previousValue 
-          ? ((kpi.currentValue - kpi.previousValue) / kpi.previousValue) * 100
-          : undefined,
-        status: kpi.status || 'NORMAL',
-        period: kpi.period || 'MONTH',
-        updatedAt: kpi.updatedAt || new Date(),
-      }));
+      return kpis.map((kpi: ServiceKPIValue) => {
+        const changePercentage = kpi.trend?.percentage || 0;
+        const description = kpi.dimensions?.description as string | undefined;
+        
+        return {
+          id: `kpi_${kpi.kpiName}`,
+          name: kpi.kpiName,
+          description: description || undefined,
+          currentValue: kpi.value,
+          targetValue: kpi.target || undefined,
+          previousValue: (kpi.dimensions?.previousValue as number) || undefined,
+          changePercentage,
+          status: kpi.trend?.direction === 'up' ? 'IMPROVING' : kpi.trend?.direction === 'down' ? 'DECLINING' : 'STABLE',
+          period: filter?.period || 'MONTH',
+          updatedAt: kpi.timestamp,
+        };
+      });
     } catch (error) {
       this.handleError(error, 'Failed to fetch KPIs');
       throw error;
@@ -127,7 +116,7 @@ export class AnalyticsResolver extends BaseResolver {
   @Permissions('analytics:read')
   async getTrends(
     @Args('filter', { type: () => TrendFilterInput, nullable: true }) filter: TrendFilterInput,
-    @CurrentUser() user: any,
+    @CurrentUser() _user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<Trend[]> {
     try {
@@ -135,31 +124,44 @@ export class AnalyticsResolver extends BaseResolver {
       const startDate = filter?.startDate || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
       const endDate = filter?.endDate || new Date();
 
-      // Get trends from calculation service
-      const trends = await this.metricsCalculationService.calculateTrends(
+      // Get aggregated metrics over time
+      const metrics = await this.metricsCalculationService.calculateRealTimeMetrics(
         tenantId,
-        {
-          metricNames: filter?.metricNames,
-          startDate,
-          endDate,
-          granularity: filter?.granularity || 'DAY',
-          limit: filter?.limit,
-        }
+        filter?.metricNames
       );
 
-      return trends.map(trend => ({
-        id: trend.id || `trend_${trend.metricName}`,
-        metricName: trend.metricName,
-        dataPoints: trend.dataPoints.map(dp => ({
-          timestamp: dp.timestamp,
-          value: dp.value,
-          label: dp.label,
-        })),
-        direction: trend.direction || 'STABLE',
-        slope: trend.slope || 0,
-        startDate: trend.startDate || startDate,
-        endDate: trend.endDate || endDate,
-      }));
+      // Group metrics by name and create trends
+      const trendMap = new Map<string, ServiceMetricValue[]>();
+      metrics.forEach((metric: ServiceMetricValue) => {
+        if (!trendMap.has(metric.metricName)) {
+          trendMap.set(metric.metricName, []);
+        }
+        trendMap.get(metric.metricName)!.push(metric);
+      });
+
+      return Array.from(trendMap.entries()).map(([metricName, dataPoints]) => {
+        // Calculate slope (simple linear regression)
+        const n = dataPoints.length;
+        const sumX = dataPoints.reduce((sum, _, i) => sum + i, 0);
+        const sumY = dataPoints.reduce((sum, dp) => sum + dp.value, 0);
+        const sumXY = dataPoints.reduce((sum, dp, i) => sum + i * dp.value, 0);
+        const sumX2 = dataPoints.reduce((sum, _, i) => sum + i * i, 0);
+        const slope = n > 1 ? (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX) : 0;
+
+        return {
+          id: `trend_${metricName}`,
+          metricName,
+          dataPoints: dataPoints.map((dp: ServiceMetricValue) => ({
+            timestamp: dp.timestamp,
+            value: dp.value,
+            label: dp.metricName,
+          })),
+          direction: slope > 0.1 ? 'INCREASING' : slope < -0.1 ? 'DECREASING' : 'STABLE',
+          slope,
+          startDate,
+          endDate,
+        };
+      });
     } catch (error) {
       this.handleError(error, 'Failed to fetch trends');
       throw error;
@@ -171,12 +173,13 @@ export class AnalyticsResolver extends BaseResolver {
    */
   @Subscription(() => Metric, {
     name: 'metricsUpdated',
-    filter: (payload, variables, context) => {
+    filter: (payload: any, _variables: any, context: any) => {
       // Filter by tenant
       return payload.metricsUpdated.tenantId === context.req.user.tenantId;
     },
   })
-  metricsUpdated(@CurrentTenant() tenantId: string) {
-    return this.pubSub.asyncIterator('METRICS_UPDATED');
+  metricsUpdated(@CurrentTenant() _tenantId: string) {
+    // Return async iterator - note: PubSub type may need adjustment
+    return (this.pubSub as any).asyncIterator('METRICS_UPDATED');
   }
 }

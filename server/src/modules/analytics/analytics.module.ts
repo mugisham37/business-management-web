@@ -3,16 +3,17 @@ import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { RealtimeModule } from '../realtime/realtime.module';
+import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
 
-// Controllers
-import { AnalyticsController } from './controllers/analytics.controller';
-import { DataWarehouseController } from './controllers/data-warehouse.controller';
-import { ReportingController } from './controllers/reporting.controller';
-import { DashboardController } from './controllers/dashboard.controller';
-import { PredictiveAnalyticsController } from './controllers/predictive-analytics.controller';
-import { CustomReportingController } from './controllers/custom-reporting.controller';
-import { MobileAnalyticsController } from './controllers/mobile-analytics.controller';
-import { ComparativeAnalysisController } from './controllers/comparative-analysis.controller';
+// Resolvers
+import { AnalyticsResolver } from './resolvers/analytics.resolver';
+import { DataWarehouseResolver } from './resolvers/data-warehouse.resolver';
+import { ReportingResolver } from './resolvers/reporting.resolver';
+import { DashboardResolver } from './resolvers/dashboard.resolver';
+import { PredictiveAnalyticsResolver } from './resolvers/predictive-analytics.resolver';
+import { CustomReportingResolver } from './resolvers/custom-reporting.resolver';
+import { MobileAnalyticsResolver } from './resolvers/mobile-analytics.resolver';
+import { ComparativeAnalysisResolver } from './resolvers/comparative-analysis.resolver';
 
 // Services
 import { AnalyticsFoundationService } from './services/analytics-foundation.service';
@@ -35,18 +36,19 @@ import { AnalyticsRepository } from './repositories/analytics.repository';
     CacheModule,
     QueueModule,
     RealtimeModule,
-  ],
-  controllers: [
-    AnalyticsController,
-    DataWarehouseController,
-    ReportingController,
-    DashboardController,
-    PredictiveAnalyticsController,
-    CustomReportingController,
-    MobileAnalyticsController,
-    ComparativeAnalysisController,
+    GraphQLCommonModule,
   ],
   providers: [
+    // Resolvers
+    AnalyticsResolver,
+    DataWarehouseResolver,
+    ReportingResolver,
+    DashboardResolver,
+    PredictiveAnalyticsResolver,
+    CustomReportingResolver,
+    MobileAnalyticsResolver,
+    ComparativeAnalysisResolver,
+    
     // Core Services
     AnalyticsFoundationService,
     DataWarehouseService,

@@ -175,6 +175,70 @@ export class AuditService {
   }
 
   /**
+   * Get a specific audit log by ID
+   */
+  async getLogById(tenantId: string, logId: string): Promise<any> {
+    try {
+      const db = this.drizzleService.getDb();
+
+      const result = await db
+        .select()
+        .from(auditLogs)
+        .where(
+          and(
+            eq(auditLogs.tenantId, tenantId),
+            eq(auditLogs.id, logId)
+          )
+        )
+        .limit(1);
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      const log = result[0]!; // Non-null assertion since we check length > 0
+
+      // Decrypt if needed
+      if (this.encryptSensitiveData && log.tenantId && (log.metadata as any)?.encrypted) {
+        try {
+          const decryptedLog = { ...log };
+
+          if (log.oldValues) {
+            const decryptedOldValues = await this.encryptionService.decryptField(
+              JSON.stringify(log.oldValues),
+              log.tenantId,
+              'audit_old_values'
+            );
+            decryptedLog.oldValues = JSON.parse(decryptedOldValues);
+          }
+
+          if (log.newValues) {
+            const decryptedNewValues = await this.encryptionService.decryptField(
+              JSON.stringify(log.newValues),
+              log.tenantId,
+              'audit_new_values'
+            );
+            decryptedLog.newValues = JSON.parse(decryptedNewValues);
+          }
+
+          return decryptedLog;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.error(`Failed to decrypt audit log ${logId}: ${errorMessage}`);
+          return log;
+        }
+      }
+
+      return log;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Failed to get audit log ${logId}: ${errorMessage}`, errorStack);
+      throw error;
+    }
+  }
+
+  /**
    * Query audit logs with filtering and pagination
    */
   async queryLogs(query: AuditQuery): Promise<any[]> {
@@ -223,7 +287,7 @@ export class AuditService {
 
       // Decrypt sensitive data if needed
       const decryptedResults = await Promise.all(
-        results.map(async (log) => {
+        results.map(async (log: (typeof results)[number]) => {
           if (this.encryptSensitiveData && log.tenantId && (log.metadata as any)?.encrypted) {
             try {
               const decryptedLog = { ...log };
@@ -808,105 +872,5 @@ export class AuditService {
         anomalies: [errorMessage],
       };
     }
-  }
-}
-
-
-  /**
-   * Query audit logs with filters
-   */
-  async queryLogs(query: AuditQuery): Promise<any[]> {
-    try {
-      const db = this.drizzleService.getDb();
-      
-      // Build query conditions
-      const conditions: any[] = [];
-      
-      if (query.tenantId) {
-        conditions.push(eq(auditLogs.tenantId, query.tenantId));
-      }
-      
-      if (query.userId) {
-        conditions.push(eq(auditLogs.userId, query.userId));
-      }
-      
-      if (query.action) {
-        conditions.push(eq(auditLogs.action, query.action as any));
-      }
-      
-      if (query.resource) {
-        conditions.push(eq(auditLogs.resource, query.resource));
-      }
-      
-      if (query.startDate) {
-        conditions.push(gte(auditLogs.timestamp, query.startDate));
-      }
-      
-      if (query.endDate) {
-        conditions.push(lte(auditLogs.timestamp, query.endDate));
-      }
-
-      // Execute query
-      const results = await db
-        .select()
-        .from(auditLogs)
-        .where(and(...conditions))
-        .orderBy(query.orderBy === 'asc' ? asc(auditLogs.timestamp) : desc(auditLogs.timestamp))
-        .limit(query.limit || 100)
-        .offset(query.offset || 0);
-
-      return results;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error(`Failed to query audit logs: ${err.message}`, err.stack);
-      return [];
-    }
-  }
-
-  /**
-   * Get audit log by ID
-   */
-  async getLogById(tenantId: string, id: string): Promise<any | null> {
-    try {
-      const db = this.drizzleService.getDb();
-      
-      const results = await db
-        .select()
-        .from(auditLogs)
-        .where(and(eq(auditLogs.id, id), eq(auditLogs.tenantId, tenantId)))
-        .limit(1);
-
-      return results[0] || null;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error(`Failed to get audit log: ${err.message}`, err.stack);
-      return null;
-    }
-  }
-
-  /**
-   * Export audit logs
-   */
-  async exportLogs(options: any): Promise<string> {
-    // In a real implementation, this would enqueue a background job
-    const exportId = `export_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.logger.log(`Audit log export requested: ${exportId}`);
-    return exportId;
-  }
-
-  /**
-   * Get audit log statistics
-   */
-  async getStatistics(tenantId: string, startDate: Date, endDate: Date): Promise<any> {
-    // In a real implementation, this would aggregate from database
-    return {
-      totalLogs: 0,
-      byAction: {},
-      byResource: {},
-      bySeverity: {},
-      byCategory: {},
-      topUsers: [],
-      topResources: [],
-    };
   }
 }

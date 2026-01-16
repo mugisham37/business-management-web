@@ -15,7 +15,7 @@ import { DataCube } from '../types/analytics.types';
 @UseGuards(JwtAuthGuard)
 export class DataWarehouseResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly dataWarehouseService: DataWarehouseService,
     private readonly cacheService: IntelligentCacheService,
   ) {
@@ -27,7 +27,7 @@ export class DataWarehouseResolver extends BaseResolver {
   @Permissions('analytics:read')
   async queryWarehouse(
     @Args('query') query: string,
-    @CurrentUser() user: any,
+    @CurrentUser() _user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<string> {
     try {
@@ -44,46 +44,44 @@ export class DataWarehouseResolver extends BaseResolver {
   @Permissions('analytics:read')
   async getDataCube(
     @Args('cubeName') cubeName: string,
-    @CurrentUser() user: any,
+    @CurrentUser() _user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<DataCube> {
     try {
       const cacheKey = `cube:${tenantId}:${cubeName}`;
-      let cubeData = await this.cacheService.get(cacheKey);
+      const cached = await this.cacheService.get(cacheKey);
 
-      if (!cubeData) {
-        cubeData = { dimensions: [], measures: [], data: [] };
-        await this.cacheService.set(cacheKey, cubeData, { ttl: 3600 });
+      if (cached) {
+        const cubeData = cached as any;
+        return {
+          id: cubeData.id || `cube_${cubeName}`,
+          name: cubeData.name || cubeName,
+          dimensions: cubeData.dimensions || [],
+          measures: cubeData.measures || [],
+          data: JSON.stringify(cubeData.data || {}),
+        };
       }
 
-      return {
-        id: cubeName,
+      // Mock cube data
+      const cubeData = {
+        id: `cube_${cubeName}`,
         name: cubeName,
-        dimensions: cubeData.dimensions || [],
-        measures: cubeData.measures || [],
-        data: JSON.stringify(cubeData.data || []),
+        dimensions: ['time', 'location', 'product'],
+        measures: ['revenue', 'quantity', 'profit'],
+        data: { values: [] },
+      };
+
+      await this.cacheService.set(cacheKey, cubeData, { ttl: 3600 });
+
+      return {
+        id: cubeData.id,
+        name: cubeData.name,
+        dimensions: cubeData.dimensions,
+        measures: cubeData.measures,
+        data: JSON.stringify(cubeData.data),
       };
     } catch (error) {
       this.handleError(error, 'Failed to get data cube');
-      throw error;
-    }
-  }
-
-  @Query(() => String, { name: 'getDrillDown' })
-  @UseGuards(PermissionsGuard)
-  @Permissions('analytics:read')
-  async getDrillDown(
-    @Args('cubeName') cubeName: string,
-    @Args('dimension') dimension: string,
-    @Args('value') value: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
-  ): Promise<string> {
-    try {
-      const result = { cubeName, dimension, value, data: [] };
-      return JSON.stringify(result);
-    } catch (error) {
-      this.handleError(error, 'Failed to get drill down');
       throw error;
     }
   }

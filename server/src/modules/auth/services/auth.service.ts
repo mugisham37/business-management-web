@@ -8,7 +8,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { DrizzleService } from '../../database/drizzle.service';
 import { users, userSessions } from '../../database/schema/user.schema';
-import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto } from '../dto/auth.dto';
+import {
+  LoginInput,
+  RegisterInput,
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from '../inputs/auth.input';
 import { 
   JwtPayload, 
   AuthenticatedUser, 
@@ -52,7 +58,7 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+  async register(registerDto: RegisterInput, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
     const db = this.drizzleService.getDb();
 
     // Check if user already exists
@@ -106,7 +112,7 @@ export class AuthService {
     return this.createUserSession(newUser, ipAddress, userAgent);
   }
 
-  async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+  async login(loginDto: LoginInput, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
     const db = this.drizzleService.getDb();
 
     // Find user by email
@@ -412,7 +418,7 @@ export class AuthService {
     });
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+  async changePassword(userId: string, changePasswordDto: ChangePasswordInput): Promise<void> {
     const db = this.drizzleService.getDb();
 
     // Find user
@@ -459,7 +465,7 @@ export class AuthService {
     });
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+  async forgotPassword(forgotPasswordDto: ForgotPasswordInput): Promise<void> {
     const db = this.drizzleService.getDb();
 
     // Find user by email
@@ -498,7 +504,7 @@ export class AuthService {
     });
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
+  async resetPassword(resetPasswordDto: ResetPasswordInput): Promise<void> {
     const db = this.drizzleService.getDb();
 
     // Find user by reset token

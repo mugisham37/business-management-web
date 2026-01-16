@@ -6,9 +6,6 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './services/auth.service';
 import { PermissionsService } from './services/permissions.service';
 import { MfaService } from './services/mfa.service';
-import { AuthController } from './controllers/auth.controller';
-import { PermissionsController } from './controllers/permissions.controller';
-import { MfaController } from './controllers/mfa.controller';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { MfaResolver } from './resolvers/mfa.resolver';
 import { PermissionsResolver } from './resolvers/permissions.resolver';
@@ -49,7 +46,6 @@ import { CacheModule } from '../cache/cache.module';
     }),
     CacheModule,
   ],
-  controllers: [AuthController, PermissionsController, MfaController],
   providers: [
     DrizzleService,
     DataLoaderService,

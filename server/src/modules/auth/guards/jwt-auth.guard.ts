@@ -3,15 +3,28 @@ import { AuthGuard } from '@nestjs/passport';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Reflector } from '@nestjs/core';
 
+/**
+ * JWT Authentication Guard for REST endpoints
+ * Validates JWT tokens in Authorization header
+ * Can be bypassed with @Public() decorator
+ */
 @Injectable()
-export class GraphQLJwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
     super();
   }
 
   override getRequest(context: ExecutionContext) {
-    const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req;
+    // Handle both REST and GraphQL contexts
+    const ctx = context.getType<string>();
+    
+    if (ctx === 'graphql') {
+      const gqlContext = GqlExecutionContext.create(context);
+      return gqlContext.getContext().req;
+    }
+    
+    // For REST
+    return context.switchToHttp().getRequest();
   }
 
   override canActivate(context: ExecutionContext) {
@@ -28,6 +41,3 @@ export class GraphQLJwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 }
-
-// Export with both names for compatibility
-export { GraphQLJwtAuthGuard as JwtAuthGuard };

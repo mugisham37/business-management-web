@@ -40,55 +40,55 @@ registerEnumType(ComplianceStatus, { name: 'ComplianceStatus' });
 @ObjectType()
 export class SecuritySettings {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  passwordMinLength: number;
+  passwordMinLength!: number;
 
   @Field()
-  passwordRequireUppercase: boolean;
+  passwordRequireUppercase!: boolean;
 
   @Field()
-  passwordRequireLowercase: boolean;
+  passwordRequireLowercase!: boolean;
 
   @Field()
-  passwordRequireNumbers: boolean;
+  passwordRequireNumbers!: boolean;
 
   @Field()
-  passwordRequireSpecialChars: boolean;
+  passwordRequireSpecialChars!: boolean;
 
   @Field()
-  passwordExpiryDays: number;
+  passwordExpiryDays!: number;
 
   @Field()
-  mfaRequired: boolean;
+  mfaRequired!: boolean;
 
   @Field()
-  sessionTimeoutMinutes: number;
+  sessionTimeoutMinutes!: number;
 
   @Field()
-  maxLoginAttempts: number;
+  maxLoginAttempts!: number;
 
   @Field()
-  lockoutDurationMinutes: number;
+  lockoutDurationMinutes!: number;
 
   @Field()
-  ipWhitelistEnabled: boolean;
+  ipWhitelistEnabled!: boolean;
 
   @Field(() => [String])
-  ipWhitelist: string[];
+  ipWhitelist!: string[];
 
   @Field()
-  auditLogRetentionDays: number;
+  auditLogRetentionDays!: number;
 
   @Field()
-  encryptSensitiveData: boolean;
+  encryptSensitiveData!: boolean;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Field({ nullable: true })
   updatedBy?: string;
@@ -98,22 +98,22 @@ export class SecuritySettings {
 @ObjectType()
 export class SecurityEvent {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field(() => SecurityEventType)
-  type: SecurityEventType;
+  type!: SecurityEventType;
 
   @Field()
-  description: string;
+  description!: string;
 
   @Field(() => ThreatSeverity)
-  severity: ThreatSeverity;
+  severity!: ThreatSeverity;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field({ nullable: true })
   userId?: string;
@@ -131,7 +131,7 @@ export class SecurityEvent {
   metadata?: Record<string, any>;
 
   @Field({ nullable: true })
-  investigated: boolean;
+  investigated!: boolean;
 
   @Field({ nullable: true })
   investigatedBy?: string;
@@ -147,44 +147,44 @@ export class SecurityEvent {
 @ObjectType()
 export class SecurityThreat {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  type: string;
+  type!: string;
 
   @Field(() => ThreatSeverity)
-  severity: ThreatSeverity;
+  severity!: ThreatSeverity;
 
   @Field()
-  description: string;
+  description!: string;
 
   @Field()
-  source: string;
+  source!: string;
 
   @Field()
-  firstDetected: Date;
+  firstDetected!: Date;
 
   @Field()
-  lastSeen: Date;
+  lastSeen!: Date;
 
   @Field()
-  count: number;
+  count!: number;
 
   @Field(() => ThreatStatus)
-  status: ThreatStatus;
+  status!: ThreatStatus;
 
   @Field(() => [String])
-  affectedResources: string[];
+  affectedResources!: string[];
 
   @Field(() => [String])
-  recommendedActions: string[];
+  recommendedActions!: string[];
 }
 
 // Audit Log
 @ObjectType()
 export class AuditLog {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field({ nullable: true })
   tenantId?: string;
@@ -193,10 +193,10 @@ export class AuditLog {
   userId?: string;
 
   @Field()
-  action: string;
+  action!: string;
 
   @Field()
-  resource: string;
+  resource!: string;
 
   @Field({ nullable: true })
   resourceId?: string;
@@ -217,7 +217,7 @@ export class AuditLog {
   userAgent?: string;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field({ nullable: true })
   severity?: string;
@@ -230,47 +230,47 @@ export class AuditLog {
 @ObjectType()
 export class ComplianceFramework {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field()
-  description: string;
+  description!: string;
 
   @Field()
-  enabled: boolean;
+  enabled!: boolean;
 }
 
 // Compliance Requirement
 @ObjectType()
 export class ComplianceRequirement {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  title: string;
+  title!: string;
 
   @Field()
-  description: string;
+  description!: string;
 
   @Field()
-  category: string;
+  category!: string;
 
   @Field(() => ThreatSeverity)
-  severity: ThreatSeverity;
+  severity!: ThreatSeverity;
 
   @Field(() => ComplianceStatus)
-  status: ComplianceStatus;
+  status!: ComplianceStatus;
 
   @Field()
-  lastAssessed: Date;
+  lastAssessed!: Date;
 
   @Field()
-  nextAssessment: Date;
+  nextAssessment!: Date;
 
   @Field(() => [String])
-  evidence: string[];
+  evidence!: string[];
 
   @Field({ nullable: true })
   remediation?: string;
@@ -280,47 +280,47 @@ export class ComplianceRequirement {
 @ObjectType()
 export class ComplianceReport {
   @Field()
-  frameworkId: string;
+  frameworkId!: string;
 
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  generatedAt: Date;
+  generatedAt!: Date;
 
   @Field()
-  overallStatus: string;
+  overallStatus!: string;
 
   @Field()
-  complianceScore: number;
+  complianceScore!: number;
 
   @Field(() => [ComplianceRequirement])
-  requirements: ComplianceRequirement[];
+  requirements!: ComplianceRequirement[];
 
   @Field(() => [String])
-  recommendations: string[];
+  recommendations!: string[];
 
   @Field()
-  nextAuditDate: Date;
+  nextAuditDate!: Date;
 }
 
 // Compliance Violation
 @ObjectType()
 export class ComplianceViolation {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  type: string;
+  type!: string;
 
   @Field()
-  description: string;
+  description!: string;
 
   @Field(() => ThreatSeverity)
-  severity: ThreatSeverity;
+  severity!: ThreatSeverity;
 
   @Field()
-  detectedAt: Date;
+  detectedAt!: Date;
 
   @Field({ nullable: true })
   acknowledgedAt?: Date;
@@ -339,155 +339,155 @@ export class ComplianceViolation {
 @ObjectType()
 export class SecurityDashboard {
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field()
-  threatLevel: string;
+  threatLevel!: string;
 
   @Field()
-  activeThreats: number;
+  activeThreats!: number;
 
   @Field()
-  failedLogins: number;
+  failedLogins!: number;
 
   @Field()
-  successfulLogins: number;
+  successfulLogins!: number;
 
   @Field()
-  dataAccessAttempts: number;
+  dataAccessAttempts!: number;
 
   @Field()
-  suspiciousActivities: number;
+  suspiciousActivities!: number;
 
   @Field(() => [SecurityThreat])
-  recentThreats: SecurityThreat[];
+  recentThreats!: SecurityThreat[];
 
   @Field(() => [SecurityEvent])
-  recentEvents: SecurityEvent[];
+  recentEvents!: SecurityEvent[];
 }
 
 // Security Metrics
 @ObjectType()
 export class SecurityMetrics {
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  period: string;
+  period!: string;
 
   @Field()
-  startDate: Date;
+  startDate!: Date;
 
   @Field()
-  endDate: Date;
+  endDate!: Date;
 
   @Field()
-  totalEvents: number;
+  totalEvents!: number;
 
   @Field()
-  criticalEvents: number;
+  criticalEvents!: number;
 
   @Field()
-  highSeverityEvents: number;
+  highSeverityEvents!: number;
 
   @Field()
-  mediumSeverityEvents: number;
+  mediumSeverityEvents!: number;
 
   @Field()
-  lowSeverityEvents: number;
+  lowSeverityEvents!: number;
 
   @Field()
-  failedLoginAttempts: number;
+  failedLoginAttempts!: number;
 
   @Field()
-  successfulLogins: number;
+  successfulLogins!: number;
 
   @Field()
-  dataAccessEvents: number;
+  dataAccessEvents!: number;
 
   @Field()
-  configurationChanges: number;
+  configurationChanges!: number;
 
   @Field()
-  threatsDetected: number;
+  threatsDetected!: number;
 
   @Field()
-  threatsResolved: number;
+  threatsResolved!: number;
 }
 
 // Threat Analysis
 @ObjectType()
 export class ThreatAnalysis {
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  period: string;
+  period!: string;
 
   @Field()
-  startDate: Date;
+  startDate!: Date;
 
   @Field()
-  endDate: Date;
+  endDate!: Date;
 
   @Field()
-  totalThreats: number;
+  totalThreats!: number;
 
   @Field()
-  activeThreats: number;
+  activeThreats!: number;
 
   @Field()
-  resolvedThreats: number;
+  resolvedThreats!: number;
 
   @Field(() => [String])
-  topThreatTypes: string[];
+  topThreatTypes!: string[];
 
   @Field(() => [String])
-  topTargetedResources: string[];
+  topTargetedResources!: string[];
 
   @Field(() => [String])
-  topSourceIPs: string[];
+  topSourceIPs!: string[];
 
   @Field()
-  averageResolutionTime: number;
+  averageResolutionTime!: number;
 
   @Field(() => [SecurityThreat])
-  criticalThreats: SecurityThreat[];
+  criticalThreats!: SecurityThreat[];
 }
 
 // Access Pattern
 @ObjectType()
 export class AccessPattern {
   @Field()
-  userId: string;
+  userId!: string;
 
   @Field()
-  tenantId: string;
+  tenantId!: string;
 
   @Field()
-  period: string;
+  period!: string;
 
   @Field()
-  totalAccesses: number;
+  totalAccesses!: number;
 
   @Field()
-  uniqueResources: number;
+  uniqueResources!: number;
 
   @Field(() => [String])
-  mostAccessedResources: string[];
+  mostAccessedResources!: string[];
 
   @Field(() => [String])
-  accessTimes: string[];
+  accessTimes!: string[];
 
   @Field(() => [String])
-  accessLocations: string[];
+  accessLocations!: string[];
 
   @Field()
-  suspiciousActivityScore: number;
+  suspiciousActivityScore!: number;
 
   @Field(() => [String])
-  anomalies: string[];
+  anomalies!: string[];
 }

@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { AuditService } from '../services/audit.service';
@@ -20,7 +20,7 @@ import { AuditLogFilterInput, ExportAuditLogsInput } from '../inputs/security.in
 @UseGuards(JwtAuthGuard)
 export class AuditResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly auditService: AuditService,
   ) {
     super(dataLoaderService);
@@ -45,13 +45,13 @@ export class AuditResolver extends BaseResolver {
       // Query audit logs
       const logs = await this.auditService.queryLogs({
         tenantId,
-        userId: filter?.userId,
-        action: filter?.action,
-        resource: filter?.resource,
+        ...(filter?.userId ? { userId: filter.userId } : {}),
+        ...(filter?.action ? { action: filter.action } : {}),
+        ...(filter?.resource ? { resource: filter.resource } : {}),
         startDate,
         endDate,
-        severity: filter?.severity,
-        category: filter?.category,
+        ...(filter?.severity ? { severity: filter.severity } : {}),
+        ...(filter?.category ? { category: filter.category } : {}),
         limit: filter?.limit || 100,
         offset: filter?.offset || 0,
         orderBy: (filter?.orderBy as 'asc' | 'desc') || 'desc',
@@ -139,15 +139,18 @@ export class AuditResolver extends BaseResolver {
       const endDate = filter.endDate || new Date();
 
       // Export audit logs (this would typically enqueue a background job)
-      const exportId = await this.auditService.exportLogs({
+      const exportData = await this.auditService.exportLogs(
         tenantId,
-        userId: filter.userId,
-        action: filter.action,
-        resource: filter.resource,
         startDate,
         endDate,
-        severity: filter.severity,
-        category: filter.category,
+        (input.format as 'json' | 'csv') || 'csv'
+      );
+      
+      // Generate export ID for tracking
+      const exportId = await this.auditService.initiateExport({
+        tenantId,
+        startDate,
+        endDate,
         format: input.format || 'csv',
         requestedBy: user.id,
       });

@@ -10,14 +10,6 @@ import { DataDeletionService } from './services/data-deletion.service';
 import { KeyManagementService } from './services/key-management.service';
 import { EnterpriseAuthService } from './services/enterprise-auth.service';
 import { PenetrationTestingService } from './services/penetration-testing.service';
-import { SecurityController } from './controllers/security.controller';
-import { AuditController } from './controllers/audit.controller';
-import { ComplianceController } from './controllers/compliance.controller';
-import { SecurityDashboardController } from './controllers/security-dashboard.controller';
-import { SecurityGuard } from './guards/security.guard';
-import { ThreatDetectionGuard } from './guards/threat-detection.guard';
-import { SecurityInterceptor } from './interceptors/security.interceptor';
-import { AuditInterceptor } from './interceptors/audit.interceptor';
 import { DrizzleService } from '../database/drizzle.service';
 import { CustomLoggerService } from '../logger/logger.service';
 import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
@@ -33,12 +25,6 @@ import { SecurityDashboardResolver } from './resolvers/security-dashboard.resolv
     GraphQLCommonModule,
     QueueModule,
   ],
-  controllers: [
-    SecurityController, 
-    AuditController, 
-    ComplianceController,
-    SecurityDashboardController,
-  ],
   providers: [
     DrizzleService,
     CustomLoggerService,
@@ -51,10 +37,6 @@ import { SecurityDashboardResolver } from './resolvers/security-dashboard.resolv
     KeyManagementService,
     EnterpriseAuthService,
     PenetrationTestingService,
-    SecurityGuard,
-    ThreatDetectionGuard,
-    SecurityInterceptor,
-    AuditInterceptor,
     // GraphQL Resolvers
     SecurityResolver,
     AuditResolver,
@@ -71,10 +53,6 @@ import { SecurityDashboardResolver } from './resolvers/security-dashboard.resolv
     KeyManagementService,
     EnterpriseAuthService,
     PenetrationTestingService,
-    SecurityGuard,
-    ThreatDetectionGuard,
-    SecurityInterceptor,
-    AuditInterceptor,
   ],
 })
 export class SecurityModule {}

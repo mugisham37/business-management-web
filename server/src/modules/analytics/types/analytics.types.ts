@@ -2,6 +2,154 @@ import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/gra
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from '../../../common/graphql/base.types';
 
+// Enums first
+export enum MetricCategory {
+  SALES = 'SALES',
+  INVENTORY = 'INVENTORY',
+  CUSTOMER = 'CUSTOMER',
+  FINANCIAL = 'FINANCIAL',
+  OPERATIONAL = 'OPERATIONAL',
+}
+
+registerEnumType(MetricCategory, {
+  name: 'MetricCategory',
+  description: 'Categories for metrics',
+});
+
+export enum TimePeriod {
+  HOUR = 'HOUR',
+  DAY = 'DAY',
+  WEEK = 'WEEK',
+  MONTH = 'MONTH',
+  QUARTER = 'QUARTER',
+  YEAR = 'YEAR',
+}
+
+registerEnumType(TimePeriod, {
+  name: 'TimePeriod',
+  description: 'Time period granularity',
+});
+
+export enum ReportStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
+
+registerEnumType(ReportStatus, {
+  name: 'ReportStatus',
+  description: 'Status of a report',
+});
+
+export enum ExecutionStatus {
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+registerEnumType(ExecutionStatus, {
+  name: 'ExecutionStatus',
+  description: 'Status of a report execution',
+});
+
+// Simple types first (no dependencies)
+@ObjectType()
+export class MetricDimension {
+  @Field()
+  @ApiProperty({ description: 'Dimension name' })
+  name!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Dimension value' })
+  value!: string;
+}
+
+@ObjectType()
+export class TrendDataPoint {
+  @Field()
+  @ApiProperty({ description: 'Data point timestamp' })
+  timestamp!: Date;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Data point value' })
+  value!: number;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Data point label', required: false })
+  label?: string;
+}
+
+@ObjectType()
+export class MetricValue {
+  @Field()
+  @ApiProperty({ description: 'Metric name' })
+  name!: string;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Metric value' })
+  value!: number;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Metric unit', required: false })
+  unit?: string;
+}
+
+@ObjectType()
+export class DashboardWidget {
+  @Field(() => ID)
+  @ApiProperty({ description: 'Widget identifier' })
+  id!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Widget title' })
+  title!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Widget type' })
+  type!: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Widget data', required: false })
+  data?: string;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Widget position X' })
+  x!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Widget position Y' })
+  y!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Widget width' })
+  width!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Widget height' })
+  height!: number;
+}
+
+@ObjectType()
+export class ForecastDataPoint {
+  @Field()
+  @ApiProperty({ description: 'Timestamp' })
+  timestamp!: Date;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Predicted value' })
+  value!: number;
+
+  @Field(() => Float, { nullable: true })
+  @ApiProperty({ description: 'Lower bound', required: false })
+  lowerBound?: number;
+
+  @Field(() => Float, { nullable: true })
+  @ApiProperty({ description: 'Upper bound', required: false })
+  upperBound?: number;
+}
+
+// Complex types (with dependencies)
 @ObjectType()
 export class Metric {
   @Field(() => ID)
@@ -38,17 +186,6 @@ export class Metric {
 }
 
 @ObjectType()
-export class MetricDimension {
-  @Field()
-  @ApiProperty({ description: 'Dimension name' })
-  name!: string;
-
-  @Field()
-  @ApiProperty({ description: 'Dimension value' })
-  value!: string;
-}
-
-@ObjectType()
 export class KPI {
   @Field(() => ID)
   @ApiProperty({ description: 'KPI identifier' })
@@ -74,9 +211,9 @@ export class KPI {
   @ApiProperty({ description: 'Previous period value', required: false })
   previousValue?: number;
 
-  @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Change percentage', required: false })
-  changePercentage?: number;
+  @Field(() => Float)
+  @ApiProperty({ description: 'Change percentage' })
+  changePercentage!: number;
 
   @Field()
   @ApiProperty({ description: 'KPI status' })
@@ -121,49 +258,6 @@ export class Trend {
   @ApiProperty({ description: 'End date' })
   endDate!: Date;
 }
-
-@ObjectType()
-export class TrendDataPoint {
-  @Field()
-  @ApiProperty({ description: 'Data point timestamp' })
-  timestamp!: Date;
-
-  @Field(() => Float)
-  @ApiProperty({ description: 'Data point value' })
-  value!: number;
-
-  @Field({ nullable: true })
-  @ApiProperty({ description: 'Data point label', required: false })
-  label?: string;
-}
-
-export enum MetricCategory {
-  SALES = 'SALES',
-  INVENTORY = 'INVENTORY',
-  CUSTOMER = 'CUSTOMER',
-  FINANCIAL = 'FINANCIAL',
-  OPERATIONAL = 'OPERATIONAL',
-}
-
-registerEnumType(MetricCategory, {
-  name: 'MetricCategory',
-  description: 'Categories for metrics',
-});
-
-export enum TimePeriod {
-  HOUR = 'HOUR',
-  DAY = 'DAY',
-  WEEK = 'WEEK',
-  MONTH = 'MONTH',
-  QUARTER = 'QUARTER',
-  YEAR = 'YEAR',
-}
-
-registerEnumType(TimePeriod, {
-  name: 'TimePeriod',
-  description: 'Time period granularity',
-});
-
 
 @ObjectType()
 export class ComparisonResult {
@@ -228,21 +322,6 @@ export class LocationComparison {
 }
 
 @ObjectType()
-export class MetricValue {
-  @Field()
-  @ApiProperty({ description: 'Metric name' })
-  name!: string;
-
-  @Field(() => Float)
-  @ApiProperty({ description: 'Metric value' })
-  value!: number;
-
-  @Field({ nullable: true })
-  @ApiProperty({ description: 'Metric unit', required: false })
-  unit?: string;
-}
-
-@ObjectType()
 export class SegmentComparison {
   @Field(() => ID)
   @ApiProperty({ description: 'Segment identifier' })
@@ -260,7 +339,6 @@ export class SegmentComparison {
   @ApiProperty({ description: 'Segment size' })
   size!: number;
 }
-
 
 @ObjectType()
 export class Report extends BaseEntity {
@@ -363,30 +441,6 @@ export class ScheduledReport {
   lastRunAt?: Date;
 }
 
-export enum ReportStatus {
-  DRAFT = 'DRAFT',
-  ACTIVE = 'ACTIVE',
-  ARCHIVED = 'ARCHIVED',
-}
-
-registerEnumType(ReportStatus, {
-  name: 'ReportStatus',
-  description: 'Status of a report',
-});
-
-export enum ExecutionStatus {
-  QUEUED = 'QUEUED',
-  RUNNING = 'RUNNING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-}
-
-registerEnumType(ExecutionStatus, {
-  name: 'ExecutionStatus',
-  description: 'Status of a report execution',
-});
-
-
 @ObjectType()
 export class Dashboard extends BaseEntity {
   @Field()
@@ -404,41 +458,6 @@ export class Dashboard extends BaseEntity {
   @Field()
   @ApiProperty({ description: 'Whether dashboard is public' })
   isPublic!: boolean;
-}
-
-@ObjectType()
-export class DashboardWidget {
-  @Field(() => ID)
-  @ApiProperty({ description: 'Widget identifier' })
-  id!: string;
-
-  @Field()
-  @ApiProperty({ description: 'Widget title' })
-  title!: string;
-
-  @Field()
-  @ApiProperty({ description: 'Widget type' })
-  type!: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ description: 'Widget data', required: false })
-  data?: string;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Widget position X' })
-  x!: number;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Widget position Y' })
-  y!: number;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Widget width' })
-  width!: number;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Widget height' })
-  height!: number;
 }
 
 @ObjectType()
@@ -504,25 +523,6 @@ export class Forecast {
   @Field()
   @ApiProperty({ description: 'Model used' })
   model!: string;
-}
-
-@ObjectType()
-export class ForecastDataPoint {
-  @Field()
-  @ApiProperty({ description: 'Timestamp' })
-  timestamp!: Date;
-
-  @Field(() => Float)
-  @ApiProperty({ description: 'Predicted value' })
-  value!: number;
-
-  @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Lower bound', required: false })
-  lowerBound?: number;
-
-  @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Upper bound', required: false })
-  upperBound?: number;
 }
 
 @ObjectType()

@@ -494,8 +494,6 @@ export class SecurityMonitoringService {
       }
     }
   }
-}
-
 
   /**
    * Get security settings for a tenant

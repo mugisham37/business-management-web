@@ -149,7 +149,7 @@ export class SecurityEventFilterInput {
 export class InvestigateEventInput {
   @Field()
   @IsString()
-  eventId: string;
+  eventId!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -239,7 +239,7 @@ export class ExportAuditLogsInput {
 export class RunComplianceCheckInput {
   @Field()
   @IsString()
-  frameworkId: string;
+  frameworkId!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -257,7 +257,7 @@ export class RunComplianceCheckInput {
 export class AcknowledgeViolationInput {
   @Field()
   @IsString()
-  violationId: string;
+  violationId!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -327,7 +327,7 @@ export class ThreatAnalysisFilterInput {
 export class AccessPatternFilterInput {
   @Field()
   @IsString()
-  userId: string;
+  userId!: string;
 
   @Field({ nullable: true })
   @IsOptional()

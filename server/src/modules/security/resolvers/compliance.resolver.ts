@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { ComplianceService } from '../services/compliance.service';
@@ -12,7 +12,8 @@ import { QueueService } from '../../queue/queue.service';
 import { 
   ComplianceFramework, 
   ComplianceReport, 
-  ComplianceViolation 
+  ComplianceViolation,
+  ComplianceRequirement
 } from '../types/security.types';
 import { 
   RunComplianceCheckInput, 
@@ -28,7 +29,7 @@ import {
 @UseGuards(JwtAuthGuard)
 export class ComplianceResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly complianceService: ComplianceService,
     private readonly queueService: QueueService,
   ) {
@@ -108,7 +109,7 @@ export class ComplianceResolver extends BaseResolver {
         generatedAt: report.generatedAt,
         overallStatus: report.overallStatus,
         complianceScore: report.complianceScore,
-        requirements: report.requirements.map(req => ({
+        requirements: report.requirements.map((req: ComplianceRequirement) => ({
           id: req.id,
           title: req.title,
           description: req.description,
@@ -143,8 +144,8 @@ export class ComplianceResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<string> {
     try {
-      // Enqueue compliance check to Bull queue
-      const job = await this.queueService.addJob('compliance-check', {
+      // Enqueue compliance check to queue
+      const job = await this.queueService.add('compliance-check', {
         tenantId,
         frameworkId: input.frameworkId,
         checkType: input.checkType || 'standard',
@@ -225,8 +226,8 @@ export class ComplianceResolver extends BaseResolver {
         detectedAt: violation.detectedAt,
         acknowledgedAt: new Date(),
         acknowledgedBy: user.id,
-        resolution: input.resolution,
-        resolvedAt: violation.resolvedAt,
+        ...(input.resolution ? { resolution: input.resolution } : {}),
+        ...(violation.resolvedAt ? { resolvedAt: violation.resolvedAt } : {}),
       };
     } catch (error) {
       this.handleError(error, 'Failed to acknowledge violation');
@@ -245,7 +246,7 @@ export class ComplianceResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
     try {
-      const job = await this.queueService.getJob('compliance-check', jobId);
+      const job = await this.queueService.getJob('sync', jobId);
 
       if (!job) {
         throw new Error('Job not found');

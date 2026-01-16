@@ -594,8 +594,6 @@ export class ThreatDetectionService {
       '10.0.0.50',     // Example malicious IP
     ];
   }
-}
-
 
   /**
    * Get active threats for a tenant

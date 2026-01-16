@@ -3,10 +3,10 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
-import { CurrentTenant } from '../../tenant/decorators/tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
-import { CacheInterceptor } from '../../../common/interceptors/cache.interceptor';
+import { CacheInterceptor } from '../../../common/interceptors';
 import { SecurityMonitoringService } from '../services/security-monitoring.service';
 import { ThreatDetectionService } from '../services/threat-detection.service';
 import { 
@@ -31,7 +31,7 @@ import {
 @UseInterceptors(CacheInterceptor)
 export class SecurityDashboardResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly securityMonitoringService: SecurityMonitoringService,
     private readonly threatDetectionService: ThreatDetectionService,
   ) {
@@ -67,7 +67,7 @@ export class SecurityDashboardResolver extends BaseResolver {
         successfulLogins: metrics.successfulLogins || 0,
         dataAccessAttempts: metrics.dataAccessAttempts || 0,
         suspiciousActivities: metrics.suspiciousActivities || 0,
-        recentThreats: threats.map(threat => ({
+        recentThreats: threats.map((threat: any) => ({
           id: threat.id,
           type: threat.type,
           severity: threat.severity,
@@ -185,7 +185,7 @@ export class SecurityDashboardResolver extends BaseResolver {
         topTargetedResources: analysis.topTargetedResources || [],
         topSourceIPs: analysis.topSourceIPs || [],
         averageResolutionTime: analysis.averageResolutionTime || 0,
-        criticalThreats: (analysis.criticalThreats || []).map(threat => ({
+        criticalThreats: (analysis.criticalThreats || []).map((threat: any) => ({
           id: threat.id,
           type: threat.type,
           severity: threat.severity,

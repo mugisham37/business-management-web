@@ -34,7 +34,7 @@ export class PermissionsResolver extends BaseResolver {
   private readonly PERMISSIONS_CACHE_TTL = 15 * 60; // 15 minutes in seconds
 
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly permissionsService: PermissionsService,
     private readonly cacheService: CacheService,
   ) {
@@ -181,9 +181,9 @@ export class PermissionsResolver extends BaseResolver {
         input.permission,
         currentUser.id,
         {
-          resource: input.resource,
-          resourceId: input.resourceId,
-          expiresAt: input.expiresAt,
+          ...(input.resource && { resource: input.resource }),
+          ...(input.resourceId && { resourceId: input.resourceId }),
+          ...(input.expiresAt && { expiresAt: input.expiresAt }),
         },
       );
 
