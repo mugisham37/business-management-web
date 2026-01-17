@@ -3,15 +3,15 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PurchaseOrderRepository } from '../repositories/purchase-order.repository';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import {
-  CreatePurchaseOrderDto,
-  UpdatePurchaseOrderDto,
-  PurchaseOrderQueryDto,
-  CreateApprovalDto,
-  ApprovalResponseDto,
-  CreateReceiptDto,
-  CreateInvoiceDto,
+  CreatePurchaseOrderInput,
+  UpdatePurchaseOrderInput,
+  PurchaseOrderFilterInput,
+  CreateApprovalInput,
+  ApprovalResponseInput,
+  CreateReceiptInput,
+  CreateInvoiceInput,
   PurchaseOrderStatus,
-} from '../dto/purchase-order.dto';
+} from '../inputs/purchase-order.input';
 import { purchaseOrders } from '../../database/schema/purchase-order.schema';
 
 // Domain Events
@@ -73,7 +73,7 @@ export class PurchaseOrderService {
   // Purchase Order Management
   async createPurchaseOrder(
     tenantId: string,
-    data: CreatePurchaseOrderDto,
+    data: CreatePurchaseOrderInput,
     userId: string,
   ): Promise<typeof purchaseOrders.$inferSelect> {
     // Verify supplier exists and is active
@@ -137,14 +137,14 @@ export class PurchaseOrderService {
     return result;
   }
 
-  async getPurchaseOrders(tenantId: string, query: PurchaseOrderQueryDto) {
+  async getPurchaseOrders(tenantId: string, query: PurchaseOrderFilterInput) {
     return await this.purchaseOrderRepository.findMany(tenantId, query);
   }
 
   async updatePurchaseOrder(
     tenantId: string,
     id: string,
-    data: UpdatePurchaseOrderDto,
+    data: UpdatePurchaseOrderInput,
     userId: string,
   ): Promise<typeof purchaseOrders.$inferSelect> {
     // Check if purchase order exists
@@ -226,7 +226,7 @@ export class PurchaseOrderService {
 
   async createApproval(
     tenantId: string,
-    data: CreateApprovalDto,
+    data: CreateApprovalInput,
     userId: string,
   ) {
     // Verify purchase order exists and is pending approval
@@ -241,7 +241,7 @@ export class PurchaseOrderService {
   async respondToApproval(
     tenantId: string,
     approvalId: string,
-    response: ApprovalResponseDto,
+    response: ApprovalResponseInput,
     userId: string,
   ) {
     const approval = await this.purchaseOrderRepository.updateApproval(
@@ -278,7 +278,7 @@ export class PurchaseOrderService {
   // Receipt Management
   async createReceipt(
     tenantId: string,
-    data: CreateReceiptDto,
+    data: CreateReceiptInput,
     userId: string,
   ) {
     // Verify purchase order exists and is in appropriate status
@@ -322,7 +322,7 @@ export class PurchaseOrderService {
   // Invoice Management
   async createInvoice(
     tenantId: string,
-    data: CreateInvoiceDto,
+    data: CreateInvoiceInput,
     userId: string,
   ) {
     // Verify purchase order exists
@@ -551,8 +551,6 @@ export class PurchaseOrderService {
     // Auto-approve orders below threshold
     const pendingOrders = await this.purchaseOrderRepository.findMany(tenantId, {
       status: PurchaseOrderStatus.PENDING_APPROVAL,
-      page: 1,
-      limit: 100,
     });
 
     for (const order of pendingOrders.purchaseOrders) {
@@ -573,8 +571,6 @@ export class PurchaseOrderService {
     const overdueOrders = await this.purchaseOrderRepository.findMany(tenantId, {
       status: PurchaseOrderStatus.SENT_TO_SUPPLIER,
       deliveryDateTo: new Date().toISOString(),
-      page: 1,
-      limit: 100,
     });
 
     for (const order of overdueOrders.purchaseOrders) {

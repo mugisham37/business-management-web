@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -19,10 +19,10 @@ import {
 } from '../types/edi-integration.types';
 
 @Resolver()
-@UseGuards(JwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 export class EDIIntegrationResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly ediIntegrationService: EDIIntegrationService,
     @Inject('BullQueue_edi') private readonly ediQueue: Queue,
   ) {
@@ -64,7 +64,7 @@ export class EDIIntegrationResolver extends BaseResolver {
     return this.ediIntegrationService.processInboundDocument(
       tenantId,
       input.supplierId,
-      input.documentType,
+      input.documentType as any,
       input.rawContent,
     );
   }

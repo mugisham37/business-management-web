@@ -1,5 +1,4 @@
 import { ObjectType, Field, ID, Float, InputType, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity, Edge, Connection } from '../../../common/graphql/base.types';
 import { 
   IsString, 
@@ -25,7 +24,7 @@ export enum SupplierStatus {
   BLACKLISTED = 'blacklisted',
 }
 
-export enum SupplierType {
+export enum SupplierTypeEnum {
   MANUFACTURER = 'manufacturer',
   DISTRIBUTOR = 'distributor',
   WHOLESALER = 'wholesaler',
@@ -43,106 +42,82 @@ export enum PaymentTerms {
 }
 
 registerEnumType(SupplierStatus, { name: 'SupplierStatus' });
-registerEnumType(SupplierType, { name: 'SupplierType' });
+registerEnumType(SupplierTypeEnum, { name: 'SupplierType' });
 registerEnumType(PaymentTerms, { name: 'PaymentTerms' });
 
 // Object Types
 @ObjectType('Supplier')
 export class SupplierType extends BaseEntity {
   @Field()
-  @ApiProperty({ description: 'Supplier code' })
   supplierCode!: string;
 
   @Field()
-  @ApiProperty({ description: 'Supplier name' })
   name!: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Legal name', required: false })
   legalName?: string;
 
-  @Field(() => SupplierType)
-  @ApiProperty({ description: 'Supplier type', enum: SupplierType })
-  type!: SupplierType;
+  @Field(() => SupplierTypeEnum)
+  type!: SupplierTypeEnum;
 
   @Field(() => SupplierStatus)
-  @ApiProperty({ description: 'Supplier status', enum: SupplierStatus })
   status!: SupplierStatus;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Tax ID', required: false })
   taxId?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Email', required: false })
   email?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Phone', required: false })
   phone?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Website', required: false })
   website?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Address', required: false })
   address?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'City', required: false })
   city?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'State/Province', required: false })
   state?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Postal code', required: false })
   postalCode?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Country', required: false })
   country?: string;
 
   @Field(() => PaymentTerms, { nullable: true })
-  @ApiProperty({ description: 'Payment terms', enum: PaymentTerms, required: false })
   paymentTerms?: PaymentTerms;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Currency code', required: false })
   currency?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Lead time in days', required: false })
   leadTimeDays?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Minimum order amount', required: false })
   minimumOrderAmount?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Is preferred supplier', required: false })
   isPreferred?: boolean;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Overall rating', required: false })
   overallRating?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Quality rating', required: false })
   qualityRating?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Delivery rating', required: false })
   deliveryRating?: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Service rating', required: false })
   serviceRating?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Notes', required: false })
   notes?: string;
 }
 
@@ -167,9 +142,9 @@ export class CreateSupplierInput {
   @Length(1, 255)
   legalName?: string;
 
-  @Field(() => SupplierType)
-  @IsEnum(SupplierType)
-  type!: SupplierType;
+  @Field(() => SupplierTypeEnum)
+  @IsEnum(SupplierTypeEnum)
+  type!: SupplierTypeEnum;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -266,10 +241,10 @@ export class UpdateSupplierInput {
   @Length(1, 255)
   legalName?: string;
 
-  @Field(() => SupplierType, { nullable: true })
+  @Field(() => SupplierTypeEnum, { nullable: true })
   @IsOptional()
-  @IsEnum(SupplierType)
-  type?: SupplierType;
+  @IsEnum(SupplierTypeEnum)
+  type?: SupplierTypeEnum;
 
   @Field(() => SupplierStatus, { nullable: true })
   @IsOptional()
@@ -391,10 +366,10 @@ export class SupplierFilterInput {
   @IsEnum(SupplierStatus)
   status?: SupplierStatus;
 
-  @Field(() => SupplierType, { nullable: true })
+  @Field(() => SupplierTypeEnum, { nullable: true })
   @IsOptional()
-  @IsEnum(SupplierType)
-  type?: SupplierType;
+  @IsEnum(SupplierTypeEnum)
+  type?: SupplierTypeEnum;
 
   @Field({ nullable: true })
   @IsOptional()

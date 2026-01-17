@@ -8,7 +8,7 @@ import {
   supplierEvaluations,
   supplierPerformanceMetrics,
 } from '../../database/schema/supplier.schema';
-import { CreateSupplierDto, UpdateSupplierDto, SupplierQueryDto } from '../dto/supplier.dto';
+import { CreateSupplierInput, UpdateSupplierInput, SupplierFilterInput } from '../inputs/supplier.input';
 
 export interface SupplierWithRelations {
   supplier: typeof suppliers.$inferSelect;
@@ -28,7 +28,7 @@ export class SupplierRepository {
 
   async create(
     tenantId: string,
-    data: CreateSupplierDto,
+    data: CreateSupplierInput,
     userId: string,
   ): Promise<typeof suppliers.$inferSelect> {
     const [supplier] = await this.db
@@ -175,7 +175,7 @@ export class SupplierRepository {
 
   async findMany(
     tenantId: string,
-    query: SupplierQueryDto,
+    query: SupplierFilterInput,
   ): Promise<{
     suppliers: (typeof suppliers.$inferSelect)[];
     total: number;
@@ -183,7 +183,11 @@ export class SupplierRepository {
     limit: number;
     totalPages: number;
   }> {
-    const { search, status, supplierType, rating, preferredOnly, tags, page = 1, limit = 20, sortBy = 'name', sortOrder = 'asc' } = query;
+    const { search, status, supplierType, rating, preferredOnly, tags } = query;
+    const page = 1;
+    const limit = 20;
+    const sortBy = 'name';
+    const sortOrder = 'asc';
 
     // Build where conditions
     const conditions = [eq(suppliers.tenantId, tenantId), isNull(suppliers.deletedAt)];
@@ -269,7 +273,7 @@ export class SupplierRepository {
   async update(
     tenantId: string,
     id: string,
-    data: UpdateSupplierDto,
+    data: UpdateSupplierInput,
     userId: string,
   ): Promise<typeof suppliers.$inferSelect | null> {
     const updateData: any = {

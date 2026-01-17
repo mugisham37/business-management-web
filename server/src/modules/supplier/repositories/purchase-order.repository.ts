@@ -11,14 +11,14 @@ import {
   purchaseOrderInvoiceItems,
 } from '../../database/schema/purchase-order.schema';
 import {
-  CreatePurchaseOrderDto,
-  UpdatePurchaseOrderDto,
-  PurchaseOrderQueryDto,
-  CreateApprovalDto,
-  ApprovalResponseDto,
-  CreateReceiptDto,
-  CreateInvoiceDto,
-} from '../dto/purchase-order.dto';
+  CreatePurchaseOrderInput,
+  UpdatePurchaseOrderInput,
+  PurchaseOrderFilterInput,
+  CreateApprovalInput,
+  ApprovalResponseInput,
+  CreateReceiptInput,
+  CreateInvoiceInput,
+} from '../inputs/purchase-order.input';
 
 export interface PurchaseOrderWithRelations {
   purchaseOrder: typeof purchaseOrders.$inferSelect;
@@ -68,7 +68,7 @@ export class PurchaseOrderRepository {
 
   async create(
     tenantId: string,
-    data: CreatePurchaseOrderDto,
+    data: CreatePurchaseOrderInput,
     userId: string,
   ): Promise<PurchaseOrderWithRelations> {
     return await this.db.transaction(async (tx) => {
@@ -76,7 +76,7 @@ export class PurchaseOrderRepository {
       const poNumber = await this.generatePoNumber(tenantId);
 
       // Calculate totals
-      const subtotal = data.items.reduce((sum, item) => sum + (item.quantityOrdered * item.unitPrice), 0);
+      const subtotal = data.items.reduce((sum: number, item: any) => sum + (item.quantityOrdered * item.unitPrice), 0);
       const taxAmount = data.taxAmount || 0;
       const shippingAmount = data.shippingAmount || 0;
       const discountAmount = data.discountAmount || 0;
@@ -121,7 +121,7 @@ export class PurchaseOrderRepository {
 
       // Create purchase order items
       const items = await Promise.all(
-        data.items.map(async (item) => {
+        data.items.map(async (item: any) => {
           const totalPrice = item.quantityOrdered * item.unitPrice;
           const [poItem] = await tx
             .insert(purchaseOrderItems)
@@ -264,7 +264,7 @@ export class PurchaseOrderRepository {
 
   async findMany(
     tenantId: string,
-    query: PurchaseOrderQueryDto,
+    query: PurchaseOrderFilterInput,
   ): Promise<{
     purchaseOrders: (typeof purchaseOrders.$inferSelect)[];
     total: number;
@@ -281,11 +281,12 @@ export class PurchaseOrderRepository {
       orderDateTo,
       deliveryDateFrom,
       deliveryDateTo,
-      page = 1,
-      limit = 20,
-      sortBy = 'orderDate',
-      sortOrder = 'desc',
     } = query;
+    
+    const page = 1;
+    const limit = 20;
+    const sortBy = 'orderDate';
+    const sortOrder = 'desc';
 
     // Build where conditions
     const conditions = [eq(purchaseOrders.tenantId, tenantId), isNull(purchaseOrders.deletedAt)];
@@ -381,7 +382,7 @@ export class PurchaseOrderRepository {
   async update(
     tenantId: string,
     id: string,
-    data: UpdatePurchaseOrderDto,
+    data: UpdatePurchaseOrderInput,
     userId: string,
   ): Promise<typeof purchaseOrders.$inferSelect | null> {
     const updateData: any = {
@@ -439,7 +440,7 @@ export class PurchaseOrderRepository {
   // Approval methods
   async createApproval(
     tenantId: string,
-    data: CreateApprovalDto,
+    data: CreateApprovalInput,
     userId: string,
   ): Promise<typeof purchaseOrderApprovals.$inferSelect> {
     const [approval] = await this.db
@@ -462,7 +463,7 @@ export class PurchaseOrderRepository {
   async updateApproval(
     tenantId: string,
     approvalId: string,
-    response: ApprovalResponseDto,
+    response: ApprovalResponseInput,
     userId: string,
   ): Promise<typeof purchaseOrderApprovals.$inferSelect | null> {
     const [approval] = await this.db
@@ -510,7 +511,7 @@ export class PurchaseOrderRepository {
   // Receipt methods
   async createReceipt(
     tenantId: string,
-    data: CreateReceiptDto,
+    data: CreateReceiptInput,
     userId: string,
   ): Promise<{
     receipt: typeof purchaseOrderReceipts.$inferSelect;
@@ -547,7 +548,7 @@ export class PurchaseOrderRepository {
 
       // Create receipt items
       const items = await Promise.all(
-        data.items.map(async (item) => {
+        data.items.map(async (item: any) => {
           const [receiptItem] = await tx
             .insert(purchaseOrderReceiptItems)
             .values({
@@ -626,7 +627,7 @@ export class PurchaseOrderRepository {
   // Invoice methods
   async createInvoice(
     tenantId: string,
-    data: CreateInvoiceDto,
+    data: CreateInvoiceInput,
     userId: string,
   ): Promise<{
     invoice: typeof purchaseOrderInvoices.$inferSelect;
@@ -659,7 +660,7 @@ export class PurchaseOrderRepository {
 
       // Create invoice items
       const items = await Promise.all(
-        data.items.map(async (item) => {
+        data.items.map(async (item: any) => {
           const totalAmount = item.quantity * item.unitPrice;
           const [invoiceItem] = await tx
             .insert(purchaseOrderInvoiceItems)

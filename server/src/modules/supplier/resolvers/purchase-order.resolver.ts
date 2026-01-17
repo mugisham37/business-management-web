@@ -1,13 +1,13 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription, Int } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
-import { PubSub } from 'graphql-subscriptions';
-import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
+import { PubSubService } from '../../../common/graphql/pubsub.service';
 import { PurchaseOrderService } from '../services/purchase-order.service';
 import { SupplierService } from '../services/supplier.service';
 import { 
@@ -18,16 +18,65 @@ import {
   UpdatePurchaseOrderInput,
   PurchaseOrderFilterInput,
 } from '../types/purchase-order.types';
-import { SupplierType } from '../types/supplier.types';
+import { 
+  CreateApprovalInput,
+  ApprovalResponseInput,
+  CreateReceiptInput,
+  CreateInvoiceInput,
+} from '../inputs/purchase-order.input';
+import { Supplier } from '../entities/supplier.entity';
+import { ObjectType, Field, Float } from '@nestjs/graphql';
+
+@ObjectType()
+class PurchaseOrderStats {
+  @Field(() => Int)
+  totalOrders!: number;
+
+  @Field(() => Int)
+  draftOrders!: number;
+
+  @Field(() => Int)
+  pendingApproval!: number;
+
+  @Field(() => Int)
+  approvedOrders!: number;
+
+  @Field(() => Float)
+  totalValue!: number;
+
+  @Field(() => Float)
+  averageOrderValue!: number;
+}
+
+@ObjectType()
+class SupplierPurchaseStats {
+  @Field(() => Int)
+  totalOrders!: number;
+
+  @Field(() => Float)
+  totalSpend!: number;
+
+  @Field(() => Float)
+  averageOrderValue!: number;
+
+  @Field(() => Int)
+  onTimeDeliveries!: number;
+
+  @Field(() => Int)
+  lateDeliveries!: number;
+
+  @Field(() => Float)
+  onTimeDeliveryRate!: number;
+}
 
 @Resolver(() => PurchaseOrderType)
-@UseGuards(JwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 export class PurchaseOrderResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly purchaseOrderService: PurchaseOrderService,
     private readonly supplierService: SupplierService,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    private readonly pubSubService: PubSubService,
   ) {
     super(dataLoaderService);
   }
@@ -42,16 +91,26 @@ export class PurchaseOrderResolver extends BaseResolver {
     return this.purchaseOrderService.getPurchaseOrder(tenantId, id);
   }
 
+  @Query(() => PurchaseOrderType, { name: 'purchaseOrderByNumber' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('purchase-order:read')
+  async getPurchaseOrderByNumber(
+    @Args('poNumber') poNumber: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<any> {
+    return this.purchaseOrderService.getPurchaseOrderByPoNumber(tenantId, poNumber);
+  }
+
   @Query(() => PurchaseOrderConnection, { name: 'purchaseOrders' })
   @UseGuards(PermissionsGuard)
   @Permissions('purchase-order:read')
   async getPurchaseOrders(
-    @Args('first', { type: () => Number, nullable: true }) first: number,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 }) first: number,
     @Args('after', { type: () => String, nullable: true }) after: string,
     @Args('filter', { type: () => PurchaseOrderFilterInput, nullable: true }) filter: any,
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
-    const { limit, cursor, isForward } = this.parsePaginationArgs({ first, after });
+    const { limit } = this.parsePaginationArgs({ first, after });
     
     const query = {
       page: 1,
@@ -73,6 +132,33 @@ export class PurchaseOrderResolver extends BaseResolver {
     };
   }
 
+  @Query(() => PurchaseOrderStats, { name: 'purchaseOrderStats' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('purchase-order:read')
+  async getPurchaseOrderStats(
+    @Args('startDate', { type: () => String, nullable: true }) startDate: string,
+    @Args('endDate', { type: () => String, nullable: true }) endDate: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<any> {
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+    return this.purchaseOrderService.getPurchaseOrderStats(tenantId, start, end);
+  }
+
+  @Query(() => SupplierPurchaseStats, { name: 'supplierPurchaseStats' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('purchase-order:read')
+  async getSupplierPurchaseStats(
+    @Args('supplierId', { type: () => ID }) supplierId: string,
+    @Args('startDate', { type: () => String, nullable: true }) startDate: string,
+    @Args('endDate', { type: () => String, nullable: true }) endDate: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<any> {
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+    return this.purchaseOrderService.getSupplierPurchaseStats(tenantId, supplierId, start, end);
+  }
+
   @Mutation(() => PurchaseOrderType, { name: 'createPurchaseOrder' })
   @UseGuards(PermissionsGuard)
   @Permissions('purchase-order:create')
@@ -88,7 +174,7 @@ export class PurchaseOrderResolver extends BaseResolver {
     );
 
     // Publish subscription event
-    this.pubSub.publish('PURCHASE_ORDER_CREATED', {
+    await this.pubSubService.publish('PURCHASE_ORDER_CREATED', {
       purchaseOrderCreated: {
         ...purchaseOrder,
         tenantId,
@@ -122,61 +208,65 @@ export class PurchaseOrderResolver extends BaseResolver {
     return true;
   }
 
-  @Mutation(() => PurchaseOrderType, { name: 'approvePurchaseOrder' })
+  @Mutation(() => PurchaseOrderType, { name: 'submitPurchaseOrderForApproval' })
   @UseGuards(PermissionsGuard)
-  @Permissions('purchase-order:approve')
-  async approvePurchaseOrder(
+  @Permissions('purchase-order:submit')
+  async submitForApproval(
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
-    const purchaseOrder = await this.purchaseOrderService.submitForApproval(
-      tenantId,
-      id,
-      user.id,
-    );
-
-    // Publish subscription event
-    this.pubSub.publish('PURCHASE_ORDER_APPROVED', {
-      purchaseOrderApproved: {
-        ...purchaseOrder,
-        tenantId,
-      },
-    });
-
-    return purchaseOrder;
+    return this.purchaseOrderService.submitForApproval(tenantId, id, user.id);
   }
 
-  @Mutation(() => PurchaseOrderType, { name: 'receivePurchaseOrder' })
+  @Mutation(() => Boolean, { name: 'respondToApproval' })
   @UseGuards(PermissionsGuard)
-  @Permissions('purchase-order:receive')
-  async receivePurchaseOrder(
-    @Args('id', { type: () => ID }) id: string,
-    @Args('receiptData') receiptData: any,
+  @Permissions('purchase-order:approve')
+  async respondToApproval(
+    @Args('approvalId', { type: () => ID }) approvalId: string,
+    @Args('response') response: ApprovalResponseInput,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    // Create receipt
-    await this.purchaseOrderService.createReceipt(tenantId, {
-      purchaseOrderId: id,
-      ...receiptData,
-    }, user.id);
+  ): Promise<boolean> {
+    await this.purchaseOrderService.respondToApproval(tenantId, approvalId, response, user.id);
+    return true;
+  }
 
-    // Get updated purchase order
-    const purchaseOrder = await this.purchaseOrderService.getPurchaseOrder(tenantId, id);
+  @Mutation(() => Boolean, { name: 'createPurchaseOrderReceipt' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('purchase-order:receive')
+  async createReceipt(
+    @Args('input') input: CreateReceiptInput,
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+  ): Promise<boolean> {
+    await this.purchaseOrderService.createReceipt(tenantId, input, user.id);
 
     // Publish subscription event
-    this.pubSub.publish('PURCHASE_ORDER_RECEIVED', {
+    const purchaseOrder = await this.purchaseOrderService.getPurchaseOrder(tenantId, input.purchaseOrderId);
+    await this.pubSubService.publish('PURCHASE_ORDER_RECEIVED', {
       purchaseOrderReceived: {
         ...purchaseOrder,
         tenantId,
       },
     });
 
-    return purchaseOrder;
+    return true;
   }
 
-  @ResolveField(() => SupplierType, { name: 'supplier' })
+  @Mutation(() => Boolean, { name: 'createPurchaseOrderInvoice' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('purchase-order:invoice')
+  async createInvoice(
+    @Args('input') input: CreateInvoiceInput,
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+  ): Promise<boolean> {
+    await this.purchaseOrderService.createInvoice(tenantId, input, user.id);
+    return true;
+  }
+
+  @ResolveField(() => Supplier, { name: 'supplier' })
   async supplier(
     @Parent() purchaseOrder: any,
     @CurrentTenant() tenantId: string,
@@ -207,16 +297,6 @@ export class PurchaseOrderResolver extends BaseResolver {
     return result.items || [];
   }
 
-  @ResolveField(() => [String], { name: 'receipts', nullable: true })
-  async receipts(
-    @Parent() purchaseOrder: any,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    // This would typically load receipts from the purchase order
-    // For now, return empty array
-    return [];
-  }
-
   @Subscription(() => PurchaseOrderType, {
     name: 'purchaseOrderCreated',
     filter: (payload, variables, context) => {
@@ -224,17 +304,17 @@ export class PurchaseOrderResolver extends BaseResolver {
     },
   })
   purchaseOrderCreated(@CurrentTenant() tenantId: string) {
-    return this.pubSub.asyncIterator('PURCHASE_ORDER_CREATED');
+    return this.pubSubService.asyncIterator('PURCHASE_ORDER_CREATED', tenantId);
   }
 
   @Subscription(() => PurchaseOrderType, {
-    name: 'purchaseOrderApproved',
+    name: 'purchaseOrderStatusChanged',
     filter: (payload, variables, context) => {
-      return payload.purchaseOrderApproved.tenantId === context.req.user.tenantId;
+      return payload.purchaseOrderStatusChanged.tenantId === context.req.user.tenantId;
     },
   })
-  purchaseOrderApproved(@CurrentTenant() tenantId: string) {
-    return this.pubSub.asyncIterator('PURCHASE_ORDER_APPROVED');
+  purchaseOrderStatusChanged(@CurrentTenant() tenantId: string) {
+    return this.pubSubService.asyncIterator('PURCHASE_ORDER_STATUS_CHANGED', tenantId);
   }
 
   @Subscription(() => PurchaseOrderType, {
@@ -250,6 +330,6 @@ export class PurchaseOrderResolver extends BaseResolver {
     @Args('supplierId', { type: () => ID, nullable: true }) supplierId: string,
     @CurrentTenant() tenantId: string,
   ) {
-    return this.pubSub.asyncIterator('PURCHASE_ORDER_RECEIVED');
+    return this.pubSubService.asyncIterator('PURCHASE_ORDER_RECEIVED', tenantId);
   }
 }

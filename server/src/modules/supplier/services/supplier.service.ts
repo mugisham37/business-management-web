@@ -5,14 +5,14 @@ import { SupplierContactRepository } from '../repositories/supplier-contact.repo
 import { SupplierCommunicationRepository } from '../repositories/supplier-communication.repository';
 import { SupplierEvaluationRepository } from '../repositories/supplier-evaluation.repository';
 import {
-  CreateSupplierDto,
-  UpdateSupplierDto,
-  SupplierQueryDto,
-  CreateSupplierContactDto,
-  UpdateSupplierContactDto,
-  CreateSupplierCommunicationDto,
-  CreateSupplierEvaluationDto,
-} from '../dto/supplier.dto';
+  CreateSupplierInput,
+  UpdateSupplierInput,
+  SupplierFilterInput,
+  CreateSupplierContactInput,
+  UpdateSupplierContactInput,
+  CreateSupplierCommunicationInput,
+  CreateSupplierEvaluationInput,
+} from '../inputs/supplier.input';
 import { suppliers } from '../../database/schema/supplier.schema';
 
 // Domain Events
@@ -29,7 +29,7 @@ export class SupplierUpdatedEvent {
   constructor(
     public readonly tenantId: string,
     public readonly supplierId: string,
-    public readonly changes: Partial<UpdateSupplierDto>,
+    public readonly changes: Partial<UpdateSupplierInput>,
     public readonly userId: string,
   ) {}
 }
@@ -69,7 +69,7 @@ export class SupplierService {
   // Supplier Management
   async createSupplier(
     tenantId: string,
-    data: CreateSupplierDto,
+    data: CreateSupplierInput,
     userId: string,
   ): Promise<typeof suppliers.$inferSelect> {
     // Check if supplier code already exists
@@ -111,14 +111,14 @@ export class SupplierService {
     return result;
   }
 
-  async getSuppliers(tenantId: string, query: SupplierQueryDto) {
+  async getSuppliers(tenantId: string, query: SupplierFilterInput) {
     return await this.supplierRepository.findMany(tenantId, query);
   }
 
   async updateSupplier(
     tenantId: string,
     id: string,
-    data: UpdateSupplierDto,
+    data: UpdateSupplierInput,
     userId: string,
   ): Promise<typeof suppliers.$inferSelect> {
     const supplier = await this.supplierRepository.update(tenantId, id, data, userId);
@@ -181,7 +181,7 @@ export class SupplierService {
   async createSupplierContact(
     tenantId: string,
     supplierId: string,
-    data: CreateSupplierContactDto,
+    data: CreateSupplierContactInput,
     userId: string,
   ) {
     // Verify supplier exists
@@ -206,7 +206,7 @@ export class SupplierService {
   async updateSupplierContact(
     tenantId: string,
     contactId: string,
-    data: UpdateSupplierContactDto,
+    data: UpdateSupplierContactInput,
     userId: string,
   ) {
     const contact = await this.contactRepository.update(tenantId, contactId, data, userId);
@@ -240,7 +240,7 @@ export class SupplierService {
   // Communication Management
   async createCommunication(
     tenantId: string,
-    data: CreateSupplierCommunicationDto,
+    data: CreateSupplierCommunicationInput,
     userId: string,
   ) {
     // Verify supplier exists
@@ -290,7 +290,7 @@ export class SupplierService {
   async updateCommunication(
     tenantId: string,
     communicationId: string,
-    data: Partial<CreateSupplierCommunicationDto>,
+    data: Partial<CreateSupplierCommunicationInput>,
     userId: string,
   ) {
     const communication = await this.communicationRepository.update(
@@ -347,7 +347,7 @@ export class SupplierService {
   // Evaluation Management
   async createEvaluation(
     tenantId: string,
-    data: CreateSupplierEvaluationDto,
+    data: CreateSupplierEvaluationInput,
     evaluatorId: string,
   ) {
     // Verify supplier exists
@@ -399,7 +399,7 @@ export class SupplierService {
   async updateEvaluation(
     tenantId: string,
     evaluationId: string,
-    data: Partial<CreateSupplierEvaluationDto>,
+    data: Partial<CreateSupplierEvaluationInput>,
     userId: string,
   ) {
     const evaluation = await this.evaluationRepository.update(tenantId, evaluationId, data, userId);

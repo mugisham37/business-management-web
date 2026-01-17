@@ -1,5 +1,4 @@
 import { ObjectType, Field, ID, Float, InputType, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity, Edge, Connection } from '../../../common/graphql/base.types';
 import { 
   IsString, 
@@ -35,106 +34,81 @@ registerEnumType(PurchaseOrderStatus, { name: 'PurchaseOrderStatus' });
 @ObjectType('PurchaseOrder')
 export class PurchaseOrderType extends BaseEntity {
   @Field()
-  @ApiProperty({ description: 'Purchase order number' })
   poNumber!: string;
 
   @Field(() => ID)
-  @ApiProperty({ description: 'Supplier ID' })
   supplierId!: string;
 
   @Field(() => PurchaseOrderStatus)
-  @ApiProperty({ description: 'Purchase order status', enum: PurchaseOrderStatus })
   status!: PurchaseOrderStatus;
 
   @Field()
-  @ApiProperty({ description: 'Order date' })
   orderDate!: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Expected delivery date', required: false })
   expectedDeliveryDate?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Requested delivery date', required: false })
   requestedDeliveryDate?: Date;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Subtotal amount' })
   subtotal!: number;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Tax amount' })
   taxAmount!: number;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Shipping amount' })
   shippingAmount!: number;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Total amount' })
   totalAmount!: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Currency code', required: false })
   currency?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Payment terms', required: false })
   paymentTerms?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Shipping method', required: false })
   shippingMethod?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Delivery terms', required: false })
   deliveryTerms?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Notes', required: false })
   notes?: string;
 }
 
 @ObjectType('PurchaseOrderItem')
 export class PurchaseOrderItemType {
   @Field(() => ID)
-  @ApiProperty({ description: 'Item ID' })
   id!: string;
 
   @Field(() => ID)
-  @ApiProperty({ description: 'Purchase order ID' })
   purchaseOrderId!: string;
 
   @Field(() => ID, { nullable: true })
-  @ApiProperty({ description: 'Product ID', required: false })
   productId?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'SKU', required: false })
   sku?: string;
 
   @Field()
-  @ApiProperty({ description: 'Item description' })
   itemDescription!: string;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Quantity ordered' })
   quantityOrdered!: number;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Unit price' })
   unitPrice!: number;
 
   @Field(() => Float)
-  @ApiProperty({ description: 'Line total' })
   lineTotal!: number;
 
   @Field(() => Float, { nullable: true })
-  @ApiProperty({ description: 'Quantity received', required: false })
   quantityReceived?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Unit of measure', required: false })
   uom?: string;
 }
 

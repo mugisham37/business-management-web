@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { SupplierController } from './controllers/supplier.controller';
-import { PurchaseOrderController } from './controllers/purchase-order.controller';
-import { ProcurementAnalyticsController } from './controllers/procurement-analytics.controller';
-import { EDIIntegrationController } from './controllers/edi-integration.controller';
 import { SupplierService } from './services/supplier.service';
 import { PurchaseOrderService } from './services/purchase-order.service';
 import { ProcurementAnalyticsService } from './services/procurement-analytics.service';
@@ -17,6 +13,9 @@ import { SupplierResolver } from './resolvers/supplier.resolver';
 import { PurchaseOrderResolver } from './resolvers/purchase-order.resolver';
 import { ProcurementAnalyticsResolver } from './resolvers/procurement-analytics.resolver';
 import { EDIIntegrationResolver } from './resolvers/edi-integration.resolver';
+import { SupplierContactResolver } from './resolvers/supplier-contact.resolver';
+import { SupplierCommunicationResolver } from './resolvers/supplier-communication.resolver';
+import { SupplierEvaluationResolver } from './resolvers/supplier-evaluation.resolver';
 import { DatabaseModule } from '../database/database.module';
 import { AuthModule } from '../auth/auth.module';
 import { TenantModule } from '../tenant/tenant.module';
@@ -34,23 +33,23 @@ import { PubSubModule } from '../../common/graphql/pubsub.module';
       name: 'edi',
     }),
   ],
-  controllers: [
-    SupplierController,
-    PurchaseOrderController,
-    ProcurementAnalyticsController,
-    EDIIntegrationController,
-  ],
   providers: [
+    // Services
     SupplierService,
     PurchaseOrderService,
     ProcurementAnalyticsService,
     EDIIntegrationService,
+    // Repositories
     SupplierRepository,
     SupplierContactRepository,
     SupplierCommunicationRepository,
     SupplierEvaluationRepository,
     PurchaseOrderRepository,
+    // GraphQL Resolvers
     SupplierResolver,
+    SupplierContactResolver,
+    SupplierCommunicationResolver,
+    SupplierEvaluationResolver,
     PurchaseOrderResolver,
     ProcurementAnalyticsResolver,
     EDIIntegrationResolver,

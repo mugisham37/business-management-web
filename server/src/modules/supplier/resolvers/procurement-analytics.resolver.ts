@@ -1,6 +1,6 @@
 import { Resolver, Query, Args, ID } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
@@ -17,11 +17,11 @@ import {
 } from '../types/procurement-analytics.types';
 
 @Resolver()
-@UseGuards(JwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 @UseInterceptors(CacheInterceptor)
 export class ProcurementAnalyticsResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly procurementAnalyticsService: ProcurementAnalyticsService,
   ) {
     super(dataLoaderService);

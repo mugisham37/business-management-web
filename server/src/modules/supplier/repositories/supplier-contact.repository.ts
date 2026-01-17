@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { eq, and, desc, asc, sql, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { supplierContacts } from '../../database/schema/supplier.schema';
-import { CreateSupplierContactDto, UpdateSupplierContactDto } from '../dto/supplier.dto';
+import { CreateSupplierContactInput, UpdateSupplierContactInput } from '../inputs/supplier.input';
 
 @Injectable()
 export class SupplierContactRepository {
@@ -15,7 +15,7 @@ export class SupplierContactRepository {
   async create(
     tenantId: string,
     supplierId: string,
-    data: CreateSupplierContactDto,
+    data: CreateSupplierContactInput,
     userId: string,
   ): Promise<typeof supplierContacts.$inferSelect> {
     // If this is set as primary, unset other primary contacts for this supplier
@@ -110,7 +110,7 @@ export class SupplierContactRepository {
   async update(
     tenantId: string,
     id: string,
-    data: UpdateSupplierContactDto,
+    data: UpdateSupplierContactInput,
     userId: string,
   ): Promise<typeof supplierContacts.$inferSelect | null> {
     // If this is being set as primary, unset other primary contacts for this supplier

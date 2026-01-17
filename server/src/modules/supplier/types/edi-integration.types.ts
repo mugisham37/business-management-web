@@ -1,10 +1,9 @@
 import { ObjectType, Field, ID, InputType, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsUUID, IsNotEmpty, IsOptional } from 'class-validator';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { GraphQLJSON } from 'graphql-scalars';
 
 // Enums
-export enum EDIDocumentType {
+export enum EDIDocumentTypeEnum {
   PURCHASE_ORDER = '850',
   PURCHASE_ORDER_ACKNOWLEDGMENT = '855',
   ADVANCE_SHIP_NOTICE = '856',
@@ -27,7 +26,7 @@ export enum EDIDirection {
   OUTBOUND = 'outbound',
 }
 
-registerEnumType(EDIDocumentType, { name: 'EDIDocumentType' });
+registerEnumType(EDIDocumentTypeEnum, { name: 'EDIDocumentType' });
 registerEnumType(EDITransactionStatus, { name: 'EDITransactionStatus' });
 registerEnumType(EDIDirection, { name: 'EDIDirection' });
 
@@ -35,89 +34,69 @@ registerEnumType(EDIDirection, { name: 'EDIDirection' });
 @ObjectType('EDIDocument')
 export class EDIDocumentType {
   @Field(() => ID)
-  @ApiProperty({ description: 'Document ID' })
   id!: string;
 
   @Field(() => ID)
-  @ApiProperty({ description: 'Supplier ID' })
   supplierId!: string;
 
-  @Field(() => EDIDocumentType)
-  @ApiProperty({ description: 'Document type', enum: EDIDocumentType })
-  documentType!: EDIDocumentType;
+  @Field(() => EDIDocumentTypeEnum)
+  documentType!: EDIDocumentTypeEnum;
 
   @Field(() => EDIDirection)
-  @ApiProperty({ description: 'Direction', enum: EDIDirection })
   direction!: EDIDirection;
 
   @Field(() => EDITransactionStatus)
-  @ApiProperty({ description: 'Status', enum: EDITransactionStatus })
   status!: EDITransactionStatus;
 
   @Field()
-  @ApiProperty({ description: 'Raw content' })
   rawContent!: string;
 
-  @Field(() => GraphQLJSONObject, { nullable: true })
-  @ApiProperty({ description: 'Parsed content', required: false })
+  @Field(() => GraphQLJSON, { nullable: true })
   parsedContent?: any;
 
-  @Field(() => ID, { nullable: true })
-  @ApiProperty({ description: 'Related entity ID', required: false })
+  @Field({ nullable: true })
   relatedEntityId?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Error message', required: false })
   errorMessage?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Processed at', required: false })
   processedAt?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Acknowledged at', required: false })
   acknowledgedAt?: Date;
 
   @Field()
-  @ApiProperty({ description: 'Created at' })
   createdAt!: Date;
 
   @Field()
-  @ApiProperty({ description: 'Updated at' })
   updatedAt!: Date;
 }
 
 @ObjectType('EDIStatus')
 export class EDIStatusType {
   @Field(() => ID)
-  @ApiProperty({ description: 'Document ID' })
   documentId!: string;
 
   @Field(() => EDITransactionStatus)
-  @ApiProperty({ description: 'Status', enum: EDITransactionStatus })
   status!: EDITransactionStatus;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Error message', required: false })
   errorMessage?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Processed at', required: false })
   processedAt?: Date;
 }
 
 @ObjectType('EDIJobResponse')
 export class EDIJobResponseType {
   @Field(() => ID)
-  @ApiProperty({ description: 'Job ID' })
   jobId!: string;
 
   @Field(() => ID)
-  @ApiProperty({ description: 'Document ID' })
   documentId!: string;
 
   @Field()
-  @ApiProperty({ description: 'Message' })
   message!: string;
 }
 
@@ -129,9 +108,9 @@ export class SendEDIDocumentInput {
   @IsNotEmpty()
   supplierId!: string;
 
-  @Field(() => EDIDocumentType)
-  @IsEnum(EDIDocumentType)
-  documentType!: EDIDocumentType;
+  @Field(() => EDIDocumentTypeEnum)
+  @IsEnum(EDIDocumentTypeEnum)
+  documentType!: EDIDocumentTypeEnum;
 
   @Field(() => ID)
   @IsUUID()
@@ -146,9 +125,9 @@ export class ReceiveEDIDocumentInput {
   @IsNotEmpty()
   supplierId!: string;
 
-  @Field(() => EDIDocumentType)
-  @IsEnum(EDIDocumentType)
-  documentType!: EDIDocumentType;
+  @Field(() => EDIDocumentTypeEnum)
+  @IsEnum(EDIDocumentTypeEnum)
+  documentType!: EDIDocumentTypeEnum;
 
   @Field()
   @IsString()

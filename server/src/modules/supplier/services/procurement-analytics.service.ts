@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { PurchaseOrderRepository } from '../repositories/purchase-order.repository';
 import { SupplierEvaluationRepository } from '../repositories/supplier-evaluation.repository';
-import { PurchaseOrderStatus } from '../dto/purchase-order.dto';
+import { PurchaseOrderStatus } from '../inputs/purchase-order.input';
 
 export interface SpendAnalysisResult {
   totalSpend: number;
@@ -629,8 +629,6 @@ export class ProcurementAnalyticsService {
     const overdueOrders = await this.purchaseOrderRepository.findMany(tenantId, {
       status: PurchaseOrderStatus.SENT_TO_SUPPLIER,
       deliveryDateTo: endDate.toISOString(),
-      page: 1,
-      limit: 100,
     });
 
     if (overdueOrders.purchaseOrders.length > 0) {

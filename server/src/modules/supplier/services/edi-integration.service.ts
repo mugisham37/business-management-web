@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PurchaseOrderService } from './purchase-order.service';
 import { SupplierService } from './supplier.service';
-import { PurchaseOrderStatus } from '../dto/purchase-order.dto';
+import { PurchaseOrderStatus } from '../inputs/purchase-order.input';
 
 // EDI Document Types
 export enum EDIDocumentType {

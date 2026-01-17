@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { eq, and, desc, asc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { supplierEvaluations } from '../../database/schema/supplier.schema';
-import { CreateSupplierEvaluationDto } from '../dto/supplier.dto';
+import { CreateSupplierEvaluationInput } from '../inputs/supplier.input';
 
 @Injectable()
 export class SupplierEvaluationRepository {
@@ -14,7 +14,7 @@ export class SupplierEvaluationRepository {
 
   async create(
     tenantId: string,
-    data: CreateSupplierEvaluationDto,
+    data: CreateSupplierEvaluationInput,
     evaluatorId: string,
   ): Promise<typeof supplierEvaluations.$inferSelect> {
     const [evaluation] = await this.db
@@ -200,7 +200,7 @@ export class SupplierEvaluationRepository {
   async update(
     tenantId: string,
     id: string,
-    data: Partial<CreateSupplierEvaluationDto>,
+    data: Partial<CreateSupplierEvaluationInput>,
     userId: string,
   ): Promise<typeof supplierEvaluations.$inferSelect | null> {
     const updateData: any = {
