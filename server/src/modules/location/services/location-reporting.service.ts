@@ -1027,6 +1027,360 @@ export class LocationReportingService {
     return Math.ceil(timeDiff / (1000 * 3600 * 24));
   }
 
+  /**
+   * Get location sales report
+   */
+  async getLocationSalesReport(
+    tenantId: string,
+    locationId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<{
+    locationId: string;
+    locationName: string;
+    period: { startDate: Date; endDate: Date };
+    totalSales: number;
+    totalTransactions: number;
+    averageTransactionValue: number;
+    topProducts: Array<{ productId: string; productName: string; quantity: number; revenue: number }>;
+    salesByDay: Array<{ date: Date; sales: number; transactions: number }>;
+    salesByHour: Array<{ hour: number; sales: number; transactions: number }>;
+    paymentMethods: Array<{ method: string; amount: number; percentage: number }>;
+    refunds: { amount: number; count: number; rate: number };
+  }> {
+    try {
+      const location = await this.locationRepository.findById(tenantId, locationId);
+      if (!location) {
+        throw new NotFoundException('Location not found');
+      }
+
+      const reportPeriod = this.getReportPeriod(startDate, endDate);
+      
+      // Mock data - in real implementation, this would query transaction data
+      const mockSalesData = {
+        locationId,
+        locationName: location.name,
+        period: reportPeriod,
+        totalSales: 125000,
+        totalTransactions: 850,
+        averageTransactionValue: 147.06,
+        topProducts: [
+          { productId: 'prod-1', productName: 'Product A', quantity: 120, revenue: 24000 },
+          { productId: 'prod-2', productName: 'Product B', quantity: 95, revenue: 19000 },
+          { productId: 'prod-3', productName: 'Product C', quantity: 80, revenue: 16000 },
+        ],
+        salesByDay: this.generateDailySalesData(reportPeriod.startDate, reportPeriod.endDate),
+        salesByHour: this.generateHourlySalesData(),
+        paymentMethods: [
+          { method: 'Credit Card', amount: 75000, percentage: 60 },
+          { method: 'Cash', amount: 37500, percentage: 30 },
+          { method: 'Digital Wallet', amount: 12500, percentage: 10 },
+        ],
+        refunds: { amount: 2500, count: 15, rate: 0.02 },
+      };
+
+      return mockSalesData;
+    } catch (error: any) {
+      this.logger.error(`Failed to get location sales report: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get location inventory report
+   */
+  async getLocationInventoryReport(
+    tenantId: string,
+    locationId: string,
+  ): Promise<{
+    locationId: string;
+    locationName: string;
+    totalValue: number;
+    totalItems: number;
+    lowStockItems: Array<{ productId: string; productName: string; currentStock: number; minStock: number }>;
+    overStockItems: Array<{ productId: string; productName: string; currentStock: number; maxStock: number }>;
+    topMovingItems: Array<{ productId: string; productName: string; turnoverRate: number }>;
+    slowMovingItems: Array<{ productId: string; productName: string; turnoverRate: number }>;
+    categoryBreakdown: Array<{ category: string; value: number; percentage: number }>;
+    ageAnalysis: Array<{ ageRange: string; value: number; percentage: number }>;
+  }> {
+    try {
+      const location = await this.locationRepository.findById(tenantId, locationId);
+      if (!location) {
+        throw new NotFoundException('Location not found');
+      }
+
+      // Mock data - in real implementation, this would query inventory data
+      const mockInventoryData = {
+        locationId,
+        locationName: location.name,
+        totalValue: 450000,
+        totalItems: 1250,
+        lowStockItems: [
+          { productId: 'prod-1', productName: 'Product A', currentStock: 5, minStock: 20 },
+          { productId: 'prod-2', productName: 'Product B', currentStock: 8, minStock: 15 },
+        ],
+        overStockItems: [
+          { productId: 'prod-3', productName: 'Product C', currentStock: 200, maxStock: 100 },
+        ],
+        topMovingItems: [
+          { productId: 'prod-4', productName: 'Product D', turnoverRate: 12.5 },
+          { productId: 'prod-5', productName: 'Product E', turnoverRate: 10.2 },
+        ],
+        slowMovingItems: [
+          { productId: 'prod-6', productName: 'Product F', turnoverRate: 1.2 },
+        ],
+        categoryBreakdown: [
+          { category: 'Electronics', value: 200000, percentage: 44.4 },
+          { category: 'Clothing', value: 150000, percentage: 33.3 },
+          { category: 'Home & Garden', value: 100000, percentage: 22.2 },
+        ],
+        ageAnalysis: [
+          { ageRange: '0-30 days', value: 200000, percentage: 44.4 },
+          { ageRange: '31-60 days', value: 150000, percentage: 33.3 },
+          { ageRange: '61-90 days', value: 75000, percentage: 16.7 },
+          { ageRange: '90+ days', value: 25000, percentage: 5.6 },
+        ],
+      };
+
+      return mockInventoryData;
+    } catch (error: any) {
+      this.logger.error(`Failed to get location inventory report: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get location performance report
+   */
+  async getLocationPerformanceReport(
+    tenantId: string,
+    locationId: string,
+    period: string = 'monthly',
+  ): Promise<{
+    locationId: string;
+    locationName: string;
+    period: string;
+    metrics: LocationPerformanceMetrics;
+    trends: Array<{ metric: string; trend: 'up' | 'down' | 'stable'; percentage: number }>;
+    benchmarks: {
+      tenantAverage: LocationPerformanceMetrics;
+      topQuartile: LocationPerformanceMetrics;
+    };
+    recommendations: string[];
+  }> {
+    try {
+      const location = await this.locationRepository.findById(tenantId, locationId);
+      if (!location) {
+        throw new NotFoundException('Location not found');
+      }
+
+      const metrics = await this.calculateLocationPerformanceMetrics(tenantId, locationId, period);
+      const allLocations = await this.locationRepository.findByTenant(tenantId);
+      const allMetrics = await Promise.all(
+        allLocations.map(loc => this.calculateLocationPerformanceMetrics(tenantId, loc.id, period))
+      );
+
+      const tenantAverage = this.calculateAverageMetrics(allMetrics);
+      const topQuartile = this.calculateTopQuartileMetrics(allMetrics);
+
+      const trends = this.calculatePerformanceTrends(metrics, period);
+      const recommendations = this.generateBenchmarkRecommendations(metrics, tenantAverage, topQuartile);
+
+      return {
+        locationId,
+        locationName: location.name,
+        period,
+        metrics,
+        trends,
+        benchmarks: {
+          tenantAverage,
+          topQuartile,
+        },
+        recommendations,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to get location performance report: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Compare multiple locations
+   */
+  async compareLocations(
+    tenantId: string,
+    locationIds: string[],
+    metrics: string[],
+    period: string = 'monthly',
+  ): Promise<{
+    period: string;
+    metrics: string[];
+    locations: Array<{
+      locationId: string;
+      locationName: string;
+      data: Record<string, number>;
+      ranking: Record<string, number>;
+    }>;
+    summary: {
+      bestPerforming: { locationId: string; locationName: string; metric: string; value: number };
+      worstPerforming: { locationId: string; locationName: string; metric: string; value: number };
+      averages: Record<string, number>;
+    };
+  }> {
+    try {
+      const locations = await Promise.all(
+        locationIds.map(id => this.locationRepository.findById(tenantId, id))
+      );
+
+      const validLocations = locations.filter(loc => loc !== null);
+      if (validLocations.length === 0) {
+        throw new NotFoundException('No valid locations found');
+      }
+
+      const locationMetrics = await Promise.all(
+        validLocations.map(async (location) => {
+          const performanceMetrics = await this.calculateLocationPerformanceMetrics(tenantId, location.id, period);
+          return {
+            locationId: location.id,
+            locationName: location.name,
+            metrics: performanceMetrics,
+          };
+        })
+      );
+
+      // Extract requested metrics and calculate rankings
+      const comparisonData = locationMetrics.map(({ locationId, locationName, metrics: perfMetrics }) => {
+        const data: Record<string, number> = {};
+        const ranking: Record<string, number> = {};
+
+        metrics.forEach(metric => {
+          data[metric] = (perfMetrics as any)[metric] || 0;
+        });
+
+        return { locationId, locationName, data, ranking };
+      });
+
+      // Calculate rankings for each metric
+      metrics.forEach(metric => {
+        const sortedByMetric = [...comparisonData].sort((a, b) => b.data[metric] - a.data[metric]);
+        sortedByMetric.forEach((item, index) => {
+          const originalItem = comparisonData.find(d => d.locationId === item.locationId);
+          if (originalItem) {
+            originalItem.ranking[metric] = index + 1;
+          }
+        });
+      });
+
+      // Calculate summary statistics
+      const averages: Record<string, number> = {};
+      metrics.forEach(metric => {
+        const values = comparisonData.map(d => d.data[metric]);
+        averages[metric] = values.reduce((sum, val) => sum + val, 0) / values.length;
+      });
+
+      // Find best and worst performing
+      let bestPerforming = { locationId: '', locationName: '', metric: '', value: -Infinity };
+      let worstPerforming = { locationId: '', locationName: '', metric: '', value: Infinity };
+
+      comparisonData.forEach(({ locationId, locationName, data }) => {
+        metrics.forEach(metric => {
+          if (data[metric] > bestPerforming.value) {
+            bestPerforming = { locationId, locationName, metric, value: data[metric] };
+          }
+          if (data[metric] < worstPerforming.value) {
+            worstPerforming = { locationId, locationName, metric, value: data[metric] };
+          }
+        });
+      });
+
+      return {
+        period,
+        metrics,
+        locations: comparisonData,
+        summary: {
+          bestPerforming,
+          worstPerforming,
+          averages,
+        },
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to compare locations: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper method to get report period
+   */
+  private getReportPeriod(startDate?: Date, endDate?: Date): { startDate: Date; endDate: Date } {
+    const now = new Date();
+    const defaultEndDate = endDate || now;
+    const defaultStartDate = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return {
+      startDate: defaultStartDate,
+      endDate: defaultEndDate,
+    };
+  }
+
+  /**
+   * Generate daily sales data for the period
+   */
+  private generateDailySalesData(startDate: Date, endDate: Date): Array<{ date: Date; sales: number; transactions: number }> {
+    const data: Array<{ date: Date; sales: number; transactions: number }> = [];
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      data.push({
+        date: new Date(currentDate),
+        sales: Math.floor(Math.random() * 5000) + 1000,
+        transactions: Math.floor(Math.random() * 50) + 10,
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return data;
+  }
+
+  /**
+   * Generate hourly sales data
+   */
+  private generateHourlySalesData(): Array<{ hour: number; sales: number; transactions: number }> {
+    const data: Array<{ hour: number; sales: number; transactions: number }> = [];
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const isBusinessHour = hour >= 9 && hour <= 21;
+      const baseSales = isBusinessHour ? Math.floor(Math.random() * 1000) + 500 : Math.floor(Math.random() * 200);
+      const baseTransactions = isBusinessHour ? Math.floor(Math.random() * 20) + 5 : Math.floor(Math.random() * 5);
+      
+      data.push({
+        hour,
+        sales: baseSales,
+        transactions: baseTransactions,
+      });
+    }
+    
+    return data;
+  }
+
+  /**
+   * Calculate performance trends
+   */
+  private calculatePerformanceTrends(
+    metrics: LocationPerformanceMetrics,
+    period: string,
+  ): Array<{ metric: string; trend: 'up' | 'down' | 'stable'; percentage: number }> {
+    // Mock trend data - in real implementation, this would compare with previous period
+    return [
+      { metric: 'revenue', trend: 'up', percentage: 12.5 },
+      { metric: 'profitMargin', trend: 'down', percentage: -2.3 },
+      { metric: 'transactionCount', trend: 'up', percentage: 8.7 },
+      { metric: 'inventoryTurnover', trend: 'stable', percentage: 0.5 },
+      { metric: 'repeatCustomerRate', trend: 'up', percentage: 5.2 },
+    ];
+  }
+
   private generateReportId(): string {
     return `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }

@@ -426,9 +426,171 @@ export class LocationSyncService {
   }
 
   /**
-   * Get sync status for a tenant
+   * Trigger manual sync for a location
    */
-  async getSyncStatus(tenantId: string): Promise<{
+  async triggerSync(tenantId: string, locationId: string, syncType: string, userId: string): Promise<{
+    success: boolean;
+    message: string;
+    syncId: string;
+    eventsProcessed: number;
+  }> {
+    try {
+      this.logger.log(`Triggering ${syncType} sync for location: ${locationId}`);
+      
+      const syncId = `sync-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      let eventsProcessed = 0;
+      
+      if (syncType === 'full') {
+        // Retry all failed events
+        eventsProcessed = await this.retryFailedEvents(tenantId);
+        
+        // Emit sync completion event
+        this.eventEmitter.emit('sync.completed', {
+          tenantId,
+          locationId,
+          syncId,
+          syncType,
+          eventsProcessed,
+          userId,
+        });
+      } else if (syncType === 'incremental') {
+        // Process only recent events
+        eventsProcessed = Math.min(await this.retryFailedEvents(tenantId), 10);
+      }
+      
+      return {
+        success: true,
+        message: `${syncType} sync completed successfully`,
+        syncId,
+        eventsProcessed,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to trigger sync: ${error.message}`, error.stack);
+      return {
+        success: false,
+        message: `Sync failed: ${error.message}`,
+        syncId: '',
+        eventsProcessed: 0,
+      };
+    }
+  }
+
+  /**
+   * Get sync history for a location
+   */
+  async getSyncHistory(tenantId: string, locationId: string, limit: number = 50): Promise<Array<{
+    id: string;
+    timestamp: Date;
+    eventType: string;
+    entityType: string;
+    entityId: string;
+    status: string;
+    userId: string;
+  }>> {
+    try {
+      const timelineKey = `sync-timeline:${tenantId}`;
+      const timeline = this.syncTimelines.get(timelineKey) || [];
+      
+      // Get recent events and convert to history format
+      const recentEvents = timeline
+        .slice(-limit)
+        .reverse()
+        .map(item => {
+          const event = this.syncEvents.get(`sync-log:${tenantId}:*:${item.id}`) || 
+                       Array.from(this.syncEvents.values()).find(e => e.id === item.id);
+          
+          return {
+            id: item.id,
+            timestamp: new Date(item.timestamp),
+            eventType: event?.eventType || 'unknown',
+            entityType: event?.entityType || 'unknown',
+            entityId: event?.entityId || 'unknown',
+            status: 'completed',
+            userId: event?.userId || 'system',
+          };
+        });
+      
+      return recentEvents;
+    } catch (error: any) {
+      this.logger.error(`Failed to get sync history: ${error.message}`, error.stack);
+      return [];
+    }
+  }
+
+  /**
+   * Resolve sync conflict manually
+   */
+  async resolveSyncConflict(tenantId: string, conflictId: string, resolution: any, userId: string): Promise<{
+    success: boolean;
+    message: string;
+    resolvedEvent?: SyncEvent;
+  }> {
+    try {
+      const conflictKey = `conflict:${tenantId}:${conflictId}`;
+      const conflictData = this.syncEvents.get(conflictKey) as any;
+      
+      if (!conflictData) {
+        return {
+          success: false,
+          message: 'Conflict not found',
+        };
+      }
+      
+      const { event } = conflictData;
+      
+      // Apply resolution based on strategy
+      switch (resolution.strategy) {
+        case 'accept-incoming':
+          await this.applySyncEvent(event);
+          break;
+          
+        case 'accept-local':
+          // Do nothing, keep local data
+          break;
+          
+        case 'merge':
+          if (resolution.mergedData) {
+            event.data = resolution.mergedData;
+            await this.applySyncEvent(event);
+          }
+          break;
+          
+        default:
+          return {
+            success: false,
+            message: 'Invalid resolution strategy',
+          };
+      }
+      
+      // Remove conflict from storage
+      this.syncEvents.delete(conflictKey);
+      
+      // Remove from conflicts list
+      const conflictsListKey = `conflicts-list:${tenantId}`;
+      const conflictsList = this.conflicts.get(conflictsListKey) || [];
+      const updatedConflictsList = conflictsList.filter(id => id !== conflictId);
+      this.conflicts.set(conflictsListKey, updatedConflictsList);
+      
+      this.logger.log(`Resolved sync conflict: ${conflictId} with strategy: ${resolution.strategy}`);
+      
+      return {
+        success: true,
+        message: 'Conflict resolved successfully',
+        resolvedEvent: event,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to resolve sync conflict: ${error.message}`, error.stack);
+      return {
+        success: false,
+        message: `Failed to resolve conflict: ${error.message}`,
+      };
+    }
+  }
+
+  /**
+   * Get sync status for a tenant and location
+   */
+  async getSyncStatus(tenantId: string, locationId?: string): Promise<{
     lastSyncTime: Date | null;
     pendingEvents: number;
     failedEvents: number;

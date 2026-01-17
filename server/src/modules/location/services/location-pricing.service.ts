@@ -518,3 +518,146 @@ export class LocationPricingService {
     });
   }
 }
+
+  /**
+   * Get location pricing information (called by resolver)
+   */
+  async getLocationPricing(
+    tenantId: string,
+    locationId: string,
+    productId?: string,
+  ): Promise<any> {
+    try {
+      const query: LocationPricingQueryDto = {
+        productId,
+        activeOnly: true,
+      };
+
+      const { rules, total } = await this.findPricingRules(tenantId, locationId, query);
+
+      return {
+        locationId,
+        rules,
+        total,
+        lastUpdated: new Date(),
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to get location pricing: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Update location pricing (called by resolver)
+   */
+  async updateLocationPricing(
+    tenantId: string,
+    locationId: string,
+    pricing: any,
+    userId: string,
+  ): Promise<any> {
+    try {
+      const results = [];
+
+      // Handle bulk updates to pricing rules
+      if (pricing.rules && Array.isArray(pricing.rules)) {
+        for (const ruleUpdate of pricing.rules) {
+          if (ruleUpdate.id) {
+            // Update existing rule
+            const updatedRule = await this.updatePricingRule(
+              tenantId,
+              locationId,
+              ruleUpdate.id,
+              ruleUpdate,
+              userId
+            );
+            results.push(updatedRule);
+          } else {
+            // Create new rule
+            const newRule = await this.createPricingRule(
+              tenantId,
+              locationId,
+              ruleUpdate,
+              userId
+            );
+            results.push(newRule);
+          }
+        }
+      }
+
+      return {
+        locationId,
+        updatedRules: results,
+        updatedAt: new Date(),
+        updatedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to update location pricing: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pricing rules (called by resolver)
+   */
+  async getPricingRules(
+    tenantId: string,
+    locationId: string,
+  ): Promise<any> {
+    try {
+      const { rules, total } = await this.findPricingRules(tenantId, locationId, {});
+
+      return {
+        locationId,
+        rules,
+        total,
+        activeRules: rules.filter(rule => rule.isActive).length,
+        inactiveRules: rules.filter(rule => !rule.isActive).length,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to get pricing rules: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Apply pricing rule (called by resolver)
+   */
+  async applyPricingRule(
+    tenantId: string,
+    locationId: string,
+    ruleId: string,
+    productId: string,
+    quantity: number,
+    basePrice: number,
+    userId: string,
+  ): Promise<any> {
+    try {
+      const rule = await this.findById(tenantId, locationId, ruleId);
+      if (!rule) {
+        throw new NotFoundException(`Pricing rule with ID ${ruleId} not found`);
+      }
+
+      const calculateDto: CalculatePriceDto = {
+        productId,
+        quantity,
+        context: { userId },
+      };
+
+      const result = await this.calculatePrice(tenantId, locationId, calculateDto, basePrice);
+
+      return {
+        ruleId,
+        productId,
+        quantity,
+        basePrice,
+        appliedRule: rule,
+        calculation: result,
+        appliedAt: new Date(),
+        appliedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to apply pricing rule: ${error.message}`, error.stack);
+      throw error;
+    }
+  }

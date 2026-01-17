@@ -669,3 +669,210 @@ export class LocationInventoryPolicyService {
     });
   }
 }
+  /**
+   * Get location inventory policy (called by resolver)
+   */
+  async getLocationInventoryPolicy(
+    tenantId: string,
+    locationId: string,
+  ): Promise<any> {
+    try {
+      const { policies, total } = await this.findInventoryPolicies(tenantId, locationId, {});
+
+      return {
+        locationId,
+        policies: policies.map(policy => ({
+          id: policy.id,
+          name: policy.name,
+          description: policy.description,
+          policyType: policy.policyType,
+          status: policy.status,
+          productId: policy.productId,
+          categoryId: policy.categoryId,
+          minStockLevel: policy.minStockLevel,
+          maxStockLevel: policy.maxStockLevel,
+          safetyStock: policy.safetyStock,
+          reorderQuantity: policy.reorderQuantity,
+          leadTimeDays: policy.leadTimeDays,
+          replenishmentMethod: policy.replenishmentMethod,
+          abcClassification: policy.abcClassification,
+          seasonalMultiplier: policy.seasonalMultiplier,
+          forecastPeriodDays: policy.forecastPeriodDays,
+          autoCreatePurchaseOrders: policy.autoCreatePurchaseOrders,
+          preferredSupplierId: policy.preferredSupplierId,
+          priority: policy.priority,
+          isActive: policy.isActive,
+          createdAt: policy.createdAt,
+          updatedAt: policy.updatedAt,
+        })),
+        total,
+        activePolicies: policies.filter(p => p.isActive).length,
+        inactivePolicies: policies.filter(p => !p.isActive).length,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to get location inventory policy: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Update location inventory policy (called by resolver)
+   */
+  async updateLocationInventoryPolicy(
+    tenantId: string,
+    locationId: string,
+    policy: any,
+    userId: string,
+  ): Promise<any> {
+    try {
+      const results = [];
+
+      // Handle bulk updates to inventory policies
+      if (policy.policies && Array.isArray(policy.policies)) {
+        for (const policyUpdate of policy.policies) {
+          if (policyUpdate.id) {
+            // Update existing policy
+            const updatedPolicy = await this.updateInventoryPolicy(
+              tenantId,
+              locationId,
+              policyUpdate.id,
+              policyUpdate,
+              userId
+            );
+            results.push(updatedPolicy);
+          } else {
+            // Create new policy
+            const newPolicy = await this.createInventoryPolicy(
+              tenantId,
+              locationId,
+              policyUpdate,
+              userId
+            );
+            results.push(newPolicy);
+          }
+        }
+      }
+
+      return {
+        locationId,
+        updatedPolicies: results,
+        updatedAt: new Date(),
+        updatedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to update location inventory policy: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Get reorder rules (called by resolver)
+   */
+  async getReorderRules(
+    tenantId: string,
+    locationId: string,
+  ): Promise<any> {
+    try {
+      const { policies } = await this.findInventoryPolicies(tenantId, locationId, {
+        policyType: InventoryPolicyType.REORDER_POINT,
+        activeOnly: true,
+      });
+
+      return {
+        locationId,
+        rules: policies.map(policy => ({
+          id: policy.id,
+          name: policy.name,
+          productId: policy.productId,
+          categoryId: policy.categoryId,
+          minStockLevel: policy.minStockLevel,
+          reorderQuantity: policy.reorderQuantity,
+          leadTimeDays: policy.leadTimeDays,
+          replenishmentMethod: policy.replenishmentMethod,
+          autoCreatePurchaseOrders: policy.autoCreatePurchaseOrders,
+          preferredSupplierId: policy.preferredSupplierId,
+          isActive: policy.isActive,
+        })),
+        total: policies.length,
+        automaticRules: policies.filter(p => p.autoCreatePurchaseOrders).length,
+        manualRules: policies.filter(p => !p.autoCreatePurchaseOrders).length,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to get reorder rules: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Update reorder rules (called by resolver)
+   */
+  async updateReorderRules(
+    tenantId: string,
+    locationId: string,
+    rules: any,
+    userId: string,
+  ): Promise<any> {
+    try {
+      const results = [];
+
+      // Handle bulk updates to reorder rules
+      if (rules.rules && Array.isArray(rules.rules)) {
+        for (const ruleUpdate of rules.rules) {
+          if (ruleUpdate.id) {
+            // Update existing rule
+            const updateDto: UpdateLocationInventoryPolicyDto = {
+              minStockLevel: ruleUpdate.minStockLevel,
+              reorderQuantity: ruleUpdate.reorderQuantity,
+              leadTimeDays: ruleUpdate.leadTimeDays,
+              replenishmentMethod: ruleUpdate.replenishmentMethod,
+              autoCreatePurchaseOrders: ruleUpdate.autoCreatePurchaseOrders,
+              preferredSupplierId: ruleUpdate.preferredSupplierId,
+              isActive: ruleUpdate.isActive,
+            };
+
+            const updatedPolicy = await this.updateInventoryPolicy(
+              tenantId,
+              locationId,
+              ruleUpdate.id,
+              updateDto,
+              userId
+            );
+            results.push(updatedPolicy);
+          } else if (ruleUpdate.productId || ruleUpdate.categoryId) {
+            // Create new reorder rule
+            const createDto: CreateLocationInventoryPolicyDto = {
+              name: `Reorder Rule - ${ruleUpdate.productId || ruleUpdate.categoryId}`,
+              policyType: InventoryPolicyType.REORDER_POINT,
+              productId: ruleUpdate.productId,
+              categoryId: ruleUpdate.categoryId,
+              minStockLevel: ruleUpdate.minStockLevel,
+              reorderQuantity: ruleUpdate.reorderQuantity,
+              leadTimeDays: ruleUpdate.leadTimeDays,
+              replenishmentMethod: ruleUpdate.replenishmentMethod || StockReplenishmentMethod.MANUAL,
+              autoCreatePurchaseOrders: ruleUpdate.autoCreatePurchaseOrders,
+              preferredSupplierId: ruleUpdate.preferredSupplierId,
+              isActive: ruleUpdate.isActive ?? true,
+            };
+
+            const newPolicy = await this.createInventoryPolicy(
+              tenantId,
+              locationId,
+              createDto,
+              userId
+            );
+            results.push(newPolicy);
+          }
+        }
+      }
+
+      return {
+        locationId,
+        updatedRules: results,
+        updatedAt: new Date(),
+        updatedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to update reorder rules: ${error.message}`, error.stack);
+      throw error;
+    }
+  }

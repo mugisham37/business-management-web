@@ -650,3 +650,189 @@ export class LocationPromotionService {
     return new LocationPromotion(entityData);
   }
 }
+
+  /**
+   * Get location promotions (called by resolver)
+   */
+  async getLocationPromotions(
+    tenantId: string,
+    locationId: string,
+  ): Promise<any[]> {
+    try {
+      const { promotions, total } = await this.findPromotions(tenantId, locationId, {});
+
+      return promotions.map(promotion => ({
+        id: promotion.id,
+        name: promotion.name,
+        description: promotion.description,
+        promotionType: promotion.promotionType,
+        status: promotion.status,
+        startDate: promotion.startDate,
+        endDate: promotion.endDate,
+        discountPercentage: promotion.discountPercentage,
+        discountAmount: promotion.discountAmount,
+        currentUses: promotion.currentUses,
+        maxTotalUses: promotion.maxTotalUses,
+        isActive: promotion.isActive,
+        createdAt: promotion.createdAt,
+        updatedAt: promotion.updatedAt,
+      }));
+    } catch (error: any) {
+      this.logger.error(`Failed to get location promotions: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Create location promotion (called by resolver)
+   */
+  async createLocationPromotion(
+    tenantId: string,
+    locationId: string,
+    promotion: any,
+    userId: string,
+  ): Promise<any> {
+    try {
+      const createDto: CreateLocationPromotionDto = {
+        name: promotion.name,
+        description: promotion.description,
+        promotionType: promotion.promotionType,
+        targetType: promotion.targetType,
+        targetProductIds: promotion.targetProductIds,
+        targetCategoryIds: promotion.targetCategoryIds,
+        targetCustomerSegments: promotion.targetCustomerSegments,
+        startDate: promotion.startDate,
+        endDate: promotion.endDate,
+        discountPercentage: promotion.discountPercentage,
+        discountAmount: promotion.discountAmount,
+        minPurchaseAmount: promotion.minPurchaseAmount,
+        maxDiscountAmount: promotion.maxDiscountAmount,
+        maxUsesPerCustomer: promotion.maxUsesPerCustomer,
+        maxTotalUses: promotion.maxTotalUses,
+        priority: promotion.priority,
+        isCombinable: promotion.isCombinable,
+        conditions: promotion.conditions,
+        actions: promotion.actions,
+        promotionCode: promotion.promotionCode,
+        isActive: promotion.isActive,
+      };
+
+      const newPromotion = await this.createPromotion(tenantId, locationId, createDto, userId);
+
+      return {
+        id: newPromotion.id,
+        name: newPromotion.name,
+        description: newPromotion.description,
+        promotionType: newPromotion.promotionType,
+        status: newPromotion.status,
+        startDate: newPromotion.startDate,
+        endDate: newPromotion.endDate,
+        discountPercentage: newPromotion.discountPercentage,
+        discountAmount: newPromotion.discountAmount,
+        isActive: newPromotion.isActive,
+        createdAt: newPromotion.createdAt,
+        createdBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to create location promotion: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Activate promotion (called by resolver)
+   */
+  async activatePromotion(
+    tenantId: string,
+    promotionId: string,
+    userId: string,
+  ): Promise<any> {
+    try {
+      // Find promotion across all locations for this tenant
+      const [promotion] = await this.drizzle.getDb()
+        .select()
+        .from(locationPromotions)
+        .where(and(
+          eq(locationPromotions.id, promotionId),
+          eq(locationPromotions.tenantId, tenantId)
+        ));
+
+      if (!promotion) {
+        throw new NotFoundException(`Promotion with ID ${promotionId} not found`);
+      }
+
+      const updateDto: UpdateLocationPromotionDto = {
+        status: PromotionStatus.ACTIVE,
+        isActive: true,
+      };
+
+      const updatedPromotion = await this.updatePromotion(
+        tenantId,
+        promotion.locationId,
+        promotionId,
+        updateDto,
+        userId
+      );
+
+      return {
+        id: updatedPromotion.id,
+        name: updatedPromotion.name,
+        status: updatedPromotion.status,
+        isActive: updatedPromotion.isActive,
+        activatedAt: new Date(),
+        activatedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to activate promotion: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Deactivate promotion (called by resolver)
+   */
+  async deactivatePromotion(
+    tenantId: string,
+    promotionId: string,
+    userId: string,
+  ): Promise<any> {
+    try {
+      // Find promotion across all locations for this tenant
+      const [promotion] = await this.drizzle.getDb()
+        .select()
+        .from(locationPromotions)
+        .where(and(
+          eq(locationPromotions.id, promotionId),
+          eq(locationPromotions.tenantId, tenantId)
+        ));
+
+      if (!promotion) {
+        throw new NotFoundException(`Promotion with ID ${promotionId} not found`);
+      }
+
+      const updateDto: UpdateLocationPromotionDto = {
+        status: PromotionStatus.PAUSED,
+        isActive: false,
+      };
+
+      const updatedPromotion = await this.updatePromotion(
+        tenantId,
+        promotion.locationId,
+        promotionId,
+        updateDto,
+        userId
+      );
+
+      return {
+        id: updatedPromotion.id,
+        name: updatedPromotion.name,
+        status: updatedPromotion.status,
+        isActive: updatedPromotion.isActive,
+        deactivatedAt: new Date(),
+        deactivatedBy: userId,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to deactivate promotion: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
