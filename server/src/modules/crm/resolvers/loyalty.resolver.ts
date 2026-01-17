@@ -2,12 +2,13 @@ import { Resolver, Query, Mutation, Args, ID, Int, Float } from '@nestjs/graphql
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { LoyaltyService } from '../services/loyalty.service';
 import { 
-  CreateRewardDto, 
-  UpdateRewardDto, 
-  CreateCampaignDto,
-  LoyaltyQueryDto,
-  RewardQueryDto 
-} from '../dto/loyalty.dto';
+  CreateRewardInput, 
+  UpdateRewardInput, 
+  CreateCampaignInput,
+  LoyaltyTransactionFilterInput,
+  RewardFilterInput,
+  RewardType,
+} from '../types/loyalty.input';
 import { LoyaltyTransaction } from '../entities/customer.entity';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
@@ -27,7 +28,7 @@ export class LoyaltyResolver {
   @Query(() => [LoyaltyTransaction])
   @RequirePermission('loyalty:read')
   async loyaltyTransactions(
-    @Args('query', { type: () => LoyaltyQueryDto, nullable: true }) query: LoyaltyQueryDto = {},
+    @Args('query', { type: () => LoyaltyTransactionFilterInput, nullable: true }) query: LoyaltyTransactionFilterInput = {},
     @CurrentTenant() tenantId: string,
   ): Promise<LoyaltyTransaction[]> {
     const result = await this.loyaltyService.getLoyaltyTransactions(tenantId, query);
@@ -97,22 +98,44 @@ export class LoyaltyResolver {
   @Mutation(() => Boolean)
   @RequirePermission('loyalty:manage-rewards')
   async createLoyaltyReward(
-    @Args('input') input: CreateRewardDto,
+    @Args('input') input: CreateRewardInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<boolean> {
-    await this.loyaltyService.createReward(tenantId, input, user.id);
+    // Convert RewardType enum to service DTO string type
+    const rewardTypeMap: Record<RewardType, 'discount' | 'product' | 'experience' | 'other'> = {
+      [RewardType.DISCOUNT_PERCENTAGE]: 'discount',
+      [RewardType.DISCOUNT_FIXED]: 'discount',
+      [RewardType.FREE_PRODUCT]: 'product',
+      [RewardType.FREE_SHIPPING]: 'discount',
+      [RewardType.STORE_CREDIT]: 'discount',
+      [RewardType.CUSTOM]: 'other',
+    };
+
+    const rewardDto = {
+      ...input,
+      type: rewardTypeMap[input.type],
+    };
+
+    await this.loyaltyService.createReward(tenantId, rewardDto, user.id);
     return true;
   }
 
   @Mutation(() => Boolean)
   @RequirePermission('loyalty:manage-campaigns')
   async createLoyaltyCampaign(
-    @Args('input') input: CreateCampaignDto,
+    @Args('input') input: CreateCampaignInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<boolean> {
-    await this.loyaltyService.createCampaign(tenantId, input, user.id);
+    const campaignDto = {
+      ...input,
+      startDate: new Date(input.startDate),
+      endDate: new Date(input.endDate),
+      type: input.type as 'loyalty_points' | 'discount' | 'promotion' | 'referral',
+    };
+
+    await this.loyaltyService.createCampaign(tenantId, campaignDto, user.id);
     return true;
   }
 }

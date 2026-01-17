@@ -10,7 +10,7 @@ import {
   customerPricingRules, 
   customerCreditHistory 
 } from '../../database/schema';
-import { eq, and, or, gte, lte, desc, asc, sql, isNull, ilike, not } from 'drizzle-orm';
+import { eq, and, or, gte, lte, desc, asc, sql, isNull, ilike, not, inArray } from 'drizzle-orm';
 
 export interface B2BCustomer {
   id: string;
@@ -86,8 +86,8 @@ export class B2BCustomerService {
         type: 'business' as any,
         companyName: data.companyName,
         creditLimit: data.creditLimit,
-        paymentTerms: this.convertPaymentTermsToDays(data.paymentTerms, data.customPaymentTermsDays),
-        discountPercentage: data.volumeDiscountPercentage || 0,
+        paymentTerms: data.paymentTerms ? this.convertPaymentTermsToDays(data.paymentTerms, data.customPaymentTermsDays) : undefined,
+        discountPercentage: data.volumeDiscountPercentage || data.discountPercentage || 0,
       };
 
       // Only add optional properties if they are defined
@@ -120,12 +120,12 @@ export class B2BCustomerService {
           primaryContactLastName: data.primaryContactLastName,
           primaryContactTitle: data.primaryContactTitle,
           dunsNumber: data.dunsNumber,
-          paymentTermsType: data.paymentTerms,
+          paymentTermsType: (data.paymentTerms as any) || 'net_30',
           customPaymentTermsDays: data.customPaymentTermsDays,
           earlyPaymentDiscountPercentage: data.earlyPaymentDiscountPercentage?.toString(),
           earlyPaymentDiscountDays: data.earlyPaymentDiscountDays,
           creditStatus: 'pending',
-          pricingTier: data.pricingTier,
+          pricingTier: (data.pricingTier as any) || 'standard',
           volumeDiscountPercentage: data.volumeDiscountPercentage?.toString(),
           minimumOrderAmount: data.minimumOrderAmount?.toString(),
           salesRepId: data.salesRepId,
@@ -162,7 +162,7 @@ export class B2BCustomerService {
           tenantId,
           customerId: baseCustomer.id,
           eventType: 'application',
-          newCreditLimit: data.creditLimit.toString(),
+          newCreditLimit: (data.creditLimit || 0).toString(),
           newStatus: 'pending',
           assessmentNotes: 'Initial B2B customer application',
           reviewedBy: userId,
@@ -262,15 +262,15 @@ export class B2BCustomerService {
 
         // Add filter conditions
         if (query.creditStatus) {
-          conditions.push(eq(b2bCustomers.creditStatus, query.creditStatus));
+          conditions.push(eq(b2bCustomers.creditStatus, query.creditStatus as any));
         }
 
         if (query.pricingTier) {
-          conditions.push(eq(b2bCustomers.pricingTier, query.pricingTier));
+          conditions.push(eq(b2bCustomers.pricingTier, query.pricingTier as any));
         }
 
         if (query.paymentTerms) {
-          conditions.push(eq(b2bCustomers.paymentTermsType, query.paymentTerms));
+          conditions.push(eq(b2bCustomers.paymentTermsType, query.paymentTerms as any));
         }
 
         if (query.salesRepId) {
@@ -551,7 +551,7 @@ export class B2BCustomerService {
     }
 
     // Validate credit limit
-    if (data.creditLimit < 0) {
+    if (data.creditLimit !== undefined && data.creditLimit < 0) {
       throw new BadRequestException('Credit limit cannot be negative');
     }
 
@@ -652,12 +652,250 @@ export class B2BCustomerService {
   private async invalidateB2BCaches(tenantId: string, customerId?: string): Promise<void> {
     try {
       await this.cacheService.invalidatePattern(`b2b-customers:${tenantId}:*`);
+      await this.cacheService.invalidatePattern(`b2b-customer-metrics:${tenantId}`);
       
       if (customerId) {
         await this.cacheService.invalidatePattern(`b2b-customer:${tenantId}:${customerId}`);
       }
     } catch (error) {
       this.logger.warn(`Failed to invalidate B2B caches for tenant ${tenantId}:`, error);
+    }
+  }
+
+  async getB2BCustomerMetrics(tenantId: string): Promise<any> {
+    try {
+      const cacheKey = `b2b-customer-metrics:${tenantId}`;
+      
+      let metrics = await this.cacheService.get<any>(cacheKey);
+      
+      if (!metrics) {
+        const stats = await this.drizzle.getDb()
+          .select({
+            totalB2BCustomers: sql<number>`COUNT(*)`,
+            averageContractValue: sql<number>`COALESCE(AVG(${b2bCustomers.contractValue}), 0)`,
+            averagePaymentTerms: sql<number>`COALESCE(AVG(${b2bCustomers.customPaymentTermsDays}), 0)`,
+          })
+          .from(b2bCustomers)
+          .where(and(
+            eq(b2bCustomers.tenantId, tenantId),
+            isNull(b2bCustomers.deletedAt)
+          ));
+
+        const thirtyDaysFromNow = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000));
+        
+        const expiringContracts = await this.drizzle.getDb()
+          .select({
+            count: sql<number>`COUNT(*)`,
+          })
+          .from(b2bCustomers)
+          .where(and(
+            eq(b2bCustomers.tenantId, tenantId),
+            lte(b2bCustomers.contractEndDate, thirtyDaysFromNow),
+            gte(b2bCustomers.contractEndDate, new Date()),
+            isNull(b2bCustomers.deletedAt)
+          ));
+
+        const result = stats?.[0];
+        const expiring = expiringContracts?.[0];
+
+        metrics = {
+          totalB2BCustomers: result ? Number(result.totalB2BCustomers) || 0 : 0,
+          totalCreditLimit: 0, // Not available in current schema
+          averageCreditLimit: 0, // Not available in current schema
+          totalOutstandingCredit: 0, // Would need to calculate from transactions
+          averageContractValue: result ? Number(result.averageContractValue) || 0 : 0,
+          contractsExpiringThisMonth: expiring ? Number(expiring.count) || 0 : 0,
+          averagePaymentTerms: result ? Number(result.averagePaymentTerms) || 0 : 0,
+          totalVolumeDiscounts: 0, // Would need to calculate from pricing rules
+        };
+
+        // Cache for 15 minutes
+        await this.cacheService.set(cacheKey, metrics, { ttl: 900, tenantId });
+      }
+
+      return metrics;
+    } catch (error) {
+      this.logger.error(`Failed to get B2B customer metrics for tenant ${tenantId}:`, error);
+      throw error;
+    }
+  }
+
+  async updateCreditLimit(
+    tenantId: string,
+    customerId: string,
+    newCreditLimit: number,
+    reason: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      const customer = await this.findB2BCustomerById(tenantId, customerId);
+
+      // Note: creditLimit is not stored on b2bCustomers table
+      // Credit information is tracked via customerCreditHistory
+
+      // Record credit history
+      await this.drizzle.getDb()
+        .insert(customerCreditHistory)
+        .values({
+          tenantId,
+          customerId,
+          eventType: 'limit_change',
+          previousCreditLimit: null,
+          newCreditLimit: newCreditLimit.toString(),
+          newStatus: 'pending',
+          assessmentNotes: `Credit limit updated. Reason: ${reason}`,
+          reviewedBy: userId,
+          metadata: { reason },
+        });
+
+      // Clear caches
+      await this.invalidateB2BCaches(tenantId, customerId);
+
+      // Emit event
+      this.eventEmitter.emit('b2b-customer.credit-limit.updated', {
+        tenantId,
+        customerId,
+        newCreditLimit,
+        reason,
+        userId,
+      });
+
+      this.logger.log(`Updated credit limit for B2B customer ${customerId} to ${newCreditLimit}`);
+    } catch (error) {
+      this.logger.error(`Failed to update credit limit for B2B customer ${customerId}:`, error);
+      throw error;
+    }
+  }
+
+  async updateCreditStatus(
+    tenantId: string,
+    customerId: string,
+    newStatus: string,
+    reason: string,
+    userId: string,
+  ): Promise<void> {
+    try {
+      const customer = await this.findB2BCustomerById(tenantId, customerId);
+      const previousStatus = customer.creditStatus;
+
+      // Update credit status
+      await this.drizzle.getDb()
+        .update(b2bCustomers)
+        .set({
+          creditStatus: newStatus as any,
+          updatedBy: userId,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(b2bCustomers.tenantId, tenantId),
+          eq(b2bCustomers.customerId, customerId)
+        ));
+
+      // Record credit history
+      await this.drizzle.getDb()
+        .insert(customerCreditHistory)
+        .values({
+          tenantId,
+          customerId,
+          eventType: 'status_change',
+          previousStatus: previousStatus as 'approved' | 'pending' | 'rejected' | 'suspended' | 'under_review' | null,
+          newStatus: newStatus as 'approved' | 'pending' | 'rejected' | 'suspended' | 'under_review',
+          reviewedBy: userId,
+          metadata: { reason },
+        });
+
+      // Clear caches
+      await this.invalidateB2BCaches(tenantId, customerId);
+
+      // Emit event
+      this.eventEmitter.emit('b2b-customer.credit-status.updated', {
+        tenantId,
+        customerId,
+        previousStatus,
+        newStatus,
+        reason,
+        userId,
+      });
+
+      this.logger.log(`Updated credit status for B2B customer ${customerId} from ${previousStatus} to ${newStatus}`);
+    } catch (error) {
+      this.logger.error(`Failed to update credit status for B2B customer ${customerId}:`, error);
+      throw error;
+    }
+  }
+
+  async batchLoadPricingRules(customerIds: string[], tenantId: string): Promise<any[][]> {
+    try {
+      const pricingRules = await this.drizzle.getDb()
+        .select()
+        .from(customerPricingRules)
+        .where(and(
+          eq(customerPricingRules.tenantId, tenantId),
+          inArray(customerPricingRules.customerId, customerIds),
+          eq(customerPricingRules.isActive, true)
+        ));
+
+      const ruleMap = new Map<string, any[]>();
+      pricingRules.forEach(rule => {
+        if (!ruleMap.has(rule.customerId)) {
+          ruleMap.set(rule.customerId, []);
+        }
+        ruleMap.get(rule.customerId)!.push(rule);
+      });
+
+      return customerIds.map(id => ruleMap.get(id) || []);
+    } catch (error) {
+      this.logger.error(`Failed to batch load pricing rules:`, error);
+      return customerIds.map(() => []);
+    }
+  }
+
+  async batchLoadCreditHistory(customerIds: string[], tenantId: string): Promise<any[][]> {
+    try {
+      const creditHistory = await this.drizzle.getDb()
+        .select()
+        .from(customerCreditHistory)
+        .where(and(
+          eq(customerCreditHistory.tenantId, tenantId),
+          inArray(customerCreditHistory.customerId, customerIds)
+        ))
+        .orderBy(desc(customerCreditHistory.createdAt));
+
+      const historyMap = new Map<string, any[]>();
+      creditHistory.forEach(history => {
+        if (!historyMap.has(history.customerId)) {
+          historyMap.set(history.customerId, []);
+        }
+        historyMap.get(history.customerId)!.push(history);
+      });
+
+      return customerIds.map(id => historyMap.get(id) || []);
+    } catch (error) {
+      this.logger.error(`Failed to batch load credit history:`, error);
+      return customerIds.map(() => []);
+    }
+  }
+
+  async getAvailableCredit(tenantId: string, customerId: string): Promise<number> {
+    try {
+      const customer = await this.findB2BCustomerById(tenantId, customerId);
+      const outstandingBalance = await this.getOutstandingBalance(tenantId, customerId);
+      
+      return Math.max(0, customer.creditLimit - outstandingBalance);
+    } catch (error) {
+      this.logger.error(`Failed to get available credit for customer ${customerId}:`, error);
+      return 0;
+    }
+  }
+
+  async getOutstandingBalance(tenantId: string, customerId: string): Promise<number> {
+    try {
+      // This would typically query the transactions/invoices table
+      // For now, return 0 as a placeholder
+      return 0;
+    } catch (error) {
+      this.logger.error(`Failed to get outstanding balance for customer ${customerId}:`, error);
+      return 0;
     }
   }
 }

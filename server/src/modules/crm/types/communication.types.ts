@@ -1,239 +1,139 @@
-import { ObjectType, Field, ID, Int, InputType, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsBoolean, IsDate, IsObject } from 'class-validator';
-import { BaseEntity } from '../../../common/graphql/base.types';
-import { Customer } from '../entities/customer.entity';
-
-export enum CommunicationTypeEnum {
-  EMAIL = 'email',
-  PHONE = 'phone',
-  MEETING = 'meeting',
-  NOTE = 'note',
-  SMS = 'sms',
-}
-
-export enum CommunicationDirection {
-  INBOUND = 'inbound',
-  OUTBOUND = 'outbound',
-}
-
-export enum CommunicationStatus {
-  SCHEDULED = 'scheduled',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-}
-
-registerEnumType(CommunicationTypeEnum, {
-  name: 'CommunicationTypeEnum',
-});
-
-registerEnumType(CommunicationDirection, {
-  name: 'CommunicationDirection',
-});
-
-registerEnumType(CommunicationStatus, {
-  name: 'CommunicationStatus',
-});
+import { ObjectType, Field, Int, ID, Float } from '@nestjs/graphql';
 
 @ObjectType()
-export class CommunicationType extends BaseEntity {
+export class CommunicationType {
   @Field(() => ID)
-  @ApiProperty()
   id!: string;
 
   @Field()
-  @ApiProperty()
   tenantId!: string;
 
-  @Field(() => ID)
-  @ApiProperty()
+  @Field()
   customerId!: string;
 
-  @Field(() => ID, { nullable: true })
-  @ApiProperty({ required: false })
+  @Field({ nullable: true })
   employeeId?: string;
 
-  @Field(() => CommunicationTypeEnum)
-  @ApiProperty({ enum: CommunicationTypeEnum })
-  type!: CommunicationTypeEnum;
+  @Field()
+  type!: string; // 'email', 'phone', 'meeting', 'note', 'sms'
 
-  @Field(() => CommunicationDirection)
-  @ApiProperty({ enum: CommunicationDirection })
-  direction!: CommunicationDirection;
+  @Field()
+  direction!: string; // 'inbound', 'outbound'
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   subject?: string;
 
   @Field()
-  @ApiProperty()
   content!: string;
 
-  @Field(() => CommunicationStatus)
-  @ApiProperty({ enum: CommunicationStatus })
-  status!: CommunicationStatus;
+  @Field()
+  status!: string; // 'scheduled', 'completed', 'cancelled'
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   scheduledAt?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   completedAt?: Date;
 
   @Field(() => Int, { nullable: true })
-  @ApiProperty({ required: false })
   duration?: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   outcome?: string;
 
   @Field()
-  @ApiProperty()
   followUpRequired!: boolean;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   followUpDate?: Date;
 
+  @Field(() => Object)
+  metadata!: Record<string, any>;
+
   @Field()
-  @ApiProperty()
   createdAt!: Date;
 
   @Field()
-  @ApiProperty()
   updatedAt!: Date;
 
-  // Field resolvers
-  @Field(() => Customer)
-  @ApiProperty({ type: () => Customer })
-  customer?: Customer;
+  @Field()
+  createdBy!: string;
 
-  @Field(() => Object, { nullable: true })
-  @ApiProperty({ required: false })
-  employee?: any;
+  @Field()
+  updatedBy!: string;
 }
 
-@InputType()
-export class CreateCommunicationInput {
+@ObjectType()
+export class CommunicationSummary {
   @Field(() => ID)
-  @ApiProperty()
-  @IsString()
   customerId!: string;
 
-  @Field(() => ID, { nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  employeeId?: string;
+  @Field(() => Int)
+  totalCommunications!: number;
 
-  @Field(() => CommunicationTypeEnum)
-  @ApiProperty({ enum: CommunicationTypeEnum })
-  @IsEnum(CommunicationTypeEnum)
-  type!: CommunicationTypeEnum;
+  @Field(() => Int)
+  emailCount!: number;
 
-  @Field(() => CommunicationDirection)
-  @ApiProperty({ enum: CommunicationDirection })
-  @IsEnum(CommunicationDirection)
-  direction!: CommunicationDirection;
+  @Field(() => Int)
+  phoneCount!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  subject?: string;
+  @Field(() => Int)
+  meetingCount!: number;
 
-  @Field()
-  @ApiProperty()
-  @IsString()
-  content!: string;
+  @Field(() => Int)
+  noteCount!: number;
 
-  @Field(() => CommunicationStatus, { nullable: true })
-  @ApiProperty({ enum: CommunicationStatus, required: false })
-  @IsOptional()
-  @IsEnum(CommunicationStatus)
-  status?: CommunicationStatus;
+  @Field(() => Int)
+  smsCount!: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsDate()
-  scheduledAt?: Date;
+  lastCommunicationDate?: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsDate()
-  completedAt?: Date;
+  lastCommunicationType?: string;
 
-  @Field(() => Int, { nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  duration?: number;
+  @Field(() => Int)
+  scheduledCommunications!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  outcome?: string;
+  @Field(() => Int)
+  completedCommunications!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  followUpRequired?: boolean;
+  @Field(() => Int)
+  cancelledCommunications!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsDate()
-  followUpDate?: Date;
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsObject()
-  metadata?: Record<string, any>;
+  @Field(() => Int)
+  followUpRequired!: number;
 }
 
-@InputType()
-export class ScheduleCommunicationInput {
-  @Field(() => ID)
-  @ApiProperty()
-  @IsString()
-  customerId!: string;
+@ObjectType()
+export class CommunicationMetrics {
+  @Field(() => Int)
+  totalCommunications!: number;
 
-  @Field(() => ID, { nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  employeeId?: string;
+  @Field(() => Int)
+  totalCustomersContacted!: number;
 
-  @Field(() => CommunicationTypeEnum)
-  @ApiProperty({ enum: CommunicationTypeEnum })
-  @IsEnum(CommunicationTypeEnum)
-  type!: CommunicationTypeEnum;
+  @Field(() => Float)
+  averageCommunicationsPerCustomer!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  subject?: string;
+  @Field(() => Float)
+  responseRate!: number;
 
-  @Field()
-  @ApiProperty()
-  @IsString()
-  content!: string;
+  @Field(() => Int)
+  averageResponseTimeHours!: number;
 
-  @Field()
-  @ApiProperty()
-  @IsDate()
-  scheduledAt!: Date;
+  @Field(() => Int)
+  scheduledCommunications!: number;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsObject()
-  metadata?: Record<string, any>;
+  @Field(() => Int)
+  completedCommunications!: number;
+
+  @Field(() => Int)
+  cancelledCommunications!: number;
+
+  @Field(() => Int)
+  followUpsPending!: number;
+
+  @Field(() => Float)
+  completionRate!: number;
 }

@@ -1,146 +1,223 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { B2BCustomerService } from '../services/b2b-customer.service';
-import { CreateB2BCustomerDto, UpdateB2BCustomerDto, B2BCustomerQueryDto } from '../dto/b2b-customer.dto';
-import { B2BCustomerType } from '../types/b2b-customer.types';
-import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { CreateB2BCustomerInput, UpdateB2BCustomerInput, B2BCustomerFilterInput } from '../types/b2b-customer.input';
+import { B2BCustomer, CustomerPricingRule, CustomerCreditHistory, B2BCustomerMetrics } from '../types/b2b-customer.types';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { FeatureGuard } from '../../tenant/guards/feature.guard';
+import { RequireFeature } from '../../tenant/decorators/tenant.decorators';
+import { RequirePermission } from '../../auth/decorators/auth.decorators';
+import { CurrentUser } from '../../auth/decorators/auth.decorators';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
-import { Permissions } from '../../auth/decorators/permission.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
-import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 
-@Resolver(() => B2BCustomerType)
-@UseGuards(JwtAuthGuard, TenantGuard)
-export class B2BCustomerResolver extends BaseResolver {
+@Resolver(() => B2BCustomer)
+@UseGuards(JwtAuthGuard, TenantGuard, FeatureGuard)
+@RequireFeature('b2b-customers')
+export class B2BCustomerResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
     private readonly b2bCustomerService: B2BCustomerService,
-  ) {
-    super(dataLoaderService);
-  }
+    private readonly dataLoaderService: DataLoaderService,
+  ) {}
 
-  @Query(() => B2BCustomerType)
-  @UseGuards(PermissionsGuard)
-  @Permissions('customers:read')
+  @Query(() => B2BCustomer)
+  @RequirePermission('customers:read')
   async b2bCustomer(
     @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType> {
-    return this.b2bCustomerService.findB2BCustomerById(tenantId, id);
+  ): Promise<B2BCustomer> {
+    return this.b2bCustomerService.findB2BCustomerById(tenantId, id) as Promise<B2BCustomer>;
   }
 
-  @Query(() => [B2BCustomerType])
-  @UseGuards(PermissionsGuard)
-  @Permissions('customers:read')
+  @Query(() => [B2BCustomer])
+  @RequirePermission('customers:read')
   async b2bCustomers(
-    @Args('query', { type: () => B2BCustomerQueryDto, nullable: true }) query: B2BCustomerQueryDto = {},
+    @Args('filter', { type: () => B2BCustomerFilterInput, nullable: true }) filter: B2BCustomerFilterInput = {},
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType[]> {
-    const result = await this.b2bCustomerService.findB2BCustomers(tenantId, query);
-    return result.customers;
+  ): Promise<B2BCustomer[]> {
+    const result = await this.b2bCustomerService.findB2BCustomers(tenantId, filter);
+    return result.customers as B2BCustomer[];
   }
 
-  @Query(() => B2BCustomerType, { nullable: true })
-  @UseGuards(PermissionsGuard)
-  @Permissions('customers:read')
-  async getB2BCustomerHierarchy(
-    @Args('id', { type: () => ID }) id: string,
+  @Query(() => [B2BCustomer])
+  @RequirePermission('customers:read')
+  async b2bCustomersByIndustry(
+    @Args('industry') industry: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType> {
-    // Get the customer with hierarchy information loaded
-    const customer = await this.b2bCustomerService.findB2BCustomerById(tenantId, id);
-    return customer;
+  ): Promise<B2BCustomer[]> {
+    const filter: B2BCustomerFilterInput = { industry };
+    const result = await this.b2bCustomerService.findB2BCustomers(tenantId, filter);
+    return result.customers as B2BCustomer[];
   }
 
-  @Mutation(() => B2BCustomerType)
-  @UseGuards(PermissionsGuard)
-  @Permissions('customers:create')
+  @Query(() => [B2BCustomer])
+  @RequirePermission('customers:read')
+  async b2bCustomersBySalesRep(
+    @Args('salesRepId', { type: () => ID }) salesRepId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<B2BCustomer[]> {
+    const filter: B2BCustomerFilterInput = { salesRepId };
+    const result = await this.b2bCustomerService.findB2BCustomers(tenantId, filter);
+    return result.customers as B2BCustomer[];
+  }
+
+  @Query(() => [B2BCustomer])
+  @RequirePermission('customers:read')
+  async b2bCustomersWithExpiringContracts(
+    @Args('days', { defaultValue: 30 }) days: number,
+    @CurrentTenant() tenantId: string,
+  ): Promise<B2BCustomer[]> {
+    const filter: B2BCustomerFilterInput = { contractExpiringWithinDays: days };
+    const result = await this.b2bCustomerService.findB2BCustomers(tenantId, filter);
+    return result.customers as B2BCustomer[];
+  }
+
+  @Query(() => B2BCustomerMetrics)
+  @RequirePermission('customers:read')
+  async b2bCustomerMetrics(
+    @CurrentTenant() tenantId: string,
+  ): Promise<B2BCustomerMetrics> {
+    return this.b2bCustomerService.getB2BCustomerMetrics(tenantId);
+  }
+
+  @Mutation(() => B2BCustomer)
+  @RequirePermission('customers:create')
   async createB2BCustomer(
-    @Args('input') input: CreateB2BCustomerDto,
+    @Args('input') input: CreateB2BCustomerInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType> {
-    return this.b2bCustomerService.createB2BCustomer(tenantId, input, user.id);
+  ): Promise<B2BCustomer> {
+    // Convert enum values and handle type conversions
+    const serviceInput = {
+      ...input,
+      paymentTerms: input.paymentTerms as string,
+    } as any;
+    return this.b2bCustomerService.createB2BCustomer(tenantId, serviceInput, user.id) as Promise<B2BCustomer>;
   }
 
-  @Mutation(() => B2BCustomerType)
-  @UseGuards(PermissionsGuard)
-  @Permissions('customers:update')
+  @Mutation(() => B2BCustomer)
+  @RequirePermission('customers:update')
   async updateB2BCustomer(
     @Args('id', { type: () => ID }) id: string,
-    @Args('input') input: UpdateB2BCustomerDto,
+    @Args('input') input: UpdateB2BCustomerInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType> {
-    return this.b2bCustomerService.updateB2BCustomer(tenantId, id, input, user.id);
+  ): Promise<B2BCustomer> {
+    // Convert enum values and handle type conversions
+    const serviceInput = {
+      ...input,
+      paymentTerms: input.paymentTerms as string | undefined,
+    } as any;
+    return this.b2bCustomerService.updateB2BCustomer(tenantId, id, serviceInput, user.id) as Promise<B2BCustomer>;
   }
 
-  @ResolveField(() => B2BCustomerType, { nullable: true })
-  async parentCustomer(
-    @Parent() customer: B2BCustomerType,
+  @Mutation(() => Boolean)
+  @RequirePermission('customers:update')
+  async updateB2BCustomerCreditLimit(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('creditLimit') creditLimit: number,
+    @Args('reason') reason: string,
+    @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType | null> {
-    // B2B customers can have parent-child relationships for corporate hierarchies
-    // This would require a parentCustomerId field in the schema
-    // For now, return null as the schema doesn't have this field yet
-    return null;
+  ): Promise<boolean> {
+    await this.b2bCustomerService.updateCreditLimit(tenantId, id, creditLimit, reason, user.id);
+    return true;
   }
 
-  @ResolveField(() => [B2BCustomerType])
-  async childCustomers(
-    @Parent() customer: B2BCustomerType,
+  @Mutation(() => Boolean)
+  @RequirePermission('customers:update')
+  async updateB2BCustomerCreditStatus(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('status') status: string,
+    @Args('reason') reason: string,
+    @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<B2BCustomerType[]> {
-    // Load child customers using DataLoader for batch loading
-    const loader = this.getDataLoader<string, B2BCustomerType[]>(
-      `b2b_customers_by_parent_${tenantId}`,
-      async (parentIds: readonly string[]) => {
-        // This would query for customers where parentCustomerId IN (parentIds)
-        // For now, return empty arrays as the schema doesn't have this field yet
-        return parentIds.map(() => []);
-      },
-    );
-
-    return loader.load(customer.id);
+  ): Promise<boolean> {
+    await this.b2bCustomerService.updateCreditStatus(tenantId, id, status, reason, user.id);
+    return true;
   }
 
-  @ResolveField(() => [Object])
-  async contracts(
-    @Parent() customer: B2BCustomerType,
+  // Field resolvers for related data
+  @ResolveField(() => [CustomerPricingRule])
+  async pricingRules(
+    @Parent() customer: B2BCustomer,
     @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    // Load contracts using DataLoader for batch loading
-    const loader = this.getDataLoader<string, any[]>(
-      `contracts_by_customer_${tenantId}`,
+  ): Promise<CustomerPricingRule[]> {
+    const loader = this.dataLoaderService.getLoader<string, CustomerPricingRule[]>(
+      `pricing_rules_by_customer_${tenantId}`,
       async (customerIds: readonly string[]) => {
-        // This would query the contracts table
-        // For now, return empty arrays as contracts are in the B2B module
-        return customerIds.map(() => []);
+        return this.b2bCustomerService.batchLoadPricingRules([...customerIds], tenantId);
       },
     );
 
     return loader.load(customer.id);
   }
 
-  @ResolveField(() => [Object])
-  async orders(
-    @Parent() customer: B2BCustomerType,
+  @ResolveField(() => [CustomerCreditHistory])
+  async creditHistory(
+    @Parent() customer: B2BCustomer,
     @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    // Load orders using DataLoader for batch loading
-    const loader = this.getDataLoader<string, any[]>(
-      `orders_by_customer_${tenantId}`,
+  ): Promise<CustomerCreditHistory[]> {
+    const loader = this.dataLoaderService.getLoader<string, CustomerCreditHistory[]>(
+      `credit_history_by_customer_${tenantId}`,
       async (customerIds: readonly string[]) => {
-        // This would query the orders table
-        // For now, return empty arrays as orders are in the B2B module
-        return customerIds.map(() => []);
+        return this.b2bCustomerService.batchLoadCreditHistory([...customerIds], tenantId);
       },
     );
 
     return loader.load(customer.id);
+  }
+
+  @ResolveField(() => Object, { nullable: true })
+  async currentPricing(
+    @Parent() customer: B2BCustomer,
+    @CurrentTenant() tenantId: string,
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @Args('categoryId', { type: () => ID, nullable: true }) categoryId?: string,
+  ): Promise<any> {
+    return this.b2bCustomerService.getCustomerPricing(tenantId, customer.id, productId, categoryId);
+  }
+
+  @ResolveField(() => Number)
+  async availableCredit(
+    @Parent() customer: B2BCustomer,
+    @CurrentTenant() tenantId: string,
+  ): Promise<number> {
+    return this.b2bCustomerService.getAvailableCredit(tenantId, customer.id);
+  }
+
+  @ResolveField(() => Number)
+  async outstandingBalance(
+    @Parent() customer: B2BCustomer,
+    @CurrentTenant() tenantId: string,
+  ): Promise<number> {
+    return this.b2bCustomerService.getOutstandingBalance(tenantId, customer.id);
+  }
+
+  @ResolveField(() => Boolean)
+  async contractExpiringSoon(
+    @Parent() customer: B2BCustomer,
+    @Args('days', { defaultValue: 30 }) days: number,
+  ): Promise<boolean> {
+    if (!customer.contractEndDate) return false;
+    
+    const daysUntilExpiry = Math.ceil(
+      (customer.contractEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+    
+    return daysUntilExpiry <= days && daysUntilExpiry > 0;
+  }
+
+  @ResolveField(() => Number)
+  async daysUntilContractExpiry(
+    @Parent() customer: B2BCustomer,
+  ): Promise<number> {
+    if (!customer.contractEndDate) return -1;
+    
+    return Math.ceil(
+      (customer.contractEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
   }
 }

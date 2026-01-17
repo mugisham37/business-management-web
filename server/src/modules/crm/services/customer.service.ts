@@ -239,6 +239,36 @@ export class CustomerService {
     }
   }
 
+  async updateLoyaltyTier(tenantId: string, customerId: string, newTier: string): Promise<void> {
+    try {
+      const customer = await this.findById(tenantId, customerId);
+      
+      // Check if tier actually changed
+      if (customer.loyaltyTier === newTier) {
+        return;
+      }
+
+      // Update the loyalty tier
+      await this.customerRepository.update(tenantId, customerId, { loyaltyTier: newTier }, 'system');
+
+      // Clear customer cache
+      await this.invalidateCustomerCaches(tenantId, customerId);
+
+      // Emit loyalty tier updated event
+      this.eventEmitter.emit('customer.loyalty-tier.updated', {
+        tenantId,
+        customerId,
+        previousTier: customer.loyaltyTier,
+        newTier,
+      });
+
+      this.logger.log(`Updated loyalty tier for customer ${customerId}: ${customer.loyaltyTier} -> ${newTier}`);
+    } catch (error) {
+      this.logger.error(`Failed to update loyalty tier for customer ${customerId}:`, error);
+      throw error;
+    }
+  }
+
   async getCustomerStats(tenantId: string): Promise<{
     totalCustomers: number;
     activeCustomers: number;

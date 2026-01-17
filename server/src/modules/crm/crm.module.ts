@@ -3,14 +3,6 @@ import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 
-// Controllers
-import { CustomerController } from './controllers/customer.controller';
-import { LoyaltyController } from './controllers/loyalty.controller';
-import { SegmentationController } from './controllers/segmentation.controller';
-import { CommunicationController } from './controllers/communication.controller';
-import { CustomerAnalyticsController } from './controllers/customer-analytics.controller';
-import { B2BCustomerController } from './controllers/b2b-customer.controller';
-
 // Services
 import { CustomerService } from './services/customer.service';
 import { LoyaltyService } from './services/loyalty.service';
@@ -19,6 +11,7 @@ import { CommunicationService } from './services/communication.service';
 import { CustomerAnalyticsService } from './services/customer-analytics.service';
 import { CampaignService } from './services/campaign.service';
 import { B2BCustomerService } from './services/b2b-customer.service';
+import { CrmSubscriptionService } from './services/crm-subscription.service';
 
 // Repositories
 import { CustomerRepository } from './repositories/customer.repository';
@@ -33,6 +26,7 @@ import { B2BCustomerResolver } from './resolvers/b2b-customer.resolver';
 import { CommunicationResolver } from './resolvers/communication.resolver';
 import { CustomerAnalyticsResolver } from './resolvers/customer-analytics.resolver';
 import { SegmentationResolver } from './resolvers/segmentation.resolver';
+import { CampaignResolver } from './resolvers/campaign.resolver';
 
 // Event Handlers
 import { CustomerEventHandler } from './handlers/customer-event.handler';
@@ -43,14 +37,6 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     CacheModule,
     QueueModule,
   ],
-  controllers: [
-    CustomerController,
-    LoyaltyController,
-    SegmentationController,
-    CommunicationController,
-    CustomerAnalyticsController,
-    B2BCustomerController,
-  ],
   providers: [
     // Services
     CustomerService,
@@ -60,6 +46,7 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     CustomerAnalyticsService,
     CampaignService,
     B2BCustomerService,
+    CrmSubscriptionService,
     
     // Repositories
     CustomerRepository,
@@ -74,6 +61,7 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     CommunicationResolver,
     CustomerAnalyticsResolver,
     SegmentationResolver,
+    CampaignResolver,
     
     // Event Handlers
     CustomerEventHandler,
@@ -86,6 +74,7 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     CustomerAnalyticsService,
     CampaignService,
     B2BCustomerService,
+    CrmSubscriptionService,
   ],
 })
 export class CrmModule {}

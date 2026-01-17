@@ -1,181 +1,158 @@
-import { ObjectType, Field, ID, Int, InputType, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean, IsArray, IsEnum, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { BaseEntity } from '../../../common/graphql/base.types';
-
-export enum SegmentRuleOperator {
-  EQUALS = 'equals',
-  NOT_EQUALS = 'not_equals',
-  GREATER_THAN = 'greater_than',
-  LESS_THAN = 'less_than',
-  CONTAINS = 'contains',
-  IN = 'in',
-  NOT_IN = 'not_in',
-}
-
-export enum LogicalOperator {
-  AND = 'AND',
-  OR = 'OR',
-}
-
-registerEnumType(SegmentRuleOperator, {
-  name: 'SegmentRuleOperator',
-});
-
-registerEnumType(LogicalOperator, {
-  name: 'LogicalOperator',
-});
+import { ObjectType, Field, Int, ID, Float } from '@nestjs/graphql';
 
 @ObjectType()
-@InputType('SegmentRuleInput')
-export class SegmentRuleType {
-  @Field()
-  @ApiProperty()
-  @IsString()
-  field!: string;
-
-  @Field(() => SegmentRuleOperator)
-  @ApiProperty({ enum: SegmentRuleOperator })
-  @IsEnum(SegmentRuleOperator)
-  operator!: SegmentRuleOperator;
-
-  @Field()
-  @ApiProperty()
-  value!: any;
-
-  @Field(() => LogicalOperator, { nullable: true })
-  @ApiProperty({ enum: LogicalOperator, required: false })
-  @IsOptional()
-  @IsEnum(LogicalOperator)
-  logicalOperator?: LogicalOperator;
-}
-
-@ObjectType()
-export class SegmentType extends BaseEntity {
+export class SegmentationType {
   @Field(() => ID)
-  @ApiProperty()
   id!: string;
 
   @Field()
-  @ApiProperty()
   tenantId!: string;
 
   @Field()
-  @ApiProperty()
   name!: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   description?: string;
 
-  @Field(() => [SegmentRuleType])
-  @ApiProperty({ type: [SegmentRuleType] })
-  rules!: SegmentRuleType[];
+  @Field(() => [SegmentRule])
+  rules!: SegmentRule[];
 
   @Field()
-  @ApiProperty()
   isActive!: boolean;
 
   @Field(() => Int)
-  @ApiProperty()
   memberCount!: number;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
   lastCalculatedAt?: Date;
 
   @Field()
-  @ApiProperty()
   createdAt!: Date;
 
   @Field()
-  @ApiProperty()
   updatedAt!: Date;
-}
 
-@InputType()
-export class CreateSegmentInput {
   @Field()
-  @ApiProperty()
-  @IsString()
-  name!: string;
+  createdBy!: string;
 
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @Field(() => [SegmentRuleType])
-  @ApiProperty({ type: [SegmentRuleType] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SegmentRuleType)
-  rules!: SegmentRuleType[];
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
-}
-
-@InputType()
-export class UpdateSegmentInput {
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @Field(() => [SegmentRuleType], { nullable: true })
-  @ApiProperty({ type: [SegmentRuleType], required: false })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SegmentRuleType)
-  rules?: SegmentRuleType[];
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @Field()
+  updatedBy!: string;
 }
 
 @ObjectType()
-export class SegmentMemberType {
+export class SegmentRule {
+  @Field()
+  field!: string;
+
+  @Field()
+  operator!: string; // 'equals', 'not_equals', 'greater_than', 'less_than', 'contains', 'in', 'not_in'
+
+  @Field()
+  value!: any;
+
+  @Field({ nullable: true })
+  logicalOperator?: string; // 'AND', 'OR'
+}
+
+@ObjectType()
+export class SegmentMember {
   @Field(() => ID)
-  @ApiProperty()
+  segmentId!: string;
+
+  @Field(() => ID)
   customerId!: string;
 
   @Field()
-  @ApiProperty()
-  customerName!: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  email?: string;
-
-  @Field()
-  @ApiProperty()
   addedAt!: Date;
 
   @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  matchScore?: number;
+  removedAt?: Date;
+
+  @Field()
+  isActive!: boolean;
 }
 
 @ObjectType()
-export class SegmentJobResponseType {
+export class SegmentPerformance {
+  @Field(() => ID)
+  segmentId!: string;
+
   @Field()
-  @ApiProperty()
-  jobId!: string;
+  segmentName!: string;
+
+  @Field(() => Int)
+  memberCount!: number;
+
+  @Field(() => Float)
+  totalRevenue!: number;
+
+  @Field(() => Float)
+  averageOrderValue!: number;
+
+  @Field(() => Float)
+  conversionRate!: number;
+
+  @Field(() => Float)
+  churnRate!: number;
+
+  @Field(() => Float)
+  engagementScore!: number;
+
+  @Field(() => Int)
+  totalOrders!: number;
+
+  @Field(() => Int)
+  activeMembers!: number;
+
+  @Field(() => Int)
+  newMembersThisMonth!: number;
+
+  @Field(() => Float)
+  memberGrowthRate!: number;
 }
+
+@ObjectType()
+export class SegmentComparison {
+  @Field(() => [SegmentPerformance])
+  segments!: SegmentPerformance[];
+
+  @Field(() => String)
+  comparisonMetric!: string;
+
+  @Field(() => Date)
+  comparisonDate!: Date;
+
+  @Field(() => String)
+  period!: string; // 'daily', 'weekly', 'monthly', 'quarterly', 'yearly'
+}
+
+// Type aliases for backward compatibility
+export type SegmentType = SegmentationType;
+export type SegmentMemberType = SegmentMember;
+
+// Response type for segment jobs
+@ObjectType()
+export class SegmentJobResponse {
+  @Field(() => ID)
+  jobId!: string;
+
+  @Field()
+  status!: string; // 'pending', 'processing', 'completed', 'failed'
+
+  @Field(() => Int, { nullable: true })
+  processedCount?: number;
+
+  @Field(() => Int, { nullable: true })
+  totalCount?: number;
+
+  @Field({ nullable: true })
+  errorMessage?: string;
+
+  @Field()
+  createdAt!: Date;
+
+  @Field({ nullable: true })
+  completedAt?: Date;
+}
+
+export type SegmentJobResponseType = SegmentJobResponse;

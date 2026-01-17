@@ -1,210 +1,157 @@
-import { ObjectType, Field, ID, Float, Int, registerEnumType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { GraphQLJSONObject } from 'graphql-type-json';
-
-export enum SpendingTrend {
-  INCREASING = 'increasing',
-  DECREASING = 'decreasing',
-  STABLE = 'stable',
-}
-
-registerEnumType(SpendingTrend, {
-  name: 'SpendingTrend',
-});
+import { ObjectType, Field, Float, Int, ID } from '@nestjs/graphql';
 
 @ObjectType()
-export class CustomerLifetimeValueType {
+export class CustomerLifetimeValue {
   @Field(() => ID)
-  @ApiProperty()
   customerId!: string;
 
   @Field(() => Float)
-  @ApiProperty()
   currentValue!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   predictedValue!: number;
 
+  @Field(() => Float)
+  averageOrderValue!: number;
+
   @Field(() => Int)
-  @ApiProperty()
   totalOrders!: number;
 
   @Field(() => Float)
-  @ApiProperty()
-  averageOrderValue!: number;
+  totalSpent!: number;
 
   @Field(() => Int)
-  @ApiProperty()
   daysSinceFirstPurchase!: number;
 
-  @Field(() => Int)
-  @ApiProperty()
-  daysSinceLastPurchase!: number;
-
   @Field(() => Float)
-  @ApiProperty()
   purchaseFrequency!: number;
 
   @Field(() => Float)
-  @ApiProperty()
-  churnRisk!: number;
+  churnProbability!: number;
 }
 
 @ObjectType()
-export class CustomerSegmentAnalyticsType {
+export class SegmentAnalytics {
+  @Field(() => ID)
+  segmentId!: string;
+
   @Field()
-  @ApiProperty()
   segmentName!: string;
 
   @Field(() => Int)
-  @ApiProperty()
   customerCount!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   averageLifetimeValue!: number;
 
   @Field(() => Float)
-  @ApiProperty()
   averageOrderValue!: number;
 
   @Field(() => Float)
-  @ApiProperty()
-  averagePurchaseFrequency!: number;
+  totalRevenue!: number;
 
   @Field(() => Float)
-  @ApiProperty()
+  conversionRate!: number;
+
+  @Field(() => Float)
   churnRate!: number;
 
-  @Field(() => GraphQLJSONObject)
-  @ApiProperty()
-  loyaltyTierDistribution!: Record<string, number>;
+  @Field(() => Int)
+  averageDaysBetweenPurchases!: number;
 }
 
 @ObjectType()
-export class PurchasePatternAnalysisType {
+export class PurchasePattern {
   @Field(() => ID)
-  @ApiProperty()
   customerId!: string;
-
-  @Field(() => GraphQLJSONObject)
-  @ApiProperty()
-  seasonalPatterns!: Record<string, number>;
-
-  @Field(() => GraphQLJSONObject)
-  @ApiProperty()
-  dayOfWeekPatterns!: Record<string, number>;
-
-  @Field(() => GraphQLJSONObject)
-  @ApiProperty()
-  categoryPreferences!: Record<string, number>;
-
-  @Field(() => Float)
-  @ApiProperty()
-  averageTimeBetweenPurchases!: number;
-
-  @Field()
-  @ApiProperty()
-  preferredPurchaseTime!: string;
-
-  @Field(() => SpendingTrend)
-  @ApiProperty({ enum: SpendingTrend })
-  spendingTrend!: SpendingTrend;
-}
-
-@ObjectType()
-export class ChurnPredictionType {
-  @Field(() => ID)
-  @ApiProperty()
-  customerId!: string;
-
-  @Field(() => Float)
-  @ApiProperty()
-  churnRisk!: number;
 
   @Field(() => [String])
-  @ApiProperty({ type: [String] })
-  riskFactors!: string[];
+  preferredCategories!: string[];
 
-  @Field()
-  @ApiProperty()
-  lastPurchaseDate!: Date;
+  @Field(() => [String])
+  preferredBrands!: string[];
+
+  @Field(() => Float)
+  seasonalityScore!: number;
+
+  @Field(() => String)
+  primaryShoppingDay!: string;
+
+  @Field(() => String)
+  primaryShoppingTime!: string;
+
+  @Field(() => Float)
+  pricesensitivity!: number;
+
+  @Field(() => Float)
+  promotionResponsiveness!: number;
 
   @Field(() => Int)
-  @ApiProperty()
-  daysSinceLastPurchase!: number;
+  averageDaysBetweenPurchases!: number;
 
-  @Field()
-  @ApiProperty()
-  expectedNextPurchaseDate!: Date;
-
-  @Field(() => [String])
-  @ApiProperty({ type: [String] })
-  recommendedActions!: string[];
+  @Field(() => Float)
+  basketSizeVariability!: number;
 }
 
 @ObjectType()
-export class CustomerTouchpointType {
-  @Field()
-  @ApiProperty()
-  date!: Date;
-
-  @Field()
-  @ApiProperty()
-  type!: string;
-
-  @Field()
-  @ApiProperty()
-  description!: string;
-
-  @Field({ nullable: true })
-  @ApiProperty({ required: false })
-  outcome?: string;
-}
-
-@ObjectType()
-export class CustomerMilestoneType {
-  @Field()
-  @ApiProperty()
-  date!: Date;
-
-  @Field()
-  @ApiProperty()
-  milestone!: string;
-
-  @Field()
-  @ApiProperty()
-  description!: string;
-
-  @Field(() => Float, { nullable: true })
-  @ApiProperty({ required: false })
-  value?: number;
-}
-
-@ObjectType()
-export class CustomerJourneyType {
+export class ChurnRiskAnalysis {
   @Field(() => ID)
-  @ApiProperty()
   customerId!: string;
 
-  @Field(() => CustomerLifetimeValueType)
-  @ApiProperty({ type: CustomerLifetimeValueType })
-  lifetimeValue!: CustomerLifetimeValueType;
+  @Field(() => Float)
+  churnProbability!: number;
 
-  @Field(() => PurchasePatternAnalysisType)
-  @ApiProperty({ type: PurchasePatternAnalysisType })
-  purchasePatterns!: PurchasePatternAnalysisType;
+  @Field(() => String)
+  riskLevel!: string; // 'low', 'medium', 'high', 'critical'
 
-  @Field(() => ChurnPredictionType)
-  @ApiProperty({ type: ChurnPredictionType })
-  churnPrediction!: ChurnPredictionType;
+  @Field(() => [String])
+  riskFactors!: string[];
 
-  @Field(() => [CustomerTouchpointType])
-  @ApiProperty({ type: [CustomerTouchpointType] })
-  touchpoints!: CustomerTouchpointType[];
+  @Field(() => Int)
+  daysSinceLastPurchase!: number;
 
-  @Field(() => [CustomerMilestoneType])
-  @ApiProperty({ type: [CustomerMilestoneType] })
-  milestones!: CustomerMilestoneType[];
+  @Field(() => Float)
+  engagementScore!: number;
+
+  @Field(() => Float)
+  satisfactionScore!: number;
+
+  @Field(() => [String])
+  recommendedActions!: string[];
+
+  @Field(() => Date, { nullable: true })
+  predictedChurnDate?: Date;
+}
+
+@ObjectType()
+export class CustomerMetrics {
+  @Field(() => Int)
+  totalCustomers!: number;
+
+  @Field(() => Int)
+  activeCustomers!: number;
+
+  @Field(() => Int)
+  newCustomersThisMonth!: number;
+
+  @Field(() => Float)
+  customerGrowthRate!: number;
+
+  @Field(() => Float)
+  averageLifetimeValue!: number;
+
+  @Field(() => Float)
+  averageOrderValue!: number;
+
+  @Field(() => Float)
+  churnRate!: number;
+
+  @Field(() => Float)
+  retentionRate!: number;
+
+  @Field(() => Int)
+  averageDaysBetweenPurchases!: number;
+
+  @Field(() => Float)
+  customerSatisfactionScore!: number;
 }

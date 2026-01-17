@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, ID, Int, Context } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { CustomerService } from '../services/customer.service';
-import { CreateCustomerDto, UpdateCustomerDto, CustomerQueryDto } from '../dto/customer.dto';
+import { CreateCustomerInput, UpdateCustomerInput, CustomerFilterInput } from '../types/customer.input';
 import { Customer } from '../entities/customer.entity';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
@@ -21,7 +21,7 @@ export class CustomerResolver {
   @Query(() => [Customer])
   @RequirePermission('customers:read')
   async customers(
-    @Args('query', { type: () => CustomerQueryDto, nullable: true }) query: CustomerQueryDto = {},
+    @Args('query', { type: () => CustomerFilterInput, nullable: true }) query: CustomerFilterInput = {},
     @CurrentTenant() tenantId: string,
   ): Promise<Customer[]> {
     const result = await this.customerService.findMany(tenantId, query);
@@ -58,22 +58,28 @@ export class CustomerResolver {
   @Mutation(() => Customer)
   @RequirePermission('customers:create')
   async createCustomer(
-    @Args('input') input: CreateCustomerDto,
+    @Args('input') input: CreateCustomerInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<Customer> {
-    return this.customerService.create(tenantId, input, user.id);
+    return this.customerService.create(tenantId, input as any, user.id);
   }
 
   @Mutation(() => Customer)
   @RequirePermission('customers:update')
   async updateCustomer(
     @Args('id', { type: () => ID }) id: string,
-    @Args('input') input: UpdateCustomerDto,
+    @Args('input') input: UpdateCustomerInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<Customer> {
-    return this.customerService.update(tenantId, id, input, user.id);
+    // Convert enum values to string literals for service layer
+    const serviceInput = {
+      ...input,
+      status: input.status as any,
+      type: input.type as any,
+    };
+    return this.customerService.update(tenantId, id, serviceInput, user.id);
   }
 
   @Mutation(() => Boolean)

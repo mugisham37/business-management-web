@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
-import { PubSub } from 'graphql-subscriptions';
-import { CommunicationService, CreateCommunicationDto, ScheduleCommunicationDto } from '../services/communication.service';
+import { CommunicationService } from '../services/communication.service';
 import { CustomerService } from '../services/customer.service';
+import { CreateCommunicationInput, ScheduleCommunicationInput } from '../types/communication.input';
 import { CommunicationType } from '../types/communication.types';
 import { Customer } from '../entities/customer.entity';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
@@ -14,16 +14,16 @@ import { Permissions } from '../../auth/decorators/permission.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
-import { SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
+import { PubSubService, SUBSCRIPTION_EVENTS } from '../../../common/graphql/pubsub.service';
 
 @Resolver(() => CommunicationType)
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class CommunicationResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly communicationService: CommunicationService,
     private readonly customerService: CustomerService,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    private readonly pubSub: PubSubService,
   ) {
     super(dataLoaderService);
   }
@@ -64,7 +64,7 @@ export class CommunicationResolver extends BaseResolver {
   @UseGuards(PermissionsGuard)
   @Permissions('communications:create')
   async recordCommunication(
-    @Args('input') input: CreateCommunicationDto,
+    @Args('input') input: CreateCommunicationInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<CommunicationType> {
@@ -75,21 +75,26 @@ export class CommunicationResolver extends BaseResolver {
   @UseGuards(PermissionsGuard)
   @Permissions('communications:create')
   async scheduleCommunication(
-    @Args('input') input: ScheduleCommunicationDto,
+    @Args('input') input: ScheduleCommunicationInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<CommunicationType> {
-    return this.communicationService.scheduleCommunication(tenantId, input, user.id);
+    // Convert enum to string literal for service
+    const serviceInput = {
+      ...input,
+      type: input.type as 'email' | 'phone' | 'sms' | 'meeting',
+    };
+    return this.communicationService.scheduleCommunication(tenantId, serviceInput, user.id);
   }
 
   @Subscription(() => CommunicationType, {
     filter: (payload, variables, context) => {
       // Filter by tenant
-      return payload.communicationScheduled.tenantId === context.req.user.tenantId;
+      return payload.tenantId === context.req.user.tenantId;
     },
   })
   communicationScheduled(@CurrentTenant() tenantId: string) {
-    return this.pubSub.asyncIterator(SUBSCRIPTION_EVENTS.COMMUNICATION_SCHEDULED);
+    return this.pubSub.asyncIterator<CommunicationType>(SUBSCRIPTION_EVENTS.COMMUNICATION_SCHEDULED, tenantId);
   }
 
   @ResolveField(() => Customer)

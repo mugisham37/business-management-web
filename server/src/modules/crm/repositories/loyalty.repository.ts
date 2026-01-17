@@ -394,7 +394,7 @@ export class LoyaltyRepository {
           description: data.description,
           startDate: new Date(data.startDate),
           endDate: new Date(data.endDate),
-          pointsMultiplier: data.pointsMultiplier.toString(),
+          pointsMultiplier: (data.pointsMultiplier ?? 1).toString(),
           minimumPurchaseAmount: data.minimumPurchaseAmount?.toString(),
           targetSegments: data.targetSegments || [],
           targetTiers: data.targetTiers || [],

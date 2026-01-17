@@ -9,7 +9,8 @@ import {
   CreateCampaignDto,
   LoyaltyQueryDto,
   RewardQueryDto,
-  LoyaltyTransactionType 
+  LoyaltyTransactionType,
+  LOYALTY_TRANSACTION_TYPE 
 } from '../dto/loyalty.dto';
 import { LoyaltyTransaction } from '../entities/customer.entity';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
@@ -49,7 +50,7 @@ export class LoyaltyService {
       // Create loyalty transaction - build object only with defined values for exactOptionalPropertyTypes
       const transactionData: any = {
         customerId,
-        type: LoyaltyTransactionType.EARNED,
+        type: LOYALTY_TRANSACTION_TYPE.EARNED,
         points,
         description: reason,
         expiresAt: expiresAt.toISOString(),
@@ -116,7 +117,7 @@ export class LoyaltyService {
       // Create loyalty transaction (negative points for redemption) - build object only with defined values for exactOptionalPropertyTypes
       const transactionData: any = {
         customerId,
-        type: LoyaltyTransactionType.REDEEMED,
+        type: LOYALTY_TRANSACTION_TYPE.REDEEMED,
         points: -points, // Negative for redemption
         description: reason,
       };
@@ -180,7 +181,7 @@ export class LoyaltyService {
         tenantId,
         {
           customerId,
-          type: LoyaltyTransactionType.ADJUSTED,
+          type: LOYALTY_TRANSACTION_TYPE.ADJUSTED,
           points: pointsChange,
           description: reason,
         },
@@ -552,7 +553,7 @@ export class LoyaltyService {
       throw new BadRequestException('End date must be after start date');
     }
 
-    if (data.pointsMultiplier <= 0) {
+    if ((data.pointsMultiplier ?? 1) <= 0) {
       throw new BadRequestException('Points multiplier must be greater than 0');
     }
 
