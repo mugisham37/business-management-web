@@ -6,19 +6,26 @@ import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator';
-import { Permissions } from '../../auth/decorators/require-permission.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { InventoryService } from '../services/inventory.service';
 import { ProductService } from '../services/product.service';
 import { InventoryLevel, InventoryMovement } from '../types/inventory.types';
-import { AdjustInventoryInput, TransferInventoryInput, InventoryFilterInput } from '../inputs/inventory.input';
-import { PaginationArgs } from '../../../common/graphql/pagination.args';
+import { 
+  AdjustInventoryInput, 
+  TransferInventoryInput, 
+  InventoryFilterInput,
+  CreateInventoryLevelInput,
+  UpdateInventoryLevelInput,
+  ReserveInventoryInput
+} from '../inputs/inventory.input';
+import { OffsetPaginationArgs } from '../../../common/graphql/pagination.args';
 
 @Resolver(() => InventoryLevel)
 @UseGuards(JwtAuthGuard)
 export class InventoryResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly inventoryService: InventoryService,
     private readonly productService: ProductService,
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
@@ -28,74 +35,121 @@ export class InventoryResolver extends BaseResolver {
 
   @Query(() => InventoryLevel, { description: 'Get inventory level for a product at a location' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
+  @RequirePermission('inventory:read')
   async getInventory(
     @Args('productId', { type: () => ID }) productId: string,
     @Args('locationId', { type: () => ID }) locationId: string,
-    @Args('variantId', { type: () => ID, nullable: true }) variantId: string | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('variantId', { type: () => ID, nullable: true }) variantId?: string | null,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryLevel> {
-    return this.inventoryService.getInventoryLevel(tenantId, productId, variantId, locationId);
+    return this.inventoryService.getInventoryLevel(tenantId || '', productId, variantId || undefined, locationId);
   }
 
   @Query(() => [InventoryLevel], { description: 'Get inventory levels with optional filtering' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
+  @RequirePermission('inventory:read')
   async getInventoryLevels(
-    @Args('filter', { type: () => InventoryFilterInput, nullable: true }) filter: InventoryFilterInput | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('filter', { type: () => InventoryFilterInput, nullable: true }) filter?: InventoryFilterInput,
+    @Args('pagination', { type: () => OffsetPaginationArgs, nullable: true }) pagination?: OffsetPaginationArgs,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryLevel[]> {
     const query = {
       ...filter,
-      page: pagination?.page || 1,
+      offset: pagination?.offset || 0,
       limit: pagination?.limit || 20,
     };
 
-    const result = await this.inventoryService.getInventoryLevels(tenantId, query);
+    const result = await this.inventoryService.getInventoryLevels(tenantId || '', query);
     return result.inventoryLevels;
   }
 
   @Query(() => [InventoryMovement], { description: 'Get inventory movement history' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
+  @RequirePermission('inventory:read')
   async getInventoryHistory(
     @Args('productId', { type: () => ID }) productId: string,
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryMovement[]> {
-    return this.inventoryService.getInventoryMovements(tenantId, productId, locationId || undefined);
+    return this.inventoryService.getInventoryMovements(tenantId || '', productId, locationId || undefined);
+  }
+
+  @Mutation(() => InventoryLevel, { description: 'Create inventory level' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:create')
+  async createInventoryLevel(
+    @Args('input') input: CreateInventoryLevelInput,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<InventoryLevel> {
+    return this.inventoryService.createInventoryLevel(tenantId || '', input, user?.id || '');
+  }
+
+  @Mutation(() => InventoryLevel, { description: 'Update inventory level' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:update')
+  async updateInventoryLevel(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdateInventoryLevelInput,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<InventoryLevel> {
+    return this.inventoryService.updateInventoryLevel(tenantId || '', id, input, user?.id || '');
+  }
+
+  @Mutation(() => Boolean, { description: 'Reserve inventory' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:update')
+  async reserveInventory(
+    @Args('input') input: ReserveInventoryInput,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<boolean> {
+    await this.inventoryService.reserveInventory(tenantId || '', input, user?.id || '');
+    return true;
+  }
+
+  @Mutation(() => Boolean, { description: 'Release inventory reservation' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:update')
+  async releaseReservation(
+    @Args('reservationId', { type: () => ID }) reservationId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<boolean> {
+    await this.inventoryService.releaseReservation(tenantId || '', reservationId, user?.id || '');
+    return true;
   }
 
   @Mutation(() => InventoryLevel, { description: 'Adjust inventory level' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:update')
+  @RequirePermission('inventory:update')
   async adjustInventory(
     @Args('input') input: AdjustInventoryInput,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryLevel> {
     const result = await this.inventoryService.adjustInventory(
-      tenantId,
+      tenantId || '',
       {
         productId: input.productId,
-        variantId: input.variantId,
+        variantId: input.variantId || undefined,
         locationId: input.locationId,
         adjustment: input.adjustment,
         reason: input.reason,
         notes: input.notes,
       },
-      user.id,
+      user?.id || '',
     );
 
     // Publish subscription event
     await this.pubSub.publish('INVENTORY_CHANGED', {
       inventoryChanged: {
         ...result,
-        tenantId,
+        tenantId: tenantId || '',
       },
     });
 
@@ -104,24 +158,23 @@ export class InventoryResolver extends BaseResolver {
 
   @Mutation(() => Boolean, { description: 'Transfer inventory between locations' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:update')
+  @RequirePermission('inventory:update')
   async transferInventory(
     @Args('input') input: TransferInventoryInput,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<boolean> {
     await this.inventoryService.transferInventory(
-      tenantId,
+      tenantId || '',
       {
         productId: input.productId,
-        variantId: input.variantId,
-        locationId: input.fromLocationId, // Not used in transfer but required by DTO
-        fromLocationId: input.fromLocationId,
+        variantId: input.variantId || undefined,
         toLocationId: input.toLocationId,
+        fromLocationId: input.fromLocationId,
         quantity: input.quantity,
         notes: input.notes,
       },
-      user.id,
+      user?.id || '',
     );
 
     // Publish subscription events for both locations
@@ -130,7 +183,7 @@ export class InventoryResolver extends BaseResolver {
         productId: input.productId,
         variantId: input.variantId,
         locationId: input.fromLocationId,
-        tenantId,
+        tenantId: tenantId || '',
       },
     });
 
@@ -139,7 +192,7 @@ export class InventoryResolver extends BaseResolver {
         productId: input.productId,
         variantId: input.variantId,
         locationId: input.toLocationId,
-        tenantId,
+        tenantId: tenantId || '',
       },
     });
 
@@ -149,7 +202,7 @@ export class InventoryResolver extends BaseResolver {
   @ResolveField(() => Object, { nullable: true, description: 'Product information' })
   async product(
     @Parent() inventory: InventoryLevel,
-    @CurrentTenant() tenantId: string,
+    @CurrentTenant() tenantId?: string,
   ): Promise<any> {
     const loader = this.getDataLoader(
       'product_by_id',
@@ -161,7 +214,7 @@ export class InventoryResolver extends BaseResolver {
   @ResolveField(() => Object, { nullable: true, description: 'Location information' })
   async location(
     @Parent() inventory: InventoryLevel,
-    @CurrentTenant() tenantId: string,
+    @CurrentTenant() tenantId?: string,
   ): Promise<any> {
     // Location service would be injected and used here
     // For now, return a placeholder
@@ -190,10 +243,62 @@ export class InventoryResolver extends BaseResolver {
     },
   })
   inventoryChanged(
-    @Args('productId', { type: () => ID, nullable: true }) productId: string | null,
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @CurrentTenant() tenantId: string,
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @CurrentTenant() tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('INVENTORY_CHANGED');
+    return (this.pubSub as any).asyncIterator('INVENTORY_CHANGED');
+  }
+
+  @Subscription(() => InventoryLevel, {
+    description: 'Subscribe to low stock alerts',
+    filter: (payload, variables, context) => {
+      // Filter by tenant
+      if (payload.lowStockAlert.tenantId !== context.req.user.tenantId) {
+        return false;
+      }
+
+      // Filter by location if specified
+      if (variables.locationId && payload.lowStockAlert.locationId !== variables.locationId) {
+        return false;
+      }
+
+      return true;
+    },
+  })
+  lowStockAlert(
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @CurrentTenant() tenantId?: string,
+  ) {
+    return (this.pubSub as any).asyncIterator('LOW_STOCK_ALERT');
+  }
+
+  @Subscription(() => InventoryMovement, {
+    description: 'Subscribe to inventory movements',
+    filter: (payload, variables, context) => {
+      // Filter by tenant
+      if (payload.inventoryMovement.tenantId !== context.req.user.tenantId) {
+        return false;
+      }
+
+      // Filter by product if specified
+      if (variables.productId && payload.inventoryMovement.productId !== variables.productId) {
+        return false;
+      }
+
+      // Filter by location if specified
+      if (variables.locationId && payload.inventoryMovement.locationId !== variables.locationId) {
+        return false;
+      }
+
+      return true;
+    },
+  })
+  inventoryMovement(
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @CurrentTenant() tenantId?: string,
+  ) {
+    return (this.pubSub as any).asyncIterator('INVENTORY_MOVEMENT');
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProductBrandRepository } from '../repositories/product-brand.repository';
-import { CreateBrandDto, UpdateBrandDto, BrandQueryDto } from '../dto/brand.dto';
+import { CreateBrandInput, UpdateBrandInput, BrandFilterInput } from '../inputs/brand.input';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 
 // Domain events
@@ -40,7 +40,7 @@ export class ProductBrandService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async create(tenantId: string, data: CreateBrandDto, userId: string): Promise<any> {
+  async create(tenantId: string, data: CreateBrandInput, userId: string): Promise<any> {
     // Generate slug if not provided
     if (!data.slug) {
       data.slug = this.generateSlug(data.name);
@@ -100,7 +100,7 @@ export class ProductBrandService {
     return brand;
   }
 
-  async findMany(tenantId: string, query: BrandQueryDto): Promise<{
+  async findMany(tenantId: string, query: BrandFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     brands: any[];
     total: number;
     page: number;
@@ -124,7 +124,7 @@ export class ProductBrandService {
     return result;
   }
 
-  async update(tenantId: string, id: string, data: UpdateBrandDto, userId: string): Promise<any> {
+  async update(tenantId: string, id: string, data: UpdateBrandInput, userId: string): Promise<any> {
     const existingBrand = await this.findById(tenantId, id);
 
     // Validate slug uniqueness if changed

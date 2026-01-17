@@ -1110,4 +1110,74 @@ export class InventoryAccuracyReportingService {
       },
     };
   }
+
+  // Wrapper methods for resolver compatibility
+  async getAccuracyReport(
+    tenantId: string,
+    locationId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    const query: AccuracyReportQueryDto = {
+      reportType: 'detailed',
+      locationId,
+      dateFrom: startDate,
+      dateTo: endDate,
+    };
+    return this.generateAccuracyReport(tenantId, query);
+  }
+
+  async getVarianceAnalysis(
+    tenantId: string,
+    locationId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    const query: AccuracyReportQueryDto = {
+      reportType: 'detailed',
+      locationId,
+      dateFrom: startDate,
+      dateTo: endDate,
+    };
+    const report = await this.generateAccuracyReport(tenantId, query);
+    
+    // Return variance analysis structure
+    return {
+      locationId: locationId || '',
+      totalVariances: report.summary.totalVariances,
+      totalVarianceValue: report.summary.totalVarianceValue,
+      averageVariancePerItem: report.summary.averageVariancePerProduct,
+      maxVariance: 0,
+      minVariance: 0,
+      byCategory: [],
+      reportDate: new Date(),
+    };
+  }
+
+  async getCountAccuracy(
+    tenantId: string,
+    locationId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    const query: AccuracyReportQueryDto = {
+      reportType: 'detailed',
+      locationId,
+      dateFrom: startDate,
+      dateTo: endDate,
+    };
+    const report = await this.generateAccuracyReport(tenantId, query);
+    
+    // Return count accuracy structure
+    return {
+      locationId,
+      overallAccuracy: report.summary.overallAccuracyPercentage,
+      totalCountsPerformed: report.summary.totalCountSessions,
+      countsWithVariances: report.summary.totalVariances,
+      perfectCounts: report.summary.totalCountSessions - report.summary.totalVariances,
+      variance: report.summary.totalVarianceValue,
+      byLocation: [],
+      generatedDate: new Date(),
+    };
+  }
 }

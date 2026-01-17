@@ -48,11 +48,11 @@ registerEnumType(InventoryValuationMethod, { name: 'InventoryValuationMethod' })
 export class InventoryLevel extends BaseEntity {
   @Field(() => ID)
   @ApiProperty({ description: 'Inventory level ID' })
-  id!: string;
+  override id: string = '';
 
   @Field(() => ID)
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId!: string;
+  override tenantId: string = '';
 
   @Field(() => ID)
   @ApiProperty({ description: 'Product ID' })
@@ -148,11 +148,11 @@ export class InventoryLevel extends BaseEntity {
 export class InventoryMovement extends BaseEntity {
   @Field(() => ID)
   @ApiProperty({ description: 'Movement ID' })
-  id!: string;
+  override id: string = '';
 
   @Field(() => ID)
   @ApiProperty({ description: 'Tenant ID' })
-  tenantId!: string;
+  override tenantId: string = '';
 
   @Field(() => ID)
   @ApiProperty({ description: 'Product ID' })

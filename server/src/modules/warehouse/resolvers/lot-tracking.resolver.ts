@@ -1,5 +1,5 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -7,171 +7,521 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
+import { PaginationArgs } from '../../../common/graphql/base.types';
+
+// Services
 import { LotTrackingService } from '../services/lot-tracking.service';
-import { 
+import { WarehouseService } from '../services/warehouse.service';
+import { BinLocationService } from '../services/bin-location.service';
+
+// Types and Inputs
+import {
   LotInfoType,
   LotInfoConnection,
+  FIFORuleType,
   LotMovementType,
   RecallInfoType,
+  RecallInfoConnection,
+  LotTraceabilityType,
   CreateLotInput,
   UpdateLotInput,
+  CreateFIFORuleInput,
   CreateRecallInput,
+  RecordLotMovementInput,
+  LotFilterInput,
 } from '../types/lot-tracking.types';
+import { WarehouseType } from '../types/warehouse.types';
+import { BinLocationType } from '../types/bin-location.types';
+
+// Decorators and Guards
+import {
+  RequireLotTrackingPermission,
+  AuditLotTrackingOperation,
+  MonitorLotTrackingPerformance,
+  CacheLotTrackingData,
+  EnableLotTrackingUpdates,
+} from '../decorators/warehouse.decorators';
+import { WarehouseAccessGuard } from '../guards/warehouse-access.guard';
+import { WarehouseAuditInterceptor } from '../interceptors/warehouse-audit.interceptor';
+import { WarehousePerformanceInterceptor } from '../interceptors/warehouse-performance.interceptor';
 
 @Resolver(() => LotInfoType)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, WarehouseAccessGuard)
+@UseInterceptors(WarehouseAuditInterceptor, WarehousePerformanceInterceptor)
 export class LotTrackingResolver extends BaseResolver {
   constructor(
     protected readonly dataLoaderService: DataLoaderService,
     private readonly lotTrackingService: LotTrackingService,
+    private readonly warehouseService: WarehouseService,
+    private readonly binLocationService: BinLocationService,
   ) {
     super(dataLoaderService);
   }
 
-  @Query(() => LotInfoType, { name: 'lot' })
+  // Queries
+  @Query(() => LotInfoType, { name: 'lotInfo' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
-  async getLot(
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(300)
+  @MonitorLotTrackingPerformance()
+  async getLotInfo(
     @Args('lotNumber') lotNumber: string,
     @Args('productId', { type: () => ID }) productId: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    return this.lotTrackingService.getLotByNumber(tenantId, productId, lotNumber);
+  ): Promise<LotInfoType> {
+    return this.lotTrackingService.getLotInfo(tenantId, productId, lotNumber);
   }
 
   @Query(() => LotInfoConnection, { name: 'lots' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(180)
+  @MonitorLotTrackingPerformance()
   async getLots(
-    @Args('productId', { type: () => ID }) productId: string,
-    @Args('first', { type: () => Number, nullable: true }) first: number,
-    @Args('after', { type: () => String, nullable: true }) after: string,
-    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId: string,
-    @Args('qualityStatus', { type: () => String, nullable: true }) qualityStatus: string,
-    @Args('includeExpired', { type: () => Boolean, nullable: true }) includeExpired: boolean,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    const lots = await this.lotTrackingService.getLotsForProduct(tenantId, productId, {
-      warehouseId,
-      qualityStatus,
-      includeExpired,
-      sortBy: 'expiryDate',
-      sortOrder: 'asc',
-    });
-    
-    return {
-      edges: this.createEdges(lots, lot => lot.lotNumber),
-      pageInfo: this.createPageInfo(
-        false,
-        false,
-        lots[0]?.lotNumber,
-        lots[lots.length - 1]?.lotNumber,
-      ),
-      totalCount: lots.length,
-    };
+    @Args() paginationArgs: PaginationArgs,
+    @Args('filter', { type: () => LotFilterInput, nullable: true }) filter?: LotFilterInput,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<LotInfoConnection> {
+    return this.lotTrackingService.getLots(tenantId, paginationArgs, filter);
   }
 
-  @Query(() => [LotInfoType], { name: 'lotInventory' })
+  @Query(() => [LotInfoType], { name: 'lotsByProduct' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
-  async getLotInventory(
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(300)
+  async getLotsByProduct(
     @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<LotInfoType[]> {
+    return this.lotTrackingService.getLotsByProduct(tenantId, productId);
+  }
+
+  @Query(() => [LotInfoType], { name: 'lotsByWarehouse' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(300)
+  async getLotsByWarehouse(
     @Args('warehouseId', { type: () => ID }) warehouseId: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    return this.lotTrackingService.getLotsForProduct(tenantId, productId, {
-      warehouseId,
-      qualityStatus: 'approved',
-      includeExpired: false,
-    });
+  ): Promise<LotInfoType[]> {
+    return this.lotTrackingService.getLotsByWarehouse(tenantId, warehouseId);
+  }
+
+  @Query(() => [LotInfoType], { name: 'expiredLots' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(60)
+  async getExpiredLots(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<LotInfoType[]> {
+    return this.lotTrackingService.getExpiredLots(tenantId, warehouseId);
+  }
+
+  @Query(() => [LotInfoType], { name: 'nearExpiryLots' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(60)
+  async getNearExpiryLots(
+    @Args('days', { type: () => Number, defaultValue: 30 }) days: number,
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<LotInfoType[]> {
+    return this.lotTrackingService.getNearExpiryLots(tenantId, days, warehouseId);
+  }
+
+  @Query(() => LotTraceabilityType, { name: 'lotTraceability' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(300)
+  @MonitorLotTrackingPerformance()
+  async getLotTraceability(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<LotTraceabilityType> {
+    return this.lotTrackingService.getLotTraceability(tenantId, productId, lotNumber);
   }
 
   @Query(() => [LotMovementType], { name: 'lotMovementHistory' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('track')
+  @CacheLotTrackingData(300)
   async getLotMovementHistory(
     @Args('lotNumber') lotNumber: string,
     @Args('productId', { type: () => ID }) productId: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    return this.lotTrackingService.getLotMovementHistory(tenantId, lotNumber, productId);
+  ): Promise<LotMovementType[]> {
+    return this.lotTrackingService.getLotMovementHistory(tenantId, productId, lotNumber);
   }
 
-  @Query(() => String, { name: 'traceLot', description: 'Get complete traceability information for a lot' })
+  @Query(() => FIFORuleType, { name: 'fifoRule' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
-  async traceLot(
-    @Args('lotNumber') lotNumber: string,
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('manage')
+  @CacheLotTrackingData(600)
+  async getFIFORule(
     @Args('productId', { type: () => ID }) productId: string,
-    @CurrentTenant() tenantId: string,
-  ): Promise<string> {
-    const traceability = await this.lotTrackingService.getLotTraceability(tenantId, lotNumber, productId);
-    return JSON.stringify(traceability);
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<FIFORuleType> {
+    return this.lotTrackingService.getFIFORule(tenantId, productId, warehouseId);
   }
 
-  @Query(() => [LotInfoType], { name: 'expiringLots' })
+  @Query(() => [FIFORuleType], { name: 'fifoRules' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
-  async getExpiringLots(
-    @Args('warehouseId', { type: () => ID }) warehouseId: string,
-    @Args('daysAhead', { type: () => Number, nullable: true, defaultValue: 30 }) daysAhead: number,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    const expiringLots = await this.lotTrackingService.getExpiringLots(tenantId, warehouseId, daysAhead);
-    return expiringLots.map(item => item.lot);
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('manage')
+  @CacheLotTrackingData(600)
+  async getFIFORules(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<FIFORuleType[]> {
+    return this.lotTrackingService.getFIFORules(tenantId, warehouseId);
   }
 
+  @Query(() => RecallInfoType, { name: 'recallInfo' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('manage')
+  @CacheLotTrackingData(300)
+  async getRecallInfo(
+    @Args('recallId', { type: () => ID }) recallId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<RecallInfoType> {
+    return this.lotTrackingService.getRecallInfo(tenantId, recallId);
+  }
+
+  @Query(() => RecallInfoConnection, { name: 'recalls' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('manage')
+  @CacheLotTrackingData(300)
+  async getRecalls(
+    @Args() paginationArgs: PaginationArgs,
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<RecallInfoConnection> {
+    return this.lotTrackingService.getRecalls(tenantId, paginationArgs, productId);
+  }
+
+  @Query(() => [RecallInfoType], { name: 'activeRecalls' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  @RequireLotTrackingPermission('manage')
+  @CacheLotTrackingData(60)
+  async getActiveRecalls(
+    @CurrentTenant() tenantId: string,
+  ): Promise<RecallInfoType[]> {
+    return this.lotTrackingService.getActiveRecalls(tenantId);
+  }
+
+  // Mutations
   @Mutation(() => LotInfoType, { name: 'createLot' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:create')
+  @Permissions('lot_tracking:create')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('create_lot')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
   async createLot(
     @Args('input') input: CreateLotInput,
-    @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    return this.lotTrackingService.createLot(tenantId, {
-      tenantId,
-      ...input,
-      userId: user.id,
-    });
+    @CurrentUser() user: any,
+  ): Promise<LotInfoType> {
+    return this.lotTrackingService.createLot(tenantId, input, user.id);
   }
 
   @Mutation(() => LotInfoType, { name: 'updateLot' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:update')
+  @Permissions('lot_tracking:update')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('update_lot')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
   async updateLot(
     @Args('lotNumber') lotNumber: string,
     @Args('productId', { type: () => ID }) productId: string,
     @Args('input') input: UpdateLotInput,
-    @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    return this.lotTrackingService.updateLot(tenantId, lotNumber, productId, {
-      ...input,
-      userId: user.id,
-    });
+    @CurrentUser() user: any,
+  ): Promise<LotInfoType> {
+    return this.lotTrackingService.updateLot(tenantId, productId, lotNumber, input, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'deleteLot' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:delete')
+  @RequireLotTrackingPermission('admin')
+  @AuditLotTrackingOperation('delete_lot')
+  @MonitorLotTrackingPerformance()
+  async deleteLot(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.lotTrackingService.deleteLot(tenantId, productId, lotNumber, user.id);
+    return true;
+  }
+
+  @Mutation(() => LotMovementType, { name: 'recordLotMovement' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:move')
+  @RequireLotTrackingPermission('track')
+  @AuditLotTrackingOperation('record_movement')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
+  async recordLotMovement(
+    @Args('input') input: RecordLotMovementInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<LotMovementType> {
+    return this.lotTrackingService.recordLotMovement(tenantId, input, user.id);
+  }
+
+  @Mutation(() => FIFORuleType, { name: 'createFIFORule' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:configure')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('create_fifo_rule')
+  @MonitorLotTrackingPerformance()
+  async createFIFORule(
+    @Args('input') input: CreateFIFORuleInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<FIFORuleType> {
+    return this.lotTrackingService.createFIFORule(tenantId, input, user.id);
+  }
+
+  @Mutation(() => FIFORuleType, { name: 'updateFIFORule' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:configure')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('update_fifo_rule')
+  @MonitorLotTrackingPerformance()
+  async updateFIFORule(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: CreateFIFORuleInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<FIFORuleType> {
+    return this.lotTrackingService.updateFIFORule(tenantId, id, input, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'deleteFIFORule' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:configure')
+  @RequireLotTrackingPermission('admin')
+  @AuditLotTrackingOperation('delete_fifo_rule')
+  async deleteFIFORule(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.lotTrackingService.deleteFIFORule(tenantId, id, user.id);
+    return true;
   }
 
   @Mutation(() => RecallInfoType, { name: 'createRecall' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:create')
+  @Permissions('lot_tracking:recall')
+  @RequireLotTrackingPermission('admin')
+  @AuditLotTrackingOperation('create_recall')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
   async createRecall(
     @Args('input') input: CreateRecallInput,
-    @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    return this.lotTrackingService.createRecall(tenantId, {
-      tenantId,
-      ...input,
-      userId: user.id,
-    });
+    @CurrentUser() user: any,
+  ): Promise<RecallInfoType> {
+    return this.lotTrackingService.createRecall(tenantId, input, user.id);
   }
 
-  @ResolveField(() => [LotMovementType], { name: 'movements' })
-  async movements(
-    @Parent() lot: any,
+  @Mutation(() => RecallInfoType, { name: 'updateRecallStatus' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:recall')
+  @RequireLotTrackingPermission('admin')
+  @AuditLotTrackingOperation('update_recall_status')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
+  async updateRecallStatus(
+    @Args('recallId', { type: () => ID }) recallId: string,
+    @Args('status') status: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any[]> {
-    return this.lotTrackingService.getLotMovementHistory(tenantId, lot.lotNumber, lot.productId);
+    @CurrentUser() user: any,
+  ): Promise<RecallInfoType> {
+    return this.lotTrackingService.updateRecallStatus(tenantId, recallId, status, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'quarantineLot' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:quarantine')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('quarantine_lot')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
+  async quarantineLot(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @Args('reason') reason: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.lotTrackingService.quarantineLot(tenantId, productId, lotNumber, reason, user.id);
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'releaseLotFromQuarantine' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:release')
+  @RequireLotTrackingPermission('manage')
+  @AuditLotTrackingOperation('release_quarantine')
+  @MonitorLotTrackingPerformance()
+  @EnableLotTrackingUpdates()
+  async releaseLotFromQuarantine(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.lotTrackingService.releaseLotFromQuarantine(tenantId, productId, lotNumber, user.id);
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'checkLotExpiry' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:check')
+  @RequireLotTrackingPermission('track')
+  @AuditLotTrackingOperation('check_expiry')
+  @MonitorLotTrackingPerformance()
+  async checkLotExpiry(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+    @CurrentUser() user?: any,
+  ): Promise<boolean> {
+    await this.lotTrackingService.checkLotExpiry(tenantId, user.id, warehouseId);
+    return true;
+  }
+
+  // Field Resolvers
+  @ResolveField(() => WarehouseType, { name: 'warehouse' })
+  async resolveWarehouse(
+    @Parent() lot: LotInfoType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseType> {
+    return this.dataLoaderService.createDataLoader(
+      'warehouses',
+      (warehouseIds: string[]) => this.warehouseService.getWarehousesByIds(tenantId, warehouseIds),
+    ).load(lot.warehouseId);
+  }
+
+  @ResolveField(() => BinLocationType, { name: 'binLocation', nullable: true })
+  async resolveBinLocation(
+    @Parent() lot: LotInfoType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<BinLocationType | null> {
+    if (!lot.binLocationId) return null;
+    
+    return this.dataLoaderService.createDataLoader(
+      'binLocations',
+      (binLocationIds: string[]) => this.binLocationService.getBinLocationsByIds(tenantId, binLocationIds),
+    ).load(lot.binLocationId);
+  }
+
+  @ResolveField(() => [LotMovementType], { name: 'movementHistory' })
+  async resolveMovementHistory(
+    @Parent() lot: LotInfoType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<LotMovementType[]> {
+    return this.lotTrackingService.getLotMovementHistory(tenantId, lot.productId, lot.lotNumber);
+  }
+
+  @ResolveField(() => Boolean, { name: 'isExpired' })
+  resolveIsExpired(@Parent() lot: LotInfoType): boolean {
+    if (!lot.expiryDate) return false;
+    return new Date() > lot.expiryDate;
+  }
+
+  @ResolveField(() => Boolean, { name: 'isNearExpiry' })
+  resolveIsNearExpiry(@Parent() lot: LotInfoType): boolean {
+    if (!lot.expiryDate) return false;
+    const warningDate = new Date();
+    warningDate.setDate(warningDate.getDate() + 30); // 30 days warning
+    return lot.expiryDate <= warningDate && lot.expiryDate > new Date();
+  }
+
+  @ResolveField(() => Number, { name: 'daysUntilExpiry', nullable: true })
+  resolveDaysUntilExpiry(@Parent() lot: LotInfoType): number | null {
+    if (!lot.expiryDate) return null;
+    const today = new Date();
+    const diffTime = lot.expiryDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  // Subscriptions
+  @Subscription(() => LotInfoType, { name: 'lotUpdated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  lotUpdated(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`lot.updated.${tenantId}.${productId}.${lotNumber}`);
+  }
+
+  @Subscription(() => LotMovementType, { name: 'lotMovementRecorded' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  lotMovementRecorded(
+    @Args('lotNumber') lotNumber: string,
+    @Args('productId', { type: () => ID }) productId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`lot.movement.recorded.${tenantId}.${productId}.${lotNumber}`);
+  }
+
+  @Subscription(() => RecallInfoType, { name: 'recallCreated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  recallCreated(
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`recall.created.${tenantId}`);
+  }
+
+  @Subscription(() => LotInfoType, { name: 'lotExpired' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  lotExpired(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ) {
+    const pattern = warehouseId 
+      ? `lot.expired.${tenantId}.${warehouseId}.*`
+      : `lot.expired.${tenantId}.*`;
+    return this.pubSub.asyncIterator(pattern);
+  }
+
+  @Subscription(() => LotInfoType, { name: 'lotNearExpiry' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('lot_tracking:read')
+  lotNearExpiry(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ) {
+    const pattern = warehouseId 
+      ? `lot.near_expiry.${tenantId}.${warehouseId}.*`
+      : `lot.near_expiry.${tenantId}.*`;
+    return this.pubSub.asyncIterator(pattern);
   }
 }

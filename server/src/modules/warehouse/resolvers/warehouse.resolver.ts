@@ -1,5 +1,5 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -7,22 +7,50 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
+import { PaginationArgs } from '../../../common/graphql/base.types';
+
+// Services
 import { WarehouseService } from '../services/warehouse.service';
 import { WarehouseZoneService } from '../services/warehouse-zone.service';
 import { BinLocationService } from '../services/bin-location.service';
+
+// Types and Inputs
 import { 
   WarehouseType, 
   WarehouseConnection,
+  WarehouseCapacityType,
   CreateWarehouseInput,
   UpdateWarehouseInput,
   WarehouseFilterInput,
 } from '../types/warehouse.types';
-import { WarehouseZoneType } from '../types/warehouse-zone.types';
-import { BinLocationType } from '../types/bin-location.types';
+import { WarehouseZoneType, WarehouseZoneConnection } from '../types/warehouse-zone.types';
+import { BinLocationType, BinLocationConnection } from '../types/bin-location.types';
 import { EmployeeType } from '../../employee/types/employee.types';
 
+// Decorators and Guards
+import { 
+  RequireWarehousePermission,
+  AuditWarehouseOperation,
+  MonitorWarehousePerformance,
+  CacheWarehouseData,
+} from '../decorators/warehouse.decorators';
+import { WarehouseAccessGuard } from '../guards/warehouse-access.guard';
+import { WarehouseAuditInterceptor } from '../interceptors/warehouse-audit.interceptor';
+import { WarehousePerformanceInterceptor } from '../interceptors/warehouse-performance.interceptor';
+
+// Additional inputs
+import { 
+  InitializeWarehouseInput,
+  UpdateWarehouseCapacityInput,
+  WarehouseConfigurationInput,
+  UpdateWarehouseOperatingHoursInput,
+  WarehouseLayoutOptimizationInput,
+  WarehousePerformanceMetricsInput,
+} from '../inputs/warehouse.input';
+
 @Resolver(() => WarehouseType)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, WarehouseAccessGuard)
+@UseInterceptors(WarehouseAuditInterceptor, WarehousePerformanceInterceptor)
 export class WarehouseResolver extends BaseResolver {
   constructor(
     protected readonly dataLoaderService: DataLoaderService,
@@ -33,21 +61,258 @@ export class WarehouseResolver extends BaseResolver {
     super(dataLoaderService);
   }
 
+  // Queries
   @Query(() => WarehouseType, { name: 'warehouse' })
   @UseGuards(PermissionsGuard)
   @Permissions('warehouse:read')
+  @RequireWarehousePermission('read')
+  @CacheWarehouseData(300)
+  @MonitorWarehousePerformance()
   async getWarehouse(
     @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
+  ): Promise<WarehouseType> {
     return this.warehouseService.getWarehouse(tenantId, id);
   }
 
   @Query(() => WarehouseConnection, { name: 'warehouses' })
   @UseGuards(PermissionsGuard)
   @Permissions('warehouse:read')
+  @RequireWarehousePermission('read')
+  @CacheWarehouseData(180)
+  @MonitorWarehousePerformance()
   async getWarehouses(
-    @Args('first', { type: () => Number, nullable: true }) first: number,
+    @Args() paginationArgs: PaginationArgs,
+    @Args('filter', { type: () => WarehouseFilterInput, nullable: true }) filter?: WarehouseFilterInput,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<WarehouseConnection> {
+    return this.warehouseService.getWarehouses(tenantId, paginationArgs, filter);
+  }
+
+  @Query(() => WarehouseCapacityType, { name: 'warehouseCapacity' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:read')
+  @RequireWarehousePermission('read')
+  @CacheWarehouseData(60)
+  async getWarehouseCapacity(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseCapacityType> {
+    return this.warehouseService.getWarehouseCapacity(tenantId, warehouseId);
+  }
+
+  @Query(() => [WarehouseType], { name: 'warehousesByLocation' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:read')
+  @RequireWarehousePermission('read')
+  @CacheWarehouseData(300)
+  async getWarehousesByLocation(
+    @Args('locationId', { type: () => ID }) locationId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseType[]> {
+    return this.warehouseService.getWarehousesByLocation(tenantId, locationId);
+  }
+
+  // Mutations
+  @Mutation(() => WarehouseType, { name: 'createWarehouse' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:create')
+  @RequireWarehousePermission('create')
+  @AuditWarehouseOperation('create')
+  @MonitorWarehousePerformance()
+  async createWarehouse(
+    @Args('input') input: CreateWarehouseInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.createWarehouse(tenantId, input, user.id);
+  }
+
+  @Mutation(() => WarehouseType, { name: 'updateWarehouse' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:update')
+  @RequireWarehousePermission('update')
+  @AuditWarehouseOperation('update')
+  @MonitorWarehousePerformance()
+  async updateWarehouse(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdateWarehouseInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.updateWarehouse(tenantId, id, input, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'deleteWarehouse' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:delete')
+  @RequireWarehousePermission('delete')
+  @AuditWarehouseOperation('delete')
+  @MonitorWarehousePerformance()
+  async deleteWarehouse(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.warehouseService.deleteWarehouse(tenantId, id, user.id);
+    return true;
+  }
+
+  @Mutation(() => WarehouseType, { name: 'initializeWarehouse' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:manage')
+  @RequireWarehousePermission('manage')
+  @AuditWarehouseOperation('initialize')
+  @MonitorWarehousePerformance()
+  async initializeWarehouse(
+    @Args('input') input: InitializeWarehouseInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.initializeWarehouse(tenantId, input, user.id);
+  }
+
+  @Mutation(() => WarehouseCapacityType, { name: 'updateWarehouseCapacity' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:update')
+  @RequireWarehousePermission('update')
+  @AuditWarehouseOperation('update_capacity')
+  @MonitorWarehousePerformance()
+  async updateWarehouseCapacity(
+    @Args('input') input: UpdateWarehouseCapacityInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseCapacityType> {
+    return this.warehouseService.updateWarehouseCapacity(tenantId, input, user.id);
+  }
+
+  @Mutation(() => WarehouseType, { name: 'updateWarehouseConfiguration' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:configure')
+  @RequireWarehousePermission('configure')
+  @AuditWarehouseOperation('update_configuration')
+  @MonitorWarehousePerformance()
+  async updateWarehouseConfiguration(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @Args('input') input: WarehouseConfigurationInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.updateWarehouseConfiguration(tenantId, warehouseId, input, user.id);
+  }
+
+  @Mutation(() => WarehouseType, { name: 'updateWarehouseOperatingHours' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:configure')
+  @RequireWarehousePermission('configure')
+  @AuditWarehouseOperation('update_operating_hours')
+  async updateWarehouseOperatingHours(
+    @Args('input') input: UpdateWarehouseOperatingHoursInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.updateWarehouseOperatingHours(tenantId, input, user.id);
+  }
+
+  @Mutation(() => WarehouseType, { name: 'optimizeWarehouseLayout' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:optimize')
+  @RequireWarehousePermission('optimize')
+  @AuditWarehouseOperation('optimize_layout')
+  @MonitorWarehousePerformance()
+  async optimizeWarehouseLayout(
+    @Args('input') input: WarehouseLayoutOptimizationInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<WarehouseType> {
+    return this.warehouseService.optimizeWarehouseLayout(tenantId, input, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'updateWarehousePerformanceMetrics' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:metrics')
+  @RequireWarehousePermission('metrics')
+  @AuditWarehouseOperation('update_metrics')
+  async updateWarehousePerformanceMetrics(
+    @Args('input') input: WarehousePerformanceMetricsInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.warehouseService.updateWarehousePerformanceMetrics(tenantId, input, user.id);
+    return true;
+  }
+
+  // Field Resolvers
+  @ResolveField(() => [WarehouseZoneType], { name: 'zones' })
+  async resolveZones(
+    @Parent() warehouse: WarehouseType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseZoneType[]> {
+    return this.dataLoaderService.createDataLoader(
+      'warehouseZones',
+      (warehouseIds: string[]) => this.zoneService.getZonesByWarehouseIds(tenantId, warehouseIds),
+      'warehouseId',
+    ).load(warehouse.id);
+  }
+
+  @ResolveField(() => [BinLocationType], { name: 'binLocations' })
+  async resolveBinLocations(
+    @Parent() warehouse: WarehouseType,
+    @Args() paginationArgs: PaginationArgs,
+    @CurrentTenant() tenantId: string,
+  ): Promise<BinLocationType[]> {
+    return this.binLocationService.getBinLocationsByWarehouse(tenantId, warehouse.id, paginationArgs);
+  }
+
+  @ResolveField(() => EmployeeType, { name: 'manager', nullable: true })
+  async resolveManager(
+    @Parent() warehouse: WarehouseType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<EmployeeType | null> {
+    if (!warehouse.warehouseManagerId) return null;
+    
+    return this.dataLoaderService.createDataLoader(
+      'employees',
+      (employeeIds: string[]) => this.getEmployeesByIds(tenantId, employeeIds),
+    ).load(warehouse.warehouseManagerId);
+  }
+
+  @ResolveField(() => WarehouseCapacityType, { name: 'capacity' })
+  async resolveCapacity(
+    @Parent() warehouse: WarehouseType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseCapacityType> {
+    return this.warehouseService.getWarehouseCapacity(tenantId, warehouse.id);
+  }
+
+  // Subscriptions
+  @Subscription(() => WarehouseType, { name: 'warehouseUpdated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:read')
+  warehouseUpdated(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`warehouse.updated.${tenantId}.${warehouseId}`);
+  }
+
+  @Subscription(() => WarehouseCapacityType, { name: 'warehouseCapacityUpdated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('warehouse:read')
+  warehouseCapacityUpdated(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`warehouse.capacity.updated.${tenantId}.${warehouseId}`);
+  }
+
+  // Helper methods
+  private async getEmployeesByIds(tenantId: string, employeeIds: string[]): Promise<EmployeeType[]> {
+    // This would typically call an employee service
+    // For now, return empty array or implement based on your employee module
+    return [];
+  }
+}
     @Args('after', { type: () => String, nullable: true }) after: string,
     @Args('filter', { type: () => WarehouseFilterInput, nullable: true }) filter: any,
     @CurrentTenant() tenantId: string,

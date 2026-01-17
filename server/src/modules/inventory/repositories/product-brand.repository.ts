@@ -5,7 +5,7 @@ import {
   products
 } from '../../database/schema';
 import { eq, and, ilike, or, desc, asc, sql, count } from 'drizzle-orm';
-import { CreateBrandDto, UpdateBrandDto, BrandQueryDto } from '../dto/brand.dto';
+import { CreateBrandInput, UpdateBrandInput, BrandFilterInput } from '../inputs/brand.input';
 
 export interface BrandWithProductCount {
   id: string;
@@ -35,7 +35,7 @@ export class ProductBrandRepository {
     @Inject('DRIZZLE_SERVICE') private readonly drizzle: DrizzleService,
   ) {}
 
-  async create(tenantId: string, data: CreateBrandDto, userId: string): Promise<BrandWithProductCount> {
+  async create(tenantId: string, data: CreateBrandInput, userId: string): Promise<BrandWithProductCount> {
     const db = this.drizzle.getDb();
     
     const [brand] = await db
@@ -120,7 +120,7 @@ export class ProductBrandRepository {
     return this.findById(tenantId, brand.id);
   }
 
-  async findMany(tenantId: string, query: BrandQueryDto): Promise<{
+  async findMany(tenantId: string, query: BrandFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     brands: BrandWithProductCount[];
     total: number;
     page: number;
@@ -227,7 +227,7 @@ export class ProductBrandRepository {
     };
   }
 
-  async update(tenantId: string, id: string, data: UpdateBrandDto, userId: string): Promise<BrandWithProductCount | null> {
+  async update(tenantId: string, id: string, data: UpdateBrandInput, userId: string): Promise<BrandWithProductCount | null> {
     const db = this.drizzle.getDb();
     
     const updateData: any = {

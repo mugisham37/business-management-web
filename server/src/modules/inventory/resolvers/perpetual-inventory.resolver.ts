@@ -6,7 +6,7 @@ import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { Permissions } from '../../auth/decorators/require-permission.decorator';
 import { PerpetualInventoryService } from '../services/perpetual-inventory.service';
 import { InventoryLevel, InventoryValue } from '../types/perpetual-inventory.types';
@@ -16,7 +16,7 @@ import { ReconcileInventoryInput } from '../inputs/perpetual-inventory.input';
 @UseGuards(JwtAuthGuard)
 export class PerpetualInventoryResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly perpetualInventoryService: PerpetualInventoryService,
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
   ) {
@@ -28,16 +28,16 @@ export class PerpetualInventoryResolver extends BaseResolver {
   @Permissions('inventory:read')
   async currentInventory(
     @Args('productId', { type: () => ID }) productId: string,
-    @Args('variantId', { type: () => ID, nullable: true }) variantId: string | null,
-    @Args('locationId', { type: () => ID }) locationId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('variantId', { type: () => ID, nullable: true }) variantId?: string,
+    @Args('locationId', { type: () => ID }) locationId?: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryLevel> {
     return this.perpetualInventoryService.getCurrentInventory(
-      tenantId,
+      tenantId || '',
       productId,
       variantId || undefined,
-      locationId,
+      locationId || '',
     );
   }
 
@@ -45,15 +45,15 @@ export class PerpetualInventoryResolver extends BaseResolver {
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
   async inventoryValue(
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @Args('valuationMethod', { type: () => String, defaultValue: 'average' }) valuationMethod: 'fifo' | 'lifo' | 'average',
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @Args('valuationMethod', { type: () => String, defaultValue: 'average' }) valuationMethod?: 'fifo' | 'lifo' | 'average',
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<InventoryValue> {
     return this.perpetualInventoryService.getInventoryValue(
-      tenantId,
+      tenantId || '',
       locationId || undefined,
-      valuationMethod,
+      valuationMethod || 'average',
     );
   }
 
@@ -62,17 +62,17 @@ export class PerpetualInventoryResolver extends BaseResolver {
   @Permissions('inventory:update')
   async reconcileInventory(
     @Args('input') input: ReconcileInventoryInput,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<boolean> {
     await this.perpetualInventoryService.reconcileInventory(
-      tenantId,
+      tenantId || '',
       input.productId,
       input.variantId || undefined,
       input.locationId,
       input.physicalCount,
       input.reason,
-      user.id,
+      user?.id || '',
     );
 
     // Publish real-time update via subscription
@@ -82,7 +82,7 @@ export class PerpetualInventoryResolver extends BaseResolver {
         variantId: input.variantId,
         locationId: input.locationId,
         physicalCount: input.physicalCount,
-        tenantId,
+        tenantId: tenantId || '',
       },
     });
 
@@ -111,10 +111,10 @@ export class PerpetualInventoryResolver extends BaseResolver {
     },
   })
   inventoryReconciled(
-    @Args('productId', { type: () => ID, nullable: true }) productId: string | null,
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @CurrentTenant() tenantId: string,
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @CurrentTenant() tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('INVENTORY_RECONCILED');
+    return (this.pubSub as any).asyncIterator('INVENTORY_RECONCILED');
   }
 }

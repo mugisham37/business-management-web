@@ -4,7 +4,7 @@ import { InventoryRepository } from '../repositories/inventory.repository';
 import { InventoryMovementRepository } from '../repositories/inventory-movement.repository';
 import { BatchTrackingRepository } from '../repositories/batch-tracking.repository';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
-import { CreateInventoryLevelDto } from '../dto/inventory.dto';
+import { CreateInventoryLevelInput } from '../inputs/inventory.input';
 
 // Import the movement DTO interface
 export interface CreateInventoryMovementDto {
@@ -327,7 +327,7 @@ export class PerpetualInventoryService {
 
       if (!currentInventory) {
         // Create new inventory level if it doesn't exist
-        const createData: CreateInventoryLevelDto = {
+        const createData: CreateInventoryLevelInput = {
           productId: expectedCount.productId,
           locationId: data.locationId,
           currentLevel: expectedCount.expectedQuantity,
@@ -781,5 +781,117 @@ export class PerpetualInventoryService {
   private async invalidateLocationCache(tenantId: string, locationId: string): Promise<void> {
     await this.cacheService.invalidatePattern(`inventory:${tenantId}:*:${locationId}`);
     await this.cacheService.invalidatePattern(`perpetual-inventory:${tenantId}:*`);
+  }
+
+  async getCurrentInventory(
+    tenantId: string,
+    productId: string,
+    variantId?: string,
+    locationId?: string,
+  ): Promise<any> {
+    const location = locationId || '';
+    const cacheKey = `perpetual-inventory:${tenantId}:${productId}:${variantId}:${location}`;
+
+    let inventory = await this.cacheService.get<any>(cacheKey);
+    if (!inventory) {
+      const data = await this.inventoryRepository.findByProductAndLocation(
+        tenantId,
+        productId,
+        location,
+        variantId,
+      );
+      if (data) {
+        inventory = {
+          productId,
+          variantId,
+          locationId: location,
+          currentQuantity: data.currentQuantity || 0,
+          reservedQuantity: data.reserved || 0,
+          availableQuantity: (data.currentQuantity || 0) - (data.reserved || 0),
+          costPerUnit: data.costPerUnit || 0,
+          totalValue: ((data.currentQuantity || 0) * (data.costPerUnit || 0)),
+          lastUpdated: new Date(),
+          status: 'active',
+        };
+        await this.cacheService.set(cacheKey, inventory, 3600);
+      }
+    }
+    return inventory;
+  }
+
+  async getInventoryValue(
+    tenantId: string,
+    locationId?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    const location = locationId || '';
+    const cacheKey = `inventory-value:${tenantId}:${location}`;
+
+    let value = await this.cacheService.get<any>(cacheKey);
+    if (!value) {
+      const inventories = await this.inventoryRepository.findAll({
+        tenantId,
+        locationId: location,
+      } as any);
+
+      const items = (inventories || []).map(inv => ({
+        productId: inv.productId,
+        quantity: inv.currentQuantity || 0,
+        value: ((inv.currentQuantity || 0) * (inv.costPerUnit || 0)),
+        costPerUnit: inv.costPerUnit,
+      }));
+
+      const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+      const totalValue = items.reduce((sum, item) => sum + item.value, 0);
+
+      value = {
+        locationId: location,
+        items,
+        totalQuantity,
+        totalValue,
+        valuationMethod: 'weighted_average',
+        lastUpdated: new Date(),
+      };
+      await this.cacheService.set(cacheKey, value, 3600);
+    }
+    return value;
+  }
+
+  async reconcileInventory(
+    tenantId: string,
+    input: any,
+    userId: string,
+  ): Promise<any> {
+    const { productId, variantId, locationId, physicalCount, reason, notes } = input;
+
+    const currentInventory = await this.getCurrentInventory(tenantId, productId, variantId, locationId);
+    const systemQuantity = currentInventory?.currentQuantity || 0;
+    const variance = physicalCount - systemQuantity;
+
+    if (variance !== 0) {
+      await this.adjustInventory({
+        tenantId,
+        productId,
+        variantId,
+        locationId,
+        quantity: variance,
+        reason: reason || 'manual_count',
+        notes,
+      }, userId);
+    }
+
+    return {
+      reconciliationId: `rec-${Date.now()}`,
+      productId,
+      variantId,
+      locationId,
+      systemQuantity,
+      physicalCount,
+      variance,
+      reconciliationDate: new Date(),
+      reconciledBy: userId,
+      notes,
+    };
   }
 }

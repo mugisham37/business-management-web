@@ -7,7 +7,7 @@ import {
   productVariants
 } from '../../database/schema';
 import { eq, and, lte, desc, asc, sql, count, isNull } from 'drizzle-orm';
-import { CreateInventoryLevelDto, InventoryQueryDto } from '../dto/inventory.dto';
+import { CreateInventoryLevelInput, InventoryFilterInput } from '../inputs/inventory.input';
 
 export interface InventoryLevelWithProduct {
   id: string;
@@ -48,7 +48,7 @@ export class InventoryRepository {
     @Inject('DRIZZLE_SERVICE') private readonly drizzle: DrizzleService,
   ) {}
 
-  async create(tenantId: string, data: CreateInventoryLevelDto, userId: string): Promise<InventoryLevelWithProduct> {
+  async create(tenantId: string, data: CreateInventoryLevelInput, userId: string): Promise<InventoryLevelWithProduct> {
     const db = this.drizzle.getDb();
     
     const [inventoryLevel] = await db
@@ -193,7 +193,7 @@ export class InventoryRepository {
     };
   }
 
-  async findMany(tenantId: string, query: InventoryQueryDto): Promise<{
+  async findMany(tenantId: string, query: InventoryFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     inventoryLevels: InventoryLevelWithProduct[];
     total: number;
     page: number;

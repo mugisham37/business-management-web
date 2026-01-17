@@ -4,16 +4,9 @@ import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
 import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
+import { ValidationModule } from '../../common/validation/validation.module';
 
-// Controllers
-import { WarehouseController } from './controllers/warehouse.controller';
-import { WarehouseZoneController } from './controllers/warehouse-zone.controller';
-import { BinLocationController } from './controllers/bin-location.controller';
-import { PickingWaveController } from './controllers/picking-wave.controller';
-import { PickListController } from './controllers/pick-list.controller';
-import { ShippingIntegrationController } from './controllers/shipping-integration.controller';
-import { LotTrackingController } from './controllers/lot-tracking.controller';
-import { KittingAssemblyController } from './controllers/kitting-assembly.controller';
+// Note: This module uses GraphQL resolvers instead of REST controllers
 
 // Services
 import { WarehouseService } from './services/warehouse.service';
@@ -42,6 +35,13 @@ import { PickingWaveResolver } from './resolvers/picking-wave.resolver';
 import { ShippingIntegrationResolver } from './resolvers/shipping-integration.resolver';
 import { WarehouseZoneResolver } from './resolvers/warehouse-zone.resolver';
 
+// Guards
+import { WarehouseAccessGuard } from './guards/warehouse-access.guard';
+
+// Interceptors
+import { WarehouseAuditInterceptor } from './interceptors/warehouse-audit.interceptor';
+import { WarehousePerformanceInterceptor } from './interceptors/warehouse-performance.interceptor';
+
 // Event handlers (to be implemented in future tasks)
 // import { WarehouseEventHandler } from './handlers/warehouse-event.handler';
 
@@ -52,16 +52,7 @@ import { WarehouseZoneResolver } from './resolvers/warehouse-zone.resolver';
     QueueModule,
     TenantModule,
     GraphQLCommonModule,
-  ],
-  controllers: [
-    WarehouseController,
-    WarehouseZoneController,
-    BinLocationController,
-    PickingWaveController,
-    PickListController,
-    ShippingIntegrationController,
-    LotTrackingController,
-    KittingAssemblyController,
+    ValidationModule,
   ],
   providers: [
     // Core services
@@ -91,10 +82,18 @@ import { WarehouseZoneResolver } from './resolvers/warehouse-zone.resolver';
     ShippingIntegrationResolver,
     WarehouseZoneResolver,
     
+    // Guards
+    WarehouseAccessGuard,
+    
+    // Interceptors
+    WarehouseAuditInterceptor,
+    WarehousePerformanceInterceptor,
+    
     // Event handlers (to be implemented)
     // WarehouseEventHandler,
   ],
   exports: [
+    // Services
     WarehouseService,
     WarehouseZoneService,
     BinLocationService,
@@ -103,11 +102,20 @@ import { WarehouseZoneResolver } from './resolvers/warehouse-zone.resolver';
     ShippingIntegrationService,
     LotTrackingService,
     KittingAssemblyService,
+    
+    // Repositories
     WarehouseRepository,
     WarehouseZoneRepository,
     BinLocationRepository,
     PickingWaveRepository,
     PickListRepository,
+    
+    // Guards
+    WarehouseAccessGuard,
+    
+    // Interceptors
+    WarehouseAuditInterceptor,
+    WarehousePerformanceInterceptor,
   ],
 })
 export class WarehouseModule {}

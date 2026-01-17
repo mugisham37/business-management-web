@@ -1,23 +1,23 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { Permissions } from '../../auth/decorators/require-permission.decorator';
 import { ProductBrandService } from '../services/product-brand.service';
 import { ProductService } from '../services/product.service';
 import { Brand } from '../types/brand.types';
 import { CreateBrandInput, UpdateBrandInput, BrandFilterInput } from '../inputs/brand.input';
-import { PaginationArgs } from '../../../common/graphql/pagination.args';
+import { OffsetPaginationArgs } from '../../../common/graphql/pagination.args';
 
 @Resolver(() => Brand)
 @UseGuards(JwtAuthGuard)
 export class BrandResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    override readonly dataLoaderService: DataLoaderService,
     private readonly brandService: ProductBrandService,
     private readonly productService: ProductService,
   ) {
@@ -29,10 +29,10 @@ export class BrandResolver extends BaseResolver {
   @Permissions('inventory:read')
   async brand(
     @Args('id', { type: () => ID }) id: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<Brand> {
-    return this.brandService.findById(tenantId, id);
+    return this.brandService.findById(tenantId || '', id);
   }
 
   @Query(() => Brand, { description: 'Get brand by slug' })
@@ -40,28 +40,28 @@ export class BrandResolver extends BaseResolver {
   @Permissions('inventory:read')
   async brandBySlug(
     @Args('slug') slug: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<Brand> {
-    return this.brandService.findBySlug(tenantId, slug);
+    return this.brandService.findBySlug(tenantId || '', slug);
   }
 
   @Query(() => [Brand], { description: 'Get brands with optional filtering' })
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
   async brands(
-    @Args('filter', { type: () => BrandFilterInput, nullable: true }) filter: BrandFilterInput | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('filter', { type: () => BrandFilterInput, nullable: true }) filter?: BrandFilterInput,
+    @Args('pagination', { type: () => OffsetPaginationArgs, nullable: true }) pagination?: OffsetPaginationArgs,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<Brand[]> {
     const query = {
       ...filter,
-      page: pagination?.page || 1,
+      offset: pagination?.offset || 0,
       limit: pagination?.limit || 20,
     };
 
-    const result = await this.brandService.findMany(tenantId, query);
+    const result = await this.brandService.findMany(tenantId || '', query);
     return result.brands;
   }
 

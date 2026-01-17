@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
@@ -9,15 +9,15 @@ import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator'
 import { Permissions } from '../../auth/decorators/require-permission.decorator';
 import { CycleCountingService } from '../services/cycle-counting.service';
 import { QueueService } from '../../queue/queue.service';
-import { CycleCount, CycleCountItem, CycleCountSummary } from '../types/cycle-count.types';
-import { CreateCycleCountInput, CountItemInput, CycleCountFilterInput } from '../inputs/cycle-count.input';
-import { PaginationArgs } from '../../../common/graphql/pagination.args';
+import { CycleCount, CycleCountItem, CycleCountSummary, CycleCountSession, CycleCountResult } from '../types/cycle-count.types';
+import { CreateCycleCountInput, RecordStockCountInput, CycleCountFilterInput, CountItemInput } from '../inputs/cycle-count.input';
+import { OffsetPaginationArgs } from '../../../common/graphql/pagination.args';
 
-@Resolver(() => CycleCount)
+@Resolver(() => CycleCountSession)
 @UseGuards(JwtAuthGuard)
 export class CycleCountingResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    override readonly dataLoaderService: DataLoaderService,
     private readonly cycleCountingService: CycleCountingService,
     private readonly queueService: QueueService,
   ) {
@@ -29,28 +29,29 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:read')
   async cycleCount(
     @Args('id', { type: () => ID }) id: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCount> {
-    return this.cycleCountingService.findSessionById(tenantId, id);
+    return this.cycleCountingService.findSessionById(tenantId || '', id);
   }
 
   @Query(() => [CycleCount], { description: 'Get cycle count sessions with optional filtering' })
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
   async cycleCounts(
-    @Args('filter', { type: () => CycleCountFilterInput, nullable: true }) filter: CycleCountFilterInput | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('filter', { type: () => CycleCountFilterInput, nullable: true }) filter?: CycleCountFilterInput,
+    @Args('pagination', { type: () => OffsetPaginationArgs, nullable: true }) pagination?: OffsetPaginationArgs,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCount[]> {
     const query = {
-      ...filter,
-      page: pagination?.page || 1,
+      locationId: filter?.locationId,
+      status: filter?.status as 'planned' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+      offset: pagination?.offset || 0,
       limit: pagination?.limit || 20,
     };
 
-    const result = await this.cycleCountingService.findSessions(tenantId, query);
+    const result = await this.cycleCountingService.findSessions(tenantId || '', query);
     return result.sessions;
   }
 
@@ -59,19 +60,20 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:read')
   async cycleCountItems(
     @Args('sessionId', { type: () => ID }) sessionId: string,
-    @Args('status', { type: () => String, nullable: true }) status: string | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @Args('status', { type: () => String, nullable: true }) status?: string,
+    @Args('pagination', { type: () => OffsetPaginationArgs, nullable: true }) pagination?: OffsetPaginationArgs,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountItem[]> {
+    const statusValue = status as 'pending' | 'counted' | 'adjusted' | 'skipped' | undefined;
     const query = {
       sessionId,
-      status: status || undefined,
-      page: pagination?.page || 1,
+      status: statusValue,
+      page: pagination?.offset ? Math.floor(pagination.offset / (pagination.limit || 50)) + 1 : 1,
       limit: pagination?.limit || 50,
     };
 
-    const result = await this.cycleCountingService.findCountItems(tenantId, query);
+    const result = await this.cycleCountingService.findCountItems(tenantId || '', query);
     return result.items;
   }
 
@@ -80,10 +82,10 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:read')
   async cycleCountSummary(
     @Args('sessionId', { type: () => ID }) sessionId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountSummary> {
-    return this.cycleCountingService.getSessionSummary(tenantId, sessionId);
+    return this.cycleCountingService.getSessionSummary(tenantId || '', sessionId);
   }
 
   @Query(() => [CycleCountItem], { description: 'Get variance report for cycle count session' })
@@ -91,10 +93,10 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:read')
   async cycleCountVariances(
     @Args('sessionId', { type: () => ID }) sessionId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountItem[]> {
-    return this.cycleCountingService.getVarianceReport(tenantId, sessionId);
+    return this.cycleCountingService.getVarianceReport(tenantId || '', sessionId);
   }
 
   @Mutation(() => CycleCount, { description: 'Create new cycle count session' })
@@ -102,10 +104,10 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:create')
   async createCycleCount(
     @Args('input') input: CreateCycleCountInput,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCount> {
-    return this.cycleCountingService.createStockCountSession(tenantId, input, user.id);
+    return this.cycleCountingService.createStockCountSession(tenantId || '', input, user?.id || '');
   }
 
   @Mutation(() => CycleCount, { description: 'Start cycle count session' })
@@ -113,10 +115,10 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:update')
   async startCycleCount(
     @Args('sessionId', { type: () => ID }) sessionId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCount> {
-    return this.cycleCountingService.startStockCountSession(tenantId, sessionId, user.id);
+    return this.cycleCountingService.startStockCountSession(tenantId || '', sessionId, user?.id || '');
   }
 
   @Mutation(() => CycleCountItem, { description: 'Record count for an item' })
@@ -126,10 +128,10 @@ export class CycleCountingResolver extends BaseResolver {
     @Args('sessionId', { type: () => ID }) sessionId: string,
     @Args('itemId', { type: () => ID }) itemId: string,
     @Args('input') input: CountItemInput,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountItem> {
-    return this.cycleCountingService.countItem(tenantId, sessionId, itemId, input, user.id);
+    return this.cycleCountingService.countItem(tenantId || '', sessionId, itemId, input, user?.id || '');
   }
 
   @Mutation(() => CycleCount, { description: 'Complete cycle count session' })
@@ -137,16 +139,16 @@ export class CycleCountingResolver extends BaseResolver {
   @Permissions('inventory:update')
   async completeCycleCount(
     @Args('sessionId', { type: () => ID }) sessionId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCount> {
-    const session = await this.cycleCountingService.completeStockCountSession(tenantId, sessionId, user.id);
+    const session = await this.cycleCountingService.completeStockCountSession(tenantId || '', sessionId, user?.id || '');
 
     // Enqueue variance analysis to Bull queue
-    await this.queueService.addJob('inventory-variance-analysis', {
-      tenantId,
+    await this.queueService.add('inventory-variance-analysis', {
+      tenantId: tenantId || '',
       sessionId,
-      userId: user.id,
+      userId: user?.id || '',
     });
 
     return session;
@@ -158,20 +160,20 @@ export class CycleCountingResolver extends BaseResolver {
   async adjustFromCount(
     @Args('sessionId', { type: () => ID }) sessionId: string,
     @Args('itemId', { type: () => ID }) itemId: string,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
+    @CurrentUser() user?: any,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountItem> {
-    return this.cycleCountingService.adjustInventoryFromCount(tenantId, sessionId, itemId, user.id);
+    return this.cycleCountingService.adjustInventoryFromCount(tenantId || '', sessionId, itemId, user?.id || '');
   }
 
   @ResolveField(() => [CycleCountItem], { description: 'Items in this cycle count session' })
   async items(
     @Parent() cycleCount: CycleCount,
-    @CurrentTenant() tenantId: string,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountItem[]> {
-    const result = await this.cycleCountingService.findCountItems(tenantId, {
+    const result = await this.cycleCountingService.findCountItems(tenantId || '', {
       sessionId: cycleCount.id,
-      page: 1,
+      offset: 0,
       limit: 100,
     });
     return result.items;
@@ -180,8 +182,8 @@ export class CycleCountingResolver extends BaseResolver {
   @ResolveField(() => CycleCountSummary, { description: 'Summary statistics for this cycle count' })
   async summary(
     @Parent() cycleCount: CycleCount,
-    @CurrentTenant() tenantId: string,
+    @CurrentTenant() tenantId?: string,
   ): Promise<CycleCountSummary> {
-    return this.cycleCountingService.getSessionSummary(tenantId, cycleCount.id);
+    return this.cycleCountingService.getSessionSummary(tenantId || '', cycleCount.id);
   }
 }

@@ -1,5 +1,5 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -7,103 +7,381 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
+import { PaginationArgs } from '../../../common/graphql/base.types';
+
+// Services
 import { PickingWaveService } from '../services/picking-wave.service';
-import { QueueService } from '../../queue/queue.service';
-import { 
+import { PickListService } from '../services/pick-list.service';
+import { WarehouseService } from '../services/warehouse.service';
+
+// Types and Inputs
+import {
   PickingWaveType,
   PickingWaveConnection,
+  WaveStatisticsType,
+  WaveRecommendationType,
   CreatePickingWaveInput,
+  UpdatePickingWaveInput,
+  PickingWaveFilterInput,
+  WavePlanningInput,
+  AssignPickersInput,
 } from '../types/picking-wave.types';
+import { PickListType, PickListConnection } from '../types/pick-list.types';
+import { WarehouseType } from '../types/warehouse.types';
+import { EmployeeType } from '../../employee/types/employee.types';
+
+// Decorators and Guards
+import {
+  RequirePickingPermission,
+  AuditPickingOperation,
+  MonitorPickingPerformance,
+  CachePickingData,
+  EnablePickingUpdates,
+} from '../decorators/warehouse.decorators';
+import { WarehouseAccessGuard } from '../guards/warehouse-access.guard';
+import { WarehouseAuditInterceptor } from '../interceptors/warehouse-audit.interceptor';
+import { WarehousePerformanceInterceptor } from '../interceptors/warehouse-performance.interceptor';
 
 @Resolver(() => PickingWaveType)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, WarehouseAccessGuard)
+@UseInterceptors(WarehouseAuditInterceptor, WarehousePerformanceInterceptor)
 export class PickingWaveResolver extends BaseResolver {
   constructor(
     protected readonly dataLoaderService: DataLoaderService,
     private readonly pickingWaveService: PickingWaveService,
-    private readonly queueService: QueueService,
+    private readonly pickListService: PickListService,
+    private readonly warehouseService: WarehouseService,
   ) {
     super(dataLoaderService);
   }
 
+  // Queries
   @Query(() => PickingWaveType, { name: 'pickingWave' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
+  @Permissions('picking:read')
+  @RequirePickingPermission('pick')
+  @CachePickingData(60)
+  @MonitorPickingPerformance()
   async getPickingWave(
     @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
+  ): Promise<PickingWaveType> {
     return this.pickingWaveService.getWave(tenantId, id);
   }
 
   @Query(() => PickingWaveConnection, { name: 'pickingWaves' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
+  @Permissions('picking:read')
+  @RequirePickingPermission('pick')
+  @CachePickingData(30)
+  @MonitorPickingPerformance()
   async getPickingWaves(
-    @Args('first', { type: () => Number, nullable: true }) first: number,
-    @Args('after', { type: () => String, nullable: true }) after: string,
-    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId: string,
-    @Args('status', { type: () => String, nullable: true }) status: string,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    const { limit } = this.parsePaginationArgs({ first, after });
-    
-    const result = await this.pickingWaveService.getWaves(tenantId, {
-      warehouseId,
-      status,
-      page: 1,
-      limit,
-    });
-    
-    return {
-      edges: this.createEdges(result.waves, wave => wave.id),
-      pageInfo: this.createPageInfo(
-        result.page < result.totalPages,
-        result.page > 1,
-        result.waves[0]?.id,
-        result.waves[result.waves.length - 1]?.id,
-      ),
-      totalCount: result.total,
-    };
+    @Args() paginationArgs: PaginationArgs,
+    @Args('filter', { type: () => PickingWaveFilterInput, nullable: true }) filter?: PickingWaveFilterInput,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<PickingWaveConnection> {
+    return this.pickingWaveService.getWaves(tenantId, paginationArgs, filter);
   }
 
-  @Query(() => String, { name: 'waveProgress', description: 'Get wave progress as JSON' })
+  @Query(() => [PickingWaveType], { name: 'pickingWavesByWarehouse' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:read')
-  async getWaveProgress(
+  @Permissions('picking:read')
+  @RequirePickingPermission('pick')
+  @CachePickingData(60)
+  async getPickingWavesByWarehouse(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<PickingWaveType[]> {
+    return this.pickingWaveService.getWavesByWarehouse(tenantId, warehouseId);
+  }
+
+  @Query(() => [PickingWaveType], { name: 'pickingWavesByPicker' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  @RequirePickingPermission('pick')
+  @CachePickingData(30)
+  async getPickingWavesByPicker(
+    @Args('pickerId', { type: () => ID }) pickerId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<PickingWaveType[]> {
+    return this.pickingWaveService.getWavesByPicker(tenantId, pickerId);
+  }
+
+  @Query(() => WaveStatisticsType, { name: 'pickingWaveStatistics' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  @RequirePickingPermission('pick')
+  @CachePickingData(60)
+  async getPickingWaveStatistics(
     @Args('waveId', { type: () => ID }) waveId: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<string> {
-    const progress = await this.pickingWaveService.getWaveProgress(tenantId, waveId);
-    return JSON.stringify(progress);
+  ): Promise<WaveStatisticsType> {
+    return this.pickingWaveService.getWaveStatistics(tenantId, waveId);
   }
 
+  @Query(() => [WaveRecommendationType], { name: 'pickingWaveRecommendations' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  @RequirePickingPermission('manage')
+  @CachePickingData(120)
+  async getPickingWaveRecommendations(
+    @Args('warehouseId', { type: () => ID }) warehouseId: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WaveRecommendationType[]> {
+    return this.pickingWaveService.getWaveRecommendations(tenantId, warehouseId);
+  }
+
+  @Query(() => [PickingWaveType], { name: 'overduePickingWaves' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  @RequirePickingPermission('manage')
+  @CachePickingData(30)
+  async getOverduePickingWaves(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<PickingWaveType[]> {
+    return this.pickingWaveService.getOverdueWaves(tenantId, warehouseId);
+  }
+
+  // Mutations
   @Mutation(() => PickingWaveType, { name: 'createPickingWave' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:create')
+  @Permissions('picking:create')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('create_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
   async createPickingWave(
     @Args('input') input: CreatePickingWaveInput,
-    @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
     return this.pickingWaveService.createWave(tenantId, input, user.id);
+  }
+
+  @Mutation(() => PickingWaveType, { name: 'updatePickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:update')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('update_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
+  async updatePickingWave(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdatePickingWaveInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.updateWave(tenantId, id, input, user.id);
+  }
+
+  @Mutation(() => Boolean, { name: 'deletePickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:delete')
+  @RequirePickingPermission('admin')
+  @AuditPickingOperation('delete_wave')
+  @MonitorPickingPerformance()
+  async deletePickingWave(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<boolean> {
+    await this.pickingWaveService.deleteWave(tenantId, id, user.id);
+    return true;
   }
 
   @Mutation(() => PickingWaveType, { name: 'releasePickingWave' })
   @UseGuards(PermissionsGuard)
-  @Permissions('warehouse:update')
+  @Permissions('picking:release')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('release_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
   async releasePickingWave(
-    @Args('waveId', { type: () => ID }) waveId: string,
-    @CurrentUser() user: any,
+    @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    // Enqueue wave optimization to Bull queue
-    await this.queueService.add('optimize-picking-wave', {
-      tenantId,
-      waveId,
-      userId: user.id,
-    });
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.releaseWave(tenantId, id, user.id);
+  }
 
-    return this.pickingWaveService.releaseWave(tenantId, waveId, user.id);
+  @Mutation(() => PickingWaveType, { name: 'startPickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:start')
+  @RequirePickingPermission('pick')
+  @AuditPickingOperation('start_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
+  async startPickingWave(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.startWave(tenantId, id, user.id);
+  }
+
+  @Mutation(() => PickingWaveType, { name: 'completePickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:complete')
+  @RequirePickingPermission('pick')
+  @AuditPickingOperation('complete_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
+  async completePickingWave(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.completeWave(tenantId, id, user.id);
+  }
+
+  @Mutation(() => PickingWaveType, { name: 'cancelPickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:cancel')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('cancel_wave')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
+  async cancelPickingWave(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('reason', { nullable: true }) reason?: string,
+    @CurrentTenant() tenantId?: string,
+    @CurrentUser() user?: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.cancelWave(tenantId, id, user.id, reason);
+  }
+
+  @Mutation(() => PickingWaveType, { name: 'assignPickersToWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:assign')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('assign_pickers')
+  @MonitorPickingPerformance()
+  @EnablePickingUpdates()
+  async assignPickersToWave(
+    @Args('waveId', { type: () => ID }) waveId: string,
+    @Args('input') input: AssignPickersInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.assignPickers(tenantId, waveId, input, user.id);
+  }
+
+  @Mutation(() => [PickingWaveType], { name: 'planPickingWaves' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:plan')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('plan_waves')
+  @MonitorPickingPerformance()
+  async planPickingWaves(
+    @Args('input') input: WavePlanningInput,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType[]> {
+    return this.pickingWaveService.planWaves(tenantId, input, user.id);
+  }
+
+  @Mutation(() => PickingWaveType, { name: 'optimizePickingWave' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:optimize')
+  @RequirePickingPermission('manage')
+  @AuditPickingOperation('optimize_wave')
+  @MonitorPickingPerformance()
+  async optimizePickingWave(
+    @Args('waveId', { type: () => ID }) waveId: string,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: any,
+  ): Promise<PickingWaveType> {
+    return this.pickingWaveService.optimizeWave(tenantId, waveId, user.id);
+  }
+
+  // Field Resolvers
+  @ResolveField(() => WarehouseType, { name: 'warehouse' })
+  async resolveWarehouse(
+    @Parent() wave: PickingWaveType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WarehouseType> {
+    return this.dataLoaderService.createDataLoader(
+      'warehouses',
+      (warehouseIds: string[]) => this.warehouseService.getWarehousesByIds(tenantId, warehouseIds),
+    ).load(wave.warehouseId);
+  }
+
+  @ResolveField(() => [PickListType], { name: 'pickLists' })
+  async resolvePickLists(
+    @Parent() wave: PickingWaveType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<PickListType[]> {
+    return this.pickListService.getPickListsByWave(tenantId, wave.id);
+  }
+
+  @ResolveField(() => [EmployeeType], { name: 'assignedPickers' })
+  async resolveAssignedPickers(
+    @Parent() wave: PickingWaveType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<EmployeeType[]> {
+    if (!wave.assignedPickers || wave.assignedPickers.length === 0) return [];
+    
+    return this.dataLoaderService.createDataLoader(
+      'employees',
+      (employeeIds: string[]) => this.getEmployeesByIds(tenantId, employeeIds),
+    ).loadMany(wave.assignedPickers);
+  }
+
+  @ResolveField(() => WaveStatisticsType, { name: 'statistics' })
+  async resolveStatistics(
+    @Parent() wave: PickingWaveType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WaveStatisticsType> {
+    return this.pickingWaveService.getWaveStatistics(tenantId, wave.id);
+  }
+
+  @ResolveField(() => [WaveRecommendationType], { name: 'recommendations' })
+  async resolveRecommendations(
+    @Parent() wave: PickingWaveType,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WaveRecommendationType[]> {
+    return this.pickingWaveService.getWaveSpecificRecommendations(tenantId, wave.id);
+  }
+
+  // Subscriptions
+  @Subscription(() => PickingWaveType, { name: 'pickingWaveUpdated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  pickingWaveUpdated(
+    @Args('waveId', { type: () => ID }) waveId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`picking.wave.updated.${tenantId}.${waveId}`);
+  }
+
+  @Subscription(() => WaveStatisticsType, { name: 'pickingWaveStatisticsUpdated' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  pickingWaveStatisticsUpdated(
+    @Args('waveId', { type: () => ID }) waveId: string,
+    @CurrentTenant() tenantId: string,
+  ) {
+    return this.pubSub.asyncIterator(`picking.wave.statistics.updated.${tenantId}.${waveId}`);
+  }
+
+  @Subscription(() => PickingWaveType, { name: 'pickingWaveStatusChanged' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('picking:read')
+  pickingWaveStatusChanged(
+    @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
+    @CurrentTenant() tenantId?: string,
+  ) {
+    const pattern = warehouseId 
+      ? `picking.wave.status.changed.${tenantId}.${warehouseId}.*`
+      : `picking.wave.status.changed.${tenantId}.*`;
+    return this.pubSub.asyncIterator(pattern);
+  }
+
+  // Helper methods
+  private async getEmployeesByIds(tenantId: string, employeeIds: string[]): Promise<EmployeeType[]> {
+    // This would typically call an employee service
+    // For now, return empty array or implement based on your employee module
+    return [];
   }
 }

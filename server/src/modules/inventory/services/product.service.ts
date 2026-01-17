@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProductRepository, ProductWithVariants } from '../repositories/product.repository';
-import { CreateProductDto, UpdateProductDto, ProductQueryDto, BulkUpdateProductsDto } from '../dto/product.dto';
+import { CreateProductInput, UpdateProductInput, ProductFilterInput, BulkUpdateProductsInput } from '../inputs/product.input';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 
 // Domain events
@@ -40,7 +40,7 @@ export class ProductService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async create(tenantId: string, data: CreateProductDto, userId: string): Promise<ProductWithVariants> {
+  async create(tenantId: string, data: CreateProductInput, userId: string): Promise<ProductWithVariants> {
     // Validate SKU uniqueness
     const existingProduct = await this.productRepository.findBySku(tenantId, data.sku);
     if (existingProduct) {
@@ -116,7 +116,7 @@ export class ProductService {
     return product;
   }
 
-  async findMany(tenantId: string, query: ProductQueryDto): Promise<{
+  async findMany(tenantId: string, query: ProductFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     products: ProductWithVariants[];
     total: number;
     page: number;
@@ -164,7 +164,7 @@ export class ProductService {
     return products;
   }
 
-  async update(tenantId: string, id: string, data: UpdateProductDto, userId: string): Promise<ProductWithVariants> {
+  async update(tenantId: string, id: string, data: UpdateProductInput, userId: string): Promise<ProductWithVariants> {
     const existingProduct = await this.findById(tenantId, id);
 
     // Validate SKU uniqueness if changed
@@ -205,13 +205,18 @@ export class ProductService {
     return updatedProduct;
   }
 
-  async bulkUpdate(tenantId: string, productIds: string[], data: UpdateProductDto, userId: string): Promise<number> {
-    const updatedCount = await this.productRepository.bulkUpdate(tenantId, productIds, data, userId);
+  async bulkUpdate(tenantId: string, productIds: string[], data: UpdateProductInput, userId: string): Promise<ProductWithVariants[]> {
+    await this.productRepository.bulkUpdate(tenantId, productIds, data, userId);
 
     // Invalidate cache
     await this.invalidateProductCache(tenantId);
 
-    return updatedCount;
+    // Fetch and return updated products
+    const updatedProducts = await Promise.all(
+      productIds.map(id => this.productRepository.findById(tenantId, id))
+    );
+
+    return updatedProducts.filter((p): p is ProductWithVariants => p !== null);
   }
 
   async delete(tenantId: string, id: string, userId: string): Promise<void> {

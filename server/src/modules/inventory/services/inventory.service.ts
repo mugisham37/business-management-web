@@ -3,12 +3,13 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InventoryRepository } from '../repositories/inventory.repository';
 import { InventoryMovementRepository } from '../repositories/inventory-movement.repository';
 import { 
-  CreateInventoryLevelDto, 
-  UpdateInventoryLevelDto, 
-  InventoryAdjustmentDto,
-  InventoryTransferDto,
-  InventoryQueryDto 
-} from '../dto/inventory.dto';
+  CreateInventoryLevelInput, 
+  UpdateInventoryLevelInput, 
+  AdjustInventoryInput,
+  TransferInventoryInput,
+  InventoryFilterInput,
+  ReserveInventoryInput
+} from '../inputs/inventory.input';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { QueueService } from '../../queue/queue.service';
 
@@ -59,7 +60,7 @@ export class InventoryService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createInventoryLevel(tenantId: string, data: CreateInventoryLevelDto, userId: string): Promise<any> {
+  async createInventoryLevel(tenantId: string, data: CreateInventoryLevelInput, userId: string): Promise<any> {
     const inventoryLevel = await this.inventoryRepository.create(tenantId, data, userId);
 
     // Create initial movement record if starting with stock
@@ -111,7 +112,7 @@ export class InventoryService {
     return inventoryLevel;
   }
 
-  async getInventoryLevels(tenantId: string, query: InventoryQueryDto): Promise<{
+  async getInventoryLevels(tenantId: string, query: InventoryFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     inventoryLevels: any[];
     total: number;
     page: number;
@@ -216,7 +217,7 @@ export class InventoryService {
     return updatedInventory;
   }
 
-  async adjustInventory(tenantId: string, data: InventoryAdjustmentDto, userId: string): Promise<any> {
+  async adjustInventory(tenantId: string, data: AdjustInventoryInput, userId: string): Promise<any> {
     const currentInventory = await this.getInventoryLevel(
       tenantId,
       data.productId,
@@ -242,7 +243,7 @@ export class InventoryService {
     );
   }
 
-  async transferInventory(tenantId: string, data: InventoryTransferDto, userId: string): Promise<void> {
+  async transferInventory(tenantId: string, data: TransferInventoryInput, userId: string): Promise<void> {
     if (data.fromLocationId === data.toLocationId) {
       throw new BadRequestException('Cannot transfer to the same location');
     }

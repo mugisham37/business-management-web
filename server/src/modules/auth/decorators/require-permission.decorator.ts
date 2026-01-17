@@ -8,3 +8,10 @@ export const REQUIRE_PERMISSION_KEY = 'requirePermission';
  */
 export const RequirePermission = (...permissions: string[]) =>
   SetMetadata(REQUIRE_PERMISSION_KEY, permissions);
+
+/**
+ * Alias for permission specification
+ */
+export const Permissions = (...permissions: string[]) =>
+  SetMetadata('permissions', permissions);
+

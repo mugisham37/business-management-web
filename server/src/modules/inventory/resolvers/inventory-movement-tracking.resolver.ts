@@ -1,124 +1,146 @@
-import { Resolver, Query, Args, ResolveField, Parent, ID } from '@nestjs/graphql';
+import { Resolver, Query, Args, ID, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator';
-import { Permissions } from '../../auth/decorators/require-permission.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { InventoryMovementTrackingService } from '../services/inventory-movement-tracking.service';
-import { ProductService } from '../services/product.service';
-import { InventoryMovement } from '../types/inventory-movement.types';
-import { MovementFilterInput } from '../inputs/movement.input';
-import { PaginationArgs } from '../../../common/graphql/pagination.args';
+import { 
+  MovementHistoryResult,
+  MovementVelocityAnalysisResult,
+  MovementPatternAnalysisResult,
+  InventoryAccuracyMetricsResult,
+  MovementAuditTrailResult,
+  AnomalousMovementResult 
+} from '../types/movement-tracking.types';
 
-@Resolver(() => InventoryMovement)
+@Resolver(() => MovementHistoryResult)
 @UseGuards(JwtAuthGuard)
 export class InventoryMovementTrackingResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly movementTrackingService: InventoryMovementTrackingService,
-    private readonly productService: ProductService,
   ) {
     super(dataLoaderService);
   }
 
-  @Query(() => [InventoryMovement], { description: 'Get inventory movements with filtering' })
+  @Query(() => MovementHistoryResult, { description: 'Get detailed movement history' })
   @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
-  async inventoryMovements(
-    @Args('filter', { type: () => MovementFilterInput, nullable: true }) filter: MovementFilterInput | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
-  ): Promise<InventoryMovement[]> {
+  @RequirePermission('inventory:read')
+  async detailedMovementHistory(
+    @Args('productId', { type: () => ID, nullable: true }) productId?: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @Args('movementType', { nullable: true }) movementType?: string,
+    @Args('dateFrom', { nullable: true }) dateFrom?: Date,
+    @Args('dateTo', { nullable: true }) dateTo?: Date,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page?: number,
+    @Args('limit', { type: () => Int, defaultValue: 100 }) limit?: number,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<MovementHistoryResult> {
     const query = {
-      ...filter,
-      page: pagination?.page || 1,
-      limit: pagination?.limit || 50,
-    };
-
-    const result = await this.movementTrackingService.getMovements(tenantId, query);
-    return result.movements;
-  }
-
-  @Query(() => [InventoryMovement], { description: 'Get movement history for a product' })
-  @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
-  async productMovementHistory(
-    @Args('productId', { type: () => ID }) productId: string,
-    @Args('variantId', { type: () => ID, nullable: true }) variantId: string | null,
-    @Args('startDate', { type: () => Date, nullable: true }) startDate: Date | null,
-    @Args('endDate', { type: () => Date, nullable: true }) endDate: Date | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
-  ): Promise<InventoryMovement[]> {
-    return this.movementTrackingService.getProductMovementHistory(
-      tenantId,
       productId,
-      variantId || undefined,
-      startDate || undefined,
-      endDate || undefined,
-    );
-  }
-
-  @Query(() => [InventoryMovement], { description: 'Get movements for a location' })
-  @UseGuards(PermissionsGuard)
-  @Permissions('inventory:read')
-  async locationMovements(
-    @Args('locationId', { type: () => ID }) locationId: string,
-    @Args('startDate', { type: () => Date, nullable: true }) startDate: Date | null,
-    @Args('endDate', { type: () => Date, nullable: true }) endDate: Date | null,
-    @Args('pagination', { type: () => PaginationArgs, nullable: true }) pagination: PaginationArgs | null,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
-  ): Promise<InventoryMovement[]> {
-    const query = {
       locationId,
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
-      page: pagination?.page || 1,
-      limit: pagination?.limit || 50,
+      movementType,
+      dateFrom,
+      dateTo,
+      page,
+      limit,
     };
 
-    const result = await this.movementTrackingService.getLocationMovements(tenantId, query);
-    return result.movements;
+    const result = await this.movementTrackingService.getDetailedMovementHistory(tenantId || '', query);
+    
+    return {
+      movements: result.movements,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+      summary: result.summary,
+    };
   }
 
-  @ResolveField(() => Object, { nullable: true, description: 'Product information' })
-  async product(
-    @Parent() movement: InventoryMovement,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    const loader = this.getDataLoader(
-      'product_by_id',
-      this.productService.batchLoadByIds.bind(this.productService),
+  @Query(() => MovementVelocityAnalysisResult, { description: 'Analyze movement velocity' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:read')
+  async movementVelocityAnalysis(
+    @Args('productId', { type: () => ID }) productId: string,
+    @Args('locationId', { type: () => ID }) locationId: string,
+    @Args('periodDays', { type: () => Int, defaultValue: 30 }) periodDays?: number,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<MovementVelocityAnalysisResult> {
+    return this.movementTrackingService.analyzeMovementVelocity(
+      tenantId || '',
+      productId,
+      locationId,
+      periodDays || 30,
     );
-    return loader.load(movement.productId);
   }
 
-  @ResolveField(() => Object, { nullable: true, description: 'From location information' })
-  async fromLocation(
-    @Parent() movement: InventoryMovement,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    if (!movement.fromLocationId) {
-      return null;
-    }
-    // Location service would be injected and used here
-    return { id: movement.fromLocationId, name: 'From Location' };
+  @Query(() => MovementPatternAnalysisResult, { description: 'Analyze movement patterns' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:read')
+  async movementPatternAnalysis(
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @Args('periodDays', { type: () => Int, defaultValue: 90 }) periodDays?: number,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<MovementPatternAnalysisResult> {
+    return this.movementTrackingService.analyzeMovementPatterns(
+      tenantId || '',
+      locationId,
+      periodDays || 90,
+    );
   }
 
-  @ResolveField(() => Object, { nullable: true, description: 'To location information' })
-  async toLocation(
-    @Parent() movement: InventoryMovement,
-    @CurrentTenant() tenantId: string,
-  ): Promise<any> {
-    if (!movement.toLocationId) {
-      return null;
-    }
-    // Location service would be injected and used here
-    return { id: movement.toLocationId, name: 'To Location' };
+  @Query(() => InventoryAccuracyMetricsResult, { description: 'Calculate inventory accuracy' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:read')
+  async inventoryAccuracyMetrics(
+    @Args('locationId', { type: () => ID }) locationId: string,
+    @Args('periodDays', { type: () => Int, defaultValue: 30 }) periodDays?: number,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<InventoryAccuracyMetricsResult> {
+    return this.movementTrackingService.calculateInventoryAccuracy(
+      tenantId || '',
+      locationId,
+      periodDays || 30,
+    );
+  }
+
+  @Query(() => AnomalousMovementResult, { description: 'Detect anomalous movements' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:read')
+  async detectAnomalousMovements(
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @Args('lookbackDays', { type: () => Int, defaultValue: 30 }) lookbackDays?: number,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<AnomalousMovementResult> {
+    return this.movementTrackingService.detectAnomalousMovements(
+      tenantId || '',
+      locationId,
+      lookbackDays || 30,
+    );
+  }
+
+  @Query(() => MovementAuditTrailResult, { description: 'Get movement audit trail' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermission('inventory:read')
+  async movementAuditTrail(
+    @Args('productId', { type: () => ID }) productId: string,
+    @Args('locationId', { type: () => ID, nullable: true }) locationId?: string,
+    @Args('dateFrom', { nullable: true }) dateFrom?: Date,
+    @Args('dateTo', { nullable: true }) dateTo?: Date,
+    @CurrentTenant() tenantId?: string,
+  ): Promise<MovementAuditTrailResult> {
+    return this.movementTrackingService.getMovementAuditTrail(
+      tenantId || '',
+      productId,
+      locationId,
+      dateFrom,
+      dateTo,
+    );
   }
 }

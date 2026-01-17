@@ -5,70 +5,75 @@ import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { CurrentTenant } from '../../tenant/decorators/current-tenant.decorator';
+import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
 import { Permissions } from '../../auth/decorators/require-permission.decorator';
 import { InventoryReportingService } from '../services/inventory-reporting.service';
-import { StockReport, ValuationReport, TurnoverReport } from '../types/inventory-report.types';
+import { ProductService } from '../services/product.service';
+import { 
+  StockLevelReport, 
+  MovementReport, 
+  AgingReport, 
+  TurnoverReport 
+} from '../types/inventory-reporting.types';
+import { 
+  StockLevelReportInput, 
+  MovementReportInput, 
+  AgingReportInput, 
+  TurnoverReportInput 
+} from '../inputs/inventory-reporting.input';
 
 @Resolver()
 @UseGuards(JwtAuthGuard)
 export class InventoryReportingResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly reportingService: InventoryReportingService,
+    private readonly productService: ProductService,
   ) {
     super(dataLoaderService);
   }
 
-  @Query(() => StockReport, { description: 'Get stock level report' })
+  @Query(() => StockLevelReport, { description: 'Generate stock level report' })
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
-  async inventoryStockReport(
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @Args('categoryId', { type: () => ID, nullable: true }) categoryId: string | null,
-    @Args('brandId', { type: () => ID, nullable: true }) brandId: string | null,
+  async stockLevelReport(
+    @Args('input', { type: () => StockLevelReportInput, nullable: true }) input: StockLevelReportInput | null,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<StockReport> {
-    return this.reportingService.getStockReport(
-      tenantId,
-      locationId || undefined,
-      categoryId || undefined,
-      brandId || undefined,
-    );
+  ): Promise<StockLevelReport> {
+    return this.reportingService.generateStockLevelReport(tenantId, input || {});
   }
 
-  @Query(() => ValuationReport, { description: 'Get inventory valuation report' })
+  @Query(() => MovementReport, { description: 'Generate movement report' })
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
-  async inventoryValuationReport(
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @Args('valuationMethod', { type: () => String, defaultValue: 'average' }) valuationMethod: 'fifo' | 'lifo' | 'average',
+  async movementReport(
+    @Args('input', { type: () => MovementReportInput, nullable: true }) input: MovementReportInput | null,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<ValuationReport> {
-    return this.reportingService.getValuationReport(
-      tenantId,
-      locationId || undefined,
-      valuationMethod,
-    );
+  ): Promise<MovementReport> {
+    return this.reportingService.generateMovementReport(tenantId, input || {});
   }
 
-  @Query(() => TurnoverReport, { description: 'Get inventory turnover report' })
+  @Query(() => AgingReport, { description: 'Generate aging report' })
   @UseGuards(PermissionsGuard)
   @Permissions('inventory:read')
-  async inventoryTurnoverReport(
-    @Args('locationId', { type: () => ID, nullable: true }) locationId: string | null,
-    @Args('startDate', { type: () => Date }) startDate: Date,
-    @Args('endDate', { type: () => Date }) endDate: Date,
+  async agingReport(
+    @Args('input', { type: () => AgingReportInput, nullable: true }) input: AgingReportInput | null,
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
+  ): Promise<AgingReport> {
+    return this.reportingService.generateAgingReport(tenantId, input || {});
+  }
+
+  @Query(() => TurnoverReport, { description: 'Generate turnover report' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('inventory:read')
+  async turnoverReport(
+    @Args('input', { type: () => TurnoverReportInput, nullable: true }) input: TurnoverReportInput | null,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<TurnoverReport> {
-    return this.reportingService.getTurnoverReport(
-      tenantId,
-      locationId || undefined,
-      startDate,
-      endDate,
-    );
+    return this.reportingService.generateTurnoverReport(tenantId, input || {});
   }
 }

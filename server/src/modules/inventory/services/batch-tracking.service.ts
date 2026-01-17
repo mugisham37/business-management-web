@@ -134,6 +134,24 @@ export class BatchTrackingService {
     return batch;
   }
 
+  async getTracking(tenantId: string, productId: string, locationId: string): Promise<any> {
+    const query: BatchQueryDto = {
+      productId,
+      locationId,
+      status: 'active' as const,
+    };
+    
+    const result = await this.findBatches(tenantId, query);
+    
+    return {
+      productId,
+      locationId,
+      batches: result.batches || [],
+      totalQuantity: result.batches?.reduce((sum: number, batch: any) => sum + (batch.currentQuantity || 0), 0) || 0,
+      totalValue: result.batches?.reduce((sum: number, batch: any) => sum + (batch.totalValue || 0), 0) || 0,
+    };
+  }
+
   async findByBatchNumber(tenantId: string, batchNumber: string, locationId: string): Promise<any> {
     const cacheKey = `batch:${tenantId}:${batchNumber}:${locationId}`;
     let batch = await this.cacheService.get<any>(cacheKey);

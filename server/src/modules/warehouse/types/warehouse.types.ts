@@ -41,6 +41,41 @@ registerEnumType(LayoutType, { name: 'LayoutType' });
 registerEnumType(SecurityLevel, { name: 'SecurityLevel' });
 
 // Object Types
+@ObjectType('WarehouseCapacity')
+export class WarehouseCapacityType {
+  @Field(() => ID)
+  @ApiProperty({ description: 'Warehouse ID' })
+  warehouseId!: string;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Total capacity units' })
+  totalCapacity!: number;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Used capacity units' })
+  usedCapacity!: number;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Available capacity units' })
+  availableCapacity!: number;
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Capacity utilization percentage' })
+  utilizationPercentage!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Total bin locations' })
+  totalBinLocations!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Occupied bin locations' })
+  occupiedBinLocations!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Available bin locations' })
+  availableBinLocations!: number;
+}
+
 @ObjectType('Warehouse')
 export class WarehouseType extends BaseEntity {
   @Field(() => ID)

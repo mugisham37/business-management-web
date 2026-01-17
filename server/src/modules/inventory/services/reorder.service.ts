@@ -4,7 +4,7 @@ import { InventoryRepository } from '../repositories/inventory.repository';
 import { ProductRepository } from '../repositories/product.repository';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 import { QueueService } from '../../queue/queue.service';
-import { InventoryQueryDto } from '../dto/inventory.dto';
+import { InventoryFilterInput } from '../inputs/inventory.input';
 
 // Domain events
 export class ReorderAlertEvent {
@@ -253,7 +253,7 @@ export class ReorderService {
 
   async updateReorderPoints(tenantId: string, locationId?: string): Promise<void> {
     // Get all inventory levels
-    const inventoryQuery: InventoryQueryDto = {
+    const inventoryQuery: InventoryFilterInput & { page?: number; limit?: number } = {
       page: 1,
       limit: 1000, // Process in batches
     };

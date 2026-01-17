@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProductCategoryRepository } from '../repositories/product-category.repository';
-import { CreateCategoryDto, UpdateCategoryDto, CategoryQueryDto } from '../dto/category.dto';
+import { CreateCategoryInput, UpdateCategoryInput, CategoryFilterInput } from '../inputs/category.input';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
 
 // Domain events
@@ -40,7 +40,7 @@ export class ProductCategoryService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async create(tenantId: string, data: CreateCategoryDto, userId: string): Promise<any> {
+  async create(tenantId: string, data: CreateCategoryInput, userId: string): Promise<any> {
     // Generate slug if not provided
     if (!data.slug) {
       data.slug = this.generateSlug(data.name);
@@ -108,7 +108,7 @@ export class ProductCategoryService {
     return category;
   }
 
-  async findMany(tenantId: string, query: CategoryQueryDto): Promise<{
+  async findMany(tenantId: string, query: CategoryFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     categories: any[];
     total: number;
     page: number;
@@ -156,7 +156,7 @@ export class ProductCategoryService {
     return children;
   }
 
-  async update(tenantId: string, id: string, data: UpdateCategoryDto, userId: string): Promise<any> {
+  async update(tenantId: string, id: string, data: UpdateCategoryInput, userId: string): Promise<any> {
     const existingCategory = await this.findById(tenantId, id);
 
     // Validate slug uniqueness if changed

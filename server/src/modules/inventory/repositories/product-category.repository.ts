@@ -5,7 +5,7 @@ import {
   products
 } from '../../database/schema';
 import { eq, and, ilike, isNull, or, desc, asc, sql, count } from 'drizzle-orm';
-import { CreateCategoryDto, UpdateCategoryDto, CategoryQueryDto } from '../dto/category.dto';
+import { CreateCategoryInput, UpdateCategoryInput, CategoryFilterInput } from '../inputs/category.input';
 
 export interface CategoryWithChildren {
   id: string;
@@ -39,7 +39,7 @@ export class ProductCategoryRepository {
     @Inject('DRIZZLE_SERVICE') private readonly drizzle: DrizzleService,
   ) {}
 
-  async create(tenantId: string, data: CreateCategoryDto, userId: string): Promise<CategoryWithChildren> {
+  async create(tenantId: string, data: CreateCategoryInput, userId: string): Promise<CategoryWithChildren> {
     const db = this.drizzle.getDb();
     
     return await db.transaction(async (tx) => {
@@ -148,7 +148,7 @@ export class ProductCategoryRepository {
     return this.findById(tenantId, category.id);
   }
 
-  async findMany(tenantId: string, query: CategoryQueryDto): Promise<{
+  async findMany(tenantId: string, query: CategoryFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     categories: CategoryWithChildren[];
     total: number;
     page: number;
@@ -363,7 +363,7 @@ export class ProductCategoryRepository {
     }));
   }
 
-  async update(tenantId: string, id: string, data: UpdateCategoryDto, userId: string): Promise<CategoryWithChildren | null> {
+  async update(tenantId: string, id: string, data: UpdateCategoryInput, userId: string): Promise<CategoryWithChildren | null> {
     const db = this.drizzle.getDb();
     
     return await db.transaction(async (tx) => {

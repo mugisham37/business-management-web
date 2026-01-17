@@ -4,19 +4,6 @@ import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
 import { TenantModule } from '../tenant/tenant.module';
 
-// Controllers
-import { ProductController } from './controllers/product.controller';
-import { CategoryController } from './controllers/category.controller';
-import { BrandController } from './controllers/brand.controller';
-import { InventoryController } from './controllers/inventory.controller';
-import { ReorderController } from './controllers/reorder.controller';
-import { BatchTrackingController } from './controllers/batch-tracking.controller';
-import { CycleCountingController } from './controllers/cycle-counting.controller';
-import { InventoryReportingController } from './controllers/inventory-reporting.controller';
-import { InventoryMovementTrackingController } from './controllers/inventory-movement-tracking.controller';
-import { PerpetualInventoryController } from './controllers/perpetual-inventory.controller';
-import { InventoryAccuracyReportingController } from './controllers/inventory-accuracy-reporting.controller';
-
 // Services
 import { ProductService } from './services/product.service';
 import { ProductCategoryService } from './services/product-category.service';
@@ -40,9 +27,19 @@ import { InventoryMovementRepository } from './repositories/inventory-movement.r
 import { BatchTrackingRepository } from './repositories/batch-tracking.repository';
 import { CycleCountingRepository } from './repositories/cycle-counting.repository';
 
-// Resolvers (GraphQL)
+// GraphQL Resolvers
 import { ProductResolver } from './resolvers/product.resolver';
 import { InventoryResolver } from './resolvers/inventory.resolver';
+import { BrandResolver } from './resolvers/brand.resolver';
+import { CategoryResolver } from './resolvers/category.resolver';
+import { BatchTrackingResolver } from './resolvers/batch-tracking.resolver';
+import { CycleCountingResolver } from './resolvers/cycle-counting.resolver';
+import { InventoryReportingResolver } from './resolvers/inventory-reporting.resolver';
+import { InventoryMovementTrackingResolver } from './resolvers/inventory-movement-tracking.resolver';
+import { PerpetualInventoryResolver } from './resolvers/perpetual-inventory.resolver';
+import { InventoryAccuracyReportingResolver } from './resolvers/inventory-accuracy-reporting.resolver';
+import { ReorderResolver } from './resolvers/reorder.resolver';
+import { InventoryValuationResolver } from './resolvers/inventory-valuation.resolver';
 
 // Event handlers
 // import { InventoryEventHandler } from './handlers/inventory-event.handler';
@@ -53,19 +50,6 @@ import { InventoryResolver } from './resolvers/inventory.resolver';
     CacheModule,
     QueueModule,
     TenantModule,
-  ],
-  controllers: [
-    ProductController,
-    CategoryController,
-    BrandController,
-    InventoryController,
-    ReorderController,
-    BatchTrackingController,
-    CycleCountingController,
-    InventoryReportingController,
-    InventoryMovementTrackingController,
-    PerpetualInventoryController,
-    InventoryAccuracyReportingController,
   ],
   providers: [
     // Core services
@@ -95,6 +79,17 @@ import { InventoryResolver } from './resolvers/inventory.resolver';
     
     // GraphQL Resolvers
     ProductResolver,
+    InventoryResolver,
+    BrandResolver,
+    CategoryResolver,
+    BatchTrackingResolver,
+    CycleCountingResolver,
+    InventoryReportingResolver,
+    InventoryMovementTrackingResolver,
+    PerpetualInventoryResolver,
+    InventoryAccuracyReportingResolver,
+    ReorderResolver,
+    InventoryValuationResolver,
     
     // Event handlers
     // InventoryEventHandler,

@@ -7,7 +7,7 @@ import {
   productBrands
 } from '../../database/schema';
 import { eq, and, ilike, inArray, or, desc, asc, sql, count } from 'drizzle-orm';
-import { CreateProductDto, UpdateProductDto, ProductQueryDto } from '../dto/product.dto';
+import { CreateProductInput, UpdateProductInput, ProductFilterInput } from '../inputs/product.input';
 
 export interface ProductWithVariants {
   id: string;
@@ -67,7 +67,7 @@ export class ProductRepository {
     @Inject('DRIZZLE_SERVICE') private readonly drizzle: DrizzleService,
   ) {}
 
-  async create(tenantId: string, data: CreateProductDto, userId: string): Promise<ProductWithVariants> {
+  async create(tenantId: string, data: CreateProductInput, userId: string): Promise<ProductWithVariants> {
     const db = this.drizzle.getDb();
     
     return await db.transaction(async (tx) => {
@@ -249,7 +249,7 @@ export class ProductRepository {
     return this.findById(tenantId, product.id);
   }
 
-  async findMany(tenantId: string, query: ProductQueryDto): Promise<{
+  async findMany(tenantId: string, query: ProductFilterInput & { page?: number; limit?: number; sortBy?: string; sortOrder?: string }): Promise<{
     products: ProductWithVariants[];
     total: number;
     page: number;
@@ -411,7 +411,7 @@ export class ProductRepository {
     };
   }
 
-  async update(tenantId: string, id: string, data: UpdateProductDto, userId: string): Promise<ProductWithVariants | null> {
+  async update(tenantId: string, id: string, data: UpdateProductInput, userId: string): Promise<ProductWithVariants | null> {
     const db = this.drizzle.getDb();
     
     return await db.transaction(async (tx) => {
@@ -510,7 +510,7 @@ export class ProductRepository {
     return !!result;
   }
 
-  async bulkUpdate(tenantId: string, productIds: string[], data: UpdateProductDto, userId: string): Promise<number> {
+  async bulkUpdate(tenantId: string, productIds: string[], data: UpdateProductInput, userId: string): Promise<number> {
     const db = this.drizzle.getDb();
     
     const updateData: any = {

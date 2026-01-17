@@ -1,19 +1,7 @@
-import { ObjectType, Field, ID, Int, InputType, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Float, InputType, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity, Edge, Connection } from '../../../common/graphql/base.types';
-import { 
-  IsString, 
-  IsOptional, 
-  IsNumber, 
-  IsEnum, 
-  IsUUID, 
-  IsArray,
-  IsInt,
-  IsDate,
-  Length,
-  IsNotEmpty,
-  Min,
-} from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsUUID, IsArray, IsDate, Min, Max, Length, IsNotEmpty, IsObject } from 'class-validator';
 
 // Enums
 export enum QualityStatus {
@@ -23,7 +11,14 @@ export enum QualityStatus {
   QUARANTINE = 'quarantine',
 }
 
-export enum MovementType {
+export enum RotationType {
+  FIFO = 'FIFO',
+  FEFO = 'FEFO',
+  LIFO = 'LIFO',
+  MANUAL = 'MANUAL',
+}
+
+export enum LotMovementType {
   RECEIVE = 'receive',
   PICK = 'pick',
   ADJUST = 'adjust',
@@ -52,7 +47,8 @@ export enum RecallStatus {
 }
 
 registerEnumType(QualityStatus, { name: 'QualityStatus' });
-registerEnumType(MovementType, { name: 'MovementType' });
+registerEnumType(RotationType, { name: 'RotationType' });
+registerEnumType(LotMovementType, { name: 'LotMovementType' });
 registerEnumType(RecallType, { name: 'RecallType' });
 registerEnumType(RecallSeverity, { name: 'RecallSeverity' });
 registerEnumType(RecallStatus, { name: 'RecallStatus' });
@@ -80,7 +76,7 @@ export class LotInfoType extends BaseEntity {
   @ApiProperty({ description: 'Bin location ID', required: false })
   binLocationId?: string;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @ApiProperty({ description: 'Quantity' })
   quantity!: number;
 
@@ -119,14 +115,61 @@ export class LotInfoType extends BaseEntity {
   @Field({ nullable: true })
   @ApiProperty({ description: 'Notes', required: false })
   notes?: string;
+
+  @Field(() => Int, { nullable: true })
+  @ApiProperty({ description: 'Days until expiry', required: false })
+  daysUntilExpiry?: number;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Is expired', required: false })
+  isExpired?: boolean;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Is near expiry', required: false })
+  isNearExpiry?: boolean;
+}
+
+@ObjectType('FIFORule')
+export class FIFORuleType extends BaseEntity {
+  @Field(() => ID)
+  @ApiProperty({ description: 'Product ID' })
+  productId!: string;
+
+  @Field(() => ID, { nullable: true })
+  @ApiProperty({ description: 'Warehouse ID', required: false })
+  warehouseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @ApiProperty({ description: 'Zone ID', required: false })
+  zoneId?: string;
+
+  @Field(() => RotationType)
+  @ApiProperty({ description: 'Rotation type', enum: RotationType })
+  rotationType!: RotationType;
+
+  @Field()
+  @ApiProperty({ description: 'Enforce strict rotation' })
+  enforceStrict!: boolean;
+
+  @Field()
+  @ApiProperty({ description: 'Allow mixed lots' })
+  allowMixedLots!: boolean;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Expiry warning days' })
+  expiryWarningDays!: number;
+
+  @Field()
+  @ApiProperty({ description: 'Auto quarantine expired' })
+  autoQuarantineExpired!: boolean;
+
+  @Field()
+  @ApiProperty({ description: 'Require lot tracking' })
+  requireLotTracking!: boolean;
 }
 
 @ObjectType('LotMovement')
-export class LotMovementType {
-  @Field(() => ID)
-  @ApiProperty({ description: 'Movement ID' })
-  id!: string;
-
+export class LotMovementType extends BaseEntity {
   @Field()
   @ApiProperty({ description: 'Lot number' })
   lotNumber!: string;
@@ -135,9 +178,9 @@ export class LotMovementType {
   @ApiProperty({ description: 'Product ID' })
   productId!: string;
 
-  @Field(() => MovementType)
-  @ApiProperty({ description: 'Movement type', enum: MovementType })
-  movementType!: MovementType;
+  @Field(() => LotMovementType)
+  @ApiProperty({ description: 'Movement type', enum: LotMovementType })
+  movementType!: LotMovementType;
 
   @Field({ nullable: true })
   @ApiProperty({ description: 'From location', required: false })
@@ -147,7 +190,7 @@ export class LotMovementType {
   @ApiProperty({ description: 'To location', required: false })
   toLocation?: string;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @ApiProperty({ description: 'Quantity' })
   quantity!: number;
 
@@ -167,6 +210,10 @@ export class LotMovementType {
   @ApiProperty({ description: 'Order ID', required: false })
   orderId?: string;
 
+  @Field(() => ID, { nullable: true })
+  @ApiProperty({ description: 'Pick list ID', required: false })
+  pickListId?: string;
+
   @Field({ nullable: true })
   @ApiProperty({ description: 'Reason', required: false })
   reason?: string;
@@ -178,10 +225,6 @@ export class LotMovementType {
 
 @ObjectType('RecallInfo')
 export class RecallInfoType extends BaseEntity {
-  @Field(() => ID)
-  @ApiProperty({ description: 'Recall ID' })
-  recallId!: string;
-
   @Field()
   @ApiProperty({ description: 'Recall number' })
   recallNumber!: string;
@@ -210,8 +253,8 @@ export class RecallInfoType extends BaseEntity {
   @ApiProperty({ description: 'Description' })
   description!: string;
 
-  @Field(() => ID)
-  @ApiProperty({ description: 'Initiated by user ID' })
+  @Field()
+  @ApiProperty({ description: 'Initiated by' })
   initiatedBy!: string;
 
   @Field()
@@ -226,11 +269,11 @@ export class RecallInfoType extends BaseEntity {
   @ApiProperty({ description: 'Status', enum: RecallStatus })
   status!: RecallStatus;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @ApiProperty({ description: 'Affected quantity' })
   affectedQuantity!: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @ApiProperty({ description: 'Recovered quantity' })
   recoveredQuantity!: number;
 
@@ -245,6 +288,37 @@ export class RecallInfoType extends BaseEntity {
   @Field()
   @ApiProperty({ description: 'Instructions' })
   instructions!: string;
+}
+
+@ObjectType('LotTraceability')
+export class LotTraceabilityType {
+  @Field()
+  @ApiProperty({ description: 'Lot number' })
+  lotNumber!: string;
+
+  @Field(() => ID)
+  @ApiProperty({ description: 'Product ID' })
+  productId!: string;
+
+  @Field(() => [LotMovementType])
+  @ApiProperty({ description: 'Movement history', type: [LotMovementType] })
+  movementHistory!: LotMovementType[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Current locations', type: [String] })
+  currentLocations!: string[];
+
+  @Field(() => Float)
+  @ApiProperty({ description: 'Current quantity' })
+  currentQuantity!: number;
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Associated orders', type: [String] })
+  associatedOrders!: string[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Associated customers', type: [String] })
+  associatedCustomers!: string[];
 }
 
 // Input Types
@@ -277,14 +351,15 @@ export class CreateLotInput {
   @IsUUID()
   binLocationId?: string;
 
-  @Field(() => Int)
-  @IsInt()
-  @Min(1)
+  @Field(() => Float)
+  @IsNumber()
+  @Min(0)
   quantity!: number;
 
   @Field()
   @IsString()
   @IsNotEmpty()
+  @Length(1, 20)
   unitOfMeasure!: string;
 
   @Field({ nullable: true })
@@ -332,9 +407,9 @@ export class CreateLotInput {
 
 @InputType()
 export class UpdateLotInput {
-  @Field(() => Int, { nullable: true })
+  @Field(() => Float, { nullable: true })
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
   quantity?: number;
 
@@ -351,8 +426,58 @@ export class UpdateLotInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @Length(1, 100)
+  certificationNumber?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   @Length(0, 1000)
   notes?: string;
+}
+
+@InputType()
+export class CreateFIFORuleInput {
+  @Field(() => ID)
+  @IsUUID()
+  @IsNotEmpty()
+  productId!: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  zoneId?: string;
+
+  @Field(() => RotationType)
+  @IsEnum(RotationType)
+  rotationType!: RotationType;
+
+  @Field()
+  @IsBoolean()
+  enforceStrict!: boolean;
+
+  @Field()
+  @IsBoolean()
+  allowMixedLots!: boolean;
+
+  @Field(() => Int)
+  @IsNumber()
+  @Min(1)
+  @Max(365)
+  expiryWarningDays!: number;
+
+  @Field()
+  @IsBoolean()
+  autoQuarantineExpired!: boolean;
+
+  @Field()
+  @IsBoolean()
+  requireLotTracking!: boolean;
 }
 
 @InputType()
@@ -360,7 +485,7 @@ export class CreateRecallInput {
   @Field()
   @IsString()
   @IsNotEmpty()
-  @Length(1, 100)
+  @Length(1, 50)
   recallNumber!: string;
 
   @Field(() => ID)
@@ -371,6 +496,7 @@ export class CreateRecallInput {
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty()
   lotNumbers!: string[];
 
   @Field(() => RecallType)
@@ -384,13 +510,13 @@ export class CreateRecallInput {
   @Field()
   @IsString()
   @IsNotEmpty()
-  @Length(1, 500)
+  @Length(1, 255)
   reason!: string;
 
   @Field()
   @IsString()
   @IsNotEmpty()
-  @Length(1, 2000)
+  @Length(1, 1000)
   description!: string;
 
   @Field()
@@ -398,16 +524,116 @@ export class CreateRecallInput {
   effectiveDate!: Date;
 
   @Field()
+  @IsBoolean()
   customerNotificationRequired!: boolean;
 
   @Field()
+  @IsBoolean()
   regulatoryReportingRequired!: boolean;
 
   @Field()
   @IsString()
   @IsNotEmpty()
-  @Length(1, 5000)
+  @Length(1, 1000)
   instructions!: string;
+}
+
+@InputType()
+export class RecordLotMovementInput {
+  @Field()
+  @IsString()
+  @IsNotEmpty()
+  lotNumber!: string;
+
+  @Field(() => ID)
+  @IsUUID()
+  @IsNotEmpty()
+  productId!: string;
+
+  @Field(() => LotMovementType)
+  @IsEnum(LotMovementType)
+  movementType!: LotMovementType;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  fromLocation?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  toLocation?: string;
+
+  @Field(() => Float)
+  @IsNumber()
+  @Min(0)
+  quantity!: number;
+
+  @Field()
+  @IsString()
+  @IsNotEmpty()
+  unitOfMeasure!: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  orderId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  pickListId?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 255)
+  reason?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(0, 1000)
+  notes?: string;
+}
+
+@InputType()
+export class LotFilterInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+
+  @Field(() => QualityStatus, { nullable: true })
+  @IsOptional()
+  @IsEnum(QualityStatus)
+  qualityStatus?: QualityStatus;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  expiredOnly?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  nearExpiryOnly?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  expiryWithinDays?: number;
 }
 
 // Connection Types
@@ -421,4 +647,16 @@ export class LotInfoEdge extends Edge<LotInfoType> {
 export class LotInfoConnection extends Connection<LotInfoType> {
   @Field(() => [LotInfoEdge])
   edges!: LotInfoEdge[];
+}
+
+@ObjectType()
+export class RecallInfoEdge extends Edge<RecallInfoType> {
+  @Field(() => RecallInfoType)
+  node!: RecallInfoType;
+}
+
+@ObjectType()
+export class RecallInfoConnection extends Connection<RecallInfoType> {
+  @Field(() => [RecallInfoEdge])
+  edges!: RecallInfoEdge[];
 }
