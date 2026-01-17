@@ -2,12 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
-// Controllers
-import { IntegrationController } from './controllers/integration.controller';
-import { WebhookController } from './controllers/webhook.controller';
-import { ConnectorController } from './controllers/connector.controller';
-import { DeveloperPortalController } from './controllers/developer-portal.controller';
-
 // Services
 import { IntegrationService } from './services/integration.service';
 import { WebhookService } from './services/webhook.service';
@@ -18,6 +12,7 @@ import { SyncService } from './services/sync.service';
 import { IntegrationHealthService } from './services/integration-health.service';
 import { DeveloperPortalService } from './services/developer-portal.service';
 import { RateLimitService } from './services/rate-limit.service';
+import { AuditService } from './services/audit.service';
 
 // Repositories
 import { IntegrationRepository } from './repositories/integration.repository';
@@ -25,6 +20,7 @@ import { WebhookRepository } from './repositories/webhook.repository';
 import { ApiKeyRepository } from './repositories/api-key.repository';
 import { ConnectorRepository } from './repositories/connector.repository';
 import { SyncLogRepository } from './repositories/sync-log.repository';
+import { AuditRepository } from './repositories/audit.repository';
 
 // Connectors
 import { QuickBooksConnector } from './connectors/quickbooks.connector';
@@ -42,8 +38,12 @@ import { IntegrationResolver } from './resolvers/integration.resolver';
 import { ConnectorResolver } from './resolvers/connector.resolver';
 import { DeveloperPortalResolver } from './resolvers/developer-portal.resolver';
 import { WebhookResolver } from './resolvers/webhook.resolver';
+import { SyncResolver } from './resolvers/sync.resolver';
+import { OAuth2Resolver } from './resolvers/oauth2.resolver';
+import { AuditResolver } from './resolvers/audit.resolver';
 
-// External modules
+// DataLoaders
+import { IntegrationDataLoaders } from './dataloaders/integration.dataloaders';
 import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
@@ -65,12 +65,6 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     AuthModule,
     GraphQLCommonModule,
   ],
-  controllers: [
-    IntegrationController,
-    WebhookController,
-    ConnectorController,
-    DeveloperPortalController,
-  ],
   providers: [
     // Core Services
     IntegrationService,
@@ -82,6 +76,7 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     IntegrationHealthService,
     DeveloperPortalService,
     RateLimitService,
+    AuditService,
 
     // Repositories
     IntegrationRepository,
@@ -89,6 +84,7 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     ApiKeyRepository,
     ConnectorRepository,
     SyncLogRepository,
+    AuditRepository,
 
     // Connectors
     QuickBooksConnector,
@@ -106,6 +102,12 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     ConnectorResolver,
     DeveloperPortalResolver,
     WebhookResolver,
+    SyncResolver,
+    OAuth2Resolver,
+    AuditResolver,
+
+    // DataLoaders
+    IntegrationDataLoaders,
   ],
   exports: [
     IntegrationService,
@@ -117,6 +119,7 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     IntegrationHealthService,
     DeveloperPortalService,
     RateLimitService,
+    AuditService,
   ],
 })
 export class IntegrationModule {}

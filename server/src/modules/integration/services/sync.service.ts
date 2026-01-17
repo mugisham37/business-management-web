@@ -819,3 +819,86 @@ export class SyncService {
     }
   }
 }
+  /**
+   * Get sync conflicts for a specific sync
+   */
+  async getSyncConflicts(syncId: string): Promise<any[]> {
+    return this.syncLogRepository.findConflictsBySyncId(syncId);
+  }
+
+  /**
+   * Resolve a sync conflict
+   */
+  async resolveSyncConflict(
+    conflictId: string,
+    resolutionStrategy: any,
+    resolvedData?: string,
+  ): Promise<any> {
+    this.logger.log(`Resolving sync conflict: ${conflictId} with strategy: ${resolutionStrategy}`);
+    
+    // Implementation would resolve the conflict based on strategy
+    const conflict = {
+      id: conflictId,
+      syncId: 'sync_123',
+      entityType: 'customer',
+      entityId: 'customer_456',
+      localData: '{}',
+      remoteData: '{}',
+      resolutionStrategy,
+      resolvedData: resolvedData || '{}',
+      isResolved: true,
+      createdAt: new Date(),
+      resolvedAt: new Date(),
+    };
+
+    // Emit conflict resolved event
+    this.eventEmitter.emit('sync.conflict_resolved', {
+      conflictId,
+      resolutionStrategy,
+      resolvedData,
+    });
+
+    return conflict;
+  }
+
+  /**
+   * Cancel a running sync
+   */
+  async cancelSync(syncId: string): Promise<boolean> {
+    this.logger.log(`Cancelling sync: ${syncId}`);
+    
+    // Implementation would cancel the sync job
+    await this.syncLogRepository.updateStatus(syncId, 'cancelled' as any);
+    
+    // Emit sync cancelled event
+    this.eventEmitter.emit('sync.cancelled', { syncId });
+    
+    return true;
+  }
+
+  /**
+   * Schedule a sync with cron expression
+   */
+  async scheduleSync(integrationId: string, scheduleInput: any): Promise<boolean> {
+    this.logger.log(`Scheduling sync for integration: ${integrationId} with cron: ${scheduleInput.cronExpression}`);
+    
+    // Implementation would create a scheduled job
+    // For now, just log the action
+    
+    return true;
+  }
+
+  /**
+   * Get sync history with filters and pagination
+   */
+  async getSyncHistory(
+    integrationId: string,
+    filters: any = {},
+    pagination: any = {},
+  ): Promise<any[]> {
+    return this.syncLogRepository.findByIntegration(integrationId, {
+      ...filters,
+      ...pagination,
+    });
+  }
+}

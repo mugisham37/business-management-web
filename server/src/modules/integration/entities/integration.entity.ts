@@ -1,5 +1,3 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
 export enum IntegrationType {
   ACCOUNTING = 'accounting',
   ECOMMERCE = 'ecommerce',
@@ -28,55 +26,22 @@ export enum AuthType {
 }
 
 export class Integration {
-  @ApiProperty({ description: 'Integration ID' })
   id!: string;
-
-  @ApiProperty({ description: 'Tenant ID' })
   tenantId!: string;
-
-  @ApiProperty({ description: 'Integration name' })
   name!: string;
-
-  @ApiProperty({ description: 'Display name' })
   displayName!: string;
-
-  @ApiPropertyOptional({ description: 'Integration description' })
   description?: string;
-
-  @ApiProperty({ enum: IntegrationType, description: 'Integration type' })
   type!: IntegrationType;
-
-  @ApiProperty({ enum: IntegrationStatus, description: 'Integration status' })
   status!: IntegrationStatus;
-
-  @ApiProperty({ description: 'Integration configuration' })
   config!: Record<string, any>;
-
-  @ApiProperty({ description: 'Encrypted credentials' })
   credentials!: Record<string, any>;
-
-  @ApiProperty({ description: 'Integration settings' })
   settings!: Record<string, any>;
-
-  @ApiProperty({ enum: AuthType, description: 'Authentication type' })
   authType!: AuthType;
-
-  @ApiProperty({ description: 'Authentication configuration' })
   authConfig!: Record<string, any>;
-
-  @ApiPropertyOptional({ description: 'Provider name' })
   providerName?: string;
-
-  @ApiPropertyOptional({ description: 'Provider version' })
   providerVersion?: string;
-
-  @ApiPropertyOptional({ description: 'Connector version' })
   connectorVersion?: string;
-
-  @ApiPropertyOptional({ description: 'Last health check timestamp' })
   lastHealthCheck?: Date;
-
-  @ApiPropertyOptional({ description: 'Health status' })
   healthStatus?: string;
 
   @ApiProperty({ description: 'Error count', default: 0 })

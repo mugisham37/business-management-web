@@ -249,3 +249,104 @@ export class WebhookResolver extends BaseResolver {
     return this.pubSub.asyncIterator('WEBHOOK_DELIVERED');
   }
 }
+  @Query(() => [WebhookDeliveryType], { name: 'webhookDeliveries' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:read')
+  async getWebhookDeliveries(
+    @Args('webhookId') webhookId: string,
+    @Args('limit', { defaultValue: 50 }) limit: number,
+    @Args('offset', { defaultValue: 0 }) offset: number,
+  ): Promise<WebhookDeliveryType[]> {
+    return this.webhookService.getDeliveryHistory(webhookId, { limit, offset });
+  }
+
+  @Mutation(() => WebhookType, { name: 'createWebhook' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:update')
+  async createWebhook(
+    @Args('input') input: CreateWebhookInput,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WebhookType> {
+    return this.webhookService.create(input.integrationId, input);
+  }
+
+  @Mutation(() => WebhookType, { name: 'updateWebhook' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:update')
+  async updateWebhook(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdateWebhookInput,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WebhookType> {
+    return this.webhookService.update(id, input);
+  }
+
+  @Mutation(() => Boolean, { name: 'deleteWebhook' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:update')
+  async deleteWebhook(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<boolean> {
+    await this.webhookService.delete(id);
+    return true;
+  }
+
+  @Mutation(() => WebhookTestResult, { name: 'testWebhook' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:test')
+  async testWebhook(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: TestWebhookInput,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<WebhookTestResult> {
+    const result = await this.webhookService.testWebhook(id, input);
+    return {
+      success: result.success,
+      statusCode: result.statusCode,
+      error: result.error,
+      duration: result.duration,
+      timestamp: new Date(),
+    };
+  }
+
+  @Mutation(() => Boolean, { name: 'retryWebhookDelivery' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:update')
+  async retryWebhookDelivery(
+    @Args('deliveryId') deliveryId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @CurrentTenant() tenantId: string,
+  ): Promise<boolean> {
+    return this.webhookService.retryDelivery(deliveryId);
+  }
+
+  // Enhanced subscriptions
+  @Subscription(() => WebhookDeliveryType, {
+    name: 'webhookDelivered',
+    filter: (payload, variables) => {
+      return !variables.webhookId || payload.webhookId === variables.webhookId;
+    },
+  })
+  webhookDelivered(
+    @Args('webhookId', { nullable: true }) webhookId?: string,
+  ) {
+    return this.pubSub.asyncIterator('WEBHOOK_DELIVERED');
+  }
+
+  @Subscription(() => WebhookDeliveryType, {
+    name: 'webhookDeliveryFailed',
+    filter: (payload, variables) => {
+      return !variables.webhookId || payload.webhookId === variables.webhookId;
+    },
+  })
+  webhookDeliveryFailed(
+    @Args('webhookId', { nullable: true }) webhookId?: string,
+  ) {
+    return this.pubSub.asyncIterator('WEBHOOK_DELIVERY_FAILED');
+  }
+}

@@ -485,3 +485,20 @@ export class IntegrationRepository {
       .where(eq(integrations.id, integrationId));
   }
 }
+  /**
+   * Find integrations by IDs (for dataloader)
+   */
+  async findByIds(integrationIds: string[]): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query integrations
+    // For now, return empty array
+    return [];
+  }
+
+  /**
+   * Find integrations by connector keys (for dataloader)
+   */
+  async findByConnectorKeys(connectorKeys: string[]): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query integrations
+    // For now, return empty array
+    return [];
+  }

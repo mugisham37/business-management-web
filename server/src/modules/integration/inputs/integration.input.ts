@@ -1,83 +1,206 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, IsObject, Min, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean, IsInt, IsObject, IsArray, Min, MaxLength, MinLength } from 'class-validator';
 import { IntegrationType, IntegrationStatus, AuthType } from '../types/integration.graphql.types';
 
 @InputType()
 export class CreateIntegrationInput {
   @Field()
-  @ApiProperty({ description: 'Integration name' })
   @IsString()
   @MinLength(1)
   @MaxLength(255)
   name!: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Display name', required: false })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   displayName?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Integration description', required: false })
   @IsOptional()
   @IsString()
   @MaxLength(1000)
   description?: string;
 
   @Field(() => IntegrationType)
-  @ApiProperty({ enum: IntegrationType, description: 'Integration type' })
   @IsEnum(IntegrationType)
   type!: IntegrationType;
 
   @Field(() => AuthType)
-  @ApiProperty({ enum: AuthType, description: 'Authentication type' })
   @IsEnum(AuthType)
   authType!: AuthType;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Provider name', required: false })
   @IsOptional()
   @IsString()
   providerName?: string;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Integration configuration', required: false })
   @IsOptional()
   @IsObject()
   config?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Authentication configuration', required: false })
   @IsOptional()
   @IsObject()
   authConfig?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Integration settings', required: false })
   @IsOptional()
   @IsObject()
   settings?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Encrypted credentials', required: false })
   @IsOptional()
   @IsObject()
   credentials?: Record<string, any>;
 
   @Field({ nullable: true })
-  @ApiProperty({ description: 'Sync enabled', required: false, default: false })
   @IsOptional()
   @IsBoolean()
   syncEnabled?: boolean;
 
   @Field(() => Int, { nullable: true })
-  @ApiProperty({ description: 'Sync interval in minutes', required: false })
   @IsOptional()
   @IsInt()
   @Min(1)
   syncInterval?: number;
+
+  @Field(() => [WebhookConfigInput], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  webhooks?: WebhookConfigInput[];
+}
+
+@InputType()
+export class UpdateIntegrationInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  displayName?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  description?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsObject()
+  config?: Record<string, any>;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsObject()
+  authConfig?: Record<string, any>;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsObject()
+  settings?: Record<string, any>;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  syncEnabled?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  syncInterval?: number;
+}
+
+@InputType()
+export class IntegrationFilterInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @Field(() => IntegrationType, { nullable: true })
+  @IsOptional()
+  @IsEnum(IntegrationType)
+  type?: IntegrationType;
+
+  @Field(() => IntegrationStatus, { nullable: true })
+  @IsOptional()
+  @IsEnum(IntegrationStatus)
+  status?: IntegrationStatus;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  providerName?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  syncEnabled?: boolean;
+}
+
+@InputType()
+export class TriggerSyncInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  syncType?: string;
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  entities?: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  fullSync?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsObject()
+  filters?: Record<string, any>;
+}
+
+@InputType()
+export class IntegrationConfigInput {
+  @Field()
+  @IsString()
+  key!: string;
+
+  @Field()
+  value!: any;
+}
+
+@InputType()
+export class WebhookConfigInput {
+  @Field()
+  @IsString()
+  name!: string;
+
+  @Field()
+  @IsString()
+  url!: string;
+
+  @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
+  events!: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  secretKey?: string;
+}
 
   @Field(() => [WebhookConfigInput], { nullable: true })
   @ApiProperty({ description: 'Webhook configurations', required: false })

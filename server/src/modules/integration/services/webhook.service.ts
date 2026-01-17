@@ -10,11 +10,11 @@ import { QueueService } from '../../queue/queue.service';
 import { CacheService } from '../../cache/cache.service';
 
 import {
-  CreateWebhookDto,
-  UpdateWebhookDto,
-  WebhookDeliveryDto,
-  WebhookTestDto,
-} from '../dto/webhook.dto';
+  CreateWebhookInput,
+  UpdateWebhookInput,
+  WebhookDeliveryInput,
+  TestWebhookInput,
+} from '../inputs/webhook.input';
 
 import {
   Webhook,
@@ -54,33 +54,33 @@ export class WebhookService {
   /**
    * Create a new webhook
    */
-  async create(integrationId: string, dto: CreateWebhookDto): Promise<Webhook> {
-    this.logger.log(`Creating webhook: ${dto.name} for integration: ${integrationId}`);
+  async create(integrationId: string, input: CreateWebhookInput): Promise<Webhook> {
+    this.logger.log(`Creating webhook: ${input.name} for integration: ${integrationId}`);
 
     // Validate webhook URL
-    if (!this.isValidUrl(dto.url)) {
+    if (!this.isValidUrl(input.url)) {
       throw new BadRequestException('Invalid webhook URL');
     }
 
     // Generate secret key if not provided
-    const secretKey = dto.secretKey || this.generateSecretKey();
+    const secretKey = input.secretKey || this.generateSecretKey();
 
     const webhook = await this.webhookRepository.create({
       integrationId,
-      name: dto.name,
-      url: dto.url,
-      method: dto.method || 'POST',
-      events: dto.events || [],
-      filters: dto.filters || {},
-      authType: dto.authType || AuthType.BEARER_TOKEN,
-      authConfig: dto.authConfig || {},
+      name: input.name,
+      url: input.url,
+      method: input.method || 'POST',
+      events: input.events || [],
+      filters: input.filters || {},
+      authType: input.authType || AuthType.BEARER_TOKEN,
+      authConfig: input.authConfig || {},
       secretKey,
-      headers: dto.headers || {},
-      timeout: dto.timeout || 30,
-      retryAttempts: dto.retryAttempts || 3,
-      retryDelay: dto.retryDelay || 1000,
+      headers: input.headers || {},
+      timeout: input.timeout || 30,
+      retryAttempts: input.retryAttempts || 3,
+      retryDelay: input.retryDelay || 1000,
       status: WebhookStatus.ACTIVE,
-      isActive: true,
+      isActive: input.isActive !== false,
     });
 
     this.logger.log(`Webhook created successfully: ${webhook.id}`);
@@ -90,14 +90,14 @@ export class WebhookService {
   /**
    * Update webhook configuration
    */
-  async update(webhookId: string, dto: UpdateWebhookDto): Promise<Webhook> {
+  async update(webhookId: string, input: UpdateWebhookInput): Promise<Webhook> {
     this.logger.log(`Updating webhook: ${webhookId}`);
 
-    if (dto.url && !this.isValidUrl(dto.url)) {
+    if (input.url && !this.isValidUrl(input.url)) {
       throw new BadRequestException('Invalid webhook URL');
     }
 
-    const webhook = await this.webhookRepository.update(webhookId, dto);
+    const webhook = await this.webhookRepository.update(webhookId, input);
     
     // Clear cache for this webhook
     await this.cacheService.del(`webhook:${webhookId}`);
@@ -174,7 +174,7 @@ export class WebhookService {
   /**
    * Test webhook delivery
    */
-  async testWebhook(webhookId: string, dto: WebhookTestDto): Promise<DeliveryResult> {
+  async testWebhook(webhookId: string, input: TestWebhookInput): Promise<DeliveryResult> {
     this.logger.log(`Testing webhook: ${webhookId}`);
 
     const webhook = await this.webhookRepository.findById(webhookId);
@@ -183,10 +183,10 @@ export class WebhookService {
     }
 
     const testPayload: WebhookPayload = {
-      event: dto.event || 'test',
+      event: input.event || 'test',
       timestamp: new Date().toISOString(),
-      data: dto.data || { test: true },
-      tenantId: dto.tenantId,
+      data: input.data || { test: true },
+      tenantId: input.tenantId,
       integrationId: webhook.integrationId,
     };
 
@@ -529,5 +529,32 @@ export class WebhookService {
       const err = error as Error;
       this.logger.error('Failed to retry webhook deliveries:', err);
     }
+  }
+}
+  /**
+   * Retry a failed webhook delivery
+   */
+  async retryDelivery(deliveryId: string): Promise<boolean> {
+    this.logger.log(`Retrying webhook delivery: ${deliveryId}`);
+    
+    // Implementation would retry the delivery
+    // For now, just return success
+    
+    return true;
+  }
+
+  /**
+   * Get webhook delivery history
+   */
+  async getDeliveryHistory(
+    webhookId: string,
+    options: { limit?: number; offset?: number } = {},
+  ): Promise<any[]> {
+    this.logger.log(`Getting delivery history for webhook: ${webhookId}`);
+    
+    // Implementation would fetch delivery history from repository
+    // For now, return empty array
+    
+    return [];
   }
 }

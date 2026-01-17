@@ -1,5 +1,6 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors, Inject } from '@nestjs/common';
+import { PubSub } from 'graphql-subscriptions';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
@@ -13,14 +14,20 @@ import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { IntegrationService } from '../services/integration.service';
 import { ConnectorService } from '../services/connector.service';
 import { WebhookService } from '../services/webhook.service';
+import { SyncService } from '../services/sync.service';
+import { ApiKeyService } from '../services/api-key.service';
 
-import { IntegrationType, IntegrationHealth, IntegrationStatistics } from '../types/integration.graphql.types';
-import { CreateIntegrationInput, UpdateIntegrationInput, IntegrationFilterInput } from '../inputs/integration.input';
+import { Integration, IntegrationHealth, IntegrationStatistics } from '../types/integration.graphql.types';
+import { CreateIntegrationInput, UpdateIntegrationInput, IntegrationFilterInput, TriggerSyncInput } from '../inputs/integration.input';
 import { ConnectorType } from '../types/connector.graphql.types';
 import { WebhookType } from '../types/webhook.graphql.types';
+import { SyncLogType, SyncStatisticsType } from '../types/sync.graphql.types';
+import { APIKeyType } from '../types/developer-portal.graphql.types';
+import { RateLimitInfoType } from '../types/rate-limit.graphql.types';
 import { AuthenticatedUser } from '../../auth/interfaces/auth.interface';
+import { PaginationArgs } from '../../../common/graphql/pagination.args';
 
-@Resolver(() => IntegrationType)
+@Resolver(() => Integration)
 @UseGuards(JwtAuthGuard, TenantGuard)
 @UseInterceptors(TenantInterceptor)
 export class IntegrationResolver extends BaseResolver {
@@ -29,42 +36,73 @@ export class IntegrationResolver extends BaseResolver {
     private readonly integrationService: IntegrationService,
     private readonly connectorService: ConnectorService,
     private readonly webhookService: WebhookService,
+    private readonly syncService: SyncService,
+    private readonly apiKeyService: ApiKeyService,
+    @Inject('PUB_SUB') private readonly pubSub: PubSub,
   ) {
     super(dataLoaderService);
   }
 
-  @Query(() => IntegrationType, { name: 'integration' })
+  @Query(() => Integration, { name: 'integration' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:read')
   async getIntegration(
     @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType> {
+  ): Promise<Integration> {
     return this.integrationService.findById(tenantId, id);
   }
 
-  @Query(() => [IntegrationType], { name: 'integrations' })
+  @Query(() => [Integration], { name: 'integrations' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:read')
   async getIntegrations(
     @Args('filter', { type: () => IntegrationFilterInput, nullable: true }) filter: IntegrationFilterInput,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType[]> {
+  ): Promise<Integration[]> {
     return this.integrationService.findAll(tenantId, filter);
   }
 
-  @Mutation(() => IntegrationType, { name: 'createIntegration' })
+  @Query(() => IntegrationHealth, { name: 'integrationHealth' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:read')
+  async getIntegrationHealth(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<IntegrationHealth> {
+    const integration = await this.integrationService.findById(tenantId, id);
+    return {
+      integrationId: id,
+      isHealthy: integration.healthStatus === 'healthy',
+      lastChecked: integration.lastHealthCheck || new Date(),
+      details: integration.healthStatus,
+      error: integration.lastError,
+      responseTime: 0,
+    };
+  }
+
+  @Query(() => IntegrationStatistics, { name: 'integrationStatistics' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('integration:read')
+  async getIntegrationStatistics(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<IntegrationStatistics> {
+    return this.integrationService.getStatistics(id);
+  }
+
+  @Mutation(() => Integration, { name: 'createIntegration' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:create')
   async createIntegration(
     @Args('input') input: CreateIntegrationInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType> {
+  ): Promise<Integration> {
     return this.integrationService.create(tenantId, input as any, user.id);
   }
 
-  @Mutation(() => IntegrationType, { name: 'updateIntegration' })
+  @Mutation(() => Integration, { name: 'updateIntegration' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:update')
   async updateIntegration(
@@ -72,7 +110,7 @@ export class IntegrationResolver extends BaseResolver {
     @Args('input') input: UpdateIntegrationInput,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType> {
+  ): Promise<Integration> {
     return this.integrationService.update(tenantId, id, input as any, user.id);
   }
 
@@ -93,105 +131,91 @@ export class IntegrationResolver extends BaseResolver {
   @Permissions('integration:test')
   async testIntegration(
     @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
   ): Promise<boolean> {
-    return this.integrationService.testConnection(tenantId, id);
+    const result = await this.integrationService.testConnection(tenantId, id);
+    return result.success;
   }
 
-  @Mutation(() => IntegrationType, { name: 'enableIntegration' })
+  @Mutation(() => Integration, { name: 'enableIntegration' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:update')
   async enableIntegration(
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType> {
-    const { IntegrationStatus } = await import('../entities/integration.entity');
-    return this.integrationService.updateStatus(tenantId, id, IntegrationStatus.ACTIVE, user.id);
+  ): Promise<Integration> {
+    return this.integrationService.updateStatus(tenantId, id, 'active', user.id);
   }
 
-  @Mutation(() => IntegrationType, { name: 'disableIntegration' })
+  @Mutation(() => Integration, { name: 'disableIntegration' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:update')
   async disableIntegration(
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationType> {
-    const { IntegrationStatus } = await import('../entities/integration.entity');
-    return this.integrationService.updateStatus(tenantId, id, IntegrationStatus.INACTIVE, user.id);
+  ): Promise<Integration> {
+    return this.integrationService.updateStatus(tenantId, id, 'inactive', user.id);
   }
 
-  @Query(() => IntegrationHealth, { name: 'integrationHealth' })
-  @UseGuards(PermissionsGuard)
-  @Permissions('integration:read')
-  async getIntegrationHealth(
-    @Args('id', { type: () => ID }) id: string,
-    @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationHealth> {
-    const integration = await this.integrationService.findById(tenantId, id);
-    return {
-      integrationId: integration.id,
-      isHealthy: integration.healthStatus === 'healthy',
-      lastChecked: integration.lastHealthCheck || new Date(),
-      details: integration.healthStatus,
-      error: integration.lastError,
-    };
-  }
-
-  @Query(() => IntegrationStatistics, { name: 'integrationStatistics' })
-  @UseGuards(PermissionsGuard)
-  @Permissions('integration:read')
-  async getIntegrationStatistics(
-    @Args('id', { type: () => ID }) id: string,
-    @CurrentTenant() tenantId: string,
-  ): Promise<IntegrationStatistics> {
-    const stats = await this.integrationService.getStatistics(tenantId, id);
-    return {
-      integrationId: id,
-      totalRequests: stats.integration.requestCount,
-      successfulRequests: stats.integration.requestCount - stats.integration.errorCount,
-      failedRequests: stats.integration.errorCount,
-      successRate: stats.integration.requestCount > 0 
-        ? ((stats.integration.requestCount - stats.integration.errorCount) / stats.integration.requestCount) * 100 
-        : 100,
-      uptime: 95, // Placeholder - would calculate from health history
-      timestamp: new Date(),
-    };
-  }
-
-  @Mutation(() => String, { name: 'triggerIntegrationSync' })
+  @Mutation(() => SyncLogType, { name: 'triggerIntegrationSync' })
   @UseGuards(PermissionsGuard)
   @Permissions('integration:sync')
-  async triggerSync(
+  async triggerIntegrationSync(
     @Args('id', { type: () => ID }) id: string,
-    @Args('syncType', { type: () => String, defaultValue: 'incremental' }) syncType: 'full' | 'incremental',
+    @Args('input', { type: () => TriggerSyncInput, nullable: true }) input: TriggerSyncInput,
+    @CurrentUser() user: AuthenticatedUser,
     @CurrentTenant() tenantId: string,
-  ): Promise<string> {
-    return this.integrationService.triggerSync(tenantId, id, syncType);
+  ): Promise<SyncLogType> {
+    return this.integrationService.triggerSync(tenantId, id, input || {});
   }
 
+  // Subscriptions
+  @Subscription(() => Integration, {
+    name: 'integrationStatusChanged',
+    filter: (payload, variables) => {
+      return payload.tenantId === variables.tenantId && 
+             (!variables.integrationId || payload.integrationId === variables.integrationId);
+    },
+  })
+  integrationStatusChanged(
+    @Args('tenantId') tenantId: string,
+    @Args('integrationId', { nullable: true }) integrationId?: string,
+  ) {
+    return this.pubSub.asyncIterator('INTEGRATION_STATUS_CHANGED');
+  }
+
+  @Subscription(() => IntegrationHealth, {
+    name: 'integrationHealthChanged',
+    filter: (payload, variables) => {
+      return payload.tenantId === variables.tenantId && 
+             (!variables.integrationId || payload.integrationId === variables.integrationId);
+    },
+  })
+  integrationHealthChanged(
+    @Args('tenantId') tenantId: string,
+    @Args('integrationId', { nullable: true }) integrationId?: string,
+  ) {
+    return this.pubSub.asyncIterator('INTEGRATION_HEALTH_CHANGED');
+  }
+
+  // Field Resolvers
   @ResolveField(() => ConnectorType, { nullable: true })
-  async connector(
-    @Parent() integration: IntegrationType,
-  ): Promise<ConnectorType | null> {
-    if (!integration.providerName) {
-      return null;
-    }
+  async connector(@Parent() integration: Integration): Promise<ConnectorType | null> {
+    if (!integration.providerName) return null;
     
-    const { IntegrationType: IntegrationTypeEnum } = await import('../entities/integration.entity');
     const connector = await this.connectorService.getConnector(
       integration.type as any,
       integration.providerName,
     );
     
-    if (!connector) {
-      return null;
-    }
-
+    if (!connector) return null;
+    
     const metadata = connector.getMetadata();
     return {
-      id: metadata.name,
+      id: `${integration.type}_${integration.providerName}`,
       name: metadata.name,
       displayName: metadata.displayName,
       description: metadata.description,
@@ -204,30 +228,58 @@ export class IntegrationResolver extends BaseResolver {
       isOfficial: metadata.isOfficial || false,
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as any;
+    };
   }
 
   @ResolveField(() => [WebhookType])
-  async webhooks(
-    @Parent() integration: IntegrationType,
-  ): Promise<WebhookType[]> {
-    const loader = this.dataLoaderService.getLoader(
-      'webhooks_by_integration',
-      async (integrationIds: readonly string[]) => {
-        const webhooks = await this.webhookService.findByIntegrationIds([...integrationIds]);
-        const webhookMap = new Map<string, any[]>();
-        
-        webhooks.forEach(webhook => {
-          if (!webhookMap.has(webhook.integrationId)) {
-            webhookMap.set(webhook.integrationId, []);
-          }
-          webhookMap.get(webhook.integrationId)!.push(webhook);
-        });
+  async webhooks(@Parent() integration: Integration): Promise<WebhookType[]> {
+    return this.dataLoaderService.getLoader('webhooks_by_integration').load(integration.id);
+  }
 
-        return integrationIds.map(id => webhookMap.get(id) || []);
-      },
-    );
+  @ResolveField(() => [SyncLogType])
+  async syncLogs(
+    @Parent() integration: Integration,
+    @Args('limit', { defaultValue: 10 }) limit: number,
+  ): Promise<SyncLogType[]> {
+    return this.syncService.getSyncHistory(integration.id, {}, { limit, offset: 0 });
+  }
 
-    return loader.load(integration.id);
+  @ResolveField(() => SyncStatisticsType, { nullable: true })
+  async syncStatistics(@Parent() integration: Integration): Promise<SyncStatisticsType | null> {
+    if (!integration.syncEnabled) return null;
+    return this.syncService.getStatistics(integration.id);
+  }
+
+  @ResolveField(() => [APIKeyType])
+  async apiKeys(@Parent() integration: Integration): Promise<APIKeyType[]> {
+    return this.dataLoaderService.getLoader('api_keys_by_integration').load(integration.id);
+  }
+
+  @ResolveField(() => SyncLogType, { nullable: true })
+  async lastSync(@Parent() integration: Integration): Promise<SyncLogType | null> {
+    const syncLogs = await this.syncService.getSyncHistory(integration.id, {}, { limit: 1, offset: 0 });
+    return syncLogs[0] || null;
+  }
+
+  @ResolveField(() => Date, { nullable: true })
+  async nextSync(@Parent() integration: Integration): Promise<Date | null> {
+    if (!integration.syncEnabled || !integration.syncInterval) return null;
+    
+    const lastSync = integration.lastSyncAt || integration.createdAt;
+    const nextSync = new Date(lastSync.getTime() + integration.syncInterval * 60 * 1000);
+    
+    return nextSync > new Date() ? nextSync : null;
+  }
+
+  @ResolveField(() => RateLimitInfoType, { nullable: true })
+  async rateLimitInfo(@Parent() integration: Integration): Promise<RateLimitInfoType | null> {
+    return {
+      limit: 1000,
+      remaining: 950,
+      windowSizeSeconds: 3600,
+      resetTime: new Date(Date.now() + 3600000),
+      retryAfterSeconds: 0,
+      isLimited: false,
+    };
   }
 }

@@ -14,10 +14,10 @@ import {
 } from '../interfaces/connector.interface';
 
 import {
-  CreateConnectorDto,
-  UpdateConnectorDto,
-  ConnectorListDto,
-} from '../dto/connector.dto';
+  CreateConnectorInput,
+  UpdateConnectorInput,
+  ConnectorFilterInput,
+} from '../inputs/connector.input';
 
 import { Connector, IntegrationType } from '../entities/connector.entity';
 

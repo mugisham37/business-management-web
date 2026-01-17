@@ -9,12 +9,11 @@ import { EncryptionService } from '../../../common/services/encryption.service';
 import { CacheService } from '../../cache/cache.service';
 
 import {
-  OAuth2Config,
-  OAuth2Token,
-  OAuth2AuthorizeDto,
-  OAuth2CallbackDto,
-  OAuth2RefreshDto,
-} from '../dto/oauth2.dto';
+  OAuth2ConfigInput,
+  OAuth2AuthorizeInput,
+  OAuth2CallbackInput,
+  OAuth2RefreshInput,
+} from '../inputs/oauth2.input';
 
 interface OAuth2Provider {
   name: string;
@@ -197,22 +196,22 @@ export class OAuth2Service {
   /**
    * Handle OAuth2 callback and exchange code for tokens
    */
-  async handleCallback(dto: OAuth2CallbackDto): Promise<OAuth2Token> {
-    this.logger.log(`Handling OAuth2 callback with state: ${dto.state}`);
+  async handleCallback(input: OAuth2CallbackInput): Promise<OAuth2Token> {
+    this.logger.log(`Handling OAuth2 callback with state: ${input.state}`);
 
     // Verify state parameter
-    const stateData = await this.cacheService.get<{ integrationId: string; tenantId: string; timestamp: number }>(`oauth2:state:${dto.state}`);
+    const stateData = await this.cacheService.get<{ integrationId: string; tenantId: string; timestamp: number }>(`oauth2:state:${input.state}`);
     if (!stateData) {
       throw new UnauthorizedException('Invalid or expired state parameter');
     }
 
     // Clean up state
-    await this.cacheService.del(`oauth2:state:${dto.state}`);
+    await this.cacheService.del(`oauth2:state:${input.state}`);
 
     const { integrationId, tenantId } = stateData;
 
-    if (dto.error) {
-      throw new BadRequestException(`OAuth2 authorization failed: ${dto.error}`);
+    if (input.error) {
+      throw new BadRequestException(`OAuth2 authorization failed: ${input.error}`);
     }
 
     const config = await this.oauth2Repository.getConfig(integrationId);

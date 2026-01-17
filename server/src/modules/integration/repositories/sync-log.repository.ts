@@ -396,3 +396,47 @@ export class SyncLogRepository {
     ]);
   }
 }
+  /**
+   * Find sync logs by integration IDs (for dataloader)
+   */
+  async findByIntegrationIds(integrationIds: string[]): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query sync logs
+    // For now, return empty array
+    return [];
+  }
+
+  /**
+   * Find conflicts by sync IDs (for dataloader)
+   */
+  async findConflictsBySyncIds(syncIds: string[]): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query conflicts
+    // For now, return empty array
+    return [];
+  }
+
+  /**
+   * Find conflicts by sync ID
+   */
+  async findConflictsBySyncId(syncId: string): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query conflicts
+    // For now, return empty array
+    return [];
+  }
+
+  /**
+   * Find sync logs by integration with filters
+   */
+  async findByIntegration(integrationId: string, filters: any): Promise<any[]> {
+    // Implementation would use Drizzle ORM to query sync logs
+    // For now, return empty array
+    return [];
+  }
+
+  /**
+   * Update sync status
+   */
+  async updateStatus(syncId: string, status: string): Promise<void> {
+    // Implementation would use Drizzle ORM to update sync status
+    // For now, just log
+    console.log(`Updating sync ${syncId} status to ${status}`);
+  }

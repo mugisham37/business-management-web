@@ -8,11 +8,9 @@ import { RateLimitService } from './rate-limit.service';
 import { CacheService } from '../../cache/cache.service';
 
 import {
-  CreateApiKeyDto,
-  UpdateApiKeyDto,
-  ApiKeyValidationResult,
-  ApiKeyUsageStats,
-} from '../dto/api-key.dto';
+  CreateApiKeyInput,
+  UpdateApiKeyInput,
+} from '../inputs/api-key.input';
 
 import { ApiKey } from '../entities/api-key.entity';
 
