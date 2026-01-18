@@ -235,7 +235,7 @@ export const NodeInfo = createParamDecorator(
  * Session info parameter decorator
  * Extracts session information from context
  */
-export const SessionInfo = createParamDecorator(
+export const SessionInfoDecorator = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const gqlCtx = GqlExecutionContext.create(ctx);
     const context = gqlCtx.getContext();
@@ -315,18 +315,31 @@ export const FullCache = (options: {
   sessionRequired?: boolean;
 }) => {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    // Build options object with only defined values
+    const cacheOptions: {
+      key?: string;
+      ttl?: number;
+      strategy?: CacheStrategy;
+      priority?: CachePriority;
+      tags?: string[];
+      useL1?: boolean;
+      useL2?: boolean;
+      useDistributed?: boolean;
+      warmOnMiss?: boolean;
+    } = {};
+    
+    if (options.key !== undefined) cacheOptions.key = options.key;
+    if (options.ttl !== undefined) cacheOptions.ttl = options.ttl;
+    if (options.strategy !== undefined) cacheOptions.strategy = options.strategy;
+    if (options.priority !== undefined) cacheOptions.priority = options.priority;
+    if (options.tags !== undefined) cacheOptions.tags = options.tags;
+    if (options.useL1 !== undefined) cacheOptions.useL1 = options.useL1;
+    if (options.useL2 !== undefined) cacheOptions.useL2 = options.useL2;
+    if (options.useDistributed !== undefined) cacheOptions.useDistributed = options.useDistributed;
+    if (options.warmOnMiss !== undefined) cacheOptions.warmOnMiss = options.warmOnMiss;
+    
     // Apply cache decorator
-    Cache({
-      key: options.key,
-      ttl: options.ttl,
-      strategy: options.strategy,
-      priority: options.priority,
-      tags: options.tags,
-      useL1: options.useL1,
-      useL2: options.useL2,
-      useDistributed: options.useDistributed,
-      warmOnMiss: options.warmOnMiss,
-    })(target, propertyKey, descriptor);
+    Cache(cacheOptions)(target, propertyKey, descriptor);
     
     // Apply compression if enabled
     if (options.compression) {

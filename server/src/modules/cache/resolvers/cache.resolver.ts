@@ -31,7 +31,7 @@ import {
   CacheTags,
   PerformanceMetrics,
   NodeInfo,
-  SessionInfo,
+  SessionInfoDecorator,
   CacheContext,
 } from '../decorators/cache.decorators';
 import {
@@ -64,6 +64,7 @@ import {
   SessionInfoConnection,
   CacheStrategy,
   CachePriority,
+  LoadBalancingStrategy,
 } from '../types/cache.types';
 
 /**
@@ -74,7 +75,7 @@ import {
 @UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, CacheHealthGuard, CacheRateLimitGuard)
 @UseInterceptors(CacheInterceptor)
 export class CacheResolver extends BaseResolver {
-  private readonly pubSub = new PubSub();
+  private readonly pubSub = new PubSub<any>();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,
@@ -318,13 +319,20 @@ export class CacheResolver extends BaseResolver {
     try {
       // This would integrate with a warming configuration service
       // For now, we'll use the advanced cache service
+      const priorityMap: Record<CachePriority, 'high' | 'medium' | 'low'> = {
+        [CachePriority.HIGH]: 'high',
+        [CachePriority.MEDIUM]: 'medium',
+        [CachePriority.LOW]: 'low',
+        [CachePriority.CRITICAL]: 'high',
+      };
+
       const config = {
         key: input.key,
         dataLoader: async () => ({}), // Placeholder loader
         ttl: input.ttl,
-        priority: input.priority,
-        schedule: input.schedule,
-        dependencies: input.dependencies,
+        priority: priorityMap[input.priority],
+        ...(input.schedule && { schedule: input.schedule }),
+        ...(input.dependencies && { dependencies: input.dependencies }),
       };
 
       this.advancedCache.configureCacheWarming(config);
@@ -515,7 +523,15 @@ export class CacheResolver extends BaseResolver {
           lastHeartbeat: new Date(),
         },
         loadBalancing: {
-          strategy: clusterHealth.loadBalancing.strategy,
+          strategy: (() => {
+            const strategyMap: Record<string, LoadBalancingStrategy> = {
+              'round-robin': LoadBalancingStrategy.ROUND_ROBIN,
+              'least-connections': LoadBalancingStrategy.LEAST_CONNECTIONS,
+              'weighted': LoadBalancingStrategy.WEIGHTED,
+              'ip-hash': LoadBalancingStrategy.IP_HASH,
+            };
+            return strategyMap[clusterHealth.loadBalancing.strategy as string] || LoadBalancingStrategy.ROUND_ROBIN;
+          })(),
           healthCheckInterval: clusterHealth.loadBalancing.healthCheckInterval,
           failoverTimeout: clusterHealth.loadBalancing.failoverTimeout,
           maxRetries: clusterHealth.loadBalancing.maxRetries,
@@ -694,7 +710,7 @@ export class CacheResolver extends BaseResolver {
   async cacheUpdated(
     @Args('tenantId', { nullable: true }) tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('cacheUpdated');
+    return (this.pubSub as any).asyncIterator('cacheUpdated');
   }
 
   /**
@@ -706,7 +722,7 @@ export class CacheResolver extends BaseResolver {
   async cacheInvalidated(
     @Args('tenantId', { nullable: true }) tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('cacheInvalidated');
+    return (this.pubSub as any).asyncIterator('cacheInvalidated');
   }
 
   /**
@@ -718,7 +734,7 @@ export class CacheResolver extends BaseResolver {
   async performanceAlert(
     @Args('threshold', { type: () => Number, nullable: true }) threshold?: number,
   ) {
-    return this.pubSub.asyncIterator('performanceAlert');
+    return (this.pubSub as any).asyncIterator('performanceAlert');
   }
 
   /**
@@ -728,6 +744,6 @@ export class CacheResolver extends BaseResolver {
     description: 'Subscribe to horizontal scaling events'
   })
   async scalingEvent() {
-    return this.pubSub.asyncIterator('scalingEvent');
+    return (this.pubSub as any).asyncIterator('scalingEvent');
   }
 }

@@ -35,7 +35,7 @@ import {
 @UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, CacheHealthGuard)
 @UseInterceptors(CacheInterceptor)
 export class PerformanceResolver extends BaseResolver {
-  private readonly pubSub = new PubSub();
+  private readonly pubSub = new PubSub<any>();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,
@@ -448,7 +448,7 @@ export class PerformanceResolver extends BaseResolver {
   async performanceMetricsUpdated(
     @Args('tenantId', { nullable: true }) tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('performanceMetricsUpdated');
+    return (this.pubSub as any).asyncIterator('performanceMetricsUpdated');
   }
 
   /**
@@ -458,7 +458,7 @@ export class PerformanceResolver extends BaseResolver {
     description: 'Subscribe to performance optimization completion events'
   })
   async performanceOptimizationCompleted() {
-    return this.pubSub.asyncIterator('performanceOptimizationCompleted');
+    return (this.pubSub as any).asyncIterator('performanceOptimizationCompleted');
   }
 
   /**
@@ -468,7 +468,7 @@ export class PerformanceResolver extends BaseResolver {
     description: 'Subscribe to response cache clear events'
   })
   async responseCacheCleared() {
-    return this.pubSub.asyncIterator('responseCacheCleared');
+    return (this.pubSub as any).asyncIterator('responseCacheCleared');
   }
 
   /**
@@ -480,7 +480,7 @@ export class PerformanceResolver extends BaseResolver {
   async performanceAlert(
     @Args('threshold', { nullable: true }) threshold?: number,
   ) {
-    return this.pubSub.asyncIterator('performanceAlert');
+    return (this.pubSub as any).asyncIterator('performanceAlert');
   }
 
   /**
@@ -490,6 +490,6 @@ export class PerformanceResolver extends BaseResolver {
     description: 'Subscribe to performance alert configuration events'
   })
   async performanceAlertsConfigured() {
-    return this.pubSub.asyncIterator('performanceAlertsConfigured');
+    return (this.pubSub as any).asyncIterator('performanceAlertsConfigured');
   }
 }

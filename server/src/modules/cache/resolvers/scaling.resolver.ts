@@ -17,7 +17,7 @@ import {
   FullCache,
   CacheContext,
   NodeInfo,
-  SessionInfo,
+  SessionInfoDecorator,
   DistributedContext,
 } from '../decorators/cache.decorators';
 import {
@@ -45,7 +45,7 @@ import {
 @UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, LoadBalancingGuard, CacheHealthGuard)
 @UseInterceptors(CacheInterceptor)
 export class ScalingResolver extends BaseResolver {
-  private readonly pubSub = new PubSub();
+  private readonly pubSub = new PubSub<any>();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,
@@ -104,7 +104,15 @@ export class ScalingResolver extends BaseResolver {
           lastHeartbeat: new Date(),
         },
         loadBalancing: {
-          strategy: clusterHealth.loadBalancing.strategy,
+          strategy: (() => {
+            const strategyMap: Record<string, LoadBalancingStrategy> = {
+              'round-robin': LoadBalancingStrategy.ROUND_ROBIN,
+              'least-connections': LoadBalancingStrategy.LEAST_CONNECTIONS,
+              'weighted': LoadBalancingStrategy.WEIGHTED,
+              'ip-hash': LoadBalancingStrategy.IP_HASH,
+            };
+            return strategyMap[clusterHealth.loadBalancing.strategy as string] || LoadBalancingStrategy.ROUND_ROBIN;
+          })(),
           healthCheckInterval: clusterHealth.loadBalancing.healthCheckInterval,
           failoverTimeout: clusterHealth.loadBalancing.failoverTimeout,
           maxRetries: clusterHealth.loadBalancing.maxRetries,
@@ -274,7 +282,7 @@ export class ScalingResolver extends BaseResolver {
   async createDistributedSession(
     @Args('input') input: SessionManagementInput,
     @CacheContext() cacheCtx?: any,
-    @SessionInfo() sessionInfo?: any,
+    @SessionInfoDecorator() sessionInfo?: any,
     @DistributedContext() distCtx?: any,
   ): Promise<MutationResponse> {
     try {
@@ -504,7 +512,7 @@ export class ScalingResolver extends BaseResolver {
   async clusterHealthUpdated(
     @Args('tenantId', { nullable: true }) tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('clusterHealthUpdated');
+    return (this.pubSub as any).asyncIterator('clusterHealthUpdated');
   }
 
   /**
@@ -514,7 +522,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to load balancing node selection events'
   })
   async nodeSelected() {
-    return this.pubSub.asyncIterator('nodeSelected');
+    return (this.pubSub as any).asyncIterator('nodeSelected');
   }
 
   /**
@@ -524,7 +532,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to load balancing configuration changes'
   })
   async loadBalancingConfigured() {
-    return this.pubSub.asyncIterator('loadBalancingConfigured');
+    return (this.pubSub as any).asyncIterator('loadBalancingConfigured');
   }
 
   /**
@@ -534,7 +542,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to auto-scaling configuration changes'
   })
   async autoScalingConfigured() {
-    return this.pubSub.asyncIterator('autoScalingConfigured');
+    return (this.pubSub as any).asyncIterator('autoScalingConfigured');
   }
 
   /**
@@ -544,7 +552,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to distributed session creation events'
   })
   async sessionCreated() {
-    return this.pubSub.asyncIterator('sessionCreated');
+    return (this.pubSub as any).asyncIterator('sessionCreated');
   }
 
   /**
@@ -554,7 +562,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to request routing events'
   })
   async requestRouted() {
-    return this.pubSub.asyncIterator('requestRouted');
+    return (this.pubSub as any).asyncIterator('requestRouted');
   }
 
   /**
@@ -564,7 +572,7 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to manual scaling trigger events'
   })
   async manualScalingTriggered() {
-    return this.pubSub.asyncIterator('manualScalingTriggered');
+    return (this.pubSub as any).asyncIterator('manualScalingTriggered');
   }
 
   /**
@@ -574,6 +582,6 @@ export class ScalingResolver extends BaseResolver {
     description: 'Subscribe to all scaling events'
   })
   async scalingEvent() {
-    return this.pubSub.asyncIterator(['manualScalingTriggered', 'autoScalingConfigured']);
+    return (this.pubSub as any).asyncIterator(['manualScalingTriggered', 'autoScalingConfigured']);
   }
 }

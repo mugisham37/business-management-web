@@ -6,6 +6,7 @@ import { TenantGuard } from '../../modules/tenant/guards/tenant.guard';
 import { TenantInterceptor } from '../../modules/tenant/interceptors/tenant.interceptor';
 import { DataLoaderService } from './dataloader.service';
 import { PageInfo } from './base.types';
+import { MutationResponse } from './mutation-response.types';
 
 /**
  * Base resolver with common functionality for all GraphQL resolvers
@@ -171,15 +172,17 @@ export abstract class BaseResolver {
     success: boolean,
     message?: string,
     errors?: Array<{ message: string; code?: string; path?: string[] }>,
-  ) {
+  ): MutationResponse {
+    const graphQLErrors = errors ? errors.map(error => ({
+      ...error,
+      timestamp: new Date(),
+    })) : undefined;
+
     return {
       success,
-      message,
-      errors: errors?.map(error => ({
-        ...error,
-        timestamp: new Date(),
-      })),
-    };
+      message: message ?? (success ? 'Operation successful' : 'Operation failed'),
+      errors: graphQLErrors,
+    } as any; // Cast to any to avoid type conflicts
   }
 
   /**

@@ -125,7 +125,7 @@ export class LoadBalancingGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const handler = context.getHandler();
-    const loadBalanceConfig = this.reflector.get<any>(LOAD_BALANCE_METADATA, handler);
+    const loadBalanceConfig = this.reflector.get<{ strategy?: string; weights?: Record<string, number>; healthCheck?: boolean }>(LOAD_BALANCE_METADATA, handler);
 
     if (!loadBalanceConfig) {
       return true; // No load balancing required
@@ -176,7 +176,7 @@ export class DistributedCacheGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const handler = context.getHandler();
-    const distributedConfig = this.reflector.get<any>(CACHE_DISTRIBUTED_METADATA, handler);
+    const distributedConfig = this.reflector.get<{ replicationFactor?: number; consistencyLevel?: 'eventual' | 'strong'; partitionStrategy?: 'hash' | 'range' }>(CACHE_DISTRIBUTED_METADATA, handler);
 
     if (!distributedConfig) {
       return true; // No distributed cache required
@@ -193,7 +193,7 @@ export class DistributedCacheGuard implements CanActivate {
       // Validate distributed cache configuration
       const isConfigValid = await this.validateDistributedConfig(distributedConfig);
       if (!isConfigValid) {
-        this.customLogger.error('Invalid distributed cache configuration', { distributedConfig });
+        this.customLogger.error('Invalid distributed cache configuration', JSON.stringify({ distributedConfig }));
         throw new ForbiddenException('Invalid distributed cache configuration');
       }
 
@@ -204,7 +204,7 @@ export class DistributedCacheGuard implements CanActivate {
     }
   }
 
-  private async validateDistributedConfig(config: any): Promise<boolean> {
+  private async validateDistributedConfig(config: { replicationFactor?: number; consistencyLevel?: 'eventual' | 'strong'; partitionStrategy?: 'hash' | 'range' }): Promise<boolean> {
     // Validate replication factor
     if (config.replicationFactor && (config.replicationFactor < 1 || config.replicationFactor > 5)) {
       return false;

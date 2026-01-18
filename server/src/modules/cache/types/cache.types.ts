@@ -140,6 +140,24 @@ export class CacheStats {
 }
 
 /**
+ * Hot key type
+ */
+@ObjectType()
+export class HotKey {
+  @Field()
+  @ApiProperty({ description: 'Cache key' })
+  key!: string;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Number of hits' })
+  hits!: number;
+
+  @Field()
+  @ApiProperty({ description: 'Last access timestamp' })
+  lastAccess!: Date;
+}
+
+/**
  * Advanced cache metrics type
  */
 @ObjectType()
@@ -179,24 +197,6 @@ export class AdvancedCacheMetrics {
   @Field()
   @ApiProperty({ description: 'Whether distributed cache is enabled' })
   distributedCacheEnabled!: boolean;
-}
-
-/**
- * Hot key type
- */
-@ObjectType()
-export class HotKey {
-  @Field()
-  @ApiProperty({ description: 'Cache key' })
-  key!: string;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Number of hits' })
-  hits!: number;
-
-  @Field()
-  @ApiProperty({ description: 'Last access timestamp' })
-  lastAccess!: Date;
 }
 
 /**
@@ -306,36 +306,6 @@ export class APIEndpointMetrics {
 }
 
 /**
- * Horizontal scaling metrics type
- */
-@ObjectType()
-export class HorizontalScalingMetrics {
-  @Field(() => Int)
-  @ApiProperty({ description: 'Total number of nodes' })
-  totalNodes!: number;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Number of healthy nodes' })
-  healthyNodes!: number;
-
-  @Field(() => Int)
-  @ApiProperty({ description: 'Number of unhealthy nodes' })
-  unhealthyNodes!: number;
-
-  @Field(() => NodeMetrics)
-  @ApiProperty({ description: 'Average node metrics', type: NodeMetrics })
-  averageMetrics!: NodeMetrics;
-
-  @Field(() => LoadBalancingConfig)
-  @ApiProperty({ description: 'Load balancing configuration', type: LoadBalancingConfig })
-  loadBalancing!: LoadBalancingConfig;
-
-  @Field(() => AutoScalingConfig)
-  @ApiProperty({ description: 'Auto-scaling configuration', type: AutoScalingConfig })
-  autoScaling!: AutoScalingConfig;
-}
-
-/**
  * Node metrics type
  */
 @ObjectType()
@@ -427,6 +397,36 @@ export class AutoScalingConfig {
   @Field(() => Int)
   @ApiProperty({ description: 'Metrics window in ms' })
   metricsWindow!: number;
+}
+
+/**
+ * Horizontal scaling metrics type
+ */
+@ObjectType()
+export class HorizontalScalingMetrics {
+  @Field(() => Int)
+  @ApiProperty({ description: 'Total number of nodes' })
+  totalNodes!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Number of healthy nodes' })
+  healthyNodes!: number;
+
+  @Field(() => Int)
+  @ApiProperty({ description: 'Number of unhealthy nodes' })
+  unhealthyNodes!: number;
+
+  @Field(() => NodeMetrics)
+  @ApiProperty({ description: 'Average node metrics', type: NodeMetrics })
+  averageMetrics!: NodeMetrics;
+
+  @Field(() => LoadBalancingConfig)
+  @ApiProperty({ description: 'Load balancing configuration', type: LoadBalancingConfig })
+  loadBalancing!: LoadBalancingConfig;
+
+  @Field(() => AutoScalingConfig)
+  @ApiProperty({ description: 'Auto-scaling configuration', type: AutoScalingConfig })
+  autoScaling!: AutoScalingConfig;
 }
 
 /**

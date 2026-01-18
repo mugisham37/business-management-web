@@ -39,7 +39,7 @@ import {
 @UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, CacheHealthGuard)
 @UseInterceptors(CacheInterceptor)
 export class AdvancedCacheResolver extends BaseResolver {
-  private readonly pubSub = new PubSub();
+  private readonly pubSub = new PubSub<any>();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,
@@ -116,11 +116,18 @@ export class AdvancedCacheResolver extends BaseResolver {
   ): Promise<MutationResponse> {
     try {
       const parsedValue = JSON.parse(value);
+      const priorityMap: Record<CachePriority, 'high' | 'medium' | 'low'> = {
+        [CachePriority.HIGH]: 'high',
+        [CachePriority.MEDIUM]: 'medium',
+        [CachePriority.LOW]: 'low',
+        [CachePriority.CRITICAL]: 'high',
+      };
+
       const options = {
         tenantId: cacheCtx?.tenantId,
         ttl: ttl || 300,
         useDistributed: useDistributed ?? false,
-        priority: priority || CachePriority.MEDIUM,
+        priority: priority ? priorityMap[priority] : 'medium',
       };
 
       await this.advancedCacheService.set(key, parsedValue, options);
@@ -170,9 +177,17 @@ export class AdvancedCacheResolver extends BaseResolver {
           };
         },
         ttl: input.ttl,
-        priority: input.priority,
-        schedule: input.schedule,
-        dependencies: input.dependencies,
+        priority: (() => {
+          const priorityMap: Record<CachePriority, 'high' | 'medium' | 'low'> = {
+            [CachePriority.HIGH]: 'high',
+            [CachePriority.MEDIUM]: 'medium',
+            [CachePriority.LOW]: 'low',
+            [CachePriority.CRITICAL]: 'high',
+          };
+          return priorityMap[input.priority];
+        })(),
+        ...(input.schedule && { schedule: input.schedule }),
+        ...(input.dependencies && { dependencies: input.dependencies }),
       };
 
       this.advancedCacheService.configureCacheWarming(config);
@@ -212,13 +227,20 @@ export class AdvancedCacheResolver extends BaseResolver {
 
       // Add updated configuration if provided
       if (input.ttl || input.priority || input.schedule) {
+        const priorityMap: Record<CachePriority, 'high' | 'medium' | 'low'> = {
+          [CachePriority.HIGH]: 'high',
+          [CachePriority.MEDIUM]: 'medium',
+          [CachePriority.LOW]: 'low',
+          [CachePriority.CRITICAL]: 'high',
+        };
+
         const config = {
           key,
           dataLoader: async () => ({ updated: true, timestamp: new Date() }),
           ttl: input.ttl || 300,
-          priority: input.priority || CachePriority.MEDIUM,
-          schedule: input.schedule,
-          dependencies: input.dependencies,
+          priority: input.priority ? priorityMap[input.priority] : 'medium',
+          ...(input.schedule && { schedule: input.schedule }),
+          ...(input.dependencies && { dependencies: input.dependencies }),
         };
 
         this.advancedCacheService.configureCacheWarming(config);
@@ -439,7 +461,7 @@ export class AdvancedCacheResolver extends BaseResolver {
   async advancedCacheUpdated(
     @Args('tenantId', { nullable: true }) tenantId?: string,
   ) {
-    return this.pubSub.asyncIterator('advancedCacheUpdated');
+    return (this.pubSub as any).asyncIterator('advancedCacheUpdated');
   }
 
   /**
@@ -449,7 +471,7 @@ export class AdvancedCacheResolver extends BaseResolver {
     description: 'Subscribe to cache warming configuration events'
   })
   async cacheWarmingConfigured() {
-    return this.pubSub.asyncIterator('cacheWarmingConfigured');
+    return (this.pubSub as any).asyncIterator('cacheWarmingConfigured');
   }
 
   /**
@@ -459,7 +481,7 @@ export class AdvancedCacheResolver extends BaseResolver {
     description: 'Subscribe to cache warming removal events'
   })
   async cacheWarmingRemoved() {
-    return this.pubSub.asyncIterator('cacheWarmingRemoved');
+    return (this.pubSub as any).asyncIterator('cacheWarmingRemoved');
   }
 
   /**
@@ -469,7 +491,7 @@ export class AdvancedCacheResolver extends BaseResolver {
     description: 'Subscribe to distributed cache events'
   })
   async distributedCacheEnabled() {
-    return this.pubSub.asyncIterator('distributedCacheEnabled');
+    return (this.pubSub as any).asyncIterator('distributedCacheEnabled');
   }
 
   /**
@@ -479,6 +501,6 @@ export class AdvancedCacheResolver extends BaseResolver {
     description: 'Subscribe to cache optimization completion events'
   })
   async cacheOptimizationCompleted() {
-    return this.pubSub.asyncIterator('cacheOptimizationCompleted');
+    return (this.pubSub as any).asyncIterator('cacheOptimizationCompleted');
   }
 }

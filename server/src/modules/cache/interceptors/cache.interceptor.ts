@@ -60,7 +60,7 @@ export class CacheInterceptor implements NestInterceptor {
     const cacheTags = this.reflector.get<string[]>(CACHE_TAGS_METADATA, handler);
     const invalidateConfig = this.reflector.get<any>(CACHE_INVALIDATE_METADATA, handler);
     const performanceConfig = this.reflector.get<any>(PERFORMANCE_MONITOR_METADATA, handler);
-    const compressionConfig = this.reflector.get<any>(CACHE_COMPRESSION_METADATA, handler);
+    const compressionConfig = this.reflector.get<{ enabled?: boolean }>(CACHE_COMPRESSION_METADATA, handler);
 
     // Get additional cache options
     const useL1 = this.reflector.get<boolean>('cache:useL1', handler) ?? true;
@@ -269,20 +269,31 @@ export class CacheInterceptor implements NestInterceptor {
   ): Promise<any> {
     switch (strategy) {
       case CacheStrategy.L1_ONLY:
-        return this.intelligentCache.get(key, { tenantId, useL1Cache: true, useL2Cache: false });
+        return this.intelligentCache.get(key, { 
+          ...(tenantId && { tenantId }), 
+          useL1Cache: true, 
+          useL2Cache: false 
+        });
       
       case CacheStrategy.L2_ONLY:
-        return this.intelligentCache.get(key, { tenantId, useL1Cache: false, useL2Cache: true });
+        return this.intelligentCache.get(key, { 
+          ...(tenantId && { tenantId }), 
+          useL1Cache: false, 
+          useL2Cache: true 
+        });
       
       case CacheStrategy.DISTRIBUTED:
-        return this.advancedCache.get(key, { tenantId, useDistributed: true });
+        return this.advancedCache.get(key, { 
+          ...(tenantId && { tenantId }), 
+          useDistributed: true 
+        });
       
       case CacheStrategy.INTELLIGENT:
       case CacheStrategy.MULTI_LEVEL:
       default:
         return this.advancedCache.get(key, {
-          tenantId,
-          useDistributed,
+          ...(tenantId && { tenantId }),
+          ...(useDistributed !== undefined && { useDistributed }),
         });
     }
   }
@@ -300,13 +311,27 @@ export class CacheInterceptor implements NestInterceptor {
     useDistributed?: boolean,
     warmOnMiss?: boolean,
   ): Promise<void> {
-    const options = {
-      tenantId,
-      ttl,
-      priority,
-      useDistributed,
-      warmOnMiss,
+    // Convert priority enum to string literal
+    const priorityMap: Record<CachePriority, 'high' | 'medium' | 'low'> = {
+      [CachePriority.HIGH]: 'high',
+      [CachePriority.MEDIUM]: 'medium',
+      [CachePriority.LOW]: 'low',
+      [CachePriority.CRITICAL]: 'high',
     };
+
+    const options: {
+      tenantId?: string;
+      ttl?: number;
+      priority?: 'high' | 'medium' | 'low';
+      useDistributed?: boolean;
+      warmOnMiss?: boolean;
+    } = {};
+
+    if (tenantId) options.tenantId = tenantId;
+    if (ttl) options.ttl = ttl;
+    if (priority) options.priority = priorityMap[priority];
+    if (useDistributed !== undefined) options.useDistributed = useDistributed;
+    if (warmOnMiss !== undefined) options.warmOnMiss = warmOnMiss;
 
     switch (strategy) {
       case CacheStrategy.L1_ONLY:
