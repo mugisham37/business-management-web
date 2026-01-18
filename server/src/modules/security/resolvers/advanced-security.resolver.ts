@@ -57,17 +57,38 @@ export class ThreatManagementResolver extends BaseResolver {
   }
 
   /**
-   * Get all threat patterns
+   * Get all threat patterns with filtering
    */
   @Query(() => [ThreatPattern], { name: 'threatPatterns' })
   @UseGuards(PermissionsGuard)
   @Permissions('threat:read')
   @UseInterceptors(CacheInterceptor)
-  async getThreatPatterns(): Promise<ThreatPattern[]> {
+  async getThreatPatterns(
+    @Args('filter', { nullable: true }) filter?: ThreatPatternFilterInput,
+  ): Promise<ThreatPattern[]> {
     try {
-      return await this.securityOrchestrator.getThreatPatterns();
+      return await this.securityOrchestrator.getThreatPatterns(filter);
     } catch (error) {
       this.handleError(error, 'Failed to fetch threat patterns');
+      throw error;
+    }
+  }
+
+  /**
+   * Get active threats for tenant
+   */
+  @Query(() => [ThreatPatternMatch], { name: 'activeThreats' })
+  @UseGuards(PermissionsGuard)
+  @Permissions('threat:read')
+  @UseInterceptors(CacheInterceptor)
+  async getActiveThreats(
+    @CurrentTenant() tenantId: string,
+    @Args('limit', { nullable: true }) limit?: number,
+  ): Promise<ThreatPatternMatch[]> {
+    try {
+      return await this.securityOrchestrator.getActiveThreats(tenantId, limit);
+    } catch (error) {
+      this.handleError(error, 'Failed to fetch active threats');
       throw error;
     }
   }
@@ -80,6 +101,7 @@ export class ThreatManagementResolver extends BaseResolver {
   @Permissions('threat:admin')
   @AuditRequired('threat_pattern_created', 'security')
   @RateLimitSecurity(50)
+  @ThreatAnalysis('medium')
   async addThreatPattern(
     @Args('input') input: AddThreatPatternInput,
     @CurrentUser() user: any,
