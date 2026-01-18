@@ -43,25 +43,25 @@ registerEnumType(HealthSeverity, {
 @ObjectType()
 export class HealthMetric {
   @Field()
-  name: string;
+  name!: string;
 
   @Field()
-  value: string;
+  value!: string;
 
   @Field()
-  unit: string;
+  unit!: string;
 
   @Field(() => Float, { nullable: true })
   threshold?: number;
 
   @Field(() => Boolean)
-  withinThreshold: boolean;
+  withinThreshold!: boolean;
 }
 
 @ObjectType()
 export class HealthDetails {
   @Field(() => [HealthMetric])
-  metrics: HealthMetric[];
+  metrics!: HealthMetric[];
 
   @Field({ nullable: true })
   message?: string;
@@ -70,88 +70,88 @@ export class HealthDetails {
   error?: string;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => Int)
-  responseTime: number;
+  responseTime!: number;
 }
 
 @ObjectType()
 export class HealthCheck {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field(() => HealthCheckType)
-  type: HealthCheckType;
+  type!: HealthCheckType;
 
   @Field(() => HealthStatus)
-  status: HealthStatus;
+  status!: HealthStatus;
 
   @Field(() => HealthSeverity)
-  severity: HealthSeverity;
+  severity!: HealthSeverity;
 
   @Field(() => HealthDetails)
-  details: HealthDetails;
+  details!: HealthDetails;
 
   @Field()
-  lastChecked: Date;
+  lastChecked!: Date;
 
   @Field(() => Int)
-  consecutiveFailures: number;
+  consecutiveFailures!: number;
 
   @Field(() => Boolean)
-  isRequired: boolean;
+  isRequired!: boolean;
 }
 
 @ObjectType()
 export class SystemHealth {
   @Field(() => HealthStatus)
-  overallStatus: HealthStatus;
+  overallStatus!: HealthStatus;
 
   @Field(() => [HealthCheck])
-  checks: HealthCheck[];
+  checks!: HealthCheck[];
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => Int)
-  totalChecks: number;
+  totalChecks!: number;
 
   @Field(() => Int)
-  healthyChecks: number;
+  healthyChecks!: number;
 
   @Field(() => Int)
-  unhealthyChecks: number;
+  unhealthyChecks!: number;
 
   @Field(() => Int)
-  degradedChecks: number;
+  degradedChecks!: number;
 
   @Field(() => Float)
-  uptime: number;
+  uptime!: number;
 
   @Field()
-  version: string;
+  version!: string;
 
   @Field()
-  environment: string;
+  environment!: string;
 }
 
 @ObjectType()
 export class HealthHistory {
   @Field()
-  checkId: string;
+  checkId!: string;
 
   @Field(() => HealthStatus)
-  status: HealthStatus;
+  status!: HealthStatus;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => Int)
-  responseTime: number;
+  responseTime!: number;
 
   @Field({ nullable: true })
   error?: string;
@@ -160,71 +160,71 @@ export class HealthHistory {
 @ObjectType()
 export class HealthTrend {
   @Field()
-  checkId: string;
+  checkId!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field(() => [HealthHistory])
-  history: HealthHistory[];
+  history!: HealthHistory[];
 
   @Field(() => Float)
-  availabilityPercentage: number;
+  availabilityPercentage!: number;
 
   @Field(() => Float)
-  averageResponseTime: number;
+  averageResponseTime!: number;
 
   @Field(() => Int)
-  totalChecks: number;
+  totalChecks!: number;
 
   @Field(() => Int)
-  failureCount: number;
+  failureCount!: number;
 }
 
 @ObjectType()
 export class HealthAlert {
   @Field()
-  id: string;
+  id!: string;
 
   @Field()
-  checkId: string;
+  checkId!: string;
 
   @Field()
-  checkName: string;
+  checkName!: string;
 
   @Field(() => HealthSeverity)
-  severity: HealthSeverity;
+  severity!: HealthSeverity;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field({ nullable: true })
   resolvedAt?: Date;
 
   @Field(() => Boolean)
-  isActive: boolean;
+  isActive!: boolean;
 
   @Field(() => Int)
-  occurrenceCount: number;
+  occurrenceCount!: number;
 }
 
 @ObjectType()
 export class HealthDashboard {
   @Field(() => SystemHealth)
-  systemHealth: SystemHealth;
+  systemHealth!: SystemHealth;
 
   @Field(() => [HealthTrend])
-  trends: HealthTrend[];
+  trends!: HealthTrend[];
 
   @Field(() => [HealthAlert])
-  activeAlerts: HealthAlert[];
+  activeAlerts!: HealthAlert[];
 
   @Field(() => Int)
-  totalAlerts: number;
+  totalAlerts!: number;
 
   @Field(() => Float)
-  systemAvailability: number;
+  systemAvailability!: number;
 }

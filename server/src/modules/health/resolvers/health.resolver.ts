@@ -187,7 +187,7 @@ export class HealthResolver {
         : 'HIGH' as any,
       isRequired: true,
       intervalSeconds: 60,
-      timeoutSeconds: config.timeoutSeconds,
+      timeoutSeconds: config.timeoutSeconds || 10,
       description: `External service: ${config.url}`,
     };
     
@@ -222,7 +222,7 @@ export class HealthResolver {
   })
   @RequirePermission('health:read')
   healthCheckCompleted() {
-    return this.pubSub.asyncIterator('healthCheckCompleted');
+    return (this.pubSub as any).asyncIterator('healthCheckCompleted');
   }
 
   @Subscription(() => SystemHealth, {
@@ -230,7 +230,7 @@ export class HealthResolver {
   })
   @RequirePermission('health:read')
   systemHealthUpdated() {
-    return this.pubSub.asyncIterator('systemHealthUpdated');
+    return (this.pubSub as any).asyncIterator('systemHealthUpdated');
   }
 
   @Subscription(() => HealthCheck, {
@@ -238,7 +238,7 @@ export class HealthResolver {
   })
   @RequirePermission('health:read')
   healthCheckRegistered() {
-    return this.pubSub.asyncIterator('healthCheckRegistered');
+    return (this.pubSub as any).asyncIterator('healthCheckRegistered');
   }
 
   @Subscription(() => String, {
@@ -246,7 +246,7 @@ export class HealthResolver {
   })
   @RequirePermission('health:read')
   healthCheckRemoved() {
-    return this.pubSub.asyncIterator('healthCheckRemoved');
+    return (this.pubSub as any).asyncIterator('healthCheckRemoved');
   }
 
   @Subscription(() => HealthCheck, {
@@ -264,7 +264,7 @@ export class HealthResolver {
     @Args('statusFilter', { type: () => [HealthStatus], nullable: true }) 
     statusFilter?: HealthStatus[]
   ) {
-    return this.pubSub.asyncIterator('healthStatusChanged');
+    return (this.pubSub as any).asyncIterator('healthStatusChanged');
   }
 
   // Field resolvers for computed fields

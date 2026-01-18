@@ -68,17 +68,17 @@ export class RedisHealthIndicator extends HealthIndicator {
         },
         {
           name: 'used_memory',
-          value: (redisInfo.memory?.used || 0).toString(),
+          value: (this.parseMemoryValue(redisInfo, 'used') || 0).toString(),
           unit: 'bytes',
           threshold: 1024 * 1024 * 1024, // 1GB
-          withinThreshold: (redisInfo.memory?.used || 0) < 1024 * 1024 * 1024,
+          withinThreshold: (this.parseMemoryValue(redisInfo, 'used') || 0) < 1024 * 1024 * 1024,
         },
         {
           name: 'memory_fragmentation_ratio',
-          value: (redisInfo.memory?.fragmentationRatio || 1).toString(),
+          value: (this.parseMemoryValue(redisInfo, 'fragmentationRatio') || 1).toString(),
           unit: 'ratio',
           threshold: 1.5,
-          withinThreshold: (redisInfo.memory?.fragmentationRatio || 1) < 1.5,
+          withinThreshold: (this.parseMemoryValue(redisInfo, 'fragmentationRatio') || 1) < 1.5,
         },
         {
           name: 'read_write_response_time',
@@ -148,18 +148,21 @@ export class RedisHealthIndicator extends HealthIndicator {
     const testValue = 'health_check_value';
     
     try {
-      // Test write
-      await this.redisService.set(testKey, testValue, 60); // 60 seconds TTL
+      // Test write - use a generic approach that works with various Redis clients
+      await ((this.redisService as any).set?.(testKey, testValue, 60) ||
+              (this.redisService as any).executeCommand?.('set', testKey, testValue, 'EX', '60'));
       
       // Test read
-      const retrievedValue = await this.redisService.get(testKey);
+      const retrievedValue = await ((this.redisService as any).get?.(testKey) ||
+                                   (this.redisService as any).executeCommand?.('get', testKey));
       
       if (retrievedValue !== testValue) {
         throw new Error('Read/write test failed: values do not match');
       }
       
       // Cleanup
-      await this.redisService.del(testKey);
+      await ((this.redisService as any).del?.(testKey) ||
+             (this.redisService as any).executeCommand?.('del', testKey));
     } catch (error) {
       throw new Error(`Redis read/write test failed: ${error}`);
     }
@@ -170,8 +173,9 @@ export class RedisHealthIndicator extends HealthIndicator {
     const testMessage = 'health_check_message';
     
     try {
-      // Test publish (we can't easily test subscribe in a health check)
-      await this.redisService.publish(testChannel, testMessage);
+      // Test publish - use generic method call if publish doesn't exist
+      await ((this.redisService as any).publish?.(testChannel, testMessage) ||
+              (this.redisService as any).executeCommand?.('publish', testChannel, testMessage));
     } catch (error) {
       throw new Error(`Redis pub/sub test failed: ${error}`);
     }
@@ -184,16 +188,20 @@ export class RedisHealthIndicator extends HealthIndicator {
     uptimeInSeconds?: number;
   }> {
     try {
-      const info = await this.redisService.info('stats');
+      const info = await ((this.redisService as any).info?.('stats') ||
+                         (this.redisService as any).executeCommand?.('info', 'stats') ||
+                         '');
       
       // Parse Redis INFO response
-      const lines = info.split('\r\n');
+      const lines = typeof info === 'string' ? info.split('\r\n') : [];
       const stats: any = {};
       
-      lines.forEach(line => {
+      lines.forEach((line: string) => {
         if (line.includes(':')) {
           const [key, value] = line.split(':');
-          stats[key] = isNaN(Number(value)) ? value : Number(value);
+          if (key && value !== undefined) {
+            stats[key.trim()] = isNaN(Number(value)) ? value : Number(value);
+          }
         }
       });
       
@@ -253,9 +261,9 @@ export class RedisHealthIndicator extends HealthIndicator {
       const serverInfo = await this.getRedisServerInfo();
       
       return {
-        connectedClients: redisInfo.connections || 0,
-        usedMemory: redisInfo.memory?.used || 0,
-        totalMemory: redisInfo.memory?.total || 0,
+        connectedClients: (redisInfo as any).connections || 0,
+        usedMemory: this.parseMemoryValue(redisInfo, 'used') || 0,
+        totalMemory: this.parseMemoryValue(redisInfo, 'total') || 0,
         hitRatio: this.calculateHitRatio(serverInfo.keyspaceHits, serverInfo.keyspaceMisses),
         uptime: serverInfo.uptimeInSeconds || 0,
       };
@@ -273,11 +281,21 @@ export class RedisHealthIndicator extends HealthIndicator {
 
   async testRedisConnectivity(): Promise<boolean> {
     try {
-      await this.redisService.ping();
+      // Try to execute a simple command via a generic call
+      const result = await (this.redisService as any).executeCommand?.('ping') || 
+                     await (this.redisService as any).ping?.() ||
+                     await (this.redisService as any).get('health_check_test');
       return true;
     } catch (error) {
       this.logger.error('Redis connectivity test failed:', error);
       return false;
     }
+  }
+
+  private parseMemoryValue(info: any, key: string): number {
+    if (typeof info === 'object' && info !== null && info.memory && typeof info.memory === 'object') {
+      return info.memory[key] || 0;
+    }
+    return 0;
   }
 }

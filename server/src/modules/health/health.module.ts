@@ -36,8 +36,7 @@ import { HealthAdminGuard } from './guards/health-admin.guard';
 import { HealthLoggingInterceptor } from './interceptors/health-logging.interceptor';
 import { HealthMetricsInterceptor } from './interceptors/health-metrics.interceptor';
 
-// Decorators
-import { HealthCheckDecorator } from './decorators/health-check.decorator';
+// Decorators (note: HealthCheck decorator is exported from decorators, not used as provider)
 
 // Processors
 import { HealthCheckProcessor } from './processors/health-check.processor';
@@ -83,9 +82,6 @@ import { HealthAlertProcessor } from './processors/health-alert.processor';
     // Interceptors
     HealthLoggingInterceptor,
     HealthMetricsInterceptor,
-    
-    // Decorators
-    HealthCheckDecorator,
     
     // Processors
     HealthCheckProcessor,

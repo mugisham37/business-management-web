@@ -40,8 +40,8 @@ export * from './decorators/health-check.decorator';
 // Processors
 export { HealthCheckProcessor } from './processors/health-check.processor';
 
-// Types
-export * from './types/health.types';
+// Types (explicitly import to avoid conflict with HealthCheck decorator)
+export { HealthStatus, HealthCheckType, HealthSeverity, HealthMetric, HealthDetails, HealthCheck as HealthCheckClass, SystemHealth, HealthHistory, HealthTrend, HealthAlert, HealthDashboard } from './types/health.types';
 
 // Inputs
 export * from './inputs/health.input';

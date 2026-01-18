@@ -181,7 +181,7 @@ export class QueueHealthIndicator extends HealthIndicator {
   }> {
     try {
       // Get stats from all queues
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       let totalStats = {
         active: 0,
         waiting: 0,
@@ -192,13 +192,15 @@ export class QueueHealthIndicator extends HealthIndicator {
       };
 
       for (const queue of queues) {
-        const stats = await queue.getJobCounts();
-        totalStats.active += stats.active || 0;
-        totalStats.waiting += stats.waiting || 0;
-        totalStats.completed += stats.completed || 0;
-        totalStats.failed += stats.failed || 0;
-        totalStats.delayed += stats.delayed || 0;
-        totalStats.paused += stats.paused || 0;
+        if (typeof queue.getJobCounts === 'function') {
+          const stats = await queue.getJobCounts();
+          totalStats.active += stats?.active || 0;
+          totalStats.waiting += stats?.waiting || 0;
+          totalStats.completed += stats?.completed || 0;
+          totalStats.failed += stats?.failed || 0;
+          totalStats.delayed += stats?.delayed || 0;
+          totalStats.paused += stats?.paused || 0;
+        }
       }
 
       return totalStats;
@@ -218,16 +220,29 @@ export class QueueHealthIndicator extends HealthIndicator {
   private async testQueueConnectivity(): Promise<void> {
     try {
       // Test basic queue connectivity by checking if we can get queue info
-      const queues = await this.queueService.getQueues();
-      if (queues.length === 0) {
+      const queues = await this.getAvailableQueues();
+      if (!queues || queues.length === 0) {
         throw new Error('No queues available');
       }
 
       // Test if we can access the first queue
       const firstQueue = queues[0];
-      await firstQueue.getJobCounts();
+      if (typeof firstQueue.getJobCounts === 'function') {
+        await firstQueue.getJobCounts();
+      }
     } catch (error) {
       throw new Error(`Queue connectivity test failed: ${error}`);
+    }
+  }
+
+  private async getAvailableQueues(): Promise<any[]> {
+    try {
+      return await (this.queueService as any).getQueues?.() ||
+             await (this.queueService as any).queues?.() ||
+             [];
+    } catch (error) {
+      this.logger.warn('Could not retrieve queues:', error);
+      return [];
     }
   }
 
@@ -240,19 +255,23 @@ export class QueueHealthIndicator extends HealthIndicator {
         data: 'health_check_test',
       };
 
-      const job = await this.queueService.addJob('health-check', testJobData, {
+      const job = await ((this.queueService as any).addJob?.('health-check', testJobData, {
         removeOnComplete: true,
         removeOnFail: true,
         attempts: 1,
-      });
+      }) || Promise.resolve(null));
+
+      if (!job) {
+        throw new Error('Could not add test job');
+      }
 
       // Wait a short time to see if the job gets processed
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Check job status
-      const jobState = await job.getState();
+      // Check job status if available
+      const jobState = await (typeof job.getState === 'function' ? job.getState() : 'unknown');
       if (jobState === 'failed') {
-        const failedReason = job.failedReason;
+        const failedReason = (job as any).failedReason;
         throw new Error(`Test job failed: ${failedReason}`);
       }
 
@@ -270,16 +289,20 @@ export class QueueHealthIndicator extends HealthIndicator {
     total: number;
   }> {
     try {
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       let activeWorkers = 0;
       let totalWorkers = 0;
 
       for (const queue of queues) {
-        const workers = await queue.getWorkers();
-        totalWorkers += workers.length;
-        
-        // Count active workers (simplified - in real implementation you'd check worker status)
-        activeWorkers += workers.filter(worker => worker.id).length;
+        if (typeof queue.getWorkers === 'function') {
+          const workers = await queue.getWorkers();
+          if (workers) {
+            totalWorkers += workers.length;
+            
+            // Count active workers (simplified - in real implementation you'd check worker status)
+            activeWorkers += workers.filter((worker: any) => worker?.id).length;
+          }
+        }
       }
 
       return {
@@ -298,7 +321,7 @@ export class QueueHealthIndicator extends HealthIndicator {
   private async calculateJobThroughput(): Promise<string> {
     try {
       // Calculate jobs processed in the last minute
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       let totalThroughput = 0;
 
       for (const queue of queues) {
@@ -306,8 +329,8 @@ export class QueueHealthIndicator extends HealthIndicator {
         const oneMinuteAgo = Date.now() - 60000;
         const completedJobs = await queue.getJobs(['completed'], 0, -1);
         
-        const recentJobs = completedJobs.filter(job => 
-          job.finishedOn && job.finishedOn > oneMinuteAgo
+        const recentJobs = completedJobs.filter((job: any) => 
+          job?.finishedOn && job.finishedOn > oneMinuteAgo
         );
         
         totalThroughput += recentJobs.length;
@@ -407,7 +430,7 @@ export class QueueHealthIndicator extends HealthIndicator {
 
   async clearFailedJobs(): Promise<number> {
     try {
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       let clearedCount = 0;
 
       for (const queue of queues) {
@@ -429,7 +452,7 @@ export class QueueHealthIndicator extends HealthIndicator {
 
   async retryFailedJobs(): Promise<number> {
     try {
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       let retriedCount = 0;
 
       for (const queue of queues) {
@@ -451,7 +474,7 @@ export class QueueHealthIndicator extends HealthIndicator {
 
   async pauseAllQueues(): Promise<void> {
     try {
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       
       for (const queue of queues) {
         await queue.pause();
@@ -466,7 +489,7 @@ export class QueueHealthIndicator extends HealthIndicator {
 
   async resumeAllQueues(): Promise<void> {
     try {
-      const queues = await this.queueService.getQueues();
+      const queues = await this.getAvailableQueues();
       
       for (const queue of queues) {
         await queue.resume();

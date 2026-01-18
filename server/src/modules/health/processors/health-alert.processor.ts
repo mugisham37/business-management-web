@@ -57,24 +57,27 @@ export class HealthAlertProcessor {
         const channel = notificationChannels[i];
         
         try {
-          await this.notificationService.sendNotification(channel, alert);
+          if (channel) {
+            await this.notificationService.sendNotification(channel, alert);
+          }
           results.push({ channel, success: true });
           
           this.logger.log(`Notification sent successfully: ${channel}`, {
             alertId,
             jobId: job.id,
           });
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           results.push({ 
             channel, 
             success: false, 
-            error: error.message 
+            error: errorMessage 
           });
           
           this.logger.error(`Notification failed: ${channel}`, {
             alertId,
             jobId: job.id,
-            error: error.message,
+            error: errorMessage,
           });
         }
 
@@ -94,10 +97,11 @@ export class HealthAlertProcessor {
         results,
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Alert notification processing failed: ${alertId}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -142,12 +146,13 @@ export class HealthAlertProcessor {
             escalationLevel,
             jobId: job.id,
           });
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           this.logger.error(`Escalation notification failed: ${channel}`, {
             alertId,
             escalationLevel,
             jobId: job.id,
-            error: error.message,
+            error: errorMessage,
           });
         }
       }
@@ -159,10 +164,11 @@ export class HealthAlertProcessor {
         escalationLevel,
         escalatedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Alert escalation failed: ${alertId}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -190,7 +196,9 @@ export class HealthAlertProcessor {
           
           switch (action) {
             case 'resolve':
-              result = await this.alertService.resolveAlert(alertId);
+              if (alertId) {
+                result = await this.alertService.resolveAlert(alertId);
+              }
               break;
             case 'escalate':
               // Add escalation job
@@ -209,15 +217,16 @@ export class HealthAlertProcessor {
           // Update progress
           const progress = Math.round(((i + 1) / alertIds.length) * 100);
           await job.progress(progress);
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           errors.push({
             alertId,
-            error: error.message,
+            error: errorMessage,
           });
           
           this.logger.error(`Bulk action failed for alert: ${alertId}`, {
             action,
-            error: error.message,
+            error: errorMessage,
           });
         }
       }
@@ -234,10 +243,11 @@ export class HealthAlertProcessor {
         failed: errors,
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Bulk alert action failed: ${action}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -259,13 +269,15 @@ export class HealthAlertProcessor {
       await job.progress(100);
 
       return {
-        cleanupType: 'resolved-alerts',
+        cleanupType: 'old_resolved_alerts',
+        deletedCount: 0,
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Resolved alerts cleanup failed:', {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -315,11 +327,17 @@ export class HealthAlertProcessor {
 
       await job.progress(100);
 
-      return digest;
-    } catch (error) {
+      return {
+        period,
+        generatedAt: new Date(),
+        digest,
+        completedAt: new Date(),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Alert digest generation failed: ${period}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -339,7 +357,7 @@ export class HealthAlertProcessor {
   }
 
   private getEscalationChannels(escalationLevel: number): string[] {
-    const escalationMap = {
+    const escalationMap: { [key: number]: string[] } = {
       1: ['email'],
       2: ['email', 'slack'],
       3: ['email', 'slack', 'sms'],

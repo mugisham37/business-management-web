@@ -119,40 +119,44 @@ export class ExternalServiceHealthIndicator extends HealthIndicator {
       serviceResults.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           const { service, result: serviceResult } = result.value;
-          healthyServices += serviceResult.isHealthy ? 1 : 0;
+          if (service) {
+            healthyServices += serviceResult.isHealthy ? 1 : 0;
 
-          metrics.push({
-            name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status`,
-            value: serviceResult.isHealthy ? 'healthy' : 'unhealthy',
-            unit: 'status',
-            withinThreshold: serviceResult.isHealthy,
-          });
-
-          metrics.push({
-            name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_response_time`,
-            value: serviceResult.responseTime.toString(),
-            unit: 'ms',
-            threshold: service.timeout,
-            withinThreshold: serviceResult.responseTime < service.timeout,
-          });
-
-          if (serviceResult.statusCode) {
             metrics.push({
-              name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status_code`,
-              value: serviceResult.statusCode.toString(),
-              unit: 'code',
-              threshold: service.expectedStatusCode,
-              withinThreshold: serviceResult.statusCode === service.expectedStatusCode,
+              name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status`,
+              value: serviceResult.isHealthy ? 'healthy' : 'unhealthy',
+              unit: 'status',
+              withinThreshold: serviceResult.isHealthy,
             });
+
+            metrics.push({
+              name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_response_time`,
+              value: serviceResult.responseTime.toString(),
+              unit: 'ms',
+              threshold: service.timeout,
+              withinThreshold: serviceResult.responseTime < service.timeout,
+            });
+
+            if (serviceResult.statusCode) {
+              metrics.push({
+                name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status_code`,
+                value: serviceResult.statusCode.toString(),
+                unit: 'code',
+                threshold: service.expectedStatusCode,
+                withinThreshold: serviceResult.statusCode === service.expectedStatusCode,
+              });
+            }
           }
         } else {
           const service = servicesToCheck[index];
-          metrics.push({
-            name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status`,
-            value: 'error',
-            unit: 'status',
-            withinThreshold: false,
-          });
+          if (service) {
+            metrics.push({
+              name: `${service.name.toLowerCase().replace(/\s+/g, '_')}_status`,
+              value: 'error',
+              unit: 'status',
+              withinThreshold: false,
+            });
+          }
         }
       });
 
@@ -271,7 +275,7 @@ export class ExternalServiceHealthIndicator extends HealthIndicator {
       expectedStatusCode: config.expectedStatusCode || 200,
       expectedResponsePattern: config.expectedResponsePattern 
         ? new RegExp(config.expectedResponsePattern) 
-        : undefined,
+        : new RegExp(''),
       headers: this.parseHeaders(config.headers),
     };
 
@@ -402,8 +406,9 @@ export class ExternalServiceHealthIndicator extends HealthIndicator {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {
+        const service = services[index];
         return {
-          name: services[index].name,
+          name: service?.name || 'Unknown Service',
           isHealthy: false,
           responseTime: 0,
           error: 'Health check failed',

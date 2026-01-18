@@ -46,8 +46,8 @@ export class HealthMetricsResolver {
   @UseGuards(HealthAdminGuard)
   @RequirePermission('health:admin:metrics')
   async clearMetrics(
-    @Args('checkId', { nullable: true }) checkId?: string,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
+    @Args('checkId', { nullable: true }) checkId?: string
   ): Promise<boolean> {
     await this.metricsService.clearMetrics(checkId);
     return true;

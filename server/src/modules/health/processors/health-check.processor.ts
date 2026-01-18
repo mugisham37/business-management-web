@@ -54,10 +54,11 @@ export class HealthCheckProcessor {
         responseTime: healthCheck.details.responseTime,
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Health check failed: ${checkId}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
         attempt: job.attemptsMade + 1,
       });
 
@@ -66,7 +67,7 @@ export class HealthCheckProcessor {
         await this.alertService.createAlert({
           checkId,
           severity: 'HIGH' as any,
-          message: `Health check job failed after ${retryAttempts} attempts: ${error.message}`,
+          message: `Health check job failed after ${retryAttempts} attempts: ${errorMessage}`,
           isActive: true,
         });
       }
@@ -104,11 +105,12 @@ export class HealthCheckProcessor {
               responseTime: healthCheck.details.responseTime,
               success: true,
             };
-          } catch (error) {
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Bulk health check failed for ${checkId}:`, error);
             return {
               checkId,
-              error: error.message,
+              error: errorMessage,
               success: false,
             };
           }
@@ -137,23 +139,26 @@ export class HealthCheckProcessor {
           const checkId = checkIds[i];
           
           try {
-            const healthCheck = await this.healthService.performHealthCheck(checkId);
+            if (checkId) {
+              const healthCheck = await this.healthService.performHealthCheck(checkId);
             
-            results.push({
-              checkId,
-              status: healthCheck.status,
-              responseTime: healthCheck.details.responseTime,
-              success: true,
-            });
+              results.push({
+                checkId,
+                status: healthCheck.status,
+                responseTime: healthCheck.details.responseTime,
+                success: true,
+              });
+            }
             
             // Update progress
             const progress = Math.round(((i + 1) / checkIds.length) * 100);
             await job.progress(progress);
-          } catch (error) {
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Sequential health check failed for ${checkId}:`, error);
             errors.push({
               checkId,
-              error: error.message,
+              error: errorMessage,
               success: false,
             });
           }
@@ -173,10 +178,11 @@ export class HealthCheckProcessor {
         totalProcessed: checkIds.length,
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Bulk health check job failed:`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -204,10 +210,11 @@ export class HealthCheckProcessor {
         status: healthCheck.status,
         scheduledAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Scheduled health check failed: ${checkId}`, {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       // For scheduled checks, we don't throw errors to avoid job retries
@@ -215,7 +222,7 @@ export class HealthCheckProcessor {
       return {
         checkId,
         status: 'ERROR',
-        error: error.message,
+        error: errorMessage,
         scheduledAt: new Date(),
       };
     }
@@ -245,10 +252,11 @@ export class HealthCheckProcessor {
         cleanupType: 'health-data',
         completedAt: new Date(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Health data cleanup failed:', {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;
@@ -296,11 +304,15 @@ export class HealthCheckProcessor {
       
       await job.progress(100);
 
-      return report;
-    } catch (error) {
+      return {
+        report,
+        generatedAt: new Date(),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Health report generation failed:', {
         jobId: job.id,
-        error: error.message,
+        error: errorMessage,
       });
 
       throw error;

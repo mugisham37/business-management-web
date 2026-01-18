@@ -179,10 +179,16 @@ export class MemoryHealthIndicator extends HealthIndicator {
 
   private async getGCInfo(): Promise<string> {
     try {
-      // Check if performance hooks are available
-      if (typeof performance !== 'undefined' && performance.measureUserAgentSpecificMemory) {
-        const gcInfo = await performance.measureUserAgentSpecificMemory();
-        return JSON.stringify(gcInfo);
+      // Check if performance hooks are available  
+      // Note: measureUserAgentSpecificMemory may not be available in all environments
+      const perfApi = performance as any;
+      if (typeof perfApi !== 'undefined' && typeof perfApi.measureUserAgentSpecificMemory === 'function') {
+        try {
+          const gcInfo = await perfApi.measureUserAgentSpecificMemory();
+          return JSON.stringify(gcInfo);
+        } catch (error) {
+          // If the method throws, fall through to fallbacks
+        }
       }
       
       // Fallback to basic GC info if available

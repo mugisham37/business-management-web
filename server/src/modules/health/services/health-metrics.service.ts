@@ -174,7 +174,7 @@ export class HealthMetricsService {
       warningThreshold: input.warningThreshold,
       criticalThreshold: input.criticalThreshold,
       unit: input.unit,
-      description: input.description,
+      description: input.description || '',
     };
 
     this.thresholds.set(input.metricName, threshold);
@@ -352,16 +352,16 @@ export class HealthMetricsService {
     values.sort((a, b) => a - b);
     
     const count = values.length;
-    const min = values[0];
-    const max = values[count - 1];
-    const sum = values.reduce((acc, val) => acc + val, 0);
-    const average = sum / count;
+    const min = values[0] ?? 0;
+    const max = values[count - 1] ?? 0;
+    const sum = values.reduce((acc, val) => acc + (val ?? 0), 0);
+    const average = count > 0 ? sum / count : 0;
     
     const median = count % 2 === 0
-      ? (values[count / 2 - 1] + values[count / 2]) / 2
-      : values[Math.floor(count / 2)];
+      ? ((values[count / 2 - 1] ?? 0) + (values[count / 2] ?? 0)) / 2
+      : values[Math.floor(count / 2)] ?? 0;
     
-    const variance = values.reduce((acc, val) => acc + Math.pow(val - average, 2), 0) / count;
+    const variance = values.reduce((acc, val) => acc + Math.pow((val ?? 0) - average, 2), 0) / (count > 0 ? count : 1);
     const standardDeviation = Math.sqrt(variance);
 
     return {

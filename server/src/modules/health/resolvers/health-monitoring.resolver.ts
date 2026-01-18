@@ -73,9 +73,10 @@ export class HealthMonitoringResolver {
       });
       
       return JSON.stringify(updatedConfig, null, 2);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to update monitoring config:', error);
-      throw new Error(`Invalid configuration JSON: ${error.message}`);
+      throw new Error(`Invalid configuration JSON: ${errorMessage}`);
     }
   }
 
@@ -205,6 +206,8 @@ export class HealthMonitoringResolver {
     await this.monitoringService.updateMonitoringConfig({
       alertThresholds: {
         consecutiveFailures: threshold,
+        responseTimeThreshold: 5000,
+        availabilityThreshold: 0.95,
       },
     });
     
@@ -228,7 +231,9 @@ export class HealthMonitoringResolver {
     
     await this.monitoringService.updateMonitoringConfig({
       alertThresholds: {
+        consecutiveFailures: 3,
         responseTimeThreshold: threshold,
+        availabilityThreshold: 0.95,
       },
     });
     
@@ -252,6 +257,8 @@ export class HealthMonitoringResolver {
     
     await this.monitoringService.updateMonitoringConfig({
       alertThresholds: {
+        consecutiveFailures: 3,
+        responseTimeThreshold: 5000,
         availabilityThreshold: threshold,
       },
     });
@@ -265,7 +272,7 @@ export class HealthMonitoringResolver {
   })
   @RequirePermission('health:read')
   healthTrendUpdated() {
-    return this.pubSub.asyncIterator('healthTrendUpdated');
+    return (this.pubSub as any).asyncIterator('healthTrendUpdated');
   }
 
   @Subscription(() => String, {
@@ -273,7 +280,7 @@ export class HealthMonitoringResolver {
   })
   @RequirePermission('health:admin')
   monitoringConfigUpdated() {
-    return this.pubSub.asyncIterator('monitoringConfigUpdated');
+    return (this.pubSub as any).asyncIterator('monitoringConfigUpdated');
   }
 
   @Subscription(() => String, {
@@ -281,7 +288,7 @@ export class HealthMonitoringResolver {
   })
   @RequirePermission('health:read')
   anomalyDetected() {
-    return this.pubSub.asyncIterator('anomalyDetected');
+    return (this.pubSub as any).asyncIterator('anomalyDetected');
   }
 
   @Subscription(() => String, {
@@ -289,7 +296,7 @@ export class HealthMonitoringResolver {
   })
   @RequirePermission('health:read')
   healthStatusChanged() {
-    return this.pubSub.asyncIterator('healthStatusChanged');
+    return (this.pubSub as any).asyncIterator('healthStatusChanged');
   }
 
   // Computed fields and analytics

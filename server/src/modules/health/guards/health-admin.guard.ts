@@ -74,7 +74,7 @@ export class HealthAdminGuard implements CanActivate {
     const info = ctx.getInfo();
     const fieldName = info.fieldName;
     
-    const adminOperations = {
+    const adminOperations: Record<string, string[]> = {
       'registerHealthCheck': ['health:admin:create'],
       'removeHealthCheck': ['health:admin:delete'],
       'addExternalService': ['health:admin:external'],

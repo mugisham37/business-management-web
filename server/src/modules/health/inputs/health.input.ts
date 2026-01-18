@@ -6,15 +6,15 @@ import { HealthStatus, HealthCheckType, HealthSeverity } from '../types/health.t
 export class HealthCheckInput {
   @Field()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field(() => HealthCheckType)
   @IsEnum(HealthCheckType)
-  type: HealthCheckType;
+  type!: HealthCheckType;
 
   @Field(() => HealthSeverity)
   @IsEnum(HealthSeverity)
-  severity: HealthSeverity;
+  severity!: HealthSeverity;
 
   @Field(() => Boolean, { defaultValue: true })
   @IsBoolean()
@@ -122,15 +122,15 @@ export class HealthHistoryFilterInput {
 export class HealthAlertInput {
   @Field()
   @IsString()
-  checkId: string;
+  checkId!: string;
 
   @Field(() => HealthSeverity)
   @IsEnum(HealthSeverity)
-  severity: HealthSeverity;
+  severity!: HealthSeverity;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => Boolean, { defaultValue: true })
   @IsBoolean()
@@ -176,19 +176,19 @@ export class HealthAlertFilterInput {
 export class HealthMetricThresholdInput {
   @Field()
   @IsString()
-  metricName: string;
+  metricName!: string;
 
   @Field(() => Float)
   @IsNumber()
-  warningThreshold: number;
+  warningThreshold!: number;
 
   @Field(() => Float)
   @IsNumber()
-  criticalThreshold: number;
+  criticalThreshold!: number;
 
   @Field()
   @IsString()
-  unit: string;
+  unit!: string;
 
   @Field({ nullable: true })
   @IsString()
@@ -200,11 +200,11 @@ export class HealthMetricThresholdInput {
 export class HealthNotificationConfigInput {
   @Field()
   @IsString()
-  channel: string;
+  channel!: string;
 
   @Field(() => [HealthSeverity])
   @IsEnum(HealthSeverity, { each: true })
-  severityLevels: HealthSeverity[];
+  severityLevels!: HealthSeverity[];
 
   @Field(() => Boolean, { defaultValue: true })
   @IsBoolean()
@@ -261,11 +261,11 @@ export class HealthDashboardConfigInput {
 export class ExternalServiceConfigInput {
   @Field()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field()
   @IsString()
-  url: string;
+  url!: string;
 
   @Field(() => Int, { defaultValue: 10 })
   @IsNumber()

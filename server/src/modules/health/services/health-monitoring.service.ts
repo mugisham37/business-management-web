@@ -97,7 +97,7 @@ export class HealthMonitoringService {
       status: check.status,
       timestamp: check.lastChecked,
       responseTime: check.details.responseTime,
-      error: check.details.error,
+      error: check.details.error || '',
     };
 
     trend.history.unshift(currentHistory);
@@ -312,21 +312,22 @@ export class HealthMonitoringService {
   private analyzeResponseTimeTrend(history: HealthHistory[]): { isIncreasing: boolean; slope: number } {
     if (history.length < 5) return { isIncreasing: false, slope: 0 };
     
-    const responseTimes = history.map(h => h.responseTime);
+    const responseTimes = history.map(h => h.responseTime ?? 0);
     const n = responseTimes.length;
     const x = Array.from({ length: n }, (_, i) => i);
     
     // Calculate linear regression slope
     const sumX = x.reduce((sum, val) => sum + val, 0);
     const sumY = responseTimes.reduce((sum, val) => sum + val, 0);
-    const sumXY = x.reduce((sum, val, i) => sum + val * responseTimes[i], 0);
+    const sumXY = x.reduce((sum, val, i) => sum + val * (responseTimes[i] ?? 0), 0);
     const sumXX = x.reduce((sum, val) => sum + val * val, 0);
     
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const denominator = n * sumXX - sumX * sumX;
+    const slope = denominator !== 0 ? (n * sumXY - sumX * sumY) / denominator : 0;
     
     return {
       isIncreasing: slope > 0,
-      slope,
+      slope: slope || 0,
     };
   }
 

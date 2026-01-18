@@ -118,12 +118,12 @@ export class HealthAlertResolver {
   @Subscription(() => HealthAlert, { description: 'Subscribe to new health alerts' })
   @RequirePermission('health:read')
   healthAlertCreated() {
-    return this.pubSub.asyncIterator('healthAlertCreated');
+    return (this.pubSub as any).asyncIterator('healthAlertCreated');
   }
 
   @Subscription(() => HealthAlert, { description: 'Subscribe to resolved health alerts' })
   @RequirePermission('health:read')
   healthAlertResolved() {
-    return this.pubSub.asyncIterator('healthAlertResolved');
+    return (this.pubSub as any).asyncIterator('healthAlertResolved');
   }
 }

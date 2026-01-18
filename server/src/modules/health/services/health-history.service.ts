@@ -20,7 +20,7 @@ export class HealthHistoryService {
       status: check.status,
       timestamp: check.lastChecked,
       responseTime: check.details.responseTime,
-      error: check.details.error,
+      error: check.details.error || '',
     };
 
     let history = this.healthHistory.get(check.id) || [];
@@ -198,7 +198,7 @@ export class HealthHistoryService {
 
     const getPercentile = (percentile: number): number => {
       const index = Math.ceil((percentile / 100) * responseTimes.length) - 1;
-      return responseTimes[Math.max(0, index)];
+      return responseTimes[Math.max(0, index)] || 0;
     };
 
     return {
@@ -243,14 +243,17 @@ export class HealthHistoryService {
       const intervalEnd = time + intervalMs;
       
       const intervalData = recentHistory.filter(h => 
-        h.timestamp.getTime() >= intervalStart && 
-        h.timestamp.getTime() < intervalEnd
+        h.timestamp?.getTime?.() >= intervalStart && 
+        h.timestamp?.getTime?.() < intervalEnd
       );
 
       if (intervalData.length > 0) {
         const healthyCount = intervalData.filter(h => h.status === HealthStatus.HEALTHY).length;
         const avgResponseTime = intervalData.reduce((sum, h) => sum + h.responseTime, 0) / intervalData.length;
-        const mostRecentStatus = intervalData[0].status; // Most recent in interval
+        const mostRecentStatus = intervalData?.[0]?.status; // Most recent in interval
+        if (!mostRecentStatus) {
+          continue;
+        }
 
         timeSeries.push({
           timestamp: new Date(time),

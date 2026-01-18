@@ -156,10 +156,11 @@ export class DiskHealthIndicator extends HealthIndicator {
     usagePercentage: number;
   }> {
     try {
-      const stats = await fs.statvfs ? fs.statvfs(diskPath) : await this.getStatsAlternative(diskPath);
+      // Use statfs instead of statvfs for better compatibility
+      const stats = await (fs.statfs as any)(diskPath);
       
       if (stats) {
-        const blockSize = stats.f_frsize || stats.f_bsize;
+        const blockSize = stats.f_bsize || 4096;
         const totalBytes = stats.f_blocks * blockSize;
         const freeBytes = stats.f_bavail * blockSize;
         const usedBytes = totalBytes - freeBytes;
@@ -168,7 +169,7 @@ export class DiskHealthIndicator extends HealthIndicator {
           totalGB: totalBytes / 1024 / 1024 / 1024,
           usedGB: usedBytes / 1024 / 1024 / 1024,
           freeGB: freeBytes / 1024 / 1024 / 1024,
-          usagePercentage: (usedBytes / totalBytes) * 100,
+          usagePercentage: totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0,
         };
       }
       
@@ -195,11 +196,11 @@ export class DiskHealthIndicator extends HealthIndicator {
       const { stdout } = await execAsync(`df -B1 "${diskPath}"`);
       const lines = stdout.trim().split('\n');
       if (lines.length >= 2) {
-        const parts = lines[1].split(/\s+/);
+        const parts = lines[1]?.split(/\s+/) || [];
         if (parts.length >= 4) {
-          const total = parseInt(parts[1]);
-          const used = parseInt(parts[2]);
-          const available = parseInt(parts[3]);
+          const total = parseInt(parts[1] || '0', 10);
+          const used = parseInt(parts[2] || '0', 10);
+          const available = parseInt(parts[3] || '0', 10);
           
           return {
             f_blocks: Math.floor(total / 1024),
@@ -321,17 +322,20 @@ export class DiskHealthIndicator extends HealthIndicator {
       const { stdout } = await execAsync('df -i /');
       const lines = stdout.trim().split('\n');
       if (lines.length >= 2) {
-        const parts = lines[1].split(/\s+/);
+        const parts = lines[1]?.split(/\s+/) || [];
         if (parts.length >= 5) {
           const usageStr = parts[4];
-          return usageStr.replace('%', '');
+          if (usageStr) {
+            return usageStr.replace('%', '');
+          }
         }
       }
+      
+      return '0';
     } catch (error) {
-      this.logger.debug('Could not get inode usage:', error);
+      this.logger.warn('Could not get inode usage:', error);
+      return '0';
     }
-    
-    return '0';
   }
 
   private determineHealthStatus(metrics: HealthMetric[]): HealthStatus {
