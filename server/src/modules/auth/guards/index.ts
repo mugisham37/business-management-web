@@ -3,3 +3,4 @@ export { GraphQLJwtAuthGuard } from './graphql-jwt-auth.guard';
 export { LocalAuthGuard } from './local-auth.guard';
 export { PermissionsGuard } from './permissions.guard';
 export { RolesGuard } from './roles.guard';
+export { AdvancedAuthGuard } from './advanced-auth.guard';

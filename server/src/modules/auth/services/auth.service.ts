@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { DrizzleService } from '../../database/drizzle.service';
 import { users, userSessions } from '../../database/schema/user.schema';
+import { AuthEventsService } from './auth-events.service';
 import {
   LoginInput,
   RegisterInput,
@@ -34,6 +35,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly authEventsService: AuthEventsService,
   ) {
     const jwtSecret = this.configService.get<string>('JWT_SECRET');
     const jwtRefreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
@@ -107,6 +109,14 @@ export class AuthService {
       email: newUser.email,
       timestamp: new Date(),
     });
+
+    // Publish auth events
+    await this.authEventsService.publishUserRegistered(
+      newUser.id,
+      newUser.tenantId,
+      newUser.email,
+      newUser.role,
+    );
 
     // Create session and return login response
     return this.createUserSession(newUser, ipAddress, userAgent);

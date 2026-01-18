@@ -119,3 +119,97 @@ export class UpdateRolePermissionsInput {
   @ApiProperty({ description: 'New permissions for the role', type: [String] })
   permissions!: string[];
 }
+
+/**
+ * Check permission input
+ * Checks if user has specific permission
+ */
+@InputType()
+export class CheckPermissionInput {
+  @Field()
+  @ApiProperty({ description: 'User ID to check permission for', type: 'string' })
+  @IsString()
+  @IsUUID()
+  userId!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Permission to check' })
+  @IsString()
+  permission!: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Resource type', required: false })
+  @IsOptional()
+  @IsString()
+  resource?: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Specific resource ID', required: false })
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  resourceId?: string;
+}
+
+/**
+ * Bulk permission operation input
+ * Grant or revoke multiple permissions at once
+ */
+@InputType()
+export class BulkPermissionInput {
+  @Field(() => [String])
+  @ApiProperty({ description: 'User IDs to apply permissions to', type: [String] })
+  userIds!: string[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Permissions to grant or revoke', type: [String] })
+  permissions!: string[];
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Resource type for granular permissions', required: false })
+  @IsOptional()
+  @IsString()
+  resource?: string;
+
+  @Field(() => String, { nullable: true })
+  @ApiProperty({ description: 'Permission expiration date (ISO 8601)', required: false, type: 'string' })
+  @IsOptional()
+  @IsISO8601()
+  expiresAt?: string;
+}
+
+/**
+ * Permission filter input
+ * Filter permissions by various criteria
+ */
+@InputType()
+export class PermissionFilterInput {
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Filter by user ID', required: false })
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  userId?: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Filter by permission pattern', required: false })
+  @IsOptional()
+  @IsString()
+  permission?: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Filter by resource type', required: false })
+  @IsOptional()
+  @IsString()
+  resource?: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Include expired permissions', required: false })
+  @IsOptional()
+  includeExpired?: boolean;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Include inherited role permissions', required: false })
+  @IsOptional()
+  includeInherited?: boolean;
+}

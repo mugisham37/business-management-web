@@ -6,23 +6,40 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './services/auth.service';
 import { PermissionsService } from './services/permissions.service';
 import { MfaService } from './services/mfa.service';
+import { AuthEventsService } from './services/auth-events.service';
 import { AuthResolver } from './resolvers/auth.resolver';
 import { MfaResolver } from './resolvers/mfa.resolver';
 import { PermissionsResolver } from './resolvers/permissions.resolver';
+import { AuthSubscriptionsResolver } from './resolvers/auth-subscriptions.resolver';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { AdvancedAuthGuard } from './guards/advanced-auth.guard';
 import { DrizzleService } from '../database/drizzle.service';
 import { DataLoaderService } from '../../common/graphql/dataloader.service';
 import { CacheModule } from '../cache/cache.module';
+import { PubSubModule } from '../../common/graphql/pubsub.module';
 
 /**
  * Auth Module
- * Provides authentication, authorization, and MFA services
- * GraphQL-only implementation with no REST endpoints
+ * Provides comprehensive authentication, authorization, and MFA services
+ * GraphQL-only implementation with real-time subscriptions and advanced auth patterns
+ * 
+ * Features:
+ * - JWT-based authentication with refresh tokens
+ * - Role-based access control (RBAC)
+ * - Granular permission management with wildcards
+ * - Multi-factor authentication (TOTP + backup codes)
+ * - Real-time auth event subscriptions
+ * - Advanced authorization patterns (resource-based, time-based, IP-restricted, etc.)
+ * - Session management with device tracking
+ * - Audit logging and security monitoring
+ * - Permission caching with automatic invalidation
+ * - Bulk permission operations
+ * - Account lockout and security features
  */
 @Module({
   imports: [
@@ -50,34 +67,55 @@ import { CacheModule } from '../cache/cache.module';
       inject: [ConfigService],
     }),
     CacheModule,
+    PubSubModule,
   ],
   providers: [
+    // Core Services
     DrizzleService,
     DataLoaderService,
     AuthService,
     PermissionsService,
     MfaService,
+    AuthEventsService,
+    
+    // GraphQL Resolvers
     AuthResolver,
     MfaResolver,
     PermissionsResolver,
+    AuthSubscriptionsResolver,
+    
+    // Passport Strategies
     JwtStrategy,
     LocalStrategy,
+    
+    // Guards
     JwtAuthGuard,
     LocalAuthGuard,
     PermissionsGuard,
     RolesGuard,
+    AdvancedAuthGuard,
   ],
   exports: [
+    // Services
     AuthService,
     PermissionsService,
     MfaService,
+    AuthEventsService,
+    
+    // Resolvers
     AuthResolver,
     MfaResolver,
     PermissionsResolver,
+    AuthSubscriptionsResolver,
+    
+    // Guards
     JwtAuthGuard,
     LocalAuthGuard,
     PermissionsGuard,
     RolesGuard,
+    AdvancedAuthGuard,
+    
+    // Modules
     PassportModule,
     JwtModule,
   ],

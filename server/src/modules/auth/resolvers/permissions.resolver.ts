@@ -18,11 +18,17 @@ import {
   AssignRoleInput,
   CreateRoleInput,
   UpdateRolePermissionsInput,
+  CheckPermissionInput,
+  BulkPermissionInput,
+  PermissionFilterInput,
 } from '../inputs/permissions.input';
 import {
   Permission,
   Role,
   UserPermissionsResponse,
+  PermissionCheckResponse,
+  BulkPermissionResponse,
+  AvailablePermissionsResponse,
 } from '../types/permissions.types';
 
 /**
@@ -356,4 +362,236 @@ export class PermissionsResolver extends BaseResolver {
       throw new Error(error.message || 'Failed to get all permissions');
     }
   }
+
+  /**
+   * Get detailed permissions for a user
+   * Returns permissions with metadata (source, expiration, etc.)
+   */
+  @Query(() => UserPermissionsResponse, {
+    description: 'Get detailed permissions for a user with metadata',
+  })
+  @UseGuards(PermissionsGuard)
+  @Permissions('permissions:read')
+  async getDetailedPermissions(
+    @Args('userId') userId: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<UserPermissionsResponse> {
+    try {
+      const permissions = await this.permissionsService.getUserPermissions(
+        userId,
+        currentUser.tenantId,
+      );
+
+      // Get detailed permission objects
+      const detailedPermissions = await this.permissionsService.getDetailedUserPermissions(
+        userId,
+        currentUser.tenantId,
+      );
+
+      // Get user role
+      const userRole = await this.permissionsService.getUserRole(userId, currentUser.tenantId);
+
+      return {
+        permissions,
+        role: userRole,
+        detailedPermissions,
+        includesInherited: true,
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to get detailed permissions');
+    }
+  }
+
+  /**
+   * Check if user has specific permission
+   * Returns detailed information about permission source
+   */
+  @Query(() => PermissionCheckResponse, {
+    description: 'Check if user has specific permission with details',
+  })
+  @UseGuards(PermissionsGuard)
+  @Permissions('permissions:read')
+  async checkPermission(
+    @Args('input') input: CheckPermissionInput,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<PermissionCheckResponse> {
+    try {
+      const userPermissions = await this.permissionsService.getUserPermissions(
+        input.userId,
+        currentUser.tenantId,
+      );
+
+      const hasPermission = this.permissionsService.hasPermission(
+        userPermissions,
+        input.permission,
+      );
+
+      // Determine source of permission
+      let source: string | undefined;
+      if (hasPermission) {
+        const rolePermissions = this.permissionsService.getRolePermissions(
+          await this.permissionsService.getUserRole(input.userId, currentUser.tenantId)
+        );
+        
+        if (rolePermissions.includes(input.permission)) {
+          source = 'role';
+        } else {
+          source = 'direct';
+        }
+      }
+
+      return {
+        hasPermission,
+        source,
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to check permission');
+    }
+  }
+
+  /**
+   * Get all available permissions in the system
+   */
+  @Query(() => AvailablePermissionsResponse, {
+    description: 'Get all available permissions, resources, and actions',
+  })
+  @UseGuards(PermissionsGuard)
+  @Permissions('permissions:read')
+  async getAvailablePermissions(): Promise<AvailablePermissionsResponse> {
+    try {
+      const permissions = this.permissionsService.getAllAvailablePermissions();
+      
+      // Extract resources and actions from permissions
+      const resources = new Set<string>();
+      const actions = new Set<string>();
+
+      permissions.forEach(permission => {
+        const parts = permission.split(':');
+        if (parts.length >= 2) {
+          resources.add(parts[0]);
+          actions.add(parts[1]);
+        }
+      });
+
+      return {
+        permissions,
+        resources: Array.from(resources).sort(),
+        actions: Array.from(actions).sort(),
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to get available permissions');
+    }
+  }
+
+  /**
+   * Bulk grant permissions to multiple users
+   */
+  @Mutation(() => BulkPermissionResponse, {
+    description: 'Grant permissions to multiple users at once',
+  })
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Roles('tenant_admin', 'super_admin')
+  @Permissions('permissions:manage')
+  async bulkGrantPermissions(
+    @Args('input') input: BulkPermissionInput,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<BulkPermissionResponse> {
+    try {
+      const results = await Promise.allSettled(
+        input.userIds.map(async (userId) => {
+          await Promise.all(
+            input.permissions.map(permission =>
+              this.permissionsService.grantPermission(
+                userId,
+                currentUser.tenantId,
+                permission,
+                input.resource,
+                undefined,
+                input.expiresAt ? new Date(input.expiresAt) : undefined,
+                currentUser.id,
+              )
+            )
+          );
+          return userId;
+        })
+      );
+
+      const successful = results.filter(r => r.status === 'fulfilled');
+      const failed = results.filter(r => r.status === 'rejected');
+
+      // Invalidate cache for affected users
+      await Promise.all(
+        successful.map(async (result) => {
+          if (result.status === 'fulfilled') {
+            const cacheKey = `permissions:${currentUser.tenantId}:${result.value}`;
+            await this.cacheService.del(cacheKey);
+          }
+        })
+      );
+
+      return {
+        affectedUsers: successful.length,
+        processedPermissions: successful.length * input.permissions.length,
+        failedUsers: failed.map((_, index) => input.userIds[index]),
+        errors: failed.map(f => f.status === 'rejected' ? f.reason.message : 'Unknown error'),
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to bulk grant permissions');
+    }
+  }
+
+  /**
+   * Bulk revoke permissions from multiple users
+   */
+  @Mutation(() => BulkPermissionResponse, {
+    description: 'Revoke permissions from multiple users at once',
+  })
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Roles('tenant_admin', 'super_admin')
+  @Permissions('permissions:manage')
+  async bulkRevokePermissions(
+    @Args('input') input: BulkPermissionInput,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<BulkPermissionResponse> {
+    try {
+      const results = await Promise.allSettled(
+        input.userIds.map(async (userId) => {
+          await Promise.all(
+            input.permissions.map(permission =>
+              this.permissionsService.revokePermission(
+                userId,
+                currentUser.tenantId,
+                permission,
+                input.resource,
+              )
+            )
+          );
+          return userId;
+        })
+      );
+
+      const successful = results.filter(r => r.status === 'fulfilled');
+      const failed = results.filter(r => r.status === 'rejected');
+
+      // Invalidate cache for affected users
+      await Promise.all(
+        successful.map(async (result) => {
+          if (result.status === 'fulfilled') {
+            const cacheKey = `permissions:${currentUser.tenantId}:${result.value}`;
+            await this.cacheService.del(cacheKey);
+          }
+        })
+      );
+
+      return {
+        affectedUsers: successful.length,
+        processedPermissions: successful.length * input.permissions.length,
+        failedUsers: failed.map((_, index) => input.userIds[index]),
+        errors: failed.map(f => f.status === 'rejected' ? f.reason.message : 'Unknown error'),
+      };
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to bulk revoke permissions');
+    }
+  }
+}
 }

@@ -73,4 +73,72 @@ export class UserPermissionsResponse {
   @Field(() => [Permission])
   @ApiProperty({ description: 'Detailed permission objects', type: [Permission] })
   detailedPermissions!: Permission[];
+
+  @Field()
+  @ApiProperty({ description: 'Whether permissions include inherited role permissions' })
+  includesInherited!: boolean;
+}
+
+/**
+ * Permission check response
+ */
+@ObjectType()
+export class PermissionCheckResponse {
+  @Field()
+  @ApiProperty({ description: 'Whether user has the permission' })
+  hasPermission!: boolean;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Source of permission (role, direct, inherited)', required: false })
+  source?: string;
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Permission expiration date', required: false })
+  expiresAt?: Date;
+}
+
+/**
+ * Bulk permission operation response
+ */
+@ObjectType()
+export class BulkPermissionResponse {
+  @Field()
+  @ApiProperty({ description: 'Number of users affected' })
+  affectedUsers!: number;
+
+  @Field()
+  @ApiProperty({ description: 'Number of permissions processed' })
+  processedPermissions!: number;
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'List of failed user IDs', type: [String] })
+  failedUsers!: string[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Error messages for failed operations', type: [String] })
+  errors!: string[];
+}
+
+/**
+ * Available permissions response
+ */
+@ObjectType()
+export class AvailablePermissionsResponse {
+  @Field(() => [String])
+  @ApiProperty({ description: 'All available permission strings', type: [String] })
+  permissions!: string[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Available resource types', type: [String] })
+  resources!: string[];
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Available actions', type: [String] })
+  actions!: string[];
+}
+  role!: string;
+
+  @Field(() => [Permission])
+  @ApiProperty({ description: 'Detailed permission objects', type: [Permission] })
+  detailedPermissions!: Permission[];
 }

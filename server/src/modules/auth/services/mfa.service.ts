@@ -7,6 +7,7 @@ import { randomBytes } from 'crypto';
 
 import { DrizzleService } from '../../database/drizzle.service';
 import { users } from '../../database/schema/user.schema';
+import { AuthEventsService } from './auth-events.service';
 import { eq, and } from 'drizzle-orm';
 
 export interface MfaSetupResponse {
@@ -30,6 +31,7 @@ export class MfaService {
     private readonly drizzleService: DrizzleService,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly authEventsService: AuthEventsService,
   ) {
     this.appName = this.configService.get<string>('APP_NAME', 'Unified Business Platform');
     this.issuer = this.configService.get<string>('APP_ISSUER', 'Unified Business Platform');
