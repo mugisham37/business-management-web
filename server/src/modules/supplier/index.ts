@@ -23,18 +23,64 @@ export { PurchaseOrderResolver } from './resolvers/purchase-order.resolver';
 export { ProcurementAnalyticsResolver } from './resolvers/procurement-analytics.resolver';
 export { EDIIntegrationResolver } from './resolvers/edi-integration.resolver';
 
-// Entities
+// Entities (primary source for enums: SupplierStatus, SupplierType, SupplierRating, CommunicationType, CommunicationDirection)
 export * from './entities/supplier.entity';
 
-// Types
-export * from './types/supplier.types';
-export * from './types/purchase-order.types';
+// Types (explicitly exclude duplicated enums and inputs)
+export {
+  SupplierTypeEnum,
+  PaymentTerms,
+  SupplierType as SupplierObjectType,
+  SupplierEdge,
+  SupplierConnection,
+  RateSupplierInput,
+} from './types/supplier.types';
+
+export {
+  PurchaseOrderStatus,
+  PurchaseOrderType,
+  PurchaseOrderItemType,
+  PurchaseOrderEdge,
+  PurchaseOrderConnection,
+  PurchaseOrderItemInput,
+} from './types/purchase-order.types';
+
 export * from './types/procurement-analytics.types';
 export * from './types/edi-integration.types';
 
-// Inputs
-export * from './inputs/supplier.input';
-export * from './inputs/purchase-order.input';
+// Inputs (explicitly export to avoid duplicate enum exports)
+export {
+  CreateSupplierInput,
+  UpdateSupplierInput,
+  CreateSupplierContactInput,
+  UpdateSupplierContactInput,
+  CreateSupplierCommunicationInput,
+  UpdateSupplierCommunicationInput,
+  CreateSupplierEvaluationInput,
+  UpdateSupplierEvaluationInput,
+  SupplierFilterInput,
+  DateRangeInput,
+} from './inputs/supplier.input';
+
+export {
+  PurchaseOrderPriority,
+  ApprovalStatus,
+  ReceiptStatus,
+  InvoiceMatchStatus,
+  PaymentStatus,
+  AddressInput,
+  CreatePurchaseOrderItemInput,
+  UpdatePurchaseOrderItemInput,
+  CreatePurchaseOrderInput,
+  UpdatePurchaseOrderInput,
+  CreateApprovalInput,
+  ApprovalResponseInput,
+  CreateReceiptItemInput,
+  CreateReceiptInput,
+  CreateInvoiceItemInput,
+  CreateInvoiceInput,
+  PurchaseOrderFilterInput,
+} from './inputs/purchase-order.input';
 
 // Domain Events
 export {
