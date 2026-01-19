@@ -31,9 +31,9 @@ export class AuthEventsService {
       userId,
       tenantId,
       timestamp: new Date(),
-      metadata,
-      ipAddress,
-      userAgent,
+      ...(metadata !== undefined && { metadata }),
+      ...(ipAddress !== undefined && { ipAddress }),
+      ...(userAgent !== undefined && { userAgent }),
     };
 
     // Emit for internal event handlers

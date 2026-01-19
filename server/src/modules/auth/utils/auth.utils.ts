@@ -218,11 +218,11 @@ export class AuthUtils {
     const now = new Date();
     const match = duration.match(/^(\d+)([smhd])$/);
     
-    if (!match) {
+    if (!match || !match[1] || !match[2]) {
       throw new Error('Invalid duration format');
     }
 
-    const value = parseInt(match[1]);
+    const value = parseInt(match[1], 10);
     const unit = match[2];
 
     switch (unit) {
@@ -308,7 +308,11 @@ export class AuthUtils {
    */
   static extractTenantFromToken(token: string): string | null {
     try {
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const parts = token.split('.');
+      if (parts.length < 2 || !parts[1]) {
+        return null;
+      }
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
       return payload.tenantId || null;
     } catch {
       return null;
@@ -320,7 +324,11 @@ export class AuthUtils {
    */
   static isTokenExpired(token: string): boolean {
     try {
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const parts = token.split('.');
+      if (parts.length < 2 || !parts[1]) {
+        return true;
+      }
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
       return payload.exp * 1000 < Date.now();
     } catch {
       return true;

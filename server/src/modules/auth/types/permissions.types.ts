@@ -136,9 +136,3 @@ export class AvailablePermissionsResponse {
   @ApiProperty({ description: 'Available actions', type: [String] })
   actions!: string[];
 }
-  role!: string;
-
-  @Field(() => [Permission])
-  @ApiProperty({ description: 'Detailed permission objects', type: [Permission] })
-  detailedPermissions!: Permission[];
-}

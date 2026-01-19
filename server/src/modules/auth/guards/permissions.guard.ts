@@ -54,8 +54,4 @@ export class PermissionsGuard implements CanActivate {
 
     return true;
   }
-
-    // Check if user has required permissions
-    return requiredPermissions.some((permission) => user.permissions?.includes(permission));
-  }
 }

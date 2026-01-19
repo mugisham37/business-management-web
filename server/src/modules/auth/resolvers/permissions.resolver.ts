@@ -188,12 +188,10 @@ export class PermissionsResolver extends BaseResolver {
         input.userId,
         currentUser.tenantId,
         input.permission,
+        input.resource,
+        input.resourceId,
+        input.expiresAt ? new Date(input.expiresAt) : undefined,
         currentUser.id,
-        {
-          ...(input.resource && { resource: input.resource }),
-          ...(input.resourceId && { resourceId: input.resourceId }),
-          ...(input.expiresAt && { expiresAt: new Date(input.expiresAt) }),
-        },
       );
 
       // Invalidate cache
@@ -334,7 +332,7 @@ export class PermissionsResolver extends BaseResolver {
   ): Promise<boolean> {
     try {
       const tenantId = currentUser?.tenantId || '';
-      return await this.permissionsService.hasPermission(
+      return await this.permissionsService.checkUserPermission(
         userId,
         tenantId,
         permission,
@@ -427,23 +425,22 @@ export class PermissionsResolver extends BaseResolver {
       );
 
       // Determine source of permission
-      let source: string | undefined;
+      const result: PermissionCheckResponse = { hasPermission };
+      
       if (hasPermission) {
+        const userRole = await this.permissionsService.getUserRole(input.userId, currentUser.tenantId);
         const rolePermissions = this.permissionsService.getRolePermissions(
-          await this.permissionsService.getUserRole(input.userId, currentUser.tenantId)
+          userRole as typeof import('../../database/schema/enums').userRoleEnum.enumValues[number]
         );
         
         if (rolePermissions.includes(input.permission)) {
-          source = 'role';
+          result.source = 'role';
         } else {
-          source = 'direct';
+          result.source = 'direct';
         }
       }
 
-      return {
-        hasPermission,
-        source,
-      };
+      return result;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to check permission');
     }
@@ -467,7 +464,7 @@ export class PermissionsResolver extends BaseResolver {
 
       permissions.forEach(permission => {
         const parts = permission.split(':');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0] && parts[1]) {
           resources.add(parts[0]);
           actions.add(parts[1]);
         }
@@ -532,7 +529,7 @@ export class PermissionsResolver extends BaseResolver {
       return {
         affectedUsers: successful.length,
         processedPermissions: successful.length * input.permissions.length,
-        failedUsers: failed.map((_, index) => input.userIds[index]),
+        failedUsers: failed.map((_, index) => input.userIds[index]).filter((id): id is string => id !== undefined),
         errors: failed.map(f => f.status === 'rejected' ? f.reason.message : 'Unknown error'),
       };
     } catch (error: any) {
@@ -586,12 +583,11 @@ export class PermissionsResolver extends BaseResolver {
       return {
         affectedUsers: successful.length,
         processedPermissions: successful.length * input.permissions.length,
-        failedUsers: failed.map((_, index) => input.userIds[index]),
+        failedUsers: failed.map((_, index) => input.userIds[index]).filter((id): id is string => id !== undefined),
         errors: failed.map(f => f.status === 'rejected' ? f.reason.message : 'Unknown error'),
       };
     } catch (error: any) {
       throw new Error(error.message || 'Failed to bulk revoke permissions');
     }
   }
-}
 }

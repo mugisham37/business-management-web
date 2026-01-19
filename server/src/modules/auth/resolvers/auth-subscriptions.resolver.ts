@@ -63,7 +63,7 @@ export class AuthSubscriptionsResolver {
   async userAuthEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`auth.user.${user.id}`);
+    return this.pubSubService.asyncIterator(`auth.user.${user.id}`, user.tenantId);
   }
 
   /**
@@ -80,7 +80,7 @@ export class AuthSubscriptionsResolver {
   async userPermissionEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`permissions.user.${user.id}`);
+    return this.pubSubService.asyncIterator(`permissions.user.${user.id}`, user.tenantId);
   }
 
   /**
@@ -99,7 +99,7 @@ export class AuthSubscriptionsResolver {
   async tenantAuthEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`auth.tenant.${user.tenantId}`);
+    return this.pubSubService.asyncIterator(`auth.tenant.${user.tenantId}`, user.tenantId);
   }
 
   /**
@@ -122,7 +122,7 @@ export class AuthSubscriptionsResolver {
   async securityAlerts(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`security.tenant.${user.tenantId}`);
+    return this.pubSubService.asyncIterator(`security.tenant.${user.tenantId}`, user.tenantId);
   }
 
   /**
@@ -142,7 +142,7 @@ export class AuthSubscriptionsResolver {
   async userMfaEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`mfa.user.${user.id}`);
+    return this.pubSubService.asyncIterator(`mfa.user.${user.id}`, user.tenantId);
   }
 
   /**
@@ -159,7 +159,7 @@ export class AuthSubscriptionsResolver {
   async userSessionEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`sessions.user.${user.id}`);
+    return this.pubSubService.asyncIterator(`sessions.user.${user.id}`, user.tenantId);
   }
 
   /**
@@ -178,7 +178,7 @@ export class AuthSubscriptionsResolver {
   async tenantRoleEvents(
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`roles.tenant.${user.tenantId}`);
+    return this.pubSubService.asyncIterator(`roles.tenant.${user.tenantId}`, user.tenantId);
   }
 
   /**
@@ -198,6 +198,6 @@ export class AuthSubscriptionsResolver {
     @Args('userId') userId: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.pubSubService.asyncIterator(`auth.user.${userId}`);
+    return this.pubSubService.asyncIterator(`auth.user.${userId}`, user.tenantId);
   }
 }
