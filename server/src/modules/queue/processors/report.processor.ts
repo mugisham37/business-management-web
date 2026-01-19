@@ -14,7 +14,7 @@ export class ReportProcessor {
 
   @Process('generate-report')
   async handleGenerateReport(job: Job<ReportJobData>): Promise<void> {
-    const { reportType, parameters, userId, tenantId, format } = job.data;
+    const { reportType, parameters, userId, tenantId, format = 'pdf' } = job.data;
 
     try {
       this.customLogger.log('Processing report generation job', {

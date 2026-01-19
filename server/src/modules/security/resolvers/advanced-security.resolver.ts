@@ -21,6 +21,7 @@ import {
   UpdateThreatPatternInput,
   BehavioralAnalysisFilterInput,
   CheckAccountCompromiseInput,
+  ThreatPatternFilterInput,
 } from '../inputs/advanced-security.input';
 import {
   ThreatAnalysis,
@@ -108,6 +109,7 @@ export class ThreatManagementResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<ThreatPattern> {
     try {
+      const now = new Date();
       const pattern = {
         id: `pattern_${Date.now()}`,
         name: input.name,
@@ -117,6 +119,8 @@ export class ThreatManagementResolver extends BaseResolver {
         threshold: input.threshold,
         enabled: input.enabled !== false,
         conditions: input.conditions || [],
+        createdAt: now,
+        updatedAt: now,
       };
 
       await this.securityOrchestrator.addThreatPattern(pattern);

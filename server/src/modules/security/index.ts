@@ -105,10 +105,6 @@ export {
   SecurityMetrics,
   ThreatAnalysis as ThreatAnalysisType,
   AccessPattern,
-  SecurityEventType,
-  ThreatSeverity,
-  ThreatStatus,
-  ComplianceStatus,
 } from './types/security.types';
 
 // Advanced Types
@@ -138,12 +134,6 @@ export {
   AuditIntegrityResult,
   AuditSearchResult,
   ComplianceGap,
-  KeyStatus,
-  SSOProvider,
-  TestStatus,
-  DeletionStatus,
-  DeletionReason,
-  AlertStatus,
 } from './types/advanced-security.types';
 
 // ============================================================================
@@ -201,15 +191,7 @@ export {
 export type {
   AuditEvent,
   AuditQuery,
-  ComplianceReport as ComplianceReportInterface,
   AuditViolation,
-  ComplianceFramework as ComplianceFrameworkInterface,
-  ComplianceRequirement as ComplianceRequirementInterface,
-  ComplianceControl,
-  DataRetentionPolicy,
-  ThreatPattern as ThreatPatternInterface,
-  ThreatCondition,
-  ThreatAnalysis as ThreatAnalysisInterface,
 } from './services/audit.service';
 
 // ============================================================================
@@ -222,13 +204,16 @@ export {
   ThreatSeverity,
   ThreatStatus,
   ComplianceStatus,
+} from './types/security.types';
+
+export {
   KeyStatus,
   SSOProvider,
   TestStatus,
   DeletionStatus,
   DeletionReason,
   AlertStatus,
-} from './types/security.types';
+} from './types/advanced-security.types';
 
 // ============================================================================
 // MODULE METADATA

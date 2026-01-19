@@ -278,9 +278,9 @@ export class DataDeletionResolver extends BaseResolver {
   @RateLimitSecurity(10, 86400000) // 10 requests per day
   async processGDPRExport(
     @Args('userId') userId: string,
-    @Args('includeMetadata', { nullable: true }) includeMetadata?: boolean,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('includeMetadata', { nullable: true }) includeMetadata?: boolean,
   ): Promise<any> {
     try {
       return await this.securityOrchestrator.processGDPRExport(
@@ -308,9 +308,9 @@ export class DataDeletionResolver extends BaseResolver {
   @RateLimitSecurity(5, 86400000) // 5 requests per day
   async processGDPRDeletion(
     @Args('userId') userId: string,
-    @Args('reason', { nullable: true }) reason?: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('reason', { nullable: true }) reason?: string,
   ): Promise<DataDeletionRequest> {
     try {
       const request = await this.securityOrchestrator.processGDPRDeletion(
@@ -417,9 +417,9 @@ export class DataDeletionResolver extends BaseResolver {
   async generateComplianceDeletionReport(
     @Args('startDate') startDate: Date,
     @Args('endDate') endDate: Date,
-    @Args('framework', { nullable: true }) framework?: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('framework', { nullable: true }) framework?: string,
   ): Promise<any> {
     try {
       return await this.securityOrchestrator.generateComplianceDeletionReport(

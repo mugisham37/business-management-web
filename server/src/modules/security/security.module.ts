@@ -128,13 +128,4 @@ export class SecurityModule {
     console.log('🧪 Security Testing: Penetration testing, vulnerability management');
     console.log('🗑️  Data Management: GDPR deletion, retention policies');
     console.log('📈 Real-time: Subscriptions for threats, alerts, compliance violations');
-  }
-}
-    ThreatAnalysisGuard,
-    ComplianceGuard,
-    SecurityRateLimitGuard,
-    EncryptionGuard,
-    DataAccessGuard,
-  ],
-})
-export class SecurityModule {}
+  }}

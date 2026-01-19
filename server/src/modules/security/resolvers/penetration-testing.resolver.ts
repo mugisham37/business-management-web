@@ -131,9 +131,9 @@ export class PenetrationTestingResolver extends BaseResolver {
   @ThreatAnalysis('low')
   async cancelPenetrationTest(
     @Args('id') id: string,
-    @Args('reason', { nullable: true }) reason?: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('reason', { nullable: true }) reason?: string,
   ): Promise<boolean> {
     try {
       const result = await this.securityOrchestrator.cancelPenetrationTest(id, reason, user.id);
@@ -222,9 +222,9 @@ export class PenetrationTestingResolver extends BaseResolver {
   async updateVulnerabilityStatus(
     @Args('id') id: string,
     @Args('status') status: string,
-    @Args('notes', { nullable: true }) notes?: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('notes', { nullable: true }) notes?: string,
   ): Promise<PenetrationTestFinding> {
     try {
       return await this.securityOrchestrator.updateVulnerabilityStatus(
@@ -252,10 +252,10 @@ export class PenetrationTestingResolver extends BaseResolver {
   @AuditRequired('vulnerability_report_generated', 'security')
   @RateLimitSecurity(5, 3600000) // 5 reports per hour
   async generateVulnerabilityReport(
-    @Args('testId', { nullable: true }) testId?: string,
-    @Args('includeResolved', { nullable: true }) includeResolved?: boolean,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('testId', { nullable: true }) testId?: string,
+    @Args('includeResolved', { nullable: true }) includeResolved?: boolean,
   ): Promise<VulnerabilityReport> {
     try {
       return await this.securityOrchestrator.generateVulnerabilityReport(
@@ -386,9 +386,9 @@ export class PenetrationTestingResolver extends BaseResolver {
   async scheduleAutomatedTest(
     @Args('testType') testType: string,
     @Args('cronExpression') cronExpression: string,
-    @Args('enabled', { nullable: true }) enabled?: boolean,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('enabled', { nullable: true }) enabled?: boolean,
   ): Promise<boolean> {
     try {
       return await this.securityOrchestrator.scheduleAutomatedTest(
