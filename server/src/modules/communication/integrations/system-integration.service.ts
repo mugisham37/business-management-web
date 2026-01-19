@@ -75,7 +75,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`System error alert sent successfully for error ${errorDetails.errorId}`);
     } catch (error) {
-      this.logger.error(`Failed to send system error alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send system error alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -119,7 +120,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`Performance alert sent successfully for ${performanceDetails.service}`);
     } catch (error) {
-      this.logger.error(`Failed to send performance alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send performance alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -168,7 +170,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`Backup notification sent successfully for backup ${backupDetails.backupId}`);
     } catch (error) {
-      this.logger.error(`Failed to send backup notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send backup notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -226,7 +229,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`Deployment notification sent successfully for ${deploymentDetails.deploymentId}`);
     } catch (error) {
-      this.logger.error(`Failed to send deployment notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send deployment notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -291,7 +295,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`Security incident alert sent successfully for ${incidentDetails.incidentId}`);
     } catch (error) {
-      this.logger.error(`Failed to send security incident alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send security incident alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -366,7 +371,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`System health report sent successfully for ${healthData.reportId}`);
     } catch (error) {
-      this.logger.error(`Failed to send system health report: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send system health report: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -416,7 +422,8 @@ export class SystemCommunicationIntegrationService {
 
       this.logger.log(`Capacity alert sent successfully for ${capacityDetails.resource}`);
     } catch (error) {
-      this.logger.error(`Failed to send capacity alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send capacity alert: ${err.message}`, err.stack);
       throw error;
     }
   }

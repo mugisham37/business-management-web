@@ -36,7 +36,6 @@ export class AuthCommunicationIntegrationService {
         priority: 'medium',
         recipients: {
           userIds: [userId],
-          emails: [userDetails.email],
         },
         templateName: 'welcome_email',
         templateVariables: {
@@ -50,7 +49,8 @@ export class AuthCommunicationIntegrationService {
 
       this.logger.log(`Welcome notification sent successfully to user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to send welcome notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send welcome notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -81,12 +81,12 @@ export class AuthCommunicationIntegrationService {
           <p>If you didn't request this, please ignore this email.</p>
         `,
         text: `Hello ${userDetails.firstName}, you have requested to reset your password. Visit: ${process.env.FRONTEND_URL}/reset-password?token=${userDetails.resetToken}`,
-        priority: 'high',
       });
 
       this.logger.log(`Password reset notification sent successfully to ${userDetails.email}`);
     } catch (error) {
-      this.logger.error(`Failed to send password reset notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send password reset notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -112,7 +112,8 @@ export class AuthCommunicationIntegrationService {
 
       this.logger.log(`2FA OTP sent successfully`);
     } catch (error) {
-      this.logger.error(`Failed to send 2FA OTP: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send 2FA OTP: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -142,12 +143,12 @@ export class AuthCommunicationIntegrationService {
           <p>This link will expire in 24 hours.</p>
         `,
         text: `Hello ${userDetails.firstName}, please verify your account by visiting: ${process.env.FRONTEND_URL}/verify-account?token=${userDetails.verificationToken}`,
-        priority: 'high',
       });
 
       this.logger.log(`Account verification notification sent successfully to ${userDetails.email}`);
     } catch (error) {
-      this.logger.error(`Failed to send account verification notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send account verification notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -193,7 +194,8 @@ export class AuthCommunicationIntegrationService {
 
       this.logger.log(`Security alert sent successfully for user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to send security alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send security alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -221,7 +223,8 @@ export class AuthCommunicationIntegrationService {
 
       this.logger.log(`Session expiry warning sent successfully to user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to send session expiry warning: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send session expiry warning: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -256,12 +259,12 @@ export class AuthCommunicationIntegrationService {
           <p>If you believe this is an error, please contact our support team.</p>
         `,
         text: `Hello ${userDetails.firstName}, your account has been locked due to: ${userDetails.lockoutReason}. ${unlockMessage}`,
-        priority: 'high',
       });
 
       this.logger.log(`Account lockout notification sent successfully to ${userDetails.email}`);
     } catch (error) {
-      this.logger.error(`Failed to send account lockout notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send account lockout notification: ${err.message}`, err.stack);
       throw error;
     }
   }

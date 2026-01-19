@@ -20,6 +20,12 @@ import {
   NotificationOptionsInput,
 } from '../inputs/communication.input';
 
+// Helper function to safely get error message
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+  return String(error);
+};
+
 @Resolver()
 @UseGuards(GraphQLJwtAuthGuard)
 export class SlackResolver {
@@ -30,7 +36,6 @@ export class SlackResolver {
     private readonly slackService: SlackIntegrationService,
   ) {}
 
-  // Queries
   @Query(() => SlackIntegrationConfig, { nullable: true })
   @RequirePermission('communication:slack:read')
   async getSlackConfiguration(
@@ -43,7 +48,7 @@ export class SlackResolver {
       const config = await this.slackService['getSlackConfig'](tenantId);
       return config;
     } catch (error) {
-      this.logger.error(`Failed to get Slack configuration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to get Slack configuration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -59,7 +64,7 @@ export class SlackResolver {
       const config = await this.slackService['getSlackConfig'](tenantId);
       return !!config && !!(config.webhookUrl || config.botToken);
     } catch (error) {
-      this.logger.error(`Failed to check Slack configuration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to check Slack configuration: ${getErrorMessage(error)}`);
       return false;
     }
   }
@@ -79,35 +84,51 @@ export class SlackResolver {
         hasAttachments: !!message.attachments?.length,
       });
 
-      const result = await this.slackService.sendMessage(tenantId, {
+      const messageData: any = {
         channel: message.channel,
         text: message.text,
-        username: message.username,
-        icon_emoji: message.iconEmoji,
-        icon_url: message.iconUrl,
-        attachments: message.attachments?.map(att => ({
-          color: att.color,
-          pretext: att.pretext,
-          title: att.title,
-          text: att.text,
-          fields: att.fields?.map(field => ({
-            title: field.title,
-            value: field.value,
-            short: field.short,
-          })),
-          image_url: att.imageUrl,
-          thumb_url: att.thumbUrl,
-          footer: att.footer,
-          ts: att.timestamp,
-        })),
-        thread_ts: message.threadTs,
-      }, {
-        retryAttempts: options?.retryAttempts,
-        timeout: options?.timeout,
-      });
+      };
+
+      // Add optional message properties if defined
+      if (message.username !== undefined) messageData.username = message.username;
+      if (message.iconEmoji !== undefined) messageData.icon_emoji = message.iconEmoji;
+      if (message.iconUrl !== undefined) messageData.icon_url = message.iconUrl;
+      if (message.threadTs !== undefined) messageData.thread_ts = message.threadTs;
+
+      // Build attachments if present
+      if (message.attachments && message.attachments.length > 0) {
+        messageData.attachments = message.attachments.map(att => {
+          const attachment: any = {};
+          if (att.color !== undefined) attachment.color = att.color;
+          if (att.pretext !== undefined) attachment.pretext = att.pretext;
+          if (att.title !== undefined) attachment.title = att.title;
+          if (att.text !== undefined) attachment.text = att.text;
+          if (att.imageUrl !== undefined) attachment.image_url = att.imageUrl;
+          if (att.thumbUrl !== undefined) attachment.thumb_url = att.thumbUrl;
+          if (att.footer !== undefined) attachment.footer = att.footer;
+          if (att.timestamp !== undefined) attachment.ts = att.timestamp;
+
+          // Build fields if present
+          if (att.fields && att.fields.length > 0) {
+            attachment.fields = att.fields.map(field => ({
+              title: field.title,
+              value: field.value,
+              short: field.short,
+            }));
+          }
+
+          return attachment;
+        });
+      }
+
+      const optionsData: any = {};
+      if (options?.retryAttempts !== undefined) optionsData.retryAttempts = options.retryAttempts;
+      if (options?.timeout !== undefined) optionsData.timeout = options.timeout;
+
+      const result = await this.slackService.sendMessage(tenantId, messageData, optionsData);
 
       // Publish Slack event
-      const event: CommunicationEvent = {
+      const eventPayload: CommunicationEvent = {
         id: `slack_${Date.now()}`,
         type: 'slack_message_sent',
         channel: 'slack' as any,
@@ -123,7 +144,7 @@ export class SlackResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`slack_events_${tenantId}`, { slackEvent: event });
+      await (this.pubSub.publish as any)(`slack_events_${tenantId}`, { slackEvent: eventPayload });
 
       return {
         channel: 'slack',
@@ -133,7 +154,7 @@ export class SlackResolver {
         recipientCount: 1, // Slack channels count as 1 recipient
       };
     } catch (error) {
-      this.logger.error(`Failed to send Slack message: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Slack message: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -152,18 +173,22 @@ export class SlackResolver {
         channel: notification.channel,
       });
 
-      const result = await this.slackService.sendNotification(tenantId, {
+      const notificationData: any = {
         title: notification.title,
         message: notification.message,
         priority: notification.priority,
         type: notification.type,
-        channel: notification.channel,
-        metadata: notification.metadata,
-        actions: notification.actions,
-      });
+      };
+
+      // Only add optional properties if they're defined
+      if (notification.channel !== undefined) notificationData.channel = notification.channel;
+      if (notification.metadata !== undefined) notificationData.metadata = notification.metadata;
+      if (notification.actions !== undefined) notificationData.actions = notification.actions;
+
+      const result = await this.slackService.sendNotification(tenantId, notificationData);
 
       // Publish Slack notification event
-      const event: CommunicationEvent = {
+      const notificationEventPayload: CommunicationEvent = {
         id: `slack_notification_${Date.now()}`,
         type: 'slack_notification_sent',
         channel: 'slack' as any,
@@ -180,7 +205,7 @@ export class SlackResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`slack_events_${tenantId}`, { slackEvent: event });
+      await (this.pubSub.publish as any)(`slack_events_${tenantId}`, { slackEvent: notificationEventPayload });
 
       return {
         channel: 'slack',
@@ -190,7 +215,7 @@ export class SlackResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send Slack notification: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Slack notification: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -210,18 +235,22 @@ export class SlackResolver {
         mentionUsers: alert.mentionUsers?.length || 0,
       });
 
-      const result = await this.slackService.sendAlert(tenantId, {
+      const alertData: any = {
         title: alert.title,
         message: alert.message,
         severity: alert.severity,
-        channel: alert.channel,
-        mentionUsers: alert.mentionUsers,
-        mentionChannel: alert.mentionChannel,
-        metadata: alert.metadata,
-      });
+      };
+
+      // Only add optional properties if they're defined
+      if (alert.channel !== undefined) alertData.channel = alert.channel;
+      if (alert.mentionUsers !== undefined) alertData.mentionUsers = alert.mentionUsers;
+      if (alert.mentionChannel !== undefined) alertData.mentionChannel = alert.mentionChannel;
+      if (alert.metadata !== undefined) alertData.metadata = alert.metadata;
+
+      const result = await this.slackService.sendAlert(tenantId, alertData);
 
       // Publish Slack alert event
-      const event: CommunicationEvent = {
+      const alertEventPayload: CommunicationEvent = {
         id: `slack_alert_${Date.now()}`,
         type: 'slack_alert_sent',
         channel: 'slack' as any,
@@ -238,7 +267,7 @@ export class SlackResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`slack_events_${tenantId}`, { slackEvent: event });
+      await (this.pubSub.publish as any)(`slack_events_${tenantId}`, { slackEvent: alertEventPayload });
 
       return {
         channel: 'slack',
@@ -248,7 +277,7 @@ export class SlackResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send Slack alert: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Slack alert: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -263,22 +292,26 @@ export class SlackResolver {
     try {
       this.logger.log(`Configuring Slack integration for tenant ${tenantId}`);
 
-      await this.slackService.configureIntegration(tenantId, {
+      const configData: any = {
         webhookUrl: config.webhookUrl,
-        botToken: config.botToken,
-        defaultChannel: config.defaultChannel,
-        username: config.username,
-        iconEmoji: config.iconEmoji,
-        iconUrl: config.iconUrl,
-        enableThreads: config.enableThreads,
-        enableMentions: config.enableMentions,
-        mentionUsers: config.mentionUsers,
-        mentionChannels: config.mentionChannels,
-      }, userId);
+      };
+
+      // Only add optional properties if they're defined
+      if (config.botToken !== undefined) configData.botToken = config.botToken;
+      if (config.defaultChannel !== undefined) configData.defaultChannel = config.defaultChannel;
+      if (config.username !== undefined) configData.username = config.username;
+      if (config.iconEmoji !== undefined) configData.iconEmoji = config.iconEmoji;
+      if (config.iconUrl !== undefined) configData.iconUrl = config.iconUrl;
+      if (config.enableThreads !== undefined) configData.enableThreads = config.enableThreads;
+      if (config.enableMentions !== undefined) configData.enableMentions = config.enableMentions;
+      if (config.mentionUsers !== undefined) configData.mentionUsers = config.mentionUsers;
+      if (config.mentionChannels !== undefined) configData.mentionChannels = config.mentionChannels;
+
+      await this.slackService.configureIntegration(tenantId, configData, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to configure Slack integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to configure Slack integration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -298,18 +331,22 @@ export class SlackResolver {
 
       if (config) {
         // Test provided configuration
-        result = await this.slackService.testConfiguration({
+        const testConfig: any = {
           webhookUrl: config.webhookUrl,
-          botToken: config.botToken,
-          defaultChannel: config.defaultChannel,
-          username: config.username,
-          iconEmoji: config.iconEmoji,
-          iconUrl: config.iconUrl,
-          enableThreads: config.enableThreads,
-          enableMentions: config.enableMentions,
-          mentionUsers: config.mentionUsers,
-          mentionChannels: config.mentionChannels,
-        });
+        };
+
+        // Only add optional properties if they're defined
+        if (config.botToken !== undefined) testConfig.botToken = config.botToken;
+        if (config.defaultChannel !== undefined) testConfig.defaultChannel = config.defaultChannel;
+        if (config.username !== undefined) testConfig.username = config.username;
+        if (config.iconEmoji !== undefined) testConfig.iconEmoji = config.iconEmoji;
+        if (config.iconUrl !== undefined) testConfig.iconUrl = config.iconUrl;
+        if (config.enableThreads !== undefined) testConfig.enableThreads = config.enableThreads;
+        if (config.enableMentions !== undefined) testConfig.enableMentions = config.enableMentions;
+        if (config.mentionUsers !== undefined) testConfig.mentionUsers = config.mentionUsers;
+        if (config.mentionChannels !== undefined) testConfig.mentionChannels = config.mentionChannels;
+
+        result = await this.slackService.testConfiguration(testConfig);
       } else {
         // Test existing configuration
         const existingConfig = await this.slackService['getSlackConfig'](tenantId);
@@ -317,6 +354,7 @@ export class SlackResolver {
           return {
             success: false,
             error: 'No Slack configuration found',
+            messageId: undefined,
             responseTime: Date.now() - startTime,
           };
         }
@@ -332,10 +370,11 @@ export class SlackResolver {
         responseTime,
       };
     } catch (error) {
-      this.logger.error(`Failed to test Slack integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to test Slack integration: ${getErrorMessage(error)}`);
       return {
         success: false,
-        error: error.message,
+        error: getErrorMessage(error),
+        messageId: undefined,
         responseTime: 0,
       };
     }
@@ -354,7 +393,7 @@ export class SlackResolver {
       // For now, just return true
       return true;
     } catch (error) {
-      this.logger.error(`Failed to disable Slack integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to disable Slack integration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -372,19 +411,24 @@ export class SlackResolver {
     try {
       this.logger.log(`Sending simple Slack message to ${channel} for tenant ${tenantId}`);
 
-      const message: SlackMessageInput = {
+      const messageData: any = {
         channel,
         text: title ? `*${title}*\n${text}` : text,
-        attachments: title ? [{
+      };
+
+      // Only add attachments if title is provided
+      if (title) {
+        messageData.attachments = [{
           color: color || 'good',
           title,
           text,
-        }] : undefined,
-      };
+        }];
+      }
 
+      const message: SlackMessageInput = messageData;
       return await this.sendSlackMessage(tenantId, userId, message);
     } catch (error) {
-      this.logger.error(`Failed to send simple Slack message: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send simple Slack message: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -396,12 +440,12 @@ export class SlackResolver {
     },
   })
   @RequirePermission('communication:slack:read')
-  async slackEvents(
+  slackEvents(
     @CurrentUser('tenantId') tenantId: string,
   ) {
     this.logger.log(`Subscribing to Slack events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`slack_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`slack_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -412,12 +456,12 @@ export class SlackResolver {
     },
   })
   @RequirePermission('communication:slack:read')
-  async slackAlertEvents(
+  slackAlertEvents(
     @CurrentUser('tenantId') tenantId: string,
   ) {
     this.logger.log(`Subscribing to Slack alert events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`slack_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`slack_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -428,11 +472,11 @@ export class SlackResolver {
     },
   })
   @RequirePermission('communication:slack:read')
-  async slackNotificationEvents(
+  slackNotificationEvents(
     @CurrentUser('tenantId') tenantId: string,
   ) {
     this.logger.log(`Subscribing to Slack notification events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`slack_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`slack_events_${tenantId}`);
   }
 }

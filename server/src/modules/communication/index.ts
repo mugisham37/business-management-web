@@ -140,7 +140,7 @@ export const createCommunicationMetadata = (
   tenantId,
   userId,
   timestamp: new Date(),
-  requestId: `comm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  requestId: `comm_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
   ...additionalData,
 });
 
@@ -190,7 +190,7 @@ export const maskSensitiveData = (data: any): any => {
 };
 
 export const generateTrackingId = (): string => {
-  return `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `track_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
 export const calculateRetryDelay = (attempt: number, baseDelay: number = 1000): number => {
@@ -240,7 +240,9 @@ export const extractVariablesFromTemplate = (template: string): string[] => {
   let match;
   
   while ((match = regex.exec(template)) !== null) {
-    variables.push(match[1].trim());
+    if (match[1]) {
+      variables.push(match[1].trim());
+    }
   }
   
   return [...new Set(variables)]; // Remove duplicates

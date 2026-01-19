@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, registerEnumType, InputType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { GraphQLJSON } from 'graphql-type-json';
 
 // Enums
@@ -81,10 +81,10 @@ registerEnumType(ActionStyle, {
 @ObjectType()
 export class CommunicationChannel {
   @Field(() => CommunicationChannelType)
-  type: CommunicationChannelType;
+  type!: CommunicationChannelType;
 
   @Field()
-  enabled: boolean;
+  enabled!: boolean;
 
   @Field(() => GraphQLJSON, { nullable: true })
   configuration?: any;
@@ -99,16 +99,16 @@ export class CommunicationChannel {
 @ObjectType()
 export class CommunicationResult {
   @Field()
-  channel: string;
+  channel!: string;
 
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
-  messageId?: string;
+  messageId?: string | undefined;
 
   @Field({ nullable: true })
-  error?: string;
+  error?: string | undefined;
 
   @Field({ nullable: true })
   recipientCount?: number;
@@ -117,28 +117,28 @@ export class CommunicationResult {
 @ObjectType()
 export class BulkCommunicationResult {
   @Field()
-  totalChannels: number;
+  totalChannels!: number;
 
   @Field()
-  successfulChannels: number;
+  successfulChannels!: number;
 
   @Field()
-  failedChannels: number;
+  failedChannels!: number;
 
   @Field(() => [CommunicationResult])
-  results: CommunicationResult[];
+  results!: CommunicationResult[];
 
   @Field()
-  overallSuccess: boolean;
+  overallSuccess!: boolean;
 }
 
 @ObjectType()
 export class NotificationAction {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  label: string;
+  label!: string;
 
   @Field({ nullable: true })
   url?: string;
@@ -171,19 +171,19 @@ export class NotificationRecipients {
 @ObjectType()
 export class MultiChannelNotification {
   @Field()
-  title: string;
+  title!: string;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority)
-  priority: NotificationPriority;
+  priority!: NotificationPriority;
 
   @Field()
-  type: string;
+  type!: string;
 
   @Field(() => [CommunicationChannelType])
-  channels: CommunicationChannelType[];
+  channels!: CommunicationChannelType[];
 
   @Field(() => NotificationRecipients, { nullable: true })
   recipients?: NotificationRecipients;
@@ -208,7 +208,7 @@ export class MultiChannelNotification {
 @ObjectType()
 export class EmailAttachment {
   @Field()
-  filename: string;
+  filename!: string;
 
   @Field({ nullable: true })
   contentType?: string;
@@ -223,7 +223,7 @@ export class EmailAttachment {
 @ObjectType()
 export class EmailMessage {
   @Field(() => [String])
-  to: string[];
+  to!: string[];
 
   @Field(() => [String], { nullable: true })
   cc?: string[];
@@ -232,7 +232,7 @@ export class EmailMessage {
   bcc?: string[];
 
   @Field()
-  subject: string;
+  subject!: string;
 
   @Field({ nullable: true })
   text?: string;
@@ -256,19 +256,19 @@ export class EmailMessage {
 @ObjectType()
 export class EmailTemplate {
   @Field()
-  name: string;
+  name!: string;
 
   @Field()
-  subject: string;
+  subject!: string;
 
   @Field()
-  htmlTemplate: string;
+  htmlTemplate!: string;
 
   @Field({ nullable: true })
   textTemplate?: string;
 
   @Field(() => [String])
-  variables: string[];
+  variables!: string[];
 
   @Field({ nullable: true })
   category?: string;
@@ -277,40 +277,40 @@ export class EmailTemplate {
 @ObjectType()
 export class EmailProvider {
   @Field(() => EmailProviderType)
-  type: EmailProviderType;
+  type!: EmailProviderType;
 
   @Field(() => GraphQLJSON)
-  configuration: any;
+  configuration!: any;
 
   @Field()
-  isEnabled: boolean;
+  isEnabled!: boolean;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @ObjectType()
 export class BulkEmailResult {
   @Field()
-  totalSent: number;
+  totalSent!: number;
 
   @Field()
-  totalFailed: number;
+  totalFailed!: number;
 
   @Field(() => [EmailSendResult])
-  results: EmailSendResult[];
+  results!: EmailSendResult[];
 }
 
 @ObjectType()
 export class EmailSendResult {
   @Field(() => ID)
-  userId: string;
+  userId!: string;
 
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
   error?: string;
@@ -323,10 +323,10 @@ export class EmailSendResult {
 @ObjectType()
 export class SMSMessage {
   @Field(() => [String])
-  to: string[];
+  to!: string[];
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field({ nullable: true })
   from?: string;
@@ -347,13 +347,13 @@ export class SMSMessage {
 @ObjectType()
 export class SMSTemplate {
   @Field()
-  name: string;
+  name!: string;
 
   @Field()
-  message: string;
+  message!: string;
 
   @Field(() => [String])
-  variables: string[];
+  variables!: string[];
 
   @Field({ nullable: true })
   category?: string;
@@ -365,40 +365,40 @@ export class SMSTemplate {
 @ObjectType()
 export class SMSProvider {
   @Field(() => SMSProviderType)
-  type: SMSProviderType;
+  type!: SMSProviderType;
 
   @Field(() => GraphQLJSON)
-  configuration: any;
+  configuration!: any;
 
   @Field()
-  isEnabled: boolean;
+  isEnabled!: boolean;
 
   @Field()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @ObjectType()
 export class BulkSMSResult {
   @Field()
-  totalSent: number;
+  totalSent!: number;
 
   @Field()
-  totalFailed: number;
+  totalFailed!: number;
 
   @Field(() => [SMSSendResult])
-  results: SMSSendResult[];
+  results!: SMSSendResult[];
 }
 
 @ObjectType()
 export class SMSSendResult {
   @Field(() => ID)
-  userId: string;
+  userId!: string;
 
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
   error?: string;
@@ -441,10 +441,10 @@ export class SlackAttachment {
 @ObjectType()
 export class SlackField {
   @Field()
-  title: string;
+  title!: string;
 
   @Field()
-  value: string;
+  value!: string;
 
   @Field({ nullable: true })
   short?: boolean;
@@ -453,10 +453,10 @@ export class SlackField {
 @ObjectType()
 export class SlackMessage {
   @Field()
-  channel: string;
+  channel!: string;
 
   @Field()
-  text: string;
+  text!: string;
 
   @Field({ nullable: true })
   username?: string;
@@ -477,7 +477,7 @@ export class SlackMessage {
 @ObjectType()
 export class SlackIntegrationConfig {
   @Field()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @Field({ nullable: true })
   botToken?: string;
@@ -532,10 +532,10 @@ export class TeamsSection {
 @ObjectType()
 export class TeamsFact {
   @Field()
-  name: string;
+  name!: string;
 
   @Field()
-  value: string;
+  value!: string;
 }
 
 @ObjectType()
@@ -556,7 +556,7 @@ export class TeamsMessage {
 @ObjectType()
 export class TeamsIntegrationConfig {
   @Field()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @Field({ nullable: true })
   defaultTitle?: string;
@@ -581,13 +581,13 @@ export class TeamsIntegrationConfig {
 @ObjectType()
 export class ChannelTestResult {
   @Field()
-  channel: string;
+  channel!: string;
 
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
-  error?: string;
+  error?: string | undefined;
 
   @Field({ nullable: true })
   responseTime?: number;
@@ -596,13 +596,13 @@ export class ChannelTestResult {
 @ObjectType()
 export class IntegrationTestResult {
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
-  error?: string;
+  error?: string | undefined;
 
   @Field({ nullable: true })
-  messageId?: string;
+  messageId?: string | undefined;
 
   @Field({ nullable: true })
   responseTime?: number;
@@ -612,48 +612,48 @@ export class IntegrationTestResult {
 @ObjectType()
 export class CommunicationStats {
   @Field()
-  totalSent: number;
+  totalSent!: number;
 
   @Field()
-  totalFailed: number;
+  totalFailed!: number;
 
   @Field()
-  successRate: number;
+  successRate!: number;
 
   @Field(() => GraphQLJSON)
-  channelBreakdown: Record<string, number>;
+  channelBreakdown!: Record<string, number>;
 
   @Field(() => GraphQLJSON)
-  priorityBreakdown: Record<string, number>;
+  priorityBreakdown!: Record<string, number>;
 
   @Field()
-  period: string;
+  period!: string;
 
   @Field()
-  generatedAt: Date;
+  generatedAt!: Date;
 }
 
 @ObjectType()
 export class ChannelUsageStats {
   @Field(() => CommunicationChannelType)
-  channel: CommunicationChannelType;
+  channel!: CommunicationChannelType;
 
   @Field()
-  totalMessages: number;
+  totalMessages!: number;
 
   @Field()
-  successfulMessages: number;
+  successfulMessages!: number;
 
   @Field()
-  failedMessages: number;
+  failedMessages!: number;
 
   @Field()
-  successRate: number;
+  successRate!: number;
 
   @Field()
-  averageResponseTime: number;
+  averageResponseTime!: number;
 
-  @Field()
+  @Field({ nullable: true })
   lastUsed?: Date;
 }
 
@@ -661,40 +661,40 @@ export class ChannelUsageStats {
 @ObjectType()
 export class CommunicationEvent {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  type: string;
+  type!: string;
 
   @Field(() => CommunicationChannelType)
-  channel: CommunicationChannelType;
+  channel!: CommunicationChannelType;
 
   @Field()
-  success: boolean;
+  success!: boolean;
 
   @Field({ nullable: true })
-  error?: string;
+  error?: string | undefined;
 
   @Field(() => GraphQLJSON, { nullable: true })
   metadata?: Record<string, any>;
 
   @Field()
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => ID)
-  tenantId: string;
+  tenantId!: string;
 }
 
 @ObjectType()
 export class NotificationDeliveryStatus {
   @Field(() => ID)
-  notificationId: string;
+  notificationId!: string;
 
   @Field(() => CommunicationChannelType)
-  channel: CommunicationChannelType;
+  channel!: CommunicationChannelType;
 
   @Field()
-  status: string;
+  status!: string;
 
   @Field({ nullable: true })
   deliveredAt?: Date;

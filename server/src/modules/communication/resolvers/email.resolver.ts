@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Subscription, Context } from '@nestjs/graphql';
 import { UseGuards, Logger } from '@nestjs/common';
-import { PubSub } from 'graphql-subscriptions';
+import { PubSubService } from '../../../common/graphql/pubsub.service';
 import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
@@ -25,11 +25,27 @@ import {
 @UseGuards(GraphQLJwtAuthGuard)
 export class EmailResolver {
   private readonly logger = new Logger(EmailResolver.name);
-  private readonly pubSub = new PubSub();
 
   constructor(
     private readonly emailService: EmailNotificationService,
+    private readonly pubSub: PubSubService,
   ) {}
+
+  /**
+   * Map NotificationPriority to email service priority format
+   */
+  private mapNotificationPriorityToEmailPriority(priority: string): 'high' | 'normal' | 'low' {
+    switch (priority) {
+      case 'urgent':
+      case 'high':
+        return 'high';
+      case 'low':
+        return 'low';
+      case 'medium':
+      default:
+        return 'normal';
+    }
+  }
 
   // Queries
   @Query(() => [EmailTemplate])
@@ -61,7 +77,8 @@ export class EmailResolver {
         },
       ];
     } catch (error) {
-      this.logger.error(`Failed to get email templates: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get email templates: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -90,7 +107,8 @@ export class EmailResolver {
         },
       ];
     } catch (error) {
-      this.logger.error(`Failed to get email providers: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get email providers: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -108,7 +126,8 @@ export class EmailResolver {
       const template = await this.emailService['getEmailTemplate'](tenantId, name);
       return template;
     } catch (error) {
-      this.logger.error(`Failed to get email template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get email template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -130,18 +149,18 @@ export class EmailResolver {
 
       const result = await this.emailService.sendEmail(tenantId, {
         to: message.to,
-        cc: message.cc,
-        bcc: message.bcc,
+        ...(message.cc && { cc: message.cc }),
+        ...(message.bcc && { bcc: message.bcc }),
         subject: message.subject,
-        text: message.text,
-        html: message.html,
-        attachments: message.attachments,
-        replyTo: message.replyTo,
-        priority: message.priority,
-        headers: message.headers,
+        ...(message.text && { text: message.text }),
+        ...(message.html && { html: message.html }),
+        ...(message.attachments && { attachments: message.attachments }),
+        ...(message.replyTo && { replyTo: message.replyTo }),
+        ...(message.priority && { priority: this.mapNotificationPriorityToEmailPriority(message.priority) }),
+        ...(message.headers && { headers: message.headers }),
       }, {
-        retryAttempts: options?.retryAttempts,
-        timeout: options?.timeout,
+        ...(options?.retryAttempts !== undefined && { retryAttempts: options.retryAttempts }),
+        ...(options?.timeout !== undefined && { timeout: options.timeout }),
       });
 
       // Publish email event
@@ -150,7 +169,7 @@ export class EmailResolver {
         type: 'email_sent',
         channel: 'email' as any,
         success: result.success,
-        error: result.error,
+        ...(result.error && { error: result.error }),
         metadata: {
           recipients: message.to.length,
           subject: message.subject,
@@ -160,17 +179,21 @@ export class EmailResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`email_events_${tenantId}`, { emailEvent: event });
+      await this.pubSub.publish(`email_events_${tenantId}`, { 
+        emailEvent: event,
+        tenantId,
+      });
 
       return {
         channel: 'email',
         success: result.success,
-        messageId: result.messageId,
-        error: result.error,
+        ...(result.messageId && { messageId: result.messageId }),
+        ...(result.error && { error: result.error }),
         recipientCount: message.to.length,
       };
     } catch (error) {
-      this.logger.error(`Failed to send email: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send email: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -196,15 +219,15 @@ export class EmailResolver {
         {
           subject: notification.subject,
           message: notification.message,
-          htmlContent: notification.htmlContent,
-          priority: notification.priority,
-          templateName: notification.templateName,
-          templateVariables: notification.templateVariables,
-          attachments: notification.attachments,
+          ...(notification.htmlContent && { htmlContent: notification.htmlContent }),
+          ...(notification.priority && { priority: this.mapNotificationPriorityToEmailPriority(notification.priority) }),
+          ...(notification.templateName && { templateName: notification.templateName }),
+          ...(notification.templateVariables && { templateVariables: notification.templateVariables }),
+          ...(notification.attachments && { attachments: notification.attachments }),
         },
         {
-          batchSize: options?.batchSize,
-          delayBetweenBatches: options?.delayBetweenBatches,
+          ...(options?.batchSize !== undefined && { batchSize: options.batchSize }),
+          ...(options?.delayBetweenBatches !== undefined && { delayBetweenBatches: options.delayBetweenBatches }),
         },
       );
 
@@ -214,7 +237,7 @@ export class EmailResolver {
         type: 'bulk_email_sent',
         channel: 'email' as any,
         success: result.totalSent > 0,
-        error: result.totalSent === 0 ? 'No emails sent successfully' : undefined,
+        ...(result.totalSent === 0 && { error: 'No emails sent successfully' }),
         metadata: {
           totalUsers: userIds.length,
           totalSent: result.totalSent,
@@ -225,11 +248,15 @@ export class EmailResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`email_events_${tenantId}`, { emailEvent: event });
+      await this.pubSub.publish(`email_events_${tenantId}`, { 
+        emailEvent: event,
+        tenantId,
+      });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send bulk email: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send bulk email: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -248,14 +275,15 @@ export class EmailResolver {
         name: template.name,
         subject: template.subject,
         htmlTemplate: template.htmlTemplate,
-        textTemplate: template.textTemplate,
+        ...(template.textTemplate && { textTemplate: template.textTemplate }),
         variables: template.variables,
-        category: template.category,
+        ...(template.category && { category: template.category }),
       }, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to create email template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to create email template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -276,14 +304,15 @@ export class EmailResolver {
         name: template.name,
         subject: template.subject,
         htmlTemplate: template.htmlTemplate,
-        textTemplate: template.textTemplate,
+        ...(template.textTemplate && { textTemplate: template.textTemplate }),
         variables: template.variables,
-        category: template.category,
+        ...(template.category && { category: template.category }),
       }, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to update email template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to update email template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -302,7 +331,8 @@ export class EmailResolver {
       // For now, just return true
       return true;
     } catch (error) {
-      this.logger.error(`Failed to delete email template: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to delete email template: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -324,7 +354,8 @@ export class EmailResolver {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to configure email provider: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to configure email provider: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -348,18 +379,19 @@ export class EmailResolver {
         text: 'This is a test email to verify your email configuration.',
         html: '<p>This is a test email to verify your email configuration.</p>',
       }, {
-        provider: providerType,
+        ...(providerType && { provider: providerType }),
       });
 
       return {
         channel: 'email',
         success: result.success,
-        messageId: result.messageId,
-        error: result.error,
+        ...(result.messageId && { messageId: result.messageId }),
+        ...(result.error && { error: result.error }),
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to test email provider: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to test email provider: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -376,7 +408,7 @@ export class EmailResolver {
   ) {
     this.logger.log(`Subscribing to email events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`email_events_${tenantId}`);
+    return this.pubSub.asyncIterator(`email_events_${tenantId}`, tenantId);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -392,6 +424,6 @@ export class EmailResolver {
   ) {
     this.logger.log(`Subscribing to bulk email events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`email_events_${tenantId}`);
+    return this.pubSub.asyncIterator(`email_events_${tenantId}`, tenantId);
   }
 }

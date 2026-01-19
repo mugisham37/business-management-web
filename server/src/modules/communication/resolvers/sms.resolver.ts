@@ -22,6 +22,12 @@ import {
   NotificationOptionsInput,
 } from '../inputs/communication.input';
 
+// Helper function to safely get error message
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message;
+  return String(error);
+};
+
 @Resolver()
 @UseGuards(GraphQLJwtAuthGuard)
 export class SMSResolver {
@@ -67,7 +73,7 @@ export class SMSResolver {
         },
       ];
     } catch (error) {
-      this.logger.error(`Failed to get SMS templates: ${error.message}`, error.stack);
+      this.logger.error(`Failed to get SMS templates: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -96,7 +102,7 @@ export class SMSResolver {
         },
       ];
     } catch (error) {
-      this.logger.error(`Failed to get SMS providers: ${error.message}`, error.stack);
+      this.logger.error(`Failed to get SMS providers: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -114,7 +120,7 @@ export class SMSResolver {
       const template = await this.smsService['getSMSTemplate'](tenantId, name);
       return template;
     } catch (error) {
-      this.logger.error(`Failed to get SMS template: ${error.message}`, error.stack);
+      this.logger.error(`Failed to get SMS template: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -134,18 +140,21 @@ export class SMSResolver {
         messageLength: message.message.length,
       });
 
-      const result = await this.smsService.sendSMS(tenantId, {
+      const smsData: any = {
         to: message.to,
         message: message.message,
-        from: message.from,
-        mediaUrls: message.mediaUrls,
-        scheduledAt: message.scheduledAt,
-        validityPeriod: message.validityPeriod,
-        priority: message.priority,
-      }, {
-        retryAttempts: options?.retryAttempts,
-        timeout: options?.timeout,
-      });
+      };
+      if (message.from !== undefined) smsData.from = message.from;
+      if (message.mediaUrls !== undefined) smsData.mediaUrls = message.mediaUrls;
+      if (message.scheduledAt !== undefined) smsData.scheduledAt = message.scheduledAt;
+      if (message.validityPeriod !== undefined) smsData.validityPeriod = message.validityPeriod;
+      if (message.priority !== undefined) smsData.priority = message.priority;
+
+      const smsOptions: any = {};
+      if (options?.retryAttempts !== undefined) smsOptions.retryAttempts = options.retryAttempts;
+      if (options?.timeout !== undefined) smsOptions.timeout = options.timeout;
+
+      const result = await this.smsService.sendSMS(tenantId, smsData, smsOptions);
 
       // Publish SMS event
       const event: CommunicationEvent = {
@@ -174,7 +183,7 @@ export class SMSResolver {
         recipientCount: message.to.length,
       };
     } catch (error) {
-      this.logger.error(`Failed to send SMS: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send SMS: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -199,14 +208,14 @@ export class SMSResolver {
         userIds,
         {
           message: notification.message,
-          priority: notification.priority,
-          templateName: notification.templateName,
-          templateVariables: notification.templateVariables,
-          scheduledAt: notification.scheduledAt,
+          ...(notification.priority !== undefined && { priority: notification.priority as any }),
+          ...(notification.templateName !== undefined && { templateName: notification.templateName }),
+          ...(notification.templateVariables !== undefined && { templateVariables: notification.templateVariables }),
+          ...(notification.scheduledAt !== undefined && { scheduledAt: notification.scheduledAt }),
         },
         {
-          batchSize: options?.batchSize,
-          delayBetweenBatches: options?.delayBetweenBatches,
+          ...(options?.batchSize !== undefined && { batchSize: options.batchSize }),
+          ...(options?.delayBetweenBatches !== undefined && { delayBetweenBatches: options.delayBetweenBatches }),
         },
       );
 
@@ -232,7 +241,7 @@ export class SMSResolver {
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send bulk SMS: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send bulk SMS: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -251,14 +260,15 @@ export class SMSResolver {
         validityMinutes: otp.validityMinutes,
       });
 
+      const otpOptions: any = {};
+      if (otp.validityMinutes !== undefined) otpOptions.validityMinutes = otp.validityMinutes;
+      if (otp.brandName !== undefined) otpOptions.brandName = otp.brandName;
+
       const result = await this.smsService.sendOTP(
         tenantId,
         otp.phoneNumber,
         otp.otp,
-        {
-          validityMinutes: otp.validityMinutes,
-          brandName: otp.brandName,
-        },
+        otpOptions,
       );
 
       // Publish OTP event
@@ -287,7 +297,7 @@ export class SMSResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send OTP SMS: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send OTP: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -346,7 +356,7 @@ export class SMSResolver {
         recipientCount: phoneNumbers.length,
       };
     } catch (error) {
-      this.logger.error(`Failed to send SMS alert: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send SMS alert: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -361,17 +371,19 @@ export class SMSResolver {
     try {
       this.logger.log(`Creating SMS template ${template.name} for tenant ${tenantId}`);
 
-      await this.smsService.createTemplate(tenantId, {
+      const templateData: any = {
         name: template.name,
         message: template.message,
         variables: template.variables,
-        category: template.category,
-        maxLength: template.maxLength,
-      }, userId);
+      };
+      if (template.category !== undefined) templateData.category = template.category;
+      if (template.maxLength !== undefined) templateData.maxLength = template.maxLength;
+
+      await this.smsService.createTemplate(tenantId, templateData, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to create SMS template: ${error.message}`, error.stack);
+      this.logger.error(`Failed to create SMS template: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -387,18 +399,20 @@ export class SMSResolver {
     try {
       this.logger.log(`Updating SMS template ${name} for tenant ${tenantId}`);
 
-      // This would update the template in database
-      await this.smsService.createTemplate(tenantId, {
+      const updateData: any = {
         name: template.name,
         message: template.message,
         variables: template.variables,
-        category: template.category,
-        maxLength: template.maxLength,
-      }, userId);
+      };
+      if (template.category !== undefined) updateData.category = template.category;
+      if (template.maxLength !== undefined) updateData.maxLength = template.maxLength;
+
+      // This would update the template in database
+      await this.smsService.createTemplate(tenantId, updateData, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to update SMS template: ${error.message}`, error.stack);
+      this.logger.error(`Failed to update SMS template: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -417,7 +431,7 @@ export class SMSResolver {
       // For now, just return true
       return true;
     } catch (error) {
-      this.logger.error(`Failed to delete SMS template: ${error.message}`, error.stack);
+      this.logger.error(`Failed to delete SMS template: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -439,7 +453,7 @@ export class SMSResolver {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to configure SMS provider: ${error.message}`, error.stack);
+      this.logger.error(`Failed to configure SMS provider: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -457,12 +471,13 @@ export class SMSResolver {
         phoneNumber: this.maskPhoneNumber(phoneNumber),
       });
 
+      const testOptions: any = {};
+      if (providerType !== undefined) testOptions.provider = providerType;
+
       const result = await this.smsService.sendSMS(tenantId, {
         to: [phoneNumber],
         message: 'This is a test SMS from Business Platform to verify your SMS configuration.',
-      }, {
-        provider: providerType,
-      });
+      }, testOptions);
 
       return {
         channel: 'sms',
@@ -472,7 +487,7 @@ export class SMSResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to test SMS provider: ${error.message}`, error.stack);
+      this.logger.error(`Failed to test SMS provider: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -489,7 +504,7 @@ export class SMSResolver {
   ) {
     this.logger.log(`Subscribing to SMS events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`sms_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`sms_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -505,7 +520,7 @@ export class SMSResolver {
   ) {
     this.logger.log(`Subscribing to bulk SMS events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`sms_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`sms_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -521,7 +536,7 @@ export class SMSResolver {
   ) {
     this.logger.log(`Subscribing to OTP events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`sms_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`sms_events_${tenantId}`);
   }
 
   // Helper methods

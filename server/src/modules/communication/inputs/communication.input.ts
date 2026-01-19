@@ -15,11 +15,11 @@ import {
 export class NotificationActionInput {
   @Field(() => ID)
   @IsString()
-  id: string;
+  id!: string;
 
   @Field()
   @IsString()
-  label: string;
+  label!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -49,7 +49,7 @@ export class NotificationRecipientsInput {
   @Field(() => [String], { nullable: true })
   @IsOptional()
   @IsArray()
-  @IsPhoneNumber(null, { each: true })
+  @IsPhoneNumber(undefined, { each: true })
   phoneNumbers?: string[];
 
   @Field(() => [String], { nullable: true })
@@ -112,24 +112,24 @@ export class NotificationOptionsInput {
 export class MultiChannelNotificationInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority)
   @IsEnum(NotificationPriority)
-  priority: NotificationPriority;
+  priority!: NotificationPriority;
 
   @Field()
   @IsString()
-  type: string;
+  type!: string;
 
   @Field(() => [CommunicationChannelType])
   @IsArray()
   @IsEnum(CommunicationChannelType, { each: true })
-  channels: CommunicationChannelType[];
+  channels!: CommunicationChannelType[];
 
   @Field(() => NotificationRecipientsInput, { nullable: true })
   @IsOptional()
@@ -168,15 +168,15 @@ export class MultiChannelNotificationInput {
 export class AlertInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => AlertSeverity)
   @IsEnum(AlertSeverity)
-  severity: AlertSeverity;
+  severity!: AlertSeverity;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -202,15 +202,15 @@ export class AlertInput {
 export class BusinessNotificationInput {
   @Field()
   @IsString()
-  type: string;
+  type!: string;
 
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority, { nullable: true })
   @IsOptional()
@@ -240,7 +240,7 @@ export class BusinessNotificationInput {
 export class EmailAttachmentInput {
   @Field()
   @IsString()
-  filename: string;
+  filename!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -262,7 +262,7 @@ export class EmailMessageInput {
   @Field(() => [String])
   @IsArray()
   @IsEmail({}, { each: true })
-  to: string[];
+  to!: string[];
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
@@ -278,7 +278,7 @@ export class EmailMessageInput {
 
   @Field()
   @IsString()
-  subject: string;
+  subject!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -314,11 +314,11 @@ export class EmailMessageInput {
 export class EmailNotificationInput {
   @Field()
   @IsString()
-  subject: string;
+  subject!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -349,15 +349,15 @@ export class EmailNotificationInput {
 export class EmailTemplateInput {
   @Field()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field()
   @IsString()
-  subject: string;
+  subject!: string;
 
   @Field()
   @IsString()
-  htmlTemplate: string;
+  htmlTemplate!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -367,7 +367,7 @@ export class EmailTemplateInput {
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
-  variables: string[];
+  variables!: string[];
 
   @Field({ nullable: true })
   @IsOptional()
@@ -379,10 +379,10 @@ export class EmailTemplateInput {
 export class EmailProviderConfigInput {
   @Field(() => EmailProviderType)
   @IsEnum(EmailProviderType)
-  type: EmailProviderType;
+  type!: EmailProviderType;
 
   @Field(() => GraphQLJSON)
-  configuration: any;
+  configuration!: any;
 }
 
 // SMS Input Types
@@ -390,12 +390,12 @@ export class EmailProviderConfigInput {
 export class SMSMessageInput {
   @Field(() => [String])
   @IsArray()
-  @IsPhoneNumber(null, { each: true })
-  to: string[];
+  @IsPhoneNumber(undefined, { each: true })
+  to!: string[];
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -430,7 +430,7 @@ export class SMSMessageInput {
 export class SMSNotificationInput {
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority, { nullable: true })
   @IsOptional()
@@ -456,16 +456,16 @@ export class SMSNotificationInput {
 export class SMSTemplateInput {
   @Field()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
-  variables: string[];
+  variables!: string[];
 
   @Field({ nullable: true })
   @IsOptional()
@@ -484,21 +484,21 @@ export class SMSTemplateInput {
 export class SMSProviderConfigInput {
   @Field(() => SMSProviderType)
   @IsEnum(SMSProviderType)
-  type: SMSProviderType;
+  type!: SMSProviderType;
 
   @Field(() => GraphQLJSON)
-  configuration: any;
+  configuration!: any;
 }
 
 @InputType()
 export class OTPInput {
   @Field()
   @IsPhoneNumber()
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @Field()
   @IsString()
-  otp: string;
+  otp!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -518,11 +518,11 @@ export class OTPInput {
 export class SlackFieldInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  value: string;
+  value!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -582,11 +582,11 @@ export class SlackAttachmentInput {
 export class SlackMessageInput {
   @Field()
   @IsString()
-  channel: string;
+  channel!: string;
 
   @Field()
   @IsString()
-  text: string;
+  text!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -618,19 +618,19 @@ export class SlackMessageInput {
 export class SlackNotificationInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority)
   @IsEnum(NotificationPriority)
-  priority: NotificationPriority;
+  priority!: NotificationPriority;
 
   @Field()
   @IsString()
-  type: string;
+  type!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -651,15 +651,15 @@ export class SlackNotificationInput {
 export class SlackAlertInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => AlertSeverity)
   @IsEnum(AlertSeverity)
-  severity: AlertSeverity;
+  severity!: AlertSeverity;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -686,7 +686,7 @@ export class SlackAlertInput {
 export class SlackIntegrationConfigInput {
   @Field()
   @IsUrl()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -741,11 +741,11 @@ export class SlackIntegrationConfigInput {
 export class TeamsFactInput {
   @Field()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field()
   @IsString()
-  value: string;
+  value!: string;
 }
 
 @InputType()
@@ -808,19 +808,19 @@ export class TeamsMessageInput {
 export class TeamsNotificationInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => NotificationPriority)
   @IsEnum(NotificationPriority)
-  priority: NotificationPriority;
+  priority!: NotificationPriority;
 
   @Field()
   @IsString()
-  type: string;
+  type!: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -836,15 +836,15 @@ export class TeamsNotificationInput {
 export class TeamsAlertInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field()
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => AlertSeverity)
   @IsEnum(AlertSeverity)
-  severity: AlertSeverity;
+  severity!: AlertSeverity;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -865,7 +865,7 @@ export class TeamsAlertInput {
 export class TeamsRichCardInput {
   @Field()
   @IsString()
-  title: string;
+  title!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -884,7 +884,7 @@ export class TeamsRichCardInput {
 
   @Field(() => [TeamsSectionInput])
   @IsArray()
-  sections: TeamsSectionInput[];
+  sections!: TeamsSectionInput[];
 
   @Field(() => [NotificationActionInput], { nullable: true })
   @IsOptional()
@@ -896,7 +896,7 @@ export class TeamsRichCardInput {
 export class TeamsIntegrationConfigInput {
   @Field()
   @IsUrl()
-  webhookUrl: string;
+  webhookUrl!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -935,11 +935,11 @@ export class TeamsIntegrationConfigInput {
 export class CommunicationChannelConfigInput {
   @Field(() => CommunicationChannelType)
   @IsEnum(CommunicationChannelType)
-  type: CommunicationChannelType;
+  type!: CommunicationChannelType;
 
   @Field()
   @IsBoolean()
-  enabled: boolean;
+  enabled!: boolean;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()

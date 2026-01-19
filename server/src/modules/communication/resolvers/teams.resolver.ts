@@ -21,6 +21,12 @@ import {
   NotificationOptionsInput,
 } from '../inputs/communication.input';
 
+// Helper function for safe error message extraction
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 @Resolver()
 @UseGuards(GraphQLJwtAuthGuard)
 export class TeamsResolver {
@@ -44,7 +50,7 @@ export class TeamsResolver {
       const config = await this.teamsService['getTeamsConfig'](tenantId);
       return config;
     } catch (error) {
-      this.logger.error(`Failed to get Teams configuration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to get Teams configuration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -60,7 +66,7 @@ export class TeamsResolver {
       const config = await this.teamsService['getTeamsConfig'](tenantId);
       return !!config && !!config.webhookUrl;
     } catch (error) {
-      this.logger.error(`Failed to check Teams configuration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to check Teams configuration: ${getErrorMessage(error)}`);
       return false;
     }
   }
@@ -80,24 +86,28 @@ export class TeamsResolver {
         themeColor: message.themeColor,
       });
 
-      const result = await this.teamsService.sendMessage(tenantId, {
-        text: message.text,
-        summary: message.summary,
-        themeColor: message.themeColor,
-        sections: message.sections?.map(section => ({
+      const messageData: any = {};
+      if (message.text !== undefined) messageData.text = message.text;
+      if (message.summary !== undefined) messageData.summary = message.summary;
+      if (message.themeColor !== undefined) messageData.themeColor = message.themeColor;
+      if (message.sections !== undefined) messageData.sections = message.sections?.map(section => {
+        const sectionData: any = {
           activityTitle: section.activityTitle,
-          activitySubtitle: section.activitySubtitle,
-          activityImage: section.activityImage,
-          facts: section.facts?.map(fact => ({
-            name: fact.name,
-            value: fact.value,
-          })),
-          markdown: section.markdown,
-          text: section.text,
-        })),
-      }, {
-        retryAttempts: options?.retryAttempts,
-        timeout: options?.timeout,
+        };
+        if (section.activitySubtitle !== undefined) sectionData.activitySubtitle = section.activitySubtitle;
+        if (section.activityImage !== undefined) sectionData.activityImage = section.activityImage;
+        if (section.facts !== undefined) sectionData.facts = section.facts?.map(fact => ({
+          name: fact.name,
+          value: fact.value,
+        }));
+        if (section.markdown !== undefined) sectionData.markdown = section.markdown;
+        if (section.text !== undefined) sectionData.text = section.text;
+        return sectionData;
+      });
+
+      const result = await this.teamsService.sendMessage(tenantId, messageData, {
+        ...(options?.retryAttempts !== undefined && { retryAttempts: options.retryAttempts }),
+        ...(options?.timeout !== undefined && { timeout: options.timeout }),
       });
 
       // Publish Teams event
@@ -127,7 +137,7 @@ export class TeamsResolver {
         recipientCount: 1, // Teams channels count as 1 recipient
       };
     } catch (error) {
-      this.logger.error(`Failed to send Teams message: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Teams message: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -150,8 +160,8 @@ export class TeamsResolver {
         message: notification.message,
         priority: notification.priority,
         type: notification.type,
-        metadata: notification.metadata,
-        actions: notification.actions,
+        ...(notification.metadata !== undefined && { metadata: notification.metadata }),
+        ...(notification.actions !== undefined && { actions: notification.actions }),
       });
 
       // Publish Teams notification event
@@ -181,7 +191,7 @@ export class TeamsResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send Teams notification: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Teams notification: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -203,9 +213,9 @@ export class TeamsResolver {
         title: alert.title,
         message: alert.message,
         severity: alert.severity,
-        metadata: alert.metadata,
-        actionUrl: alert.actionUrl,
-        actionLabel: alert.actionLabel,
+        ...(alert.metadata !== undefined && { metadata: alert.metadata }),
+        ...(alert.actionUrl !== undefined && { actionUrl: alert.actionUrl }),
+        ...(alert.actionLabel !== undefined && { actionLabel: alert.actionLabel }),
       });
 
       // Publish Teams alert event
@@ -224,7 +234,7 @@ export class TeamsResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`teams_events_${tenantId}`, { teamsEvent: event });
+      await (this.pubSub.publish as any)(`teams_events_${tenantId}`, { teamsEvent: event });
 
       return {
         channel: 'teams',
@@ -234,7 +244,7 @@ export class TeamsResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send Teams alert: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Teams alert: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -253,27 +263,34 @@ export class TeamsResolver {
         actionsCount: card.actions?.length || 0,
       });
 
-      const result = await this.teamsService.sendRichCard(tenantId, {
+      const cardData: any = {
         title: card.title,
-        subtitle: card.subtitle,
-        summary: card.summary,
-        themeColor: card.themeColor,
-        sections: card.sections.map(section => ({
-          title: section.activityTitle,
-          subtitle: section.activitySubtitle,
-          text: section.text,
-          facts: section.facts?.map(fact => ({
+        sections: card.sections.map(section => {
+          const sectionData: any = {};
+          if (section.activityTitle !== undefined) sectionData.title = section.activityTitle;
+          if (section.activitySubtitle !== undefined) sectionData.subtitle = section.activitySubtitle;
+          if (section.text !== undefined) sectionData.text = section.text;
+          if (section.facts !== undefined) sectionData.facts = section.facts?.map(fact => ({
             name: fact.name,
             value: fact.value,
-          })),
-          image: section.activityImage,
-        })),
-        actions: card.actions?.map(action => ({
+          }));
+          if (section.activityImage !== undefined) sectionData.image = section.activityImage;
+          return sectionData;
+        }),
+      };
+      if (card.subtitle !== undefined) cardData.subtitle = card.subtitle;
+      if (card.summary !== undefined) cardData.summary = card.summary;
+      if (card.themeColor !== undefined) cardData.themeColor = card.themeColor;
+      if (card.actions !== undefined) cardData.actions = card.actions?.map(action => {
+        const actionData: any = {
           type: 'OpenUri' as const,
           name: action.label,
-          url: action.url,
-        })),
+        };
+        if (action.url !== undefined) actionData.url = action.url;
+        return actionData;
       });
+
+      const result = await this.teamsService.sendRichCard(tenantId, cardData);
 
       // Publish Teams rich card event
       const event: CommunicationEvent = {
@@ -302,7 +319,7 @@ export class TeamsResolver {
         recipientCount: 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to send Teams rich card: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send Teams rich card: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -317,19 +334,21 @@ export class TeamsResolver {
     try {
       this.logger.log(`Configuring Teams integration for tenant ${tenantId}`);
 
-      await this.teamsService.configureIntegration(tenantId, {
+      const configData: any = {
         webhookUrl: config.webhookUrl,
-        defaultTitle: config.defaultTitle,
-        defaultThemeColor: config.defaultThemeColor,
-        enableMentions: config.enableMentions,
-        mentionUsers: config.mentionUsers,
-        enableActivityImages: config.enableActivityImages,
-        activityImageUrl: config.activityImageUrl,
-      }, userId);
+      };
+      if (config.defaultTitle !== undefined) configData.defaultTitle = config.defaultTitle;
+      if (config.defaultThemeColor !== undefined) configData.defaultThemeColor = config.defaultThemeColor;
+      if (config.enableMentions !== undefined) configData.enableMentions = config.enableMentions;
+      if (config.mentionUsers !== undefined) configData.mentionUsers = config.mentionUsers;
+      if (config.enableActivityImages !== undefined) configData.enableActivityImages = config.enableActivityImages;
+      if (config.activityImageUrl !== undefined) configData.activityImageUrl = config.activityImageUrl;
+
+      await this.teamsService.configureIntegration(tenantId, configData, userId);
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to configure Teams integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to configure Teams integration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -349,15 +368,17 @@ export class TeamsResolver {
 
       if (config) {
         // Test provided configuration
-        result = await this.teamsService.testConfiguration({
+        const testConfigData: any = {
           webhookUrl: config.webhookUrl,
-          defaultTitle: config.defaultTitle,
-          defaultThemeColor: config.defaultThemeColor,
-          enableMentions: config.enableMentions,
-          mentionUsers: config.mentionUsers,
-          enableActivityImages: config.enableActivityImages,
-          activityImageUrl: config.activityImageUrl,
-        });
+        };
+        if (config.defaultTitle !== undefined) testConfigData.defaultTitle = config.defaultTitle;
+        if (config.defaultThemeColor !== undefined) testConfigData.defaultThemeColor = config.defaultThemeColor;
+        if (config.enableMentions !== undefined) testConfigData.enableMentions = config.enableMentions;
+        if (config.mentionUsers !== undefined) testConfigData.mentionUsers = config.mentionUsers;
+        if (config.enableActivityImages !== undefined) testConfigData.enableActivityImages = config.enableActivityImages;
+        if (config.activityImageUrl !== undefined) testConfigData.activityImageUrl = config.activityImageUrl;
+
+        result = await this.teamsService.testConfiguration(testConfigData);
       } else {
         // Test existing configuration
         const existingConfig = await this.teamsService['getTeamsConfig'](tenantId);
@@ -380,10 +401,10 @@ export class TeamsResolver {
         responseTime,
       };
     } catch (error) {
-      this.logger.error(`Failed to test Teams integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to test Teams integration: ${getErrorMessage(error)}`);
       return {
         success: false,
-        error: error.message,
+        error: getErrorMessage(error),
         responseTime: 0,
       };
     }
@@ -402,7 +423,7 @@ export class TeamsResolver {
       // For now, just return true
       return true;
     } catch (error) {
-      this.logger.error(`Failed to disable Teams integration: ${error.message}`, error.stack);
+      this.logger.error(`Failed to disable Teams integration: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -431,7 +452,7 @@ export class TeamsResolver {
 
       return await this.sendTeamsMessage(tenantId, userId, message);
     } catch (error) {
-      this.logger.error(`Failed to send simple Teams message: ${error.message}`, error.stack);
+      this.logger.error(`Failed to send simple Teams message: ${getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -448,7 +469,7 @@ export class TeamsResolver {
   ) {
     this.logger.log(`Subscribing to Teams events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`teams_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`teams_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -464,7 +485,7 @@ export class TeamsResolver {
   ) {
     this.logger.log(`Subscribing to Teams alert events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`teams_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`teams_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -480,7 +501,7 @@ export class TeamsResolver {
   ) {
     this.logger.log(`Subscribing to Teams notification events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`teams_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`teams_events_${tenantId}`);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -496,6 +517,6 @@ export class TeamsResolver {
   ) {
     this.logger.log(`Subscribing to Teams rich card events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`teams_events_${tenantId}`);
+    return (this.pubSub as any).asyncIterator(`teams_events_${tenantId}`);
   }
 }

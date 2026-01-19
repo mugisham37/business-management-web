@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Subscription, Context, ID } from '@nestjs/graphql';
-import { UseGuards, Logger } from '@nestjs/common';
-import { PubSub } from 'graphql-subscriptions';
+import { UseGuards, Logger, Inject } from '@nestjs/common';
+import { PubSubService } from '../../../common/graphql/pubsub.service';
 import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
@@ -31,7 +31,6 @@ import {
 @UseGuards(GraphQLJwtAuthGuard)
 export class CommunicationResolver {
   private readonly logger = new Logger(CommunicationResolver.name);
-  private readonly pubSub = new PubSub();
 
   constructor(
     private readonly communicationService: CommunicationIntegrationService,
@@ -39,7 +38,23 @@ export class CommunicationResolver {
     private readonly smsService: SMSNotificationService,
     private readonly slackService: SlackIntegrationService,
     private readonly teamsService: TeamsIntegrationService,
+    private readonly pubSub: PubSubService,
   ) {}
+
+  private mapNotificationPriorityToBusinessPriority(
+    priority?: string,
+  ): 'low' | 'medium' | 'high' {
+    if (!priority) return 'medium';
+    
+    const priorityMap: Record<string, 'low' | 'medium' | 'high'> = {
+      'low': 'low',
+      'medium': 'medium',
+      'high': 'high',
+      'urgent': 'high', // Map URGENT to high
+    };
+    
+    return priorityMap[priority.toLowerCase()] || 'medium';
+  }
 
   // Queries
   @Query(() => [CommunicationChannel])
@@ -54,15 +69,23 @@ export class CommunicationResolver {
       // For now, we'll return enabled channels from the service
       const enabledChannels = await this.communicationService['getEnabledChannels'](tenantId);
       
-      return enabledChannels.map(channel => ({
-        type: channel.type as any,
-        enabled: channel.enabled,
-        configuration: channel.configuration,
-        priority: channel.priority,
-        fallbackChannels: channel.fallbackChannels,
-      }));
+      return enabledChannels.map(channel => {
+        const channelObj: CommunicationChannel = {
+          type: channel.type as any,
+          enabled: channel.enabled,
+          configuration: channel.configuration,
+        };
+        if (channel.priority !== undefined) {
+          channelObj.priority = channel.priority;
+        }
+        if (channel.fallbackChannels !== undefined) {
+          channelObj.fallbackChannels = channel.fallbackChannels;
+        }
+        return channelObj;
+      });
     } catch (error) {
-      this.logger.error(`Failed to get communication channels: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get communication channels: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -83,7 +106,8 @@ export class CommunicationResolver {
         responseTime: Date.now() - startTime,
       }));
     } catch (error) {
-      this.logger.error(`Failed to test communication channels: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to test communication channels: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -121,7 +145,8 @@ export class CommunicationResolver {
         generatedAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to get communication stats: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get communication stats: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -176,7 +201,8 @@ export class CommunicationResolver {
         },
       ];
     } catch (error) {
-      this.logger.error(`Failed to get channel usage stats: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to get channel usage stats: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -204,13 +230,13 @@ export class CommunicationResolver {
           priority: notification.priority,
           type: notification.type,
           channels: notification.channels,
-          recipients: notification.recipients,
-          metadata: notification.metadata,
-          actions: notification.actions,
-          templateName: notification.templateName,
-          templateVariables: notification.templateVariables,
-          scheduledAt: notification.scheduledAt,
-          options: notification.options,
+          ...(notification.recipients && { recipients: notification.recipients }),
+          ...(notification.metadata && { metadata: notification.metadata }),
+          ...(notification.actions && { actions: notification.actions }),
+          ...(notification.templateName && { templateName: notification.templateName }),
+          ...(notification.templateVariables && { templateVariables: notification.templateVariables }),
+          ...(notification.scheduledAt && { scheduledAt: notification.scheduledAt }),
+          ...(notification.options && { options: notification.options }),
         },
       );
 
@@ -218,9 +244,9 @@ export class CommunicationResolver {
       const event: CommunicationEvent = {
         id: `comm_${Date.now()}`,
         type: notification.type,
-        channel: notification.channels[0], // Primary channel
+        channel: (notification.channels?.[0] || 'email') as any, // Primary channel
         success: result.overallSuccess,
-        error: result.overallSuccess ? undefined : 'Some channels failed',
+        ...(result.overallSuccess === false && { error: 'Some channels failed' }),
         metadata: {
           totalChannels: result.totalChannels,
           successfulChannels: result.successfulChannels,
@@ -230,11 +256,15 @@ export class CommunicationResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`communication_events_${tenantId}`, { communicationEvent: event });
+      await this.pubSub.publish(`communication_events_${tenantId}`, { 
+        communicationEvent: event,
+        tenantId,
+      });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send multi-channel notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send multi-channel notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -256,10 +286,10 @@ export class CommunicationResolver {
         title: alert.title,
         message: alert.message,
         severity: alert.severity,
-        metadata: alert.metadata,
-        actionUrl: alert.actionUrl,
-        actionLabel: alert.actionLabel,
-        recipients: alert.recipients,
+        ...(alert.metadata && { metadata: alert.metadata }),
+        ...(alert.actionUrl && { actionUrl: alert.actionUrl }),
+        ...(alert.actionLabel && { actionLabel: alert.actionLabel }),
+        ...(alert.recipients && { recipients: alert.recipients }),
       });
 
       // Publish alert event
@@ -268,7 +298,7 @@ export class CommunicationResolver {
         type: 'system_alert',
         channel: 'slack' as any, // Alerts typically go to Slack first
         success: result.overallSuccess,
-        error: result.overallSuccess ? undefined : 'Alert delivery failed',
+        ...(result.overallSuccess === false && { error: 'Alert delivery failed' }),
         metadata: {
           severity: alert.severity,
           totalChannels: result.totalChannels,
@@ -278,11 +308,15 @@ export class CommunicationResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`communication_events_${tenantId}`, { communicationEvent: event });
+      await this.pubSub.publish(`communication_events_${tenantId}`, { 
+        communicationEvent: event,
+        tenantId,
+      });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -304,11 +338,11 @@ export class CommunicationResolver {
         type: notification.type,
         title: notification.title,
         message: notification.message,
-        priority: notification.priority,
-        recipients: notification.recipients,
-        metadata: notification.metadata,
-        templateName: notification.templateName,
-        templateVariables: notification.templateVariables,
+        ...(notification.priority && { priority: this.mapNotificationPriorityToBusinessPriority(notification.priority) }),
+        ...(notification.recipients && { recipients: notification.recipients }),
+        ...(notification.metadata && { metadata: notification.metadata }),
+        ...(notification.templateName && { templateName: notification.templateName }),
+        ...(notification.templateVariables && { templateVariables: notification.templateVariables }),
       });
 
       // Publish business notification event
@@ -317,7 +351,7 @@ export class CommunicationResolver {
         type: notification.type,
         channel: 'email' as any, // Business notifications typically go to email
         success: result.overallSuccess,
-        error: result.overallSuccess ? undefined : 'Business notification failed',
+        ...(result.overallSuccess === false && { error: 'Business notification failed' }),
         metadata: {
           priority: notification.priority,
           totalChannels: result.totalChannels,
@@ -327,11 +361,15 @@ export class CommunicationResolver {
         tenantId,
       };
 
-      await this.pubSub.publish(`communication_events_${tenantId}`, { communicationEvent: event });
+      await this.pubSub.publish(`communication_events_${tenantId}`, { 
+        communicationEvent: event,
+        tenantId,
+      });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send business notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send business notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -351,19 +389,27 @@ export class CommunicationResolver {
 
       await this.communicationService.configureChannels(
         tenantId,
-        channels.map(channel => ({
-          type: channel.type,
-          enabled: channel.enabled,
-          configuration: channel.configuration,
-          priority: channel.priority,
-          fallbackChannels: channel.fallbackChannels,
-        })),
+        channels.map(channel => {
+          const config: any = {
+            type: channel.type,
+            enabled: channel.enabled,
+            configuration: channel.configuration,
+          };
+          if (channel.priority !== undefined) {
+            config.priority = channel.priority;
+          }
+          if (channel.fallbackChannels !== undefined) {
+            config.fallbackChannels = channel.fallbackChannels;
+          }
+          return config;
+        }),
         userId,
       );
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to configure communication channels: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to configure communication channels: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -393,7 +439,8 @@ export class CommunicationResolver {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to enable communication channel: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to enable communication channel: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -423,7 +470,8 @@ export class CommunicationResolver {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to disable communication channel: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to disable communication channel: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -441,7 +489,7 @@ export class CommunicationResolver {
   ) {
     this.logger.log(`Subscribing to communication events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`communication_events_${tenantId}`);
+    return this.pubSub.asyncIterator(`communication_events_${tenantId}`, tenantId);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -456,7 +504,7 @@ export class CommunicationResolver {
   ) {
     this.logger.log(`Subscribing to alert events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`communication_events_${tenantId}`);
+    return this.pubSub.asyncIterator(`communication_events_${tenantId}`, tenantId);
   }
 
   @Subscription(() => CommunicationEvent, {
@@ -472,6 +520,6 @@ export class CommunicationResolver {
   ) {
     this.logger.log(`Subscribing to business notification events for tenant ${tenantId}`);
     
-    return this.pubSub.asyncIterator(`communication_events_${tenantId}`);
+    return this.pubSub.asyncIterator(`communication_events_${tenantId}`, tenantId);
   }
 }

@@ -64,7 +64,6 @@ import { CacheModule } from '../cache/cache.module';
     HttpModule.register({
       timeout: 30000,
       maxRedirects: 5,
-      retries: 3,
     }),
   ],
   providers: [

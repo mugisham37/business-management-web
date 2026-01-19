@@ -68,7 +68,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Order confirmation sent successfully for order ${orderDetails.orderId}`);
     } catch (error) {
-      this.logger.error(`Failed to send order confirmation: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send order confirmation: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -111,7 +112,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Low stock alert sent successfully for product ${inventoryDetails.productId}`);
     } catch (error) {
-      this.logger.error(`Failed to send low stock alert: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send low stock alert: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -142,7 +144,7 @@ export class BusinessCommunicationIntegrationService {
         pending: 'Your payment is being processed and will be confirmed shortly.',
       };
 
-      const priority = paymentDetails.status === 'failed' ? 'high' : 'medium';
+      const priority = paymentDetails.status === 'failed' ? 'high' : 'normal';
 
       await this.emailService.sendEmail(tenantId, {
         to: [paymentDetails.customerEmail],
@@ -166,7 +168,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Payment notification sent successfully for payment ${paymentDetails.paymentId}`);
     } catch (error) {
-      this.logger.error(`Failed to send payment notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send payment notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -225,7 +228,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Shipment notification sent successfully for order ${shipmentDetails.orderId}`);
     } catch (error) {
-      this.logger.error(`Failed to send shipment notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send shipment notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -274,7 +278,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Shift reminder scheduled successfully for employee ${shiftDetails.employeeId}`);
     } catch (error) {
-      this.logger.error(`Failed to send shift reminder: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send shift reminder: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -313,7 +318,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Maintenance notification sent successfully for tenant ${tenantId}`);
     } catch (error) {
-      this.logger.error(`Failed to send maintenance notification: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send maintenance notification: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -353,7 +359,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Feedback request sent successfully to customer ${feedbackDetails.customerId}`);
     } catch (error) {
-      this.logger.error(`Failed to send feedback request: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send feedback request: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -402,7 +409,8 @@ export class BusinessCommunicationIntegrationService {
 
       this.logger.log(`Promotional campaign sent successfully to ${campaignDetails.customerIds.length} customers`);
     } catch (error) {
-      this.logger.error(`Failed to send promotional campaign: ${error.message}`, error.stack);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to send promotional campaign: ${err.message}`, err.stack);
       throw error;
     }
   }

@@ -224,6 +224,7 @@ export class CommunicationIntegrationService {
         emails?: string[];
         phoneNumbers?: string[];
         slackChannels?: string[];
+        roles?: string[];
       };
     },
   ): Promise<BulkCommunicationResult> {
