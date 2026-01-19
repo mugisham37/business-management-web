@@ -250,7 +250,7 @@ export const QueueContext = createParamDecorator(
       timestamp: new Date(),
     };
 
-    return data ? queueContext[data] : queueContext;
+    return (data as keyof typeof queueContext) ? queueContext[data as keyof typeof queueContext] : queueContext;
   },
 );
 

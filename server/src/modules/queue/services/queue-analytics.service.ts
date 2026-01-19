@@ -57,7 +57,7 @@ export class QueueAnalyticsService {
           analytics.push(queueAnalytics);
         } catch (error) {
           this.customLogger.warn(`Failed to get analytics for queue ${queueType}`, {
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             queueType,
             tenantId,
           });
@@ -73,7 +73,7 @@ export class QueueAnalyticsService {
 
       return analytics;
     } catch (error) {
-      this.customLogger.error('Failed to get queue analytics', error.stack, { input, tenantId });
+      this.customLogger.error('Failed to get queue analytics', error instanceof Error ? error.stack : String(error), { input, tenantId });
       throw error;
     }
   }
@@ -91,12 +91,12 @@ export class QueueAnalyticsService {
     if (this.cacheService) {
       try {
         const cached = await this.cacheService.get(cacheKey);
-        if (cached) {
+        if (cached && typeof cached === 'object' && 'queueName' in cached) {
           this.customLogger.debug('Analytics cache hit', { cacheKey, queueType });
-          return cached;
+          return cached as QueueAnalytics;
         }
       } catch (error) {
-        this.customLogger.warn('Failed to get analytics from cache', { error: error.message, cacheKey });
+        this.customLogger.warn('Failed to get analytics from cache', { error: error instanceof Error ? error.message : String(error), cacheKey });
       }
     }
 
@@ -106,9 +106,9 @@ export class QueueAnalyticsService {
     // Cache the result
     if (this.cacheService) {
       try {
-        await this.cacheService.set(cacheKey, analytics, 300); // Cache for 5 minutes
+        await this.cacheService.set(cacheKey, analytics, { ttl: 300 }); // Cache for 5 minutes
       } catch (error) {
-        this.customLogger.warn('Failed to cache analytics', { error: error.message, cacheKey });
+        this.customLogger.warn('Failed to cache analytics', { error: error instanceof Error ? error.message : String(error), cacheKey });
       }
     }
 
@@ -154,7 +154,7 @@ export class QueueAnalyticsService {
       // Store in Redis cache if available
       if (this.cacheService) {
         const metricsKey = `queue:metrics:${queueName}:${timestamp.getTime()}`;
-        await this.cacheService.set(metricsKey, queueMetrics, 86400); // 24 hours
+        await this.cacheService.set(metricsKey, queueMetrics, { ttl: 86400 }); // 24 hours
       }
 
       this.customLogger.debug('Queue metrics recorded', {
@@ -162,7 +162,7 @@ export class QueueAnalyticsService {
         metrics: queueMetrics,
       });
     } catch (error) {
-      this.customLogger.error('Failed to record queue metrics', error.stack, {
+      this.customLogger.error('Failed to record queue metrics', error instanceof Error ? error.stack : String(error), {
         queueType,
         metrics,
       });
@@ -220,7 +220,7 @@ export class QueueAnalyticsService {
 
       return metrics;
     } catch (error) {
-      this.customLogger.error('Failed to get realtime metrics', error.stack, {
+      this.customLogger.error('Failed to get realtime metrics', error instanceof Error ? error.stack : String(error), {
         queueType,
         tenantId,
       });
@@ -252,7 +252,7 @@ export class QueueAnalyticsService {
 
       return trends;
     } catch (error) {
-      this.customLogger.error('Failed to get historical trends', error.stack, {
+      this.customLogger.error('Failed to get historical trends', error instanceof Error ? error.stack : String(error), {
         queueType,
         days,
         tenantId,
@@ -307,7 +307,7 @@ export class QueueAnalyticsService {
 
       return insights;
     } catch (error) {
-      this.customLogger.error('Failed to get performance insights', error.stack, {
+      this.customLogger.error('Failed to get performance insights', error instanceof Error ? error.stack : String(error), {
         queueType,
         tenantId,
       });
@@ -471,9 +471,9 @@ export class QueueAnalyticsService {
     if (this.cacheService) {
       try {
         const cacheKey = `queue:hourly:${queueType}:${startHour.getTime()}:${tenantId || 'all'}`;
-        await this.cacheService.set(cacheKey, stats, 3600); // Cache for 1 hour
+        await this.cacheService.set(cacheKey, stats, { ttl: 3600 }); // Cache for 1 hour
       } catch (error) {
-        this.customLogger.warn('Failed to cache hourly stats', { error: error.message });
+        this.customLogger.warn('Failed to cache hourly stats', { error: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -532,7 +532,7 @@ export class QueueAnalyticsService {
       // await this.databaseService.insertQueueMetrics(metrics);
       this.customLogger.debug('Metrics persisted to database', { queueName: metrics.queueName });
     } catch (error) {
-      this.customLogger.warn('Failed to persist metrics to database', { error: error.message });
+      this.customLogger.warn('Failed to persist metrics to database', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -575,7 +575,7 @@ export class QueueAnalyticsService {
           }
         }
       } catch (error) {
-        this.customLogger.error('Failed to collect periodic metrics', error.stack);
+        this.customLogger.error('Failed to collect periodic metrics', error instanceof Error ? error.stack : String(error));
       }
     }, 60000); // Collect metrics every minute
 

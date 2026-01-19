@@ -23,7 +23,7 @@ export class PaginationInput {
 export class SortInput {
   @Field(() => String)
   @IsString()
-  field: string;
+  field!: string;
 
   @Field(() => String, { defaultValue: 'ASC' })
   @IsString()
@@ -124,18 +124,18 @@ export class RepeatOptionsInput {
 export class CreateJobInput {
   @Field(() => String)
   @IsString()
-  name: string;
+  name!: string;
 
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => ProcessorType)
   @IsEnum(ProcessorType)
-  processorType: ProcessorType;
+  processorType!: ProcessorType;
 
   @Field(() => GraphQLJSON)
-  data: any;
+  data!: any;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -166,7 +166,7 @@ export class BulkCreateJobInput {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateJobInput)
-  jobs: CreateJobInput[];
+  jobs!: CreateJobInput[];
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -181,18 +181,18 @@ export class EmailJobDataInput {
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
-  to: string[];
+  to!: string[];
 
   @Field(() => String)
   @IsString()
-  subject: string;
+  subject!: string;
 
   @Field(() => String)
   @IsString()
-  template: string;
+  template!: string;
 
   @Field(() => GraphQLJSON)
-  data: any;
+  data!: any;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -233,7 +233,7 @@ export class CreateEmailJobInput {
   @Field(() => EmailJobDataInput)
   @ValidateNested()
   @Type(() => EmailJobDataInput)
-  emailData: EmailJobDataInput;
+  emailData!: EmailJobDataInput;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -247,18 +247,18 @@ export class CreateEmailJobInput {
 export class ReportJobDataInput {
   @Field(() => String)
   @IsString()
-  reportType: string;
+  reportType!: string;
 
   @Field(() => GraphQLJSON)
-  parameters: any;
+  parameters!: any;
 
   @Field(() => String)
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @Field(() => String)
   @IsUUID()
-  tenantId: string;
+  tenantId!: string;
 
   @Field(() => String, { defaultValue: 'pdf' })
   @IsOptional()
@@ -291,7 +291,7 @@ export class CreateReportJobInput {
   @Field(() => ReportJobDataInput)
   @ValidateNested()
   @Type(() => ReportJobDataInput)
-  reportData: ReportJobDataInput;
+  reportData!: ReportJobDataInput;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -305,7 +305,7 @@ export class CreateReportJobInput {
 export class SyncJobDataInput {
   @Field(() => String)
   @IsString()
-  syncType: 'inventory' | 'customers' | 'transactions' | 'full' | 'incremental';
+  syncType!: 'inventory' | 'customers' | 'transactions' | 'full' | 'incremental';
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -319,11 +319,11 @@ export class SyncJobDataInput {
 
   @Field(() => String)
   @IsUUID()
-  tenantId: string;
+  tenantId!: string;
 
   @Field(() => String)
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -350,7 +350,7 @@ export class CreateSyncJobInput {
   @Field(() => SyncJobDataInput)
   @ValidateNested()
   @Type(() => SyncJobDataInput)
-  syncData: SyncJobDataInput;
+  syncData!: SyncJobDataInput;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -364,20 +364,20 @@ export class CreateSyncJobInput {
 export class NotificationJobDataInput {
   @Field(() => String)
   @IsString()
-  type: 'push' | 'sms' | 'email' | 'in-app' | 'slack' | 'teams';
+  type!: 'push' | 'sms' | 'email' | 'in-app' | 'slack' | 'teams';
 
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
-  recipients: string[];
+  recipients!: string[];
 
   @Field(() => String)
   @IsString()
-  title: string;
+  title!: string;
 
   @Field(() => String)
   @IsString()
-  message: string;
+  message!: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -420,7 +420,7 @@ export class CreateNotificationJobInput {
   @Field(() => NotificationJobDataInput)
   @ValidateNested()
   @Type(() => NotificationJobDataInput)
-  notificationData: NotificationJobDataInput;
+  notificationData!: NotificationJobDataInput;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -434,10 +434,10 @@ export class CreateNotificationJobInput {
 export class AnalyticsJobDataInput {
   @Field(() => String)
   @IsString()
-  eventType: string;
+  eventType!: string;
 
   @Field(() => GraphQLJSON)
-  event: any;
+  event!: any;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -474,7 +474,7 @@ export class CreateAnalyticsJobInput {
   @Field(() => AnalyticsJobDataInput)
   @ValidateNested()
   @Type(() => AnalyticsJobDataInput)
-  analyticsData: AnalyticsJobDataInput;
+  analyticsData!: AnalyticsJobDataInput;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -628,11 +628,11 @@ export class GetQueuesInput {
 export class RetryJobInput {
   @Field(() => ID)
   @IsString()
-  jobId: string;
+  jobId!: string;
 
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -646,15 +646,15 @@ export class BulkJobOperationInput {
   @Field(() => [String])
   @IsArray()
   @IsString({ each: true })
-  jobIds: string[];
+  jobIds!: string[];
 
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => String)
   @IsString()
-  operation: 'retry' | 'cancel' | 'remove' | 'promote';
+  operation!: 'retry' | 'cancel' | 'remove' | 'promote';
 
   @Field(() => JobOptionsInput, { nullable: true })
   @IsOptional()
@@ -667,17 +667,17 @@ export class BulkJobOperationInput {
 export class UpdateJobProgressInput {
   @Field(() => ID)
   @IsString()
-  jobId: string;
+  jobId!: string;
 
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => Int)
   @IsNumber()
   @Min(0)
   @Max(100)
-  progress: number;
+  progress!: number;
 
   @Field(() => String, { nullable: true })
   @IsOptional()
@@ -694,11 +694,11 @@ export class UpdateJobProgressInput {
 export class QueueOperationInput {
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => String)
   @IsString()
-  operation: 'pause' | 'resume' | 'clean' | 'drain' | 'obliterate';
+  operation!: 'pause' | 'resume' | 'clean' | 'drain' | 'obliterate';
 
   @Field(() => GraphQLJSON, { nullable: true })
   @IsOptional()
@@ -709,7 +709,7 @@ export class QueueOperationInput {
 export class CleanQueueInput {
   @Field(() => QueueType)
   @IsEnum(QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => Int, { defaultValue: 0 })
   @IsOptional()
@@ -741,7 +741,7 @@ export class QueueAnalyticsInput {
   @Field(() => DateRangeInput)
   @ValidateNested()
   @Type(() => DateRangeInput)
-  dateRange: DateRangeInput;
+  dateRange!: DateRangeInput;
 
   @Field(() => String, { defaultValue: 'hour' })
   @IsOptional()

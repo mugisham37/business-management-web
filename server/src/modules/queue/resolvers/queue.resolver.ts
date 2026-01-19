@@ -46,6 +46,22 @@ import {
 } from '../decorators/queue.decorators';
 import { CustomLoggerService } from '../../logger/logger.service';
 
+// Helper function to safely get error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+// Helper function to safely get error stack
+function getErrorStack(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.stack;
+  }
+  return String(error);
+}
+
 @Resolver(() => QueueInfo)
 @UseGuards(QueuePermissionGuard, QueueTenantGuard, QueueRateLimitGuard, QueueValidationGuard)
 @UseInterceptors(QueueAuditInterceptor, QueueCacheInterceptor, QueueMonitoringInterceptor)
@@ -92,7 +108,7 @@ export class QueueResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get queues', error.stack, { 
+      this.logger.error('Failed to get queues', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -131,7 +147,7 @@ export class QueueResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get queue info', error.stack, { 
+      this.logger.error('Failed to get queue info', getErrorStack(error), { 
         queueType, 
         tenantId, 
         userId: context?.user?.id 
@@ -171,7 +187,7 @@ export class QueueResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get queue stats', error.stack, { 
+      this.logger.error('Failed to get queue stats', getErrorStack(error), { 
         queueType, 
         tenantId, 
         userId: context?.user?.id 
@@ -213,7 +229,7 @@ export class QueueResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get queue analytics', error.stack, { 
+      this.logger.error('Failed to get queue analytics', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -245,7 +261,7 @@ export class QueueResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to check queue health', error.stack, { 
+      this.logger.error('Failed to check queue health', getErrorStack(error), { 
         queueType, 
         tenantId 
       });
@@ -304,7 +320,7 @@ export class QueueResolver {
         queue: queueInfo,
       };
     } catch (error) {
-      this.logger.error('Failed to pause queue', error.stack, { 
+      this.logger.error('Failed to pause queue', getErrorStack(error), { 
         queueType, 
         tenantId, 
         userId: context?.user?.id 
@@ -312,8 +328,8 @@ export class QueueResolver {
 
       return {
         success: false,
-        message: `Failed to pause queue ${queueType}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to pause queue ${queueType}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -368,7 +384,7 @@ export class QueueResolver {
         queue: queueInfo,
       };
     } catch (error) {
-      this.logger.error('Failed to resume queue', error.stack, { 
+      this.logger.error('Failed to resume queue', getErrorStack(error), { 
         queueType, 
         tenantId, 
         userId: context?.user?.id 
@@ -376,8 +392,8 @@ export class QueueResolver {
 
       return {
         success: false,
-        message: `Failed to resume queue ${queueType}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to resume queue ${queueType}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -424,7 +440,7 @@ export class QueueResolver {
         queue: queueInfo,
       };
     } catch (error) {
-      this.logger.error('Failed to clean queue', error.stack, { 
+      this.logger.error('Failed to clean queue', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -432,8 +448,8 @@ export class QueueResolver {
 
       return {
         success: false,
-        message: `Failed to clean queue ${input.queueType}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to clean queue ${input.queueType}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -475,7 +491,7 @@ export class QueueResolver {
         queue: queueInfo,
       };
     } catch (error) {
-      this.logger.error('Failed to drain queue', error.stack, { 
+      this.logger.error('Failed to drain queue', getErrorStack(error), { 
         queueType, 
         tenantId, 
         userId: context?.user?.id 
@@ -483,8 +499,8 @@ export class QueueResolver {
 
       return {
         success: false,
-        message: `Failed to drain queue ${queueType}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to drain queue ${queueType}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -527,15 +543,15 @@ export class QueueResolver {
         message: `Queue ${queueType} obliterated successfully`,
       };
     } catch (error) {
-      this.logger.error('Failed to obliterate queue', error.stack, { 
+      this.logger.error('Failed to obliterate queue', getErrorStack(error), { 
         queueType, 
         userId: context?.user?.id 
       });
 
       return {
         success: false,
-        message: `Failed to obliterate queue ${queueType}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to obliterate queue ${queueType}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -565,8 +581,9 @@ export class QueueResolver {
   @RequireQueueRead()
   queueHealthUpdated(
     @Args('input', { nullable: true }) input?: QueueSubscriptionInput,
-  ) {
-    return this.pubSub.asyncIterator('queueHealthUpdated');
+  ): AsyncIterator<QueueHealthUpdate> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.pubSub as any).asyncIterator('queueHealthUpdated');
   }
 
   // Field Resolvers

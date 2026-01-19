@@ -60,7 +60,7 @@ export class QueueContextProvider {
         queue: queueContext,
       };
     } catch (error) {
-      this.logger.error('Failed to create queue context', error.stack);
+      this.logger.error('Failed to create queue context', error instanceof Error ? error.stack : String(error));
       return context;
     }
   }
@@ -71,7 +71,7 @@ export class QueueContextProvider {
       const context = ctx.getContext();
       return context.queue || {};
     } catch (error) {
-      this.logger.error('Failed to extract queue context', error.stack);
+      this.logger.error('Failed to extract queue context', error instanceof Error ? error.stack : String(error));
       return {};
     }
   }
@@ -88,7 +88,7 @@ export class QueueContextProvider {
         }
       }
     } catch (error) {
-      this.logger.error('Failed to update metrics', error.stack);
+      this.logger.error('Failed to update metrics', error instanceof Error ? error.stack : String(error));
     }
   }
 
@@ -111,7 +111,7 @@ export class QueueContextProvider {
         cacheMisses: context.queue.metrics.cacheMisses,
       };
     } catch (error) {
-      this.logger.error('Failed to get performance metrics', error.stack);
+      this.logger.error('Failed to get performance metrics', error instanceof Error ? error.stack : String(error));
       return null;
     }
   }

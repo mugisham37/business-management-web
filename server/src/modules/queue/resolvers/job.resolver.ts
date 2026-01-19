@@ -55,6 +55,22 @@ import {
 } from '../decorators/queue.decorators';
 import { CustomLoggerService } from '../../logger/logger.service';
 
+// Helper function to safely get error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+// Helper function to safely get error stack
+function getErrorStack(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.stack;
+  }
+  return String(error);
+}
+
 @Resolver(() => QueueJob)
 @UseGuards(QueuePermissionGuard, QueueTenantGuard, QueueRateLimitGuard, QueueValidationGuard)
 @UseInterceptors(QueueAuditInterceptor, QueueCacheInterceptor, QueueMonitoringInterceptor)
@@ -99,7 +115,7 @@ export class JobResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get jobs', error.stack, { 
+      this.logger.error('Failed to get jobs', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -143,7 +159,7 @@ export class JobResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get job', error.stack, { 
+      this.logger.error('Failed to get job', getErrorStack(error), { 
         jobId, 
         queueType, 
         tenantId, 
@@ -181,7 +197,7 @@ export class JobResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to get jobs by correlation ID', error.stack, { 
+      this.logger.error('Failed to get jobs by correlation ID', getErrorStack(error), { 
         correlationId, 
         tenantId, 
         userId: context?.user?.id 
@@ -251,7 +267,7 @@ export class JobResolver {
         job,
       };
     } catch (error) {
-      this.logger.error('Failed to create job', error.stack, { 
+      this.logger.error('Failed to create job', getErrorStack(error), { 
         input: { ...input, data: '[REDACTED]' }, 
         tenantId, 
         userId: context?.user?.id 
@@ -259,8 +275,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -327,7 +343,7 @@ export class JobResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to create bulk jobs', error.stack, { 
+      this.logger.error('Failed to create bulk jobs', getErrorStack(error), { 
         jobCount: input.jobs.length, 
         tenantId, 
         userId: context?.user?.id 
@@ -335,12 +351,12 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create bulk jobs: ${error.message}`,
+        message: `Failed to create bulk jobs: ${getErrorMessage(error)}`,
         jobs: [],
         totalProcessed: 0,
         successCount: 0,
         failureCount: input.jobs.length,
-        errors: [error.message],
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -387,7 +403,7 @@ export class JobResolver {
         job: queueJob,
       };
     } catch (error) {
-      this.logger.error('Failed to create email job', error.stack, { 
+      this.logger.error('Failed to create email job', getErrorStack(error), { 
         input: { ...input, emailData: { ...input.emailData, data: '[REDACTED]' } }, 
         tenantId, 
         userId: context?.user?.id 
@@ -395,8 +411,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create email job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create email job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -443,7 +459,7 @@ export class JobResolver {
         job: queueJob,
       };
     } catch (error) {
-      this.logger.error('Failed to create report job', error.stack, { 
+      this.logger.error('Failed to create report job', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -451,8 +467,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create report job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create report job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -500,7 +516,7 @@ export class JobResolver {
         job: queueJob,
       };
     } catch (error) {
-      this.logger.error('Failed to create sync job', error.stack, { 
+      this.logger.error('Failed to create sync job', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -508,8 +524,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create sync job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create sync job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -557,7 +573,7 @@ export class JobResolver {
         job: queueJob,
       };
     } catch (error) {
-      this.logger.error('Failed to create notification job', error.stack, { 
+      this.logger.error('Failed to create notification job', getErrorStack(error), { 
         input: { ...input, notificationData: { ...input.notificationData, data: '[REDACTED]' } }, 
         tenantId, 
         userId: context?.user?.id 
@@ -565,8 +581,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create notification job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create notification job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -612,7 +628,7 @@ export class JobResolver {
         job: queueJob,
       };
     } catch (error) {
-      this.logger.error('Failed to create analytics job', error.stack, { 
+      this.logger.error('Failed to create analytics job', getErrorStack(error), { 
         input: { ...input, analyticsData: { ...input.analyticsData, event: '[REDACTED]' } }, 
         tenantId, 
         userId: context?.user?.id 
@@ -620,8 +636,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to create analytics job: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to create analytics job: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -677,10 +693,10 @@ export class JobResolver {
       return {
         success: true,
         message: `Job ${input.jobId} retried successfully`,
-        job,
+        job: job ?? undefined,
       };
     } catch (error) {
-      this.logger.error('Failed to retry job', error.stack, { 
+      this.logger.error('Failed to retry job', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -688,8 +704,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to retry job ${input.jobId}: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to retry job ${input.jobId}: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -745,7 +761,7 @@ export class JobResolver {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to perform bulk job operation', error.stack, { 
+      this.logger.error('Failed to perform bulk job operation', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -753,12 +769,12 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to perform bulk operation: ${error.message}`,
+        message: `Failed to perform bulk operation: ${getErrorMessage(error)}`,
         jobs: [],
         totalProcessed: 0,
         successCount: 0,
         failureCount: input.jobIds.length,
-        errors: [error.message],
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -811,10 +827,10 @@ export class JobResolver {
       return {
         success: true,
         message: `Job progress updated to ${input.progress}%`,
-        job,
+        job: job ?? undefined,
       };
     } catch (error) {
-      this.logger.error('Failed to update job progress', error.stack, { 
+      this.logger.error('Failed to update job progress', getErrorStack(error), { 
         input, 
         tenantId, 
         userId: context?.user?.id 
@@ -822,8 +838,8 @@ export class JobResolver {
 
       return {
         success: false,
-        message: `Failed to update job progress: ${error.message}`,
-        errors: [error.message],
+        message: `Failed to update job progress: ${getErrorMessage(error)}`,
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -867,7 +883,8 @@ export class JobResolver {
   @RequireQueueRead()
   jobStatusUpdated(
     @Args('input', { nullable: true }) input?: JobSubscriptionInput,
-  ) {
-    return this.pubSub.asyncIterator('jobStatusUpdated');
+  ): AsyncIterator<JobStatusUpdate> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.pubSub as any).asyncIterator('jobStatusUpdated');
   }
 }

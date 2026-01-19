@@ -8,7 +8,7 @@ export interface EmailJobData {
   subject: string;
   template: string;
   data: Record<string, any>;
-  tenantId?: string;
+  tenantId?: string | undefined;
 }
 
 export interface ReportJobData {
@@ -16,11 +16,11 @@ export interface ReportJobData {
   parameters: Record<string, any>;
   userId: string;
   tenantId: string;
-  format: 'pdf' | 'excel' | 'csv';
+  format?: 'pdf' | 'excel' | 'csv';
 }
 
 export interface SyncJobData {
-  syncType: 'inventory' | 'customers' | 'transactions' | 'full';
+  syncType: 'inventory' | 'customers' | 'transactions' | 'full' | 'incremental';
   sourceLocationId?: string;
   targetLocationId?: string;
   tenantId: string;
@@ -28,19 +28,19 @@ export interface SyncJobData {
 }
 
 export interface NotificationJobData {
-  type: 'push' | 'sms' | 'email' | 'in-app';
+  type: 'push' | 'sms' | 'email' | 'in-app' | 'slack' | 'teams';
   recipients: string[];
   title: string;
   message: string;
   data?: Record<string, any>;
-  tenantId?: string;
+  tenantId?: string | undefined;
 }
 
 export interface AnalyticsJobData {
   eventType: string;
   event: Record<string, any>;
-  tenantId?: string;
-  userId?: string;
+  tenantId?: string | undefined;
+  userId?: string | undefined;
 }
 
 @Injectable()

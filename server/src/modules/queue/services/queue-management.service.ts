@@ -64,7 +64,7 @@ export class QueueManagementService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.customLogger.error('Failed to get queues', error.stack, { input, tenantId });
+      this.customLogger.error('Failed to get queues', error instanceof Error ? error.stack : String(error), { input, tenantId });
       throw error;
     }
   }
@@ -91,7 +91,7 @@ export class QueueManagementService {
 
       return queueInfo;
     } catch (error) {
-      this.customLogger.error('Failed to get queue info', error.stack, { queueType, tenantId });
+      this.customLogger.error('Failed to get queue info', error instanceof Error ? error.stack : String(error), { queueType, tenantId });
       throw new NotFoundException(`Queue ${queueType} not found`);
     }
   }
@@ -118,7 +118,7 @@ export class QueueManagementService {
         lastUpdated: new Date(),
       };
     } catch (error) {
-      this.customLogger.error('Failed to get queue stats', error.stack, { queueType, tenantId });
+      this.customLogger.error('Failed to get queue stats', error instanceof Error ? error.stack : String(error), { queueType, tenantId });
       throw error;
     }
   }
@@ -135,7 +135,7 @@ export class QueueManagementService {
       
       return isConnected && hasReasonableFailureRate && hasActiveProcessing;
     } catch (error) {
-      this.customLogger.error('Failed to check queue health', error.stack, { queueType });
+      this.customLogger.error('Failed to check queue health', error instanceof Error ? error.stack : String(error), { queueType });
       return false;
     }
   }
@@ -167,7 +167,7 @@ export class QueueManagementService {
 
       return drainedCount;
     } catch (error) {
-      this.customLogger.error('Failed to drain queue', error.stack, { queueType });
+      this.customLogger.error('Failed to drain queue', error instanceof Error ? error.stack : String(error), { queueType });
       throw error;
     }
   }
@@ -181,7 +181,7 @@ export class QueueManagementService {
 
       this.customLogger.warn('Queue obliterated', { queueType });
     } catch (error) {
-      this.customLogger.error('Failed to obliterate queue', error.stack, { queueType });
+      this.customLogger.error('Failed to obliterate queue', error instanceof Error ? error.stack : String(error), { queueType });
       throw error;
     }
   }
@@ -213,7 +213,7 @@ export class QueueManagementService {
         queueInfos.push(queueInfo);
       } catch (error) {
         this.customLogger.warn(`Failed to get info for queue ${queueType}`, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           queueType,
           tenantId,
         });
@@ -363,7 +363,8 @@ export class QueueManagementService {
   private async getQueueConfiguration(queue: Queue): Promise<any> {
     return {
       name: queue.name,
-      defaultJobOptions: queue.defaultJobOptions,
+      // Note: Bull Queue doesn't expose defaultJobOptions as a public property
+      // defaultJobOptions: queue.defaultJobOptions,
       settings: {
         stalledInterval: 30000,
         maxStalledCount: 1,
@@ -450,4 +451,4 @@ export class QueueManagementService {
       return false;
     }
   }
- 
+}

@@ -1,5 +1,5 @@
 import { Plugin } from '@nestjs/apollo';
-import { ApolloServerPlugin, GraphQLRequestListener } from 'apollo-server-plugin-base';
+import { ApolloServerPlugin } from '@apollo/server';
 import { GraphQLError } from 'graphql';
 import { CustomLoggerService } from '../../logger/logger.service';
 import { Injectable } from '@nestjs/common';
@@ -29,10 +29,10 @@ export class QueueComplexityPlugin implements ApolloServerPlugin {
     this.logger.setContext('QueueComplexityPlugin');
   }
 
-  requestDidStart(): GraphQLRequestListener {
-    return {
-      didResolveOperation: async (requestContext) => {
-        const { request, document } = requestContext;
+  requestDidStart(requestContext: any) {
+    return Promise.resolve({
+      didResolveOperation: async (opContext: any) => {
+        const { request, document } = opContext;
         
         try {
           // Skip complexity analysis for introspection queries
@@ -70,9 +70,9 @@ export class QueueComplexityPlugin implements ApolloServerPlugin {
               complexity,
               maximumComplexity: this.config.maximumComplexity,
               operationName: request.operationName,
-              userAgent: requestContext.request.http?.headers.get('user-agent'),
-              ip: requestContext.request.http?.headers.get('x-forwarded-for') || 
-                  requestContext.request.http?.headers.get('x-real-ip'),
+              userAgent: opContext.request.http?.headers.get('user-agent'),
+              ip: opContext.request.http?.headers.get('x-forwarded-for') || 
+                  opContext.request.http?.headers.get('x-real-ip'),
             });
 
             throw new GraphQLError(
@@ -94,15 +94,15 @@ export class QueueComplexityPlugin implements ApolloServerPlugin {
           }
 
           // Add complexity to request context for monitoring
-          if (requestContext.contextValue) {
-            requestContext.contextValue.queryComplexity = complexity;
+          if (opContext.contextValue) {
+            opContext.contextValue.queryComplexity = complexity;
           }
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;
           }
           
-          this.logger.error('Failed to calculate query complexity', error.stack, {
+          this.logger.error('Failed to calculate query complexity', error instanceof Error ? error.stack : String(error), {
             operationName: request.operationName,
           });
           
@@ -110,20 +110,20 @@ export class QueueComplexityPlugin implements ApolloServerPlugin {
         }
       },
 
-      willSendResponse: async (requestContext) => {
+      willSendResponse: async (sendContext: any) => {
         // Log performance metrics including complexity
-        const complexity = requestContext.contextValue?.queryComplexity;
+        const complexity = sendContext.contextValue?.queryComplexity;
         
         if (complexity) {
           this.logger.log('GraphQL query completed', {
             complexity,
-            operationName: requestContext.request.operationName,
-            duration: Date.now() - (requestContext.contextValue?.startTime || Date.now()),
-            errors: requestContext.errors?.length || 0,
+            operationName: sendContext.request.operationName,
+            duration: Date.now() - (sendContext.contextValue?.startTime || Date.now()),
+            errors: sendContext.errors?.length || 0,
           });
         }
       },
-    };
+    });
   }
 
   private calculateComplexity(document: any, variables: any = {}): number {

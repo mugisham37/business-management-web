@@ -291,7 +291,7 @@ export class QueueRateLimitGuard implements CanActivate {
 
       return { count, resetTime };
     } catch (error) {
-      this.logger.error('Failed to check distributed rate limit', error);
+      this.logger.error('Failed to check distributed rate limit', error instanceof Error ? error.message : String(error));
       // Fallback to local rate limiting
       return this.getLocalRateLimit(key, options, now, windowStart);
     }
@@ -374,7 +374,7 @@ export class QueueValidationGuard implements CanActivate {
       return true;
     } catch (error) {
       this.logger.warn('Queue validation failed', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         userId: user?.id,
         handler: context.getHandler().name,
         validationOptions,

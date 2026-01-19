@@ -5,7 +5,8 @@ import {
   QueueStats, 
   QueueAnalytics,
   QueueHourlyStats,
-  QueueType 
+  QueueType,
+  JobStatus 
 } from '../types/queue.types';
 import { QueueManagementService } from '../services/queue-management.service';
 import { QueueAnalyticsService } from '../services/queue-analytics.service';
@@ -26,7 +27,15 @@ import {
   CurrentTenant 
 } from '../decorators/queue.decorators';
 import { CustomLoggerService } from '../../logger/logger.service';
-import { DataLoader } from 'dataloader';
+import DataLoader from 'dataloader';
+
+// Helper function to safely get error stack
+function getErrorStack(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.stack;
+  }
+  return String(error);
+}
 
 @Resolver(() => QueueInfo)
 @UseGuards(QueuePermissionGuard, QueueTenantGuard, QueueRateLimitGuard)
@@ -64,7 +73,7 @@ export class QueueFieldResolver {
 
       return await this.queueManagementService.getQueueStats(queue.type, tenantId);
     } catch (error) {
-      this.logger.error('Failed to resolve queue stats', error.stack, {
+      this.logger.error('Failed to resolve queue stats', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -95,7 +104,7 @@ export class QueueFieldResolver {
     try {
       return await this.queueManagementService.isQueueHealthy(queue.type);
     } catch (error) {
-      this.logger.error('Failed to resolve queue health', error.stack, {
+      this.logger.error('Failed to resolve queue health', getErrorStack(error), {
         queueType: queue.type,
       });
       return false;
@@ -153,7 +162,7 @@ export class QueueFieldResolver {
         tenantId
       );
     } catch (error) {
-      this.logger.error('Failed to resolve queue analytics', error.stack, {
+      this.logger.error('Failed to resolve queue analytics', getErrorStack(error), {
         queueType: queue.type,
         hours,
         tenantId,
@@ -179,7 +188,7 @@ export class QueueFieldResolver {
         tenantId
       );
     } catch (error) {
-      this.logger.error('Failed to resolve hourly trends', error.stack, {
+      this.logger.error('Failed to resolve hourly trends', getErrorStack(error), {
         queueType: queue.type,
         days,
         tenantId,
@@ -201,7 +210,7 @@ export class QueueFieldResolver {
       const stats = await this.queueManagementService.getQueueStats(queue.type, tenantId);
       return stats.active;
     } catch (error) {
-      this.logger.error('Failed to resolve active job count', error.stack, {
+      this.logger.error('Failed to resolve active job count', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -222,7 +231,7 @@ export class QueueFieldResolver {
       const stats = await this.queueManagementService.getQueueStats(queue.type, tenantId);
       return stats.waiting;
     } catch (error) {
-      this.logger.error('Failed to resolve waiting job count', error.stack, {
+      this.logger.error('Failed to resolve waiting job count', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -243,7 +252,7 @@ export class QueueFieldResolver {
       const stats = await this.queueManagementService.getQueueStats(queue.type, tenantId);
       return stats.failed;
     } catch (error) {
-      this.logger.error('Failed to resolve failed job count', error.stack, {
+      this.logger.error('Failed to resolve failed job count', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -264,7 +273,7 @@ export class QueueFieldResolver {
       const stats = await this.queueManagementService.getQueueStats(queue.type, tenantId);
       return stats.completed;
     } catch (error) {
-      this.logger.error('Failed to resolve completed job count', error.stack, {
+      this.logger.error('Failed to resolve completed job count', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -285,7 +294,7 @@ export class QueueFieldResolver {
       const stats = await this.queueManagementService.getQueueStats(queue.type, tenantId);
       return stats.throughput / 60; // Convert from per hour to per minute
     } catch (error) {
-      this.logger.error('Failed to resolve throughput per minute', error.stack, {
+      this.logger.error('Failed to resolve throughput per minute', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -315,7 +324,7 @@ export class QueueFieldResolver {
       const throughputPerSecond = stats.throughput / 3600;
       return throughputPerSecond > 0 ? (stats.waiting / throughputPerSecond) * 1000 : 0;
     } catch (error) {
-      this.logger.error('Failed to resolve average wait time', error.stack, {
+      this.logger.error('Failed to resolve average wait time', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -345,7 +354,7 @@ export class QueueFieldResolver {
       
       return analytics.successRate * 100; // Convert to percentage
     } catch (error) {
-      this.logger.error('Failed to resolve success rate', error.stack, {
+      this.logger.error('Failed to resolve success rate', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -365,22 +374,27 @@ export class QueueFieldResolver {
   ): Promise<Date | null> {
     try {
       // Get the most recent completed job
+      const filter: { queueTypes: QueueType[]; statuses: JobStatus[]; tenantId?: string } = {
+        queueTypes: [queue.type],
+        statuses: [JobStatus.COMPLETED],
+      };
+      if (tenantId) {
+        filter.tenantId = tenantId;
+      }
+      
       const jobs = await this.jobManagementService.getJobs(
         {
-          filter: {
-            queueTypes: [queue.type],
-            statuses: ['completed'],
-            tenantId,
-          },
+          filter,
           pagination: { page: 1, limit: 1 },
           sort: [{ field: 'completedAt', direction: 'DESC' }],
         },
         tenantId
       );
 
-      return jobs.jobs.length > 0 ? jobs.jobs[0].completedAt || null : null;
+      const firstJob = jobs.jobs?.[0];
+      return firstJob?.completedAt ?? null;
     } catch (error) {
-      this.logger.error('Failed to resolve last job processed', error.stack, {
+      this.logger.error('Failed to resolve last job processed', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });
@@ -443,7 +457,7 @@ export class QueueFieldResolver {
       if (score >= 40) return 'D';
       return 'F';
     } catch (error) {
-      this.logger.error('Failed to resolve performance grade', error.stack, {
+      this.logger.error('Failed to resolve performance grade', getErrorStack(error), {
         queueType: queue.type,
         tenantId,
       });

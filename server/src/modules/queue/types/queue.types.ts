@@ -71,61 +71,61 @@ registerEnumType(ProcessorType, { name: 'ProcessorType' });
 @ObjectType()
 export class QueueStats {
   @Field(() => Int)
-  waiting: number;
+  waiting!: number;
 
   @Field(() => Int)
-  active: number;
+  active!: number;
 
   @Field(() => Int)
-  completed: number;
+  completed!: number;
 
   @Field(() => Int)
-  failed: number;
+  failed!: number;
 
   @Field(() => Int)
-  delayed: number;
+  delayed!: number;
 
   @Field(() => Int)
-  paused: number;
+  paused!: number;
 
   @Field(() => Int)
-  total: number;
+  total!: number;
 
   @Field(() => Float)
-  throughput: number; // jobs per minute
+  throughput!: number; // jobs per minute
 
   @Field(() => Float)
-  averageProcessingTime: number; // in milliseconds
+  averageProcessingTime!: number; // in milliseconds
 
   @Field(() => Date)
-  lastUpdated: Date;
+  lastUpdated!: Date;
 }
 
 @ObjectType()
 export class JobProgress {
   @Field(() => Int)
-  current: number;
+  current!: number;
 
   @Field(() => Int)
-  total: number;
+  total!: number;
 
   @Field(() => Float)
-  percentage: number;
+  percentage!: number;
 
   @Field(() => String, { nullable: true })
   message?: string;
 
   @Field(() => Date)
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @ObjectType()
 export class JobAttempt {
   @Field(() => Int)
-  attemptNumber: number;
+  attemptNumber!: number;
 
   @Field(() => Date)
-  attemptedAt: Date;
+  attemptedAt!: Date;
 
   @Field(() => Date, { nullable: true })
   completedAt?: Date;
@@ -140,28 +140,28 @@ export class JobAttempt {
 @ObjectType()
 export class JobMetrics {
   @Field(() => Int)
-  totalAttempts: number;
+  totalAttempts!: number;
 
   @Field(() => Int)
-  successfulAttempts: number;
+  successfulAttempts!: number;
 
   @Field(() => Int)
-  failedAttempts: number;
+  failedAttempts!: number;
 
   @Field(() => Float)
-  successRate: number;
+  successRate!: number;
 
   @Field(() => Float)
-  averageDuration: number;
+  averageDuration!: number;
 
   @Field(() => Float)
-  minDuration: number;
+  minDuration!: number;
 
   @Field(() => Float)
-  maxDuration: number;
+  maxDuration!: number;
 
   @Field(() => Date)
-  firstAttempt: Date;
+  firstAttempt!: Date;
 
   @Field(() => Date, { nullable: true })
   lastAttempt?: Date;
@@ -171,25 +171,25 @@ export class JobMetrics {
 @ObjectType()
 export class QueueJob {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => String)
-  name: string;
+  name!: string;
 
   @Field(() => QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => ProcessorType)
-  processorType: ProcessorType;
+  processorType!: ProcessorType;
 
   @Field(() => JobStatus)
-  status: JobStatus;
+  status!: JobStatus;
 
   @Field(() => JobPriority)
-  priority: JobPriority;
+  priority!: JobPriority;
 
   @Field(() => GraphQLJSON)
-  data: any;
+  data!: any;
 
   @Field(() => GraphQLJSON, { nullable: true })
   result?: any;
@@ -201,13 +201,13 @@ export class QueueJob {
   progress?: JobProgress;
 
   @Field(() => [JobAttempt])
-  attempts: JobAttempt[];
+  attempts!: JobAttempt[];
 
   @Field(() => JobMetrics)
-  metrics: JobMetrics;
+  metrics!: JobMetrics;
 
   @Field(() => Date)
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field(() => Date, { nullable: true })
   startedAt?: Date;
@@ -240,7 +240,7 @@ export class QueueJob {
   delay?: number;
 
   @Field(() => Boolean)
-  isRepeatable: boolean;
+  isRepeatable!: boolean;
 
   @Field(() => String, { nullable: true })
   repeatPattern?: string;
@@ -253,31 +253,31 @@ export class QueueJob {
 @ObjectType()
 export class QueueInfo {
   @Field(() => String)
-  name: string;
+  name!: string;
 
   @Field(() => QueueType)
-  type: QueueType;
+  type!: QueueType;
 
   @Field(() => QueueStatus)
-  status: QueueStatus;
+  status!: QueueStatus;
 
   @Field(() => QueueStats)
-  stats: QueueStats;
+  stats!: QueueStats;
 
   @Field(() => [String])
-  availableProcessors: string[];
+  availableProcessors!: string[];
 
   @Field(() => GraphQLJSON)
-  configuration: any;
+  configuration!: any;
 
   @Field(() => Date)
-  createdAt: Date;
+  createdAt!: Date;
 
   @Field(() => Date)
-  lastActivity: Date;
+  lastActivity!: Date;
 
   @Field(() => Boolean)
-  isHealthy: boolean;
+  isHealthy!: boolean;
 
   @Field(() => String, { nullable: true })
   healthMessage?: string;
@@ -287,86 +287,86 @@ export class QueueInfo {
 @ObjectType()
 export class PaginatedJobs {
   @Field(() => [QueueJob])
-  jobs: QueueJob[];
+  jobs!: QueueJob[];
 
   @Field(() => Int)
-  total: number;
+  total!: number;
 
   @Field(() => Int)
-  page: number;
+  page!: number;
 
   @Field(() => Int)
-  limit: number;
+  limit!: number;
 
   @Field(() => Int)
-  totalPages: number;
+  totalPages!: number;
 
   @Field(() => Boolean)
-  hasNext: boolean;
+  hasNext!: boolean;
 
   @Field(() => Boolean)
-  hasPrevious: boolean;
+  hasPrevious!: boolean;
 }
 
 @ObjectType()
 export class PaginatedQueues {
   @Field(() => [QueueInfo])
-  queues: QueueInfo[];
+  queues!: QueueInfo[];
 
   @Field(() => Int)
-  total: number;
+  total!: number;
 
   @Field(() => Int)
-  page: number;
+  page!: number;
 
   @Field(() => Int)
-  limit: number;
+  limit!: number;
 
   @Field(() => Int)
-  totalPages: number;
+  totalPages!: number;
 
   @Field(() => Boolean)
-  hasNext: boolean;
+  hasNext!: boolean;
 
   @Field(() => Boolean)
-  hasPrevious: boolean;
+  hasPrevious!: boolean;
 }
 
 // Response Types
 @ObjectType()
 export class JobOperationResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field(() => String, { nullable: true })
-  message?: string;
+  message?: string | undefined;
 
   @Field(() => QueueJob, { nullable: true })
-  job?: QueueJob;
+  job?: QueueJob | undefined;
 
   @Field(() => [String], { nullable: true })
-  errors?: string[];
+  errors?: string[] | undefined;
 }
 
 @ObjectType()
 export class BulkJobOperationResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field(() => String, { nullable: true })
   message?: string;
 
   @Field(() => [QueueJob])
-  jobs: QueueJob[];
+  jobs!: QueueJob[];
 
   @Field(() => Int)
-  totalProcessed: number;
+  totalProcessed!: number;
 
   @Field(() => Int)
-  successCount: number;
+  successCount!: number;
 
   @Field(() => Int)
-  failureCount: number;
+  failureCount!: number;
 
   @Field(() => [String], { nullable: true })
   errors?: string[];
@@ -375,7 +375,7 @@ export class BulkJobOperationResponse {
 @ObjectType()
 export class QueueOperationResponse {
   @Field(() => Boolean)
-  success: boolean;
+  success!: boolean;
 
   @Field(() => String, { nullable: true })
   message?: string;
@@ -391,16 +391,16 @@ export class QueueOperationResponse {
 @ObjectType()
 export class JobStatusUpdate {
   @Field(() => ID)
-  jobId: string;
+  jobId!: string;
 
   @Field(() => QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => JobStatus)
-  oldStatus: JobStatus;
+  oldStatus!: JobStatus;
 
   @Field(() => JobStatus)
-  newStatus: JobStatus;
+  newStatus!: JobStatus;
 
   @Field(() => JobProgress, { nullable: true })
   progress?: JobProgress;
@@ -409,7 +409,7 @@ export class JobStatusUpdate {
   error?: string;
 
   @Field(() => Date)
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => String, { nullable: true })
   tenantId?: string;
@@ -421,25 +421,25 @@ export class JobStatusUpdate {
 @ObjectType()
 export class QueueHealthUpdate {
   @Field(() => String)
-  queueName: string;
+  queueName!: string;
 
   @Field(() => QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => QueueStatus)
-  status: QueueStatus;
+  status!: QueueStatus;
 
   @Field(() => QueueStats)
-  stats: QueueStats;
+  stats!: QueueStats;
 
   @Field(() => Boolean)
-  isHealthy: boolean;
+  isHealthy!: boolean;
 
   @Field(() => String, { nullable: true })
   healthMessage?: string;
 
   @Field(() => Date)
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => String, { nullable: true })
   tenantId?: string;
@@ -449,71 +449,71 @@ export class QueueHealthUpdate {
 @ObjectType()
 export class QueueAnalytics {
   @Field(() => String)
-  queueName: string;
+  queueName!: string;
 
   @Field(() => QueueType)
-  queueType: QueueType;
+  queueType!: QueueType;
 
   @Field(() => Int)
-  totalJobsProcessed: number;
+  totalJobsProcessed!: number;
 
   @Field(() => Float)
-  averageProcessingTime: number;
+  averageProcessingTime!: number;
 
   @Field(() => Float)
-  successRate: number;
+  successRate!: number;
 
   @Field(() => Float)
-  throughputPerHour: number;
+  throughputPerHour!: number;
 
   @Field(() => Int)
-  peakConcurrency: number;
+  peakConcurrency!: number;
 
   @Field(() => [QueueHourlyStats])
-  hourlyStats: QueueHourlyStats[];
+  hourlyStats!: QueueHourlyStats[];
 
   @Field(() => Date)
-  periodStart: Date;
+  periodStart!: Date;
 
   @Field(() => Date)
-  periodEnd: Date;
+  periodEnd!: Date;
 }
 
 @ObjectType()
 export class QueueHourlyStats {
   @Field(() => Date)
-  hour: Date;
+  hour!: Date;
 
   @Field(() => Int)
-  jobsProcessed: number;
+  jobsProcessed!: number;
 
   @Field(() => Int)
-  jobsSucceeded: number;
+  jobsSucceeded!: number;
 
   @Field(() => Int)
-  jobsFailed: number;
+  jobsFailed!: number;
 
   @Field(() => Float)
-  averageProcessingTime: number;
+  averageProcessingTime!: number;
 
   @Field(() => Int)
-  peakConcurrency: number;
+  peakConcurrency!: number;
 }
 
 // Error Types
 @ObjectType()
 export class QueueError {
   @Field(() => String)
-  code: string;
+  code!: string;
 
   @Field(() => String)
-  message: string;
+  message!: string;
 
   @Field(() => String, { nullable: true })
   details?: string;
 
   @Field(() => Date)
-  timestamp: Date;
+  timestamp!: Date;
 
   @Field(() => String, { nullable: true })
   jobId?: string;

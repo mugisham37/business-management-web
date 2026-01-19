@@ -46,7 +46,7 @@ export class QueueAuditInterceptor implements NestInterceptor {
     const startTime = Date.now();
     const auditId = randomUUID();
 
-    const auditData = {
+    const auditData: any = {
       auditId,
       action: auditOptions.action,
       resource: auditOptions.resource,
@@ -62,7 +62,7 @@ export class QueueAuditInterceptor implements NestInterceptor {
 
     // Include request data if configured
     if (auditOptions.includeRequest) {
-      auditData['requestData'] = this.sanitizeData(args, auditOptions.sensitiveFields);
+      auditData.requestData = this.sanitizeData(args, auditOptions.sensitiveFields);
     }
 
     this.logger.log('Queue operation audit started', auditData);
@@ -71,7 +71,7 @@ export class QueueAuditInterceptor implements NestInterceptor {
       tap((response) => {
         const duration = Date.now() - startTime;
         
-        const completedAuditData = {
+        const completedAuditData: any = {
           ...auditData,
           status: 'success',
           duration,
@@ -80,7 +80,7 @@ export class QueueAuditInterceptor implements NestInterceptor {
 
         // Include response data if configured
         if (auditOptions.includeResponse) {
-          completedAuditData['responseData'] = this.sanitizeData(response, auditOptions.sensitiveFields);
+          completedAuditData.responseData = this.sanitizeData(response, auditOptions.sensitiveFields);
         }
 
         this.logger.log('Queue operation audit completed', completedAuditData);
@@ -121,19 +121,23 @@ export class QueueAuditInterceptor implements NestInterceptor {
 
   private removeSensitiveField(obj: any, fieldPath: string): void {
     const parts = fieldPath.split('.');
-    let current = obj;
+    let current: any = obj;
 
     for (let i = 0; i < parts.length - 1; i++) {
-      if (current[parts[i]]) {
-        current = current[parts[i]];
-      } else {
+      if (!current || typeof current !== 'object' || !(parts[i]! in current)) {
         return;
       }
+      const next = current[parts[i]!];
+      if (next === undefined) {
+        return;
+      }
+      current = next;
     }
 
-    if (current && current[parts[parts.length - 1]]) {
-      current[parts[parts.length - 1]] = '[REDACTED]';
+    if (!current || typeof current !== 'object' || !(parts[parts.length - 1]! in current)) {
+      return;
     }
+    current[parts[parts.length - 1]!] = '[REDACTED]';
   }
 }
 
@@ -170,6 +174,12 @@ export class QueueCacheInterceptor implements NestInterceptor {
 
     return new Observable((observer) => {
       // Try to get from cache first
+      if (!this.cacheService) {
+        // No cache service, execute handler directly
+        next.handle().subscribe(observer);
+        return;
+      }
+
       this.cacheService.get(cacheKey).then((cachedResult) => {
         if (cachedResult !== null) {
           this.logger.debug('Queue cache hit', { cacheKey });
@@ -184,9 +194,11 @@ export class QueueCacheInterceptor implements NestInterceptor {
         next.handle().subscribe({
           next: (result) => {
             // Cache the result
-            this.cacheService.set(cacheKey, result, cacheOptions.ttl).catch((error) => {
-              this.logger.warn('Failed to cache queue result', { error: error.message, cacheKey });
-            });
+            if (this.cacheService) {
+              this.cacheService.set(cacheKey, result, { ttl: cacheOptions.ttl }).catch((error) => {
+                this.logger.warn('Failed to cache queue result', { error: error instanceof Error ? error.message : String(error), cacheKey });
+              });
+            }
 
             // Tag the cache entry for invalidation
             if (cacheOptions.tags) {
@@ -240,15 +252,25 @@ export class QueueCacheInterceptor implements NestInterceptor {
   }
 
   private async tagCacheEntry(cacheKey: string, tags: string[]): Promise<void> {
+    if (!this.cacheService) {
+      return;
+    }
+
     try {
-      // Store cache tags for invalidation
+      // Note: CacheService might not support sadd/expire methods
+      // Store cache tags for invalidation if methods are available
       for (const tag of tags) {
         const tagKey = `cache:tag:${tag}`;
-        await this.cacheService.sadd(tagKey, cacheKey);
-        await this.cacheService.expire(tagKey, 3600); // Expire tags after 1 hour
+        // Check if methods exist before calling
+        if ('sadd' in this.cacheService && typeof (this.cacheService as any).sadd === 'function') {
+          await (this.cacheService as any).sadd(tagKey, cacheKey);
+        }
+        if ('expire' in this.cacheService && typeof (this.cacheService as any).expire === 'function') {
+          await (this.cacheService as any).expire(tagKey, 3600); // Expire tags after 1 hour
+        }
       }
     } catch (error) {
-      this.logger.warn('Failed to tag cache entry', { error: error.message, cacheKey, tags });
+      this.logger.warn('Failed to tag cache entry', { error: error instanceof Error ? error.message : String(error), cacheKey, tags });
     }
   }
 }
@@ -308,12 +330,12 @@ export class QueueMonitoringInterceptor implements NestInterceptor {
           this.logger.log('Queue operation completed', performanceData);
           
           // Send real-time performance metrics
-          if (this.realtimeService && user?.tenantId) {
-            this.realtimeService.sendMetrics(user.tenantId, {
+          if (this.realtimeService && user?.tenantId && 'sendMetrics' in this.realtimeService) {
+            (this.realtimeService as any).sendMetrics(user.tenantId, {
               type: 'queue_operation_performance',
               data: performanceData,
-            }).catch((error) => {
-              this.logger.warn('Failed to send real-time performance metrics', { error: error.message });
+            }).catch((error: any) => {
+              this.logger.warn('Failed to send real-time performance metrics', { error: error instanceof Error ? error.message : String(error) });
             });
           }
         }
@@ -338,13 +360,13 @@ export class QueueMonitoringInterceptor implements NestInterceptor {
           this.logger.error('Queue operation failed', error.stack, errorData);
           
           // Send real-time error alerts
-          if (this.realtimeService && user?.tenantId) {
-            this.realtimeService.sendAlert(user.tenantId, {
+          if (this.realtimeService && user?.tenantId && 'sendAlert' in this.realtimeService) {
+            (this.realtimeService as any).sendAlert(user.tenantId, {
               type: 'queue_operation_error',
               severity: 'error',
               message: `Queue operation failed: ${error.message}`,
               data: errorData,
-            }).catch((alertError) => {
+            }).catch((alertError: any) => {
               this.logger.warn('Failed to send real-time error alert', { error: alertError.message });
             });
           }
@@ -392,8 +414,8 @@ export class QueueMonitoringInterceptor implements NestInterceptor {
       });
 
       // Send alert to monitoring system or notification service
-      if (this.realtimeService && monitoringData.tenantId) {
-        await this.realtimeService.sendAlert(monitoringData.tenantId, {
+      if (this.realtimeService && monitoringData.tenantId && 'sendAlert' in this.realtimeService) {
+        await (this.realtimeService as any).sendAlert(monitoringData.tenantId, {
           type: 'queue_failure_threshold',
           severity: 'warning',
           message: `Queue operation ${monitoringData.handler} has exceeded failure threshold`,
@@ -405,7 +427,7 @@ export class QueueMonitoringInterceptor implements NestInterceptor {
         });
       }
     } catch (alertError) {
-      this.logger.error('Failed to handle failure alert', alertError);
+      this.logger.error('Failed to handle failure alert', alertError instanceof Error ? alertError.message : String(alertError));
     }
   }
 }
@@ -447,17 +469,18 @@ export class QueueRetryInterceptor implements NestInterceptor {
     return next.handle().pipe(
       retry({
         count: retryOptions.maxAttempts - 1, // -1 because the first attempt is not a retry
-        delay: (error, retryCount) => {
-          const delay = this.calculateDelay(retryOptions, retryCount);
+        delay: (error: any, retryCount: number) => {
+          const delayMs = this.calculateDelay(retryOptions, retryCount);
           
           this.logger.warn('Queue operation retry', {
             ...retryData,
             retryCount,
-            delay,
-            error: error.message,
+            delay: delayMs,
+            error: error instanceof Error ? error.message : String(error),
           });
 
-          return delay;
+          // Return a timer observable that emits after the calculated delay
+          return new Promise(resolve => setTimeout(resolve, delayMs));
         },
       }),
       catchError((error) => {

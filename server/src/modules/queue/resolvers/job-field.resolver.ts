@@ -26,6 +26,14 @@ import {
 import { CustomLoggerService } from '../../logger/logger.service';
 import { GraphQLJSON } from 'graphql-type-json';
 
+// Helper function to safely get error stack
+function getErrorStack(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.stack;
+  }
+  return String(error);
+}
+
 @Resolver(() => QueueJob)
 @UseGuards(QueuePermissionGuard, QueueTenantGuard, QueueRateLimitGuard)
 @UseInterceptors(QueueCacheInterceptor, QueueMonitoringInterceptor)
@@ -51,7 +59,7 @@ export class JobFieldResolver {
       // Progress is already included in the job object from the service
       return job.progress || null;
     } catch (error) {
-      this.logger.error('Failed to resolve job progress', error.stack, {
+      this.logger.error('Failed to resolve job progress', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -71,7 +79,7 @@ export class JobFieldResolver {
       // Attempts are already included in the job object from the service
       return job.attempts || [];
     } catch (error) {
-      this.logger.error('Failed to resolve job attempts', error.stack, {
+      this.logger.error('Failed to resolve job attempts', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -91,7 +99,7 @@ export class JobFieldResolver {
       // Metrics are already included in the job object from the service
       return job.metrics;
     } catch (error) {
-      this.logger.error('Failed to resolve job metrics', error.stack, {
+      this.logger.error('Failed to resolve job metrics', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -130,7 +138,7 @@ export class JobFieldResolver {
       
       return null;
     } catch (error) {
-      this.logger.error('Failed to resolve job duration', error.stack, {
+      this.logger.error('Failed to resolve job duration', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -158,7 +166,7 @@ export class JobFieldResolver {
       
       return null;
     } catch (error) {
-      this.logger.error('Failed to resolve job wait time', error.stack, {
+      this.logger.error('Failed to resolve job wait time', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -203,7 +211,7 @@ export class JobFieldResolver {
           return 'Unknown status';
       }
     } catch (error) {
-      this.logger.error('Failed to resolve status description', error.stack, {
+      this.logger.error('Failed to resolve status description', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -224,7 +232,7 @@ export class JobFieldResolver {
       return job.status === JobStatus.FAILED && 
              job.attempts.length < 10; // Max retry limit
     } catch (error) {
-      this.logger.error('Failed to resolve can retry', error.stack, {
+      this.logger.error('Failed to resolve can retry', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -244,7 +252,7 @@ export class JobFieldResolver {
       // Jobs can be cancelled if they are waiting, delayed, or active
       return [JobStatus.WAITING, JobStatus.DELAYED, JobStatus.ACTIVE].includes(job.status);
     } catch (error) {
-      this.logger.error('Failed to resolve can cancel', error.stack, {
+      this.logger.error('Failed to resolve can cancel', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -276,7 +284,7 @@ export class JobFieldResolver {
           return `Priority ${job.priority}`;
       }
     } catch (error) {
-      this.logger.error('Failed to resolve priority description', error.stack, {
+      this.logger.error('Failed to resolve priority description', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -306,7 +314,7 @@ export class JobFieldResolver {
       // Exclude the current job from related jobs
       return relatedJobs.filter(relatedJob => relatedJob.id !== job.id);
     } catch (error) {
-      this.logger.error('Failed to resolve related jobs', error.stack, {
+      this.logger.error('Failed to resolve related jobs', getErrorStack(error), {
         jobId: job.id,
         correlationId: job.correlationId,
         tenantId,
@@ -347,7 +355,7 @@ export class JobFieldResolver {
       
       return sanitized;
     } catch (error) {
-      this.logger.error('Failed to resolve sanitized data', error.stack, {
+      this.logger.error('Failed to resolve sanitized data', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -388,7 +396,7 @@ export class JobFieldResolver {
 
       return null;
     } catch (error) {
-      this.logger.error('Failed to resolve estimated completion', error.stack, {
+      this.logger.error('Failed to resolve estimated completion', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -406,7 +414,9 @@ export class JobFieldResolver {
     @Parent() job: QueueJob,
   ): Promise<string | null> {
     try {
-      if (job.status !== JobStatus.FAILED || !job.canRetry) {
+      // Check if job can retry (same logic as getCanRetry)
+      const canRetry = job.status === JobStatus.FAILED && job.attempts.length < 10;
+      if (job.status !== JobStatus.FAILED || !canRetry) {
         return null;
       }
 
@@ -421,7 +431,7 @@ export class JobFieldResolver {
       
       return nextRetry.toISOString();
     } catch (error) {
-      this.logger.error('Failed to resolve next retry at', error.stack, {
+      this.logger.error('Failed to resolve next retry at', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });
@@ -470,7 +480,7 @@ export class JobFieldResolver {
       
       return 'Unknown';
     } catch (error) {
-      this.logger.error('Failed to resolve error category', error.stack, {
+      this.logger.error('Failed to resolve error category', getErrorStack(error), {
         jobId: job.id,
         queueType: job.queueType,
       });

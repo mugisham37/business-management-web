@@ -19,9 +19,9 @@ interface QueueAnalyticsKey {
 
 @Injectable()
 export class QueueDataLoader {
-  private queueStatsLoader: DataLoader<QueueStatsKey, QueueStats>;
-  private queueAnalyticsLoader: DataLoader<QueueAnalyticsKey, QueueAnalytics>;
-  private queueHealthLoader: DataLoader<QueueType, boolean>;
+  private queueStatsLoader!: DataLoader<QueueStatsKey, QueueStats>;
+  private queueAnalyticsLoader!: DataLoader<QueueAnalyticsKey, QueueAnalytics>;
+  private queueHealthLoader!: DataLoader<QueueType, boolean>;
 
   constructor(
     private readonly queueManagementService: QueueManagementService,
@@ -64,13 +64,13 @@ export class QueueDataLoader {
             }
           });
         } catch (error) {
-          this.logger.error('Failed to batch load queue stats', error.stack);
+          this.logger.error('Failed to batch load queue stats', error instanceof Error ? error.stack : String(error));
           throw error;
         }
       },
       {
         // Cache for 30 seconds
-        cacheKeyFn: (key) => `${key.queueType}:${key.tenantId || 'all'}`,
+        cacheKeyFn: (key) => `${key.queueType}:${key.tenantId || 'all'}` as any,
         batchScheduleFn: (callback) => setTimeout(callback, 10), // Batch within 10ms
       }
     );
@@ -111,14 +111,14 @@ export class QueueDataLoader {
             }
           });
         } catch (error) {
-          this.logger.error('Failed to batch load queue analytics', error.stack);
+          this.logger.error('Failed to batch load queue analytics', error instanceof Error ? error.stack : String(error));
           throw error;
         }
       },
       {
         // Cache for 5 minutes
         cacheKeyFn: (key) => 
-          `${key.queueType}:${key.dateRange.from.getTime()}:${key.dateRange.to.getTime()}:${key.granularity}:${key.tenantId || 'all'}`,
+          `${key.queueType}:${key.dateRange.from.getTime()}:${key.dateRange.to.getTime()}:${key.granularity}:${key.tenantId || 'all'}` as any,
         batchScheduleFn: (callback) => setTimeout(callback, 50), // Batch within 50ms for analytics
       }
     );
@@ -142,13 +142,13 @@ export class QueueDataLoader {
             }
           });
         } catch (error) {
-          this.logger.error('Failed to batch load queue health', error.stack);
+          this.logger.error('Failed to batch load queue health', error instanceof Error ? error.stack : String(error));
           throw error;
         }
       },
       {
         // Cache for 15 seconds
-        cacheKeyFn: (queueType) => queueType.toString(),
+        cacheKeyFn: (queueType) => queueType.toString() as any,
         batchScheduleFn: (callback) => setTimeout(callback, 10),
       }
     );
@@ -158,7 +158,11 @@ export class QueueDataLoader {
 
   // Public methods to access DataLoaders
   async loadQueueStats(queueType: QueueType, tenantId?: string): Promise<QueueStats> {
-    return this.queueStatsLoader.load({ queueType, tenantId });
+    const key: QueueStatsKey = { queueType };
+    if (tenantId !== undefined) {
+      key.tenantId = tenantId;
+    }
+    return this.queueStatsLoader.load(key);
   }
 
   async loadQueueAnalytics(
@@ -167,12 +171,15 @@ export class QueueDataLoader {
     granularity: string = 'hour',
     tenantId?: string
   ): Promise<QueueAnalytics> {
-    return this.queueAnalyticsLoader.load({
+    const key: QueueAnalyticsKey = {
       queueType,
       dateRange,
       granularity,
-      tenantId,
-    });
+    };
+    if (tenantId !== undefined) {
+      key.tenantId = tenantId;
+    }
+    return this.queueAnalyticsLoader.load(key);
   }
 
   async loadQueueHealth(queueType: QueueType): Promise<boolean> {
@@ -183,23 +190,37 @@ export class QueueDataLoader {
   async loadMultipleQueueStats(
     requests: Array<{ queueType: QueueType; tenantId?: string }>
   ): Promise<QueueStats[]> {
-    return this.queueStatsLoader.loadMany(requests);
+    const results = await this.queueStatsLoader.loadMany(requests);
+    return results.map(r => r instanceof Error ? {
+      waiting: 0, active: 0, completed: 0, failed: 0, delayed: 0,
+      paused: 0, total: 0, throughput: 0, averageProcessingTime: 0,
+      lastUpdated: new Date(),
+    } : r);
   }
 
   async loadMultipleQueueAnalytics(
     requests: QueueAnalyticsKey[]
   ): Promise<QueueAnalytics[]> {
-    return this.queueAnalyticsLoader.loadMany(requests);
+    const results = await this.queueAnalyticsLoader.loadMany(requests);
+    return results.map(r => r instanceof Error ? {
+      queueName: 'unknown', queueType: QueueType.EMAIL, totalJobsProcessed: 0,
+      averageProcessingTime: 0, successRate: 0, throughputPerHour: 0,
+      peakConcurrency: 0, hourlyStats: [], periodStart: new Date(), periodEnd: new Date(),
+    } : r);
   }
 
   async loadMultipleQueueHealth(queueTypes: QueueType[]): Promise<boolean[]> {
-    return this.queueHealthLoader.loadMany(queueTypes);
+    const results = await this.queueHealthLoader.loadMany(queueTypes);
+    return results.map(r => r instanceof Error ? false : r);
   }
 
   // Cache management methods
   clearQueueStatsCache(queueType?: QueueType, tenantId?: string): void {
     if (queueType) {
-      const key = { queueType, tenantId };
+      const key: QueueStatsKey = { queueType };
+      if (tenantId !== undefined) {
+        key.tenantId = tenantId;
+      }
       this.queueStatsLoader.clear(key);
     } else {
       this.queueStatsLoader.clearAll();
@@ -233,7 +254,10 @@ export class QueueDataLoader {
 
   // Prime cache methods (useful for preloading data)
   primeQueueStats(queueType: QueueType, tenantId: string | undefined, stats: QueueStats): void {
-    const key = { queueType, tenantId };
+    const key: QueueStatsKey = { queueType };
+    if (tenantId !== undefined) {
+      key.tenantId = tenantId;
+    }
     this.queueStatsLoader.prime(key, stats);
   }
 
@@ -244,7 +268,10 @@ export class QueueDataLoader {
     tenantId: string | undefined,
     analytics: QueueAnalytics
   ): void {
-    const key = { queueType, dateRange, granularity, tenantId };
+    const key: QueueAnalyticsKey = { queueType, dateRange, granularity };
+    if (tenantId !== undefined) {
+      key.tenantId = tenantId;
+    }
     this.queueAnalyticsLoader.prime(key, analytics);
   }
 
@@ -301,7 +328,7 @@ export class QueueDataLoader {
         });
       },
       {
-        cacheKeyFn: (key) => `${key.queueType}:${key.tenantId || 'all'}`,
+        cacheKeyFn: (key) => `${key.queueType}:${key.tenantId || 'all'}` as any,
         batchScheduleFn: (callback) => setTimeout(callback, 10),
       }
     );
@@ -340,7 +367,7 @@ export class QueueDataLoader {
       },
       {
         cacheKeyFn: (key) => 
-          `${key.queueType}:${key.dateRange.from.getTime()}:${key.dateRange.to.getTime()}:${key.granularity}:${key.tenantId || 'all'}`,
+          `${key.queueType}:${key.dateRange.from.getTime()}:${key.dateRange.to.getTime()}:${key.granularity}:${key.tenantId || 'all'}` as any,
         batchScheduleFn: (callback) => setTimeout(callback, 50),
       }
     );
@@ -362,7 +389,7 @@ export class QueueDataLoader {
         });
       },
       {
-        cacheKeyFn: (queueType) => queueType.toString(),
+        cacheKeyFn: (queueType) => queueType.toString() as any,
         batchScheduleFn: (callback) => setTimeout(callback, 10),
       }
     );

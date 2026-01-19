@@ -56,7 +56,7 @@ export class SubscriptionFilter {
 
       return true;
     } catch (error) {
-      this.logger.error('Failed to filter queue health update', error.stack, {
+      this.logger.error('Failed to filter queue health update', error instanceof Error ? error.stack : String(error), {
         payload,
         variables,
       });
@@ -124,7 +124,7 @@ export class SubscriptionFilter {
 
       return true;
     } catch (error) {
-      this.logger.error('Failed to filter job status update', error.stack, {
+      this.logger.error('Failed to filter job status update', error instanceof Error ? error.stack : String(error), {
         payload,
         variables,
       });
@@ -176,7 +176,7 @@ export class SubscriptionFilter {
 
       return true;
     } catch (error) {
-      this.logger.error('Failed to apply advanced job status filter', error.stack, {
+      this.logger.error('Failed to apply advanced job status filter', error instanceof Error ? error.stack : String(error), {
         payload,
         variables,
       });
@@ -208,7 +208,7 @@ export class SubscriptionFilter {
       
       return true; // Allow for now
     } catch (error) {
-      this.logger.error('Failed to check subscription rate limit', error.stack, {
+      this.logger.error('Failed to check subscription rate limit', error instanceof Error ? error.stack : String(error), {
         subscriptionType,
         userId: context.req?.user?.id,
       });
@@ -265,7 +265,7 @@ export class SubscriptionFilter {
           return false;
       }
     } catch (error) {
-      this.logger.error('Failed to authorize subscription', error.stack, {
+      this.logger.error('Failed to authorize subscription', error instanceof Error ? error.stack : String(error), {
         subscriptionType,
         userId: context.req?.user?.id,
       });
@@ -354,7 +354,7 @@ export class SubscriptionFilter {
       // In production, you might want to store subscription metadata
       // for monitoring and cleanup purposes
     } catch (error) {
-      this.logger.error('Failed to track subscription', error.stack, {
+      this.logger.error('Failed to track subscription', error instanceof Error ? error.stack : String(error), {
         subscriptionType,
         subscriptionId,
       });
@@ -374,7 +374,7 @@ export class SubscriptionFilter {
 
       // Cleanup any resources associated with the subscription
     } catch (error) {
-      this.logger.error('Failed to cleanup subscription', error.stack, {
+      this.logger.error('Failed to cleanup subscription', error instanceof Error ? error.stack : String(error), {
         subscriptionType,
         subscriptionId,
       });
