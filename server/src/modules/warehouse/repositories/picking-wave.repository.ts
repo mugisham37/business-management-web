@@ -36,15 +36,13 @@ export class PickingWaveRepository {
       .values({
         tenantId,
         waveNumber: data.waveNumber,
-        name: data.name,
+        name: data.name || `Wave ${data.waveNumber}`,
         description: data.description,
         warehouseId: data.warehouseId,
         zoneIds: data.zoneIds || [],
         waveType: data.waveType || 'standard',
-        priority: data.priority || 1,
-        plannedStartTime: data.plannedStartTime ? new Date(data.plannedStartTime) : null,
-        plannedEndTime: data.plannedEndTime ? new Date(data.plannedEndTime) : null,
-        status: 'planned',
+        priority: data.priority ?? 1,
+        status: 'planned' as const,
         totalOrders: 0,
         completedOrders: 0,
         totalLines: 0,
@@ -137,11 +135,15 @@ export class PickingWaveRepository {
     }
 
     if (status) {
-      conditions.push(eq(pickingWaves.status, status));
+      // Convert enum value to string if needed
+      const statusValue = typeof status === 'string' ? status : String(status);
+      conditions.push(eq(pickingWaves.status, statusValue as any));
     }
 
     if (waveType) {
-      conditions.push(eq(pickingWaves.waveType, waveType));
+      // Convert enum value to string if needed
+      const waveTypeValue = typeof waveType === 'string' ? waveType : String(waveType);
+      conditions.push(eq(pickingWaves.waveType, waveTypeValue as any));
     }
 
     if (assignedPickerId) {
@@ -205,9 +207,12 @@ export class PickingWaveRepository {
   }
 
   async findByStatus(tenantId: string, status: WaveStatus, warehouseId?: string): Promise<any[]> {
+    // Convert enum value to string if needed
+    const statusValue = typeof status === 'string' ? status : String(status);
+    
     const conditions = [
       eq(pickingWaves.tenantId, tenantId),
-      eq(pickingWaves.status, status),
+      eq(pickingWaves.status, statusValue as any),
       isNull(pickingWaves.deletedAt)
     ];
 

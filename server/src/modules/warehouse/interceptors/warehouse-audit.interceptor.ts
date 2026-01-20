@@ -299,8 +299,8 @@ export class WarehouseAuditInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('warehouse.audit', auditEvent);
-    } catch (auditError) {
-      this.logger.error(`Failed to emit warehouse audit event: ${auditError.message}`);
+    } catch (auditError: unknown) {
+      this.logger.error(`Failed to emit warehouse audit event: ${auditError instanceof Error ? auditError.message : 'Unknown error'}`);
     }
   }
 
@@ -338,8 +338,8 @@ export class WarehouseAuditInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('picking.audit', auditEvent);
-    } catch (auditError) {
-      this.logger.error(`Failed to emit picking audit event: ${auditError.message}`);
+    } catch (auditError: unknown) {
+      this.logger.error(`Failed to emit picking audit event: ${auditError instanceof Error ? auditError.message : 'Unknown error'}`);
     }
   }
 
@@ -377,8 +377,8 @@ export class WarehouseAuditInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('assembly.audit', auditEvent);
-    } catch (auditError) {
-      this.logger.error(`Failed to emit assembly audit event: ${auditError.message}`);
+    } catch (auditError: unknown) {
+      this.logger.error(`Failed to emit assembly audit event: ${auditError instanceof Error ? auditError.message : 'Unknown error'}`);
     }
   }
 
@@ -416,8 +416,8 @@ export class WarehouseAuditInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('shipping.audit', auditEvent);
-    } catch (auditError) {
-      this.logger.error(`Failed to emit shipping audit event: ${auditError.message}`);
+    } catch (auditError: unknown) {
+      this.logger.error(`Failed to emit shipping audit event: ${auditError instanceof Error ? auditError.message : 'Unknown error'}`);
     }
   }
 
@@ -455,8 +455,8 @@ export class WarehouseAuditInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('lot_tracking.audit', auditEvent);
-    } catch (auditError) {
-      this.logger.error(`Failed to emit lot tracking audit event: ${auditError.message}`);
+    } catch (auditError: unknown) {
+      this.logger.error(`Failed to emit lot tracking audit event: ${auditError instanceof Error ? auditError.message : 'Unknown error'}`);
     }
   }
 

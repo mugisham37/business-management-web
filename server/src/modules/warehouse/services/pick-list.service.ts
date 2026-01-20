@@ -297,9 +297,12 @@ export class PickListService {
     const items = await this.getPickListItems(tenantId, pickListId);
 
     // Get bin location details for route optimization
-    const binLocationIds = data.binLocationIds.length > 0 ? data.binLocationIds : items.map(item => item.binLocationId);
+    const binLocationIds = items
+      .filter((item: any) => item.binLocationId)
+      .map((item: any) => item.binLocationId);
+    
     const binLocations = await Promise.all(
-      binLocationIds.map(id => this.binLocationRepository.findById(tenantId, id))
+      binLocationIds.map((id: string) => this.binLocationRepository.findById(tenantId, id))
     );
 
     // Simple route optimization algorithm
@@ -354,9 +357,10 @@ export class PickListService {
 
   private validateStatusTransition(currentStatus: PickListStatus, newStatus: PickListStatus): void {
     const validTransitions: Record<PickListStatus, PickListStatus[]> = {
-      [PickListStatus.PENDING]: [PickListStatus.ASSIGNED, PickListStatus.CANCELLED],
-      [PickListStatus.ASSIGNED]: [PickListStatus.IN_PROGRESS, PickListStatus.CANCELLED],
-      [PickListStatus.IN_PROGRESS]: [PickListStatus.COMPLETED, PickListStatus.CANCELLED],
+      [PickListStatus.PENDING]: [PickListStatus.ASSIGNED, PickListStatus.CANCELLED, PickListStatus.ON_HOLD],
+      [PickListStatus.ASSIGNED]: [PickListStatus.IN_PROGRESS, PickListStatus.CANCELLED, PickListStatus.ON_HOLD],
+      [PickListStatus.IN_PROGRESS]: [PickListStatus.COMPLETED, PickListStatus.CANCELLED, PickListStatus.ON_HOLD],
+      [PickListStatus.ON_HOLD]: [PickListStatus.ASSIGNED, PickListStatus.IN_PROGRESS, PickListStatus.CANCELLED],
       [PickListStatus.COMPLETED]: [], // No transitions from completed
       [PickListStatus.CANCELLED]: [], // No transitions from cancelled
     };
@@ -403,18 +407,18 @@ export class PickListService {
         // Group by zone and optimize within zones
         optimizedLocations = this.optimizeByZone(binLocations);
         break;
+      case 'fewest_aisles':
+        // Optimize for fewest aisles traversed
+        optimizedLocations = this.optimizeByAisles(binLocations);
+        break;
       case 'serpentine':
         // Serpentine (snake) pattern through aisles
         optimizedLocations = this.optimizeSerpentine(binLocations);
         break;
-      case 'fastest_time':
-        // Optimize for fastest picking time
-        optimizedLocations = this.optimizeByTime(binLocations);
-        break;
       case 'shortest_distance':
       default:
         // Simple nearest neighbor algorithm
-        optimizedLocations = this.optimizeByDistance(binLocations, options.startLocation);
+        optimizedLocations = this.optimizeByDistance(binLocations);
         break;
     }
 

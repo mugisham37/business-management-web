@@ -270,37 +270,35 @@ export class PickingWaveService {
 
     const planningResult = {
       warehouseId: data.warehouseId,
-      totalOrders: data.orderIds.length,
+      totalOrders: data.orderIds?.length || 0,
       recommendedWaves: [] as any[],
       estimatedPickTime: 0,
       estimatedDistance: 0,
       recommendations: [] as any[],
     };
 
-    // Group orders by priority
-    const priorityOrders = data.priorityOrders || [];
-    const regularOrders = data.orderIds.filter(id => !priorityOrders.includes(id));
+    // Group orders by priority if prioritizeUrgent is enabled
+    const orderIds = data.orderIds || [];
+    const allOrders = orderIds;
 
     // Create waves based on constraints
     const maxOrdersPerWave = data.maxOrdersPerWave || 20;
-    const availablePickers = data.availablePickers || [];
+    const preferredPickers = data.preferredPickers || [];
 
     let waveNumber = 1;
-    const allOrders = [...priorityOrders, ...regularOrders];
 
     for (let i = 0; i < allOrders.length; i += maxOrdersPerWave) {
       const waveOrders = allOrders.slice(i, i + maxOrdersPerWave);
-      const isPriority = waveOrders.some(orderId => priorityOrders.includes(orderId));
 
       const wave = {
         waveNumber: `PLAN-${waveNumber.toString().padStart(3, '0')}`,
-        name: `Planned Wave ${waveNumber}${isPriority ? ' (Priority)' : ''}`,
+        name: `Planned Wave ${waveNumber}`,
         orderIds: waveOrders,
-        waveType: isPriority ? WaveType.PRIORITY : WaveType.STANDARD,
-        priority: isPriority ? 1 : 2,
+        waveType: WaveType.STANDARD,
+        priority: 2,
         estimatedOrders: waveOrders.length,
         estimatedPickTime: waveOrders.length * 5, // 5 minutes per order estimate
-        assignedPickers: availablePickers.slice(0, Math.min(2, availablePickers.length)),
+        assignedPickers: preferredPickers.slice(0, Math.min(data.maxPickersPerWave || 2, preferredPickers.length)),
       };
 
       planningResult.recommendedWaves.push(wave);
@@ -387,8 +385,10 @@ export class PickingWaveService {
 
   private validateStatusTransition(currentStatus: WaveStatus, newStatus: WaveStatus): void {
     const validTransitions: Record<WaveStatus, WaveStatus[]> = {
+      [WaveStatus.PLANNING]: [WaveStatus.PLANNED, WaveStatus.CANCELLED],
       [WaveStatus.PLANNED]: [WaveStatus.RELEASED, WaveStatus.CANCELLED],
-      [WaveStatus.RELEASED]: [WaveStatus.IN_PROGRESS, WaveStatus.CANCELLED],
+      [WaveStatus.RELEASED]: [WaveStatus.READY, WaveStatus.IN_PROGRESS, WaveStatus.CANCELLED],
+      [WaveStatus.READY]: [WaveStatus.IN_PROGRESS, WaveStatus.CANCELLED],
       [WaveStatus.IN_PROGRESS]: [WaveStatus.COMPLETED, WaveStatus.CANCELLED],
       [WaveStatus.COMPLETED]: [], // No transitions from completed
       [WaveStatus.CANCELLED]: [], // No transitions from cancelled

@@ -21,9 +21,9 @@ import {
 @UseGuards(JwtAuthGuard)
 export class PickListResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly pickListService: PickListService,
-    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    @Inject('PUB_SUB') private readonly pubSub: any,
   ) {
     super(dataLoaderService);
   }
@@ -53,8 +53,8 @@ export class PickListResolver extends BaseResolver {
     
     const result = await this.pickListService.getPickLists(tenantId, {
       warehouseId,
-      status,
-      assignedTo,
+      status: status as any,
+      assignedPickerId: assignedTo,
       page: 1,
       limit,
     });
@@ -92,7 +92,7 @@ export class PickListResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
     const pickList = await this.pickListService.updatePickList(tenantId, id, {
-      assignedTo: pickerId,
+      assignedPickerId: pickerId,
       status: 'assigned' as any,
     }, user.id);
 
@@ -113,7 +113,14 @@ export class PickListResolver extends BaseResolver {
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
-    return this.pickListService.recordPick(tenantId, pickListId, input, user.id);
+    // Update the pick list item with the picked quantity
+    await this.pickListService.updateItem(tenantId, input.itemId, {
+      pickedQuantity: input.pickedQuantity,
+      status: 'picked' as any,
+    }, user.id);
+
+    // Return the updated pick list
+    return this.pickListService.getPickList(tenantId, pickListId);
   }
 
   @Mutation(() => PickListType, { name: 'completePickList' })

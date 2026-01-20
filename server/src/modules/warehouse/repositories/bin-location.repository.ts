@@ -43,10 +43,10 @@ export class BinLocationRepository {
       .insert(binLocations)
       .values({
         tenantId,
-        zoneId: data.zoneId,
+        zoneId: data.zoneId || '',
         warehouseId: data.warehouseId,
         binCode: data.binCode,
-        displayName: data.displayName,
+        displayName: data.displayName || data.binCode,
         aisle: data.aisle,
         bay: data.bay,
         level: data.level,
@@ -59,7 +59,7 @@ export class BinLocationRepository {
         height: data.height?.toString(),
         volume: volume?.toString(),
         maxWeight: data.maxWeight?.toString(),
-        status: BinLocationStatus.AVAILABLE,
+        status: 'available' as const,
         occupancyPercentage: '0',
         currentWeight: '0',
         allowedProductTypes: data.allowedProductTypes || [],
@@ -83,15 +83,20 @@ export class BinLocationRepository {
   }
 
   async bulkCreate(tenantId: string, data: BulkCreateBinLocationsDto, userId: string): Promise<any[]> {
-    const binLocationsToCreate = [];
+    const binLocationsToCreate: any[] = [];
     
-    for (let aisle = 1; aisle <= data.aisleCount; aisle++) {
-      const aisleCode = `${data.aislePrefix}${aisle.toString().padStart(2, '0')}`;
+    const aisleCount = data.aisleCount || 1;
+    const bayCount = data.bayCount || 1;
+    const levelCount = data.levelCount || 1;
+    const aislePrefix = data.aislePrefix || 'A';
+    
+    for (let aisle = 1; aisle <= aisleCount; aisle++) {
+      const aisleCode = `${aislePrefix}${aisle.toString().padStart(2, '0')}`;
       
-      for (let bay = 1; bay <= data.bayCount; bay++) {
+      for (let bay = 1; bay <= bayCount; bay++) {
         const bayCode = bay.toString().padStart(2, '0');
         
-        for (let level = 1; level <= data.levelCount; level++) {
+        for (let level = 1; level <= levelCount; level++) {
           const levelCode = level.toString().padStart(2, '0');
           
           const binCode = `${aisleCode}-${bayCode}-${levelCode}`;
@@ -105,7 +110,7 @@ export class BinLocationRepository {
 
           binLocationsToCreate.push({
             tenantId,
-            zoneId: data.zoneId,
+            zoneId: data.zoneId || '',
             warehouseId: data.warehouseId,
             binCode,
             displayName,
@@ -118,7 +123,7 @@ export class BinLocationRepository {
             height: data.dimensions?.height?.toString(),
             volume: volume?.toString(),
             maxWeight: data.dimensions?.maxWeight?.toString(),
-            status: BinLocationStatus.AVAILABLE,
+            status: 'available' as const,
             occupancyPercentage: '0',
             currentWeight: '0',
             allowedProductTypes: [],
@@ -126,7 +131,7 @@ export class BinLocationRepository {
             temperatureControlled: false,
             temperatureRange: {},
             hazmatApproved: false,
-            pickingSequence: (aisle - 1) * data.bayCount * data.levelCount + (bay - 1) * data.levelCount + level,
+            pickingSequence: (aisle - 1) * bayCount * levelCount + (bay - 1) * levelCount + level,
             accessEquipment: [],
             dedicatedProduct: false,
             configuration: data.defaultConfiguration || {},
@@ -237,7 +242,7 @@ export class BinLocationRepository {
     }
 
     if (status) {
-      conditions.push(eq(binLocations.status, status));
+      conditions.push(eq(binLocations.status, status as 'available' | 'occupied' | 'reserved' | 'blocked' | 'maintenance' | 'damaged'));
     }
 
     if (aisle) {
@@ -311,6 +316,21 @@ export class BinLocationRepository {
         and(
           eq(binLocations.tenantId, tenantId),
           eq(binLocations.warehouseId, warehouseId),
+          isNull(binLocations.deletedAt)
+        )
+      )
+      .orderBy(asc(binLocations.pickingSequence), asc(binLocations.binCode));
+  }
+
+  async findByWarehouseIds(warehouseIds: string[]): Promise<any[]> {
+    if (warehouseIds.length === 0) return [];
+    
+    return await this.drizzle.getDb()
+      .select()
+      .from(binLocations)
+      .where(
+        and(
+          inArray(binLocations.warehouseId, warehouseIds),
           isNull(binLocations.deletedAt)
         )
       )

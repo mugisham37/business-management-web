@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { eq, and, desc, asc, count, sql, isNull } from 'drizzle-orm';
+import { eq, and, desc, asc, count, sql, isNull, inArray } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { warehouseZones, binLocations } from '../../database/schema/warehouse.schema';
 import { CreateWarehouseZoneDto, UpdateWarehouseZoneDto } from '../dto/warehouse.dto';
@@ -35,7 +35,7 @@ export class WarehouseZoneRepository {
         zoneCode: data.zoneCode,
         name: data.name,
         description: data.description,
-        zoneType: data.zoneType,
+        zoneType: data.zoneType as 'receiving' | 'storage' | 'picking' | 'packing' | 'shipping' | 'staging' | 'quarantine' | 'returns' | 'cross_dock' | 'office' | 'maintenance',
         priority: data.priority || 1,
         coordinates: data.coordinates || {},
         squareFootage: data.squareFootage?.toString(),
@@ -87,6 +87,21 @@ export class WarehouseZoneRepository {
         and(
           eq(warehouseZones.tenantId, tenantId),
           eq(warehouseZones.warehouseId, warehouseId),
+          isNull(warehouseZones.deletedAt)
+        )
+      )
+      .orderBy(asc(warehouseZones.priority), asc(warehouseZones.name));
+  }
+
+  async findByWarehouseIds(warehouseIds: string[]): Promise<any[]> {
+    if (warehouseIds.length === 0) return [];
+    
+    return await this.drizzle.getDb()
+      .select()
+      .from(warehouseZones)
+      .where(
+        and(
+          inArray(warehouseZones.warehouseId, warehouseIds),
           isNull(warehouseZones.deletedAt)
         )
       )

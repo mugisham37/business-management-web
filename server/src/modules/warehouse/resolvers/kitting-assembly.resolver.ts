@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { UseGuards, UseInterceptors, Inject } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -31,7 +31,7 @@ import {
 } from '../types/kitting-assembly.types';
 import { WarehouseType } from '../types/warehouse.types';
 import { BinLocationType } from '../types/bin-location.types';
-import { EmployeeType } from '../../employee/types/employee.types';
+import { Employee as EmployeeType } from '../../employee/types/employee.types';
 
 // Decorators and Guards
 import {
@@ -50,10 +50,11 @@ import { WarehousePerformanceInterceptor } from '../interceptors/warehouse-perfo
 @UseInterceptors(WarehouseAuditInterceptor, WarehousePerformanceInterceptor)
 export class KittingAssemblyResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly kittingAssemblyService: KittingAssemblyService,
     private readonly warehouseService: WarehouseService,
     private readonly binLocationService: BinLocationService,
+    @Inject('PUB_SUB') private readonly pubSub: any,
   ) {
     super(dataLoaderService);
   }
@@ -83,7 +84,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('filter', { type: () => KitDefinitionFilterInput, nullable: true }) filter?: KitDefinitionFilterInput,
     @CurrentTenant() tenantId?: string,
   ): Promise<KitDefinitionConnection> {
-    return this.kittingAssemblyService.getKitDefinitions(tenantId, paginationArgs, filter);
+    return this.kittingAssemblyService.getKitDefinitions(tenantId || '', paginationArgs, filter) as any;
   }
 
   @Query(() => KitDefinitionType, { name: 'kitDefinitionBySku' })
@@ -110,7 +111,7 @@ export class KittingAssemblyResolver extends BaseResolver {
   }
 
   // Assembly Work Order Queries
-  @Query(() => AssemblyWorkOrderType, { name: 'assemblyWorkOrder' })
+  @Query(() => AssemblyWorkOrderType, { name: 'assemblyWorkOrder', nullable: true })
   @UseGuards(PermissionsGuard)
   @Permissions('assembly:read')
   @RequireAssemblyPermission('assemble')
@@ -119,7 +120,7 @@ export class KittingAssemblyResolver extends BaseResolver {
   async getAssemblyWorkOrder(
     @Args('id', { type: () => ID }) id: string,
     @CurrentTenant() tenantId: string,
-  ): Promise<AssemblyWorkOrderType> {
+  ): Promise<AssemblyWorkOrderType | null> {
     return this.kittingAssemblyService.getAssemblyWorkOrder(tenantId, id);
   }
 
@@ -134,7 +135,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('filter', { type: () => AssemblyWorkOrderFilterInput, nullable: true }) filter?: AssemblyWorkOrderFilterInput,
     @CurrentTenant() tenantId?: string,
   ): Promise<AssemblyWorkOrderConnection> {
-    return this.kittingAssemblyService.getAssemblyWorkOrders(tenantId, paginationArgs, filter);
+    return this.kittingAssemblyService.getAssemblyWorkOrdersFromResolver(tenantId || '', paginationArgs, filter);
   }
 
   @Query(() => AssemblyWorkOrderType, { name: 'assemblyWorkOrderByNumber' })
@@ -194,7 +195,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
     @CurrentTenant() tenantId?: string,
   ): Promise<AssemblyWorkOrderType[]> {
-    return this.kittingAssemblyService.getPendingAssemblyWorkOrders(tenantId, warehouseId);
+    return this.kittingAssemblyService.getPendingAssemblyWorkOrders(tenantId || '', warehouseId);
   }
 
   @Query(() => [AssemblyWorkOrderType], { name: 'overdueAssemblyWorkOrders' })
@@ -206,7 +207,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('warehouseId', { type: () => ID, nullable: true }) warehouseId?: string,
     @CurrentTenant() tenantId?: string,
   ): Promise<AssemblyWorkOrderType[]> {
-    return this.kittingAssemblyService.getOverdueAssemblyWorkOrders(tenantId, warehouseId);
+    return this.kittingAssemblyService.getOverdueAssemblyWorkOrders(tenantId || '', warehouseId);
   }
 
   @Query(() => AssemblyMetricsType, { name: 'assemblyMetrics' })
@@ -220,7 +221,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('endDate', { nullable: true }) endDate?: Date,
     @CurrentTenant() tenantId?: string,
   ): Promise<AssemblyMetricsType> {
-    return this.kittingAssemblyService.getAssemblyMetrics(tenantId, kitId, startDate, endDate);
+    return this.kittingAssemblyService.getAssemblyMetricsFromResolver(tenantId || '', kitId, startDate, endDate);
   }
 
   // Kit Definition Mutations
@@ -311,7 +312,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
   ): Promise<AssemblyWorkOrderType> {
-    return this.kittingAssemblyService.createAssemblyWorkOrder(tenantId, input, user.id);
+    return this.kittingAssemblyService.createAssemblyWorkOrderFromResolver(tenantId, input, user.id) as any;
   }
 
   @Mutation(() => AssemblyWorkOrderType, { name: 'updateAssemblyWorkOrder' })
@@ -327,7 +328,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
   ): Promise<AssemblyWorkOrderType> {
-    return this.kittingAssemblyService.updateAssemblyWorkOrder(tenantId, id, input, user.id);
+    return this.kittingAssemblyService.updateAssemblyWorkOrderFromResolver(tenantId, id, input, user.id) as any;
   }
 
   @Mutation(() => Boolean, { name: 'deleteAssemblyWorkOrder' })
@@ -375,7 +376,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     return this.kittingAssemblyService.completeAssemblyWorkOrder(tenantId, id, user.id);
   }
 
-  @Mutation(() => AssemblyWorkOrderType, { name: 'cancelAssemblyWorkOrder' })
+  @Mutation(() => AssemblyWorkOrderType, { name: 'cancelAssemblyWorkOrder', nullable: true })
   @UseGuards(PermissionsGuard)
   @Permissions('assembly:cancel')
   @RequireAssemblyPermission('manage')
@@ -387,8 +388,8 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Args('reason', { nullable: true }) reason?: string,
     @CurrentTenant() tenantId?: string,
     @CurrentUser() user?: any,
-  ): Promise<AssemblyWorkOrderType> {
-    return this.kittingAssemblyService.cancelAssemblyWorkOrder(tenantId, id, user.id, reason);
+  ): Promise<AssemblyWorkOrderType | null> {
+    return this.kittingAssemblyService.cancelAssemblyWorkOrder(tenantId || '', id, user?.id, reason) as any;
   }
 
   @Mutation(() => AssemblyWorkOrderType, { name: 'allocateComponents' })
@@ -404,7 +405,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
   ): Promise<AssemblyWorkOrderType> {
-    return this.kittingAssemblyService.allocateComponents(tenantId, workOrderId, components, user.id);
+    return this.kittingAssemblyService.allocateComponentsFromResolver(tenantId, workOrderId, components, user.id);
   }
 
   @Mutation(() => AssemblyWorkOrderType, { name: 'consumeComponents' })
@@ -420,7 +421,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: any,
   ): Promise<AssemblyWorkOrderType> {
-    return this.kittingAssemblyService.consumeComponents(tenantId, workOrderId, components, user.id);
+    return this.kittingAssemblyService.consumeComponentsFromResolver(tenantId, workOrderId, components, user.id);
   }
 
   @Mutation(() => AssemblyWorkOrderType, { name: 'recordQualityCheck' })
@@ -478,7 +479,12 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Parent() kit: KitDefinitionType,
     @CurrentTenant() tenantId: string,
   ): Promise<AssemblyMetricsType> {
-    return this.kittingAssemblyService.getAssemblyMetrics(tenantId, kit.id);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return this.kittingAssemblyService.getAssemblyMetrics(tenantId, kit.id, {
+      from: thirtyDaysAgo,
+      to: now,
+    });
   }
 
   @ResolveField(() => [AssemblyWorkOrderType], { name: 'workOrders' })
@@ -519,9 +525,9 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Parent() workOrder: AssemblyWorkOrderType,
     @CurrentTenant() tenantId: string,
   ): Promise<KitDefinitionType> {
-    return this.dataLoaderService.createDataLoader(
+    return this.dataLoaderService.getLoader(
       'kitDefinitions',
-      (kitIds: string[]) => this.kittingAssemblyService.getKitDefinitionsByIds(tenantId, kitIds),
+      (kitIds: readonly string[]) => this.kittingAssemblyService.getKitDefinitionsByIds(tenantId, Array.from(kitIds)),
     ).load(workOrder.kitId);
   }
 
@@ -530,9 +536,9 @@ export class KittingAssemblyResolver extends BaseResolver {
     @Parent() workOrder: AssemblyWorkOrderType,
     @CurrentTenant() tenantId: string,
   ): Promise<WarehouseType> {
-    return this.dataLoaderService.createDataLoader(
+    return this.dataLoaderService.getLoader(
       'warehouses',
-      (warehouseIds: string[]) => this.warehouseService.getWarehousesByIds(tenantId, warehouseIds),
+      (warehouseIds: readonly string[]) => this.warehouseService.getWarehousesByIds(tenantId, Array.from(warehouseIds)),
     ).load(workOrder.warehouseId);
   }
 
@@ -543,9 +549,9 @@ export class KittingAssemblyResolver extends BaseResolver {
   ): Promise<EmployeeType | null> {
     if (!workOrder.assignedTo) return null;
     
-    return this.dataLoaderService.createDataLoader(
+    return this.dataLoaderService.getLoader(
       'employees',
-      (employeeIds: string[]) => this.getEmployeesByIds(tenantId, employeeIds),
+      (employeeIds: readonly string[]) => this.getEmployeesByIds(tenantId, Array.from(employeeIds)),
     ).load(workOrder.assignedTo);
   }
 
@@ -583,7 +589,7 @@ export class KittingAssemblyResolver extends BaseResolver {
     // Calculate based on components (placeholder calculation)
     let unitCost = 0;
     if (kit.components) {
-      unitCost = kit.components.reduce((sum, component) => {
+      unitCost = kit.components.reduce((sum: number, component: any) => {
         return sum + (component.quantity * 10); // Placeholder cost
       }, 0);
     }

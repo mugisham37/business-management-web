@@ -263,7 +263,7 @@ export class TrackingLocationType {
 }
 
 @ObjectType('TrackingEvent')
-export class TrackingEventType extends BaseEntity {
+export class TrackingEventItemType extends BaseEntity {
   @Field()
   @ApiProperty({ description: 'Tracking number' })
   trackingNumber!: string;

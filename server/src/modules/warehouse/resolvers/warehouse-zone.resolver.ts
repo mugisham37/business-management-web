@@ -18,7 +18,7 @@ import { BinLocationType } from '../types/bin-location.types';
 @UseGuards(JwtAuthGuard)
 export class WarehouseZoneResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly zoneService: WarehouseZoneService,
     private readonly warehouseService: WarehouseService,
     private readonly binLocationService: BinLocationService,

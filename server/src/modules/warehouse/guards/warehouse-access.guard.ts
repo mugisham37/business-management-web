@@ -194,8 +194,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return warehousePermissions.some((p: any) => 
         p.action === permission || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking warehouse permission: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking warehouse permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -236,8 +236,8 @@ export class WarehouseAccessGuard implements CanActivate {
       }
 
       return true;
-    } catch (error) {
-      this.logger.error(`Error checking zone access: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking zone access: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -284,8 +284,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return binPermissions.some((p: any) => 
         p.action === accessType || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking bin location access: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking bin location access: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -315,8 +315,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return pickingPermissions.some((p: any) => 
         p.action === permission || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking picking permission: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking picking permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -346,8 +346,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return assemblyPermissions.some((p: any) => 
         p.action === permission || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking assembly permission: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking assembly permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -377,8 +377,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return shippingPermissions.some((p: any) => 
         p.action === permission || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking shipping permission: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking shipping permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -408,8 +408,8 @@ export class WarehouseAccessGuard implements CanActivate {
       return lotTrackingPermissions.some((p: any) => 
         p.action === permission || p.action === '*'
       );
-    } catch (error) {
-      this.logger.error(`Error checking lot tracking permission: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error checking lot tracking permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }

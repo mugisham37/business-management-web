@@ -334,7 +334,7 @@ export class WarehouseZoneService {
     const zones = await this.zoneRepository.findByWarehouseIds([...warehouseIds]);
     
     const zoneMap = new Map<string, any[]>();
-    zones.forEach(zone => {
+    zones.forEach((zone: any) => {
       if (!zoneMap.has(zone.warehouseId)) {
         zoneMap.set(zone.warehouseId, []);
       }

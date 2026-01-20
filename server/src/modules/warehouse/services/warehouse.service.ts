@@ -389,6 +389,28 @@ export class WarehouseService {
     return report;
   }
 
+  // Wrapper methods for resolver compatibility
+  async getWarehousesByIds(ids: string[], tenantId: string): Promise<any[]> {
+    const warehouses = await Promise.all(
+      ids.map(id => this.getWarehouse(tenantId, id))
+    );
+    return warehouses.filter(w => w !== null);
+  }
+
+  async updateWarehouseConfiguration(tenantId: string, warehouseId: string, config: any): Promise<any> {
+    return this.updateWarehouse(tenantId, warehouseId, { configuration: config }, '');
+  }
+
+  async updateWarehouseOperatingHours(tenantId: string, warehouseId: string, hours: any): Promise<any> {
+    return this.updateWarehouse(tenantId, warehouseId, { operatingHours: hours }, '');
+  }
+
+  async updateWarehousePerformanceMetrics(tenantId: string, warehouseId: string, metrics: any): Promise<any> {
+    return this.updateWarehouse(tenantId, warehouseId, { ...metrics }, '');
+  }
+
+  // End of wrapper methods
+
   private async invalidateWarehouseCache(tenantId: string, warehouseId?: string): Promise<void> {
     if (warehouseId) {
       await this.cacheService.invalidatePattern(`warehouse:${tenantId}:${warehouseId}:*`);

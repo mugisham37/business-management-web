@@ -169,7 +169,7 @@ export class FIFORuleType extends BaseEntity {
 }
 
 @ObjectType('LotMovement')
-export class LotMovementType extends BaseEntity {
+export class LotMovementItemType extends BaseEntity {
   @Field()
   @ApiProperty({ description: 'Lot number' })
   lotNumber!: string;
@@ -300,9 +300,9 @@ export class LotTraceabilityType {
   @ApiProperty({ description: 'Product ID' })
   productId!: string;
 
-  @Field(() => [LotMovementType])
-  @ApiProperty({ description: 'Movement history', type: [LotMovementType] })
-  movementHistory!: LotMovementType[];
+  @Field(() => [LotMovementItemType])
+  @ApiProperty({ description: 'Movement history', type: [LotMovementItemType] })
+  movementHistory!: LotMovementItemType[];
 
   @Field(() => [String])
   @ApiProperty({ description: 'Current locations', type: [String] })

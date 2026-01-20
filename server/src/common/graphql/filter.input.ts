@@ -195,3 +195,6 @@ export class EntityFilterInput extends BaseFilterInput {
   @IsString({ each: true })
   tags?: string[];
 }
+
+// Alias for backward compatibility
+export { BaseFilterInput as FilterInput };

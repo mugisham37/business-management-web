@@ -70,26 +70,32 @@ export class PickListRepository {
   }
 
   async createItems(tenantId: string, pickListId: string, items: CreatePickListItemDto[], userId: string): Promise<any[]> {
-    const itemsToCreate = items.map(item => ({
-      tenantId,
-      pickListId,
-      productId: item.productId,
-      variantId: item.variantId,
-      binLocationId: item.binLocationId,
-      requestedQuantity: item.requestedQuantity.toString(),
-      pickedQuantity: '0',
-      batchNumber: item.batchNumber,
-      lotNumber: item.lotNumber,
-      expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
-      pickingSequence: item.pickingSequence,
-      status: 'pending',
-      qualityCheck: false,
-      orderLineId: item.orderLineId,
-      notes: item.notes,
-      issues: [],
-      createdBy: userId,
-      updatedBy: userId,
-    }));
+    const itemsToCreate = items.map(item => {
+      const itemData: any = {
+        tenantId,
+        pickListId,
+        productId: item.productId,
+        requestedQuantity: item.requestedQuantity.toString(),
+        pickedQuantity: '0',
+        status: 'pending' as const,
+        qualityCheck: false,
+        orderLineId: item.orderLineId,
+        notes: item.notes,
+        issues: [],
+        createdBy: userId,
+        updatedBy: userId,
+        pickingSequence: item.pickingSequence,
+      };
+      
+      // Only add optional fields if they have values
+      if (item.variantId) itemData.variantId = item.variantId;
+      if (item.binLocationId) itemData.binLocationId = item.binLocationId;
+      if (item.batchNumber) itemData.batchNumber = item.batchNumber;
+      if (item.lotNumber) itemData.lotNumber = item.lotNumber;
+      if (item.expiryDate) itemData.expiryDate = new Date(item.expiryDate);
+      
+      return itemData;
+    });
 
     const createdItems = await this.drizzle.getDb()
       .insert(pickListItems)
@@ -183,7 +189,9 @@ export class PickListRepository {
     }
 
     if (status) {
-      conditions.push(eq(pickLists.status, status));
+      // Convert enum value to string if needed
+      const statusValue = typeof status === 'string' ? status : String(status);
+      conditions.push(eq(pickLists.status, statusValue as any));
     }
 
     if (assignedPickerId) {
@@ -252,7 +260,9 @@ export class PickListRepository {
     ];
 
     if (status) {
-      conditions.push(eq(pickLists.status, status));
+      // Convert enum value to string if needed
+      const statusValue = typeof status === 'string' ? status : String(status);
+      conditions.push(eq(pickLists.status, statusValue as any));
     }
 
     return await this.drizzle.getDb()
@@ -270,7 +280,9 @@ export class PickListRepository {
     ];
 
     if (status) {
-      conditions.push(eq(pickLists.status, status));
+      // Convert enum value to string if needed
+      const statusValue = typeof status === 'string' ? status : String(status);
+      conditions.push(eq(pickLists.status, statusValue as any));
     }
 
     return await this.drizzle.getDb()

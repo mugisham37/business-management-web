@@ -419,6 +419,263 @@ export class KittingAssemblyService {
     return result;
   }
 
+  // Wrapper methods for resolver compatibility
+  // Wrapper methods with correct signatures for resolvers
+  async getKitDefinition(tenantId: string, kitId: string): Promise<any> {
+    return this.getKit(tenantId, kitId);
+  }
+
+  async getKitDefinitions(tenantId: string, paginationArgs?: any, filter?: any): Promise<any> {
+    const result = await this.getKits(tenantId, {
+      page: paginationArgs?.page || 1,
+      limit: paginationArgs?.limit || paginationArgs?.first || 20,
+      isActive: filter?.isActive,
+    });
+    return result;
+  }
+
+  async getKitDefinitionBySku(tenantId: string, kitSku: string): Promise<any> {
+    return this.getKitBySku(tenantId, kitSku);
+  }
+
+  async getActiveKitDefinitions(tenantId: string): Promise<any[]> {
+    const result = await this.getKits(tenantId, { isActive: true });
+    return result.kits || [];
+  }
+
+  async getKitDefinitionsByIds(tenantId: string, kitIds: string[]): Promise<any[]> {
+    const kits = await Promise.all(kitIds.map(id => this.getKit(tenantId, id)));
+    return kits.filter(k => k !== null);
+  }
+
+  async createKitDefinition(tenantId: string, data: any, userId?: string): Promise<any> {
+    return this.createKit(tenantId, data);
+  }
+
+  async updateKitDefinition(tenantId: string, kitId: string, data: any, userId?: string): Promise<any> {
+    return this.updateKit(tenantId, kitId, data);
+  }
+
+  async deleteKitDefinition(tenantId: string, kitId: string, userId?: string): Promise<void> {
+    const kit = await this.getKit(tenantId, kitId);
+    if (kit) {
+      await this.updateKit(tenantId, kitId, { isActive: false });
+    }
+  }
+
+  async activateKitDefinition(tenantId: string, kitId: string, userId?: string): Promise<any> {
+    return this.updateKit(tenantId, kitId, { isActive: true });
+  }
+
+  async deactivateKitDefinition(tenantId: string, kitId: string, userId?: string): Promise<any> {
+    return this.updateKit(tenantId, kitId, { isActive: false });
+  }
+
+  async getAssemblyWorkOrdersByKit(tenantId: string, kitId: string, paginationArgs?: any): Promise<any[]> {
+    const result = await this.getAssemblyWorkOrders(tenantId, { 
+      filters: { kitId },
+      page: paginationArgs?.page || 1,
+      limit: paginationArgs?.limit || paginationArgs?.first || 20,
+    });
+    return result.workOrders || [];
+  }
+
+  async getAssemblyWorkOrderByNumber(tenantId: string, workOrderNumber: string): Promise<any> {
+    const result = await this.getAssemblyWorkOrders(tenantId, { filters: { workOrderNumber } });
+    return (result.workOrders || [])[0] || null;
+  }
+
+  async getAssemblyWorkOrdersByWarehouse(tenantId: string, warehouseId: string): Promise<any[]> {
+    const result = await this.getAssemblyWorkOrders(tenantId, { filters: { warehouseId } });
+    return result.workOrders || [];
+  }
+
+  async getAssemblyWorkOrdersByAssembler(tenantId: string, assemblerId: string): Promise<any[]> {
+    const result = await this.getAssemblyWorkOrders(tenantId, { filters: { assignedAssemblerId: assemblerId } });
+    return result.workOrders || [];
+  }
+
+  async getPendingAssemblyWorkOrders(tenantId: string, warehouseId?: string): Promise<any[]> {
+    const result = await this.getAssemblyWorkOrders(tenantId, { 
+      filters: { status: 'pending', ...(warehouseId && { warehouseId }) }
+    });
+    return result.workOrders || [];
+  }
+
+  async getOverdueAssemblyWorkOrders(tenantId: string, warehouseId?: string): Promise<any[]> {
+    const now = new Date();
+    const result = await this.getAssemblyWorkOrders(tenantId, { 
+      filters: { ...(warehouseId && { warehouseId }) }
+    });
+    return ((result.workOrders || []) as any[]).filter(wo => wo.dueDate && new Date(wo.dueDate) < now);
+  }
+
+  async deleteAssemblyWorkOrder(tenantId: string, workOrderId: string, userId?: string): Promise<void> {
+    const workOrder = await this.getAssemblyWorkOrder(tenantId, workOrderId);
+    if (workOrder) {
+      await this.updateAssemblyWorkOrder(tenantId, workOrderId, { status: 'cancelled' } as any);
+    }
+  }
+
+  async startAssemblyWorkOrder(tenantId: string, workOrderId: string, userId?: string): Promise<any> {
+    return this.updateAssemblyWorkOrder(tenantId, workOrderId, { status: 'in_progress', startedAt: new Date() } as any);
+  }
+
+  async completeAssemblyWorkOrder(tenantId: string, workOrderId: string, completionData?: any): Promise<any> {
+    return this.updateAssemblyWorkOrder(tenantId, workOrderId, { 
+      status: 'completed', 
+      completedAt: new Date(),
+      ...completionData,
+    } as any);
+  }
+
+  async cancelAssemblyWorkOrder(tenantId: string, workOrderId: string, userId?: string, reason?: string): Promise<any> {
+    return this.updateAssemblyWorkOrder(tenantId, workOrderId, { 
+      status: 'cancelled',
+      notes: reason,
+    } as any);
+  }
+
+  // These wrapper methods just adjust the call signatures for resolver compatibility
+
+  // Wrapper for allocateComponents that accepts components parameter
+  async allocateComponentsFromResolver(
+    tenantId: string, 
+    workOrderId: string, 
+    components?: any[], 
+    userId?: string
+  ): Promise<any> {
+    // Call the main allocateComponents which handles the actual allocation
+    const result = await this.allocateComponents(tenantId, workOrderId);
+    // Return the work order for resolver
+    return this.getAssemblyWorkOrder(tenantId, workOrderId);
+  }
+
+  // Wrapper for consumeComponents that matches resolver signature
+  async consumeComponentsFromResolver(
+    tenantId: string,
+    workOrderId: string,
+    components?: any[],
+    userId?: string
+  ): Promise<AssemblyWorkOrder | null> {
+    if (components && components.length > 0) {
+      const consumptionData = components.map((comp: any) => ({
+        componentId: comp.componentId,
+        quantityConsumed: comp.quantityConsumed || comp.quantity || 0,
+        lotNumbers: comp.lotNumbers,
+        notes: comp.notes,
+      }));
+      await this.consumeComponents(tenantId, workOrderId, consumptionData);
+    }
+    return this.getAssemblyWorkOrder(tenantId, workOrderId);
+  }
+
+  async recordQualityCheck(tenantId: string, workOrderId: string, qualityData?: any, userId?: string): Promise<any> {
+    if (qualityData) {
+      await this.recordQualityResults(tenantId, workOrderId, qualityData.results || [qualityData]);
+    }
+    return this.getAssemblyWorkOrder(tenantId, workOrderId);
+  }
+
+  async assignAssembler(tenantId: string, workOrderId: string, assemblerId?: string, userId?: string): Promise<any> {
+    if (assemblerId) {
+      return this.updateAssemblyWorkOrder(tenantId, workOrderId, { assignedAssemblerId: assemblerId } as any);
+    }
+    return this.getAssemblyWorkOrder(tenantId, workOrderId);
+  }
+
+  async disassembleKit(tenantId: string, kitId: string, quantity?: number, reason?: string, userId?: string): Promise<void> {
+    // This is a placeholder - actual disassembly logic would go here
+    // For now, we just return void as expected
+    return;
+  }
+
+  // Wrapper for getAssemblyWorkOrders that accepts paginationArgs and filter
+  async getAssemblyWorkOrdersFromResolver(
+    tenantId: string,
+    paginationArgs?: any,
+    filter?: any,
+  ): Promise<any> {
+    const result = await this.getAssemblyWorkOrders(tenantId, {
+      warehouseId: filter?.warehouseId,
+      status: filter?.status,
+      assignedTo: filter?.assignedTo,
+      kitId: filter?.kitId,
+      priority: filter?.priority,
+      dateFrom: filter?.dateFrom,
+      dateTo: filter?.dateTo,
+      page: paginationArgs?.page || 1,
+      limit: paginationArgs?.limit || paginationArgs?.first || 20,
+    });
+    // Convert to Connection type
+    return {
+      edges: result.workOrders.map((wo: any) => ({ node: wo })),
+      pageInfo: {
+        hasNextPage: result.page * result.limit < result.total,
+        hasPreviousPage: result.page > 1,
+        startCursor: Buffer.from(`cursor:${result.page}:0`).toString('base64'),
+        endCursor: Buffer.from(`cursor:${result.page}:${result.workOrders.length - 1}`).toString('base64'),
+      },
+      totalCount: result.total,
+    };
+  }
+
+  // Wrapper for getAssemblyMetrics that accepts kitId and dates
+  async getAssemblyMetricsFromResolver(
+    tenantId: string,
+    kitId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    const warehouseId = 'all'; // Default - would need to come from context
+    return this.getAssemblyMetrics(tenantId, warehouseId, {
+      startDate: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Default 30 days
+      endDate: endDate || new Date(),
+    }, kitId);
+  }
+
+
+
+  async createAssemblyWorkOrderWithAllocation(tenantId: string, workOrderId: string, allocationData: any): Promise<any> {
+    const allocated = await this.allocateComponents(tenantId, workOrderId);
+    return {
+      workOrderId,
+      ...allocated,
+    };
+  }
+
+  async createAssemblyWorkOrderWithAssembler(tenantId: string, workOrderId: string, assemblerId: string): Promise<any> {
+    await this.assignAssembler(tenantId, workOrderId, assemblerId);
+    return this.getAssemblyWorkOrder(tenantId, workOrderId);
+  }
+
+  async createAssemblyWorkOrderWithAllocationAndAssembler(tenantId: string, workOrderId: string, allocationData: any, assemblerId: string): Promise<any> {
+    await this.assignAssembler(tenantId, workOrderId, assemblerId);
+    const allocated = await this.allocateComponents(tenantId, workOrderId);
+    return {
+      workOrderId,
+      ...allocated,
+    };
+  }
+
+  // End of wrapper methods
+
+  // Wrapper for createAssemblyWorkOrder that accepts userId
+  async createAssemblyWorkOrderFromResolver(tenantId: string, input: any, userId?: string): Promise<AssemblyWorkOrder> {
+    return this.createAssemblyWorkOrder(tenantId, {
+      ...input,
+      userId: userId || 'system',
+    } as CreateAssemblyWorkOrderDto);
+  }
+
+  // Wrapper for updateAssemblyWorkOrder that accepts userId
+  async updateAssemblyWorkOrderFromResolver(tenantId: string, workOrderId: string, input: any, userId?: string): Promise<AssemblyWorkOrder> {
+    return this.updateAssemblyWorkOrder(tenantId, workOrderId, {
+      ...input,
+      userId: userId || 'system',
+    } as UpdateAssemblyWorkOrderDto);
+  }
+
   async createAssemblyWorkOrder(tenantId: string, data: CreateAssemblyWorkOrderDto): Promise<AssemblyWorkOrder> {
     // Get kit definition
     const kit = await this.getKit(tenantId, data.kitId);
@@ -813,15 +1070,20 @@ export class KittingAssemblyService {
   }
 
   async getAssemblyMetrics(tenantId: string, warehouseId: string, dateRange: {
-    from: Date;
-    to: Date;
-  }): Promise<{
+    from?: Date;
+    to?: Date;
+    startDate?: Date;
+    endDate?: Date;
+  }, kitId?: string): Promise<{
+    kitId: string;
     totalWorkOrders: number;
     completedWorkOrders: number;
     averageAssemblyTime: number;
     onTimeCompletionRate: number;
     qualityPassRate: number;
     componentShortageRate: number;
+    totalAssembliesCompleted: number;
+    costPerAssembly: number;
     topKitsByVolume: Array<{
       kitId: string;
       kitSku: string;
@@ -837,7 +1099,9 @@ export class KittingAssemblyService {
       qualityScore: number;
     }>;
   }> {
-    const cacheKey = `assembly-metrics:${tenantId}:${warehouseId}:${dateRange.from.getTime()}-${dateRange.to.getTime()}`;
+    const from = dateRange.from || dateRange.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const to = dateRange.to || dateRange.endDate || new Date();
+    const cacheKey = `assembly-metrics:${tenantId}:${warehouseId}:${kitId || 'all'}:${from.getTime()}-${to.getTime()}`;
     
     let metrics = await this.cacheService.get<any>(cacheKey);
     if (metrics) {
@@ -845,14 +1109,17 @@ export class KittingAssemblyService {
     }
 
     // This would calculate metrics from database
-    // For now, returning mock data structure
+    // For now, returning mock data structure with all required fields
     metrics = {
+      kitId: kitId || 'all',
       totalWorkOrders: 0,
       completedWorkOrders: 0,
       averageAssemblyTime: 0,
       onTimeCompletionRate: 0,
       qualityPassRate: 0,
       componentShortageRate: 0,
+      totalAssembliesCompleted: 0,
+      costPerAssembly: 0,
       topKitsByVolume: [],
       productivityByWorker: [],
     };

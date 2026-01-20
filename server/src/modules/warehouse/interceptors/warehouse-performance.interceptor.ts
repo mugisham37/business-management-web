@@ -336,8 +336,8 @@ export class WarehousePerformanceInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('warehouse.performance', metric);
-    } catch (metricError) {
-      this.logger.error(`Failed to emit warehouse performance metric: ${metricError.message}`);
+    } catch (metricError: unknown) {
+      this.logger.error(`Failed to emit warehouse performance metric: ${metricError instanceof Error ? metricError.message : 'Unknown error'}`);
     }
   }
 
@@ -378,8 +378,8 @@ export class WarehousePerformanceInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('picking.performance', metric);
-    } catch (metricError) {
-      this.logger.error(`Failed to emit picking performance metric: ${metricError.message}`);
+    } catch (metricError: unknown) {
+      this.logger.error(`Failed to emit picking performance metric: ${metricError instanceof Error ? metricError.message : 'Unknown error'}`);
     }
   }
 
@@ -420,8 +420,8 @@ export class WarehousePerformanceInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('assembly.performance', metric);
-    } catch (metricError) {
-      this.logger.error(`Failed to emit assembly performance metric: ${metricError.message}`);
+    } catch (metricError: unknown) {
+      this.logger.error(`Failed to emit assembly performance metric: ${metricError instanceof Error ? metricError.message : 'Unknown error'}`);
     }
   }
 
@@ -460,8 +460,8 @@ export class WarehousePerformanceInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('shipping.performance', metric);
-    } catch (metricError) {
-      this.logger.error(`Failed to emit shipping performance metric: ${metricError.message}`);
+    } catch (metricError: unknown) {
+      this.logger.error(`Failed to emit shipping performance metric: ${metricError instanceof Error ? metricError.message : 'Unknown error'}`);
     }
   }
 
@@ -499,8 +499,8 @@ export class WarehousePerformanceInterceptor implements NestInterceptor {
       );
 
       this.eventEmitter.emit('lot_tracking.performance', metric);
-    } catch (metricError) {
-      this.logger.error(`Failed to emit lot tracking performance metric: ${metricError.message}`);
+    } catch (metricError: unknown) {
+      this.logger.error(`Failed to emit lot tracking performance metric: ${metricError instanceof Error ? metricError.message : 'Unknown error'}`);
     }
   }
 

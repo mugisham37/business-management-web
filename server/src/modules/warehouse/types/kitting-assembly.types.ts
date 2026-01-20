@@ -115,7 +115,7 @@ export class KitComponentType {
 }
 
 @ObjectType('QualityCheck')
-export class QualityCheckType {
+export class QualityCheckItemType {
   @Field(() => ID)
   @ApiProperty({ description: 'Check ID' })
   checkId!: string;
@@ -214,9 +214,9 @@ export class KitDefinitionType extends BaseEntity {
   @ApiProperty({ description: 'Required skill level', enum: SkillLevel })
   skillLevel!: SkillLevel;
 
-  @Field(() => [QualityCheckType], { nullable: true })
-  @ApiProperty({ description: 'Quality checks', type: [QualityCheckType], required: false })
-  qualityChecks?: QualityCheckType[];
+  @Field(() => [QualityCheckItemType], { nullable: true })
+  @ApiProperty({ description: 'Quality checks', type: [QualityCheckItemType], required: false })
+  qualityChecks?: QualityCheckItemType[];
 
   @Field(() => PackagingInfoType, { nullable: true })
   @ApiProperty({ description: 'Packaging information', required: false })

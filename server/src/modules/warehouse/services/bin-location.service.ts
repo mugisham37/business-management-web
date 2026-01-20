@@ -58,13 +58,17 @@ export class BinLocationService {
 
   async createBinLocation(tenantId: string, data: CreateBinLocationDto, userId: string): Promise<any> {
     // Verify zone and warehouse exist
-    await this.zoneRepository.findById(tenantId, data.zoneId);
+    if (data.zoneId) {
+      await this.zoneRepository.findById(tenantId, data.zoneId);
+    }
     await this.warehouseRepository.findById(tenantId, data.warehouseId);
 
     const binLocation = await this.binLocationRepository.create(tenantId, data, userId);
 
     // Update zone bin location count
-    await this.zoneRepository.updateBinLocationCount(tenantId, data.zoneId, userId);
+    if (data.zoneId) {
+      await this.zoneRepository.updateBinLocationCount(tenantId, data.zoneId, userId);
+    }
 
     // Update warehouse bin location count
     await this.warehouseRepository.updateBinLocationCounts(tenantId, data.warehouseId, userId);
@@ -73,33 +77,37 @@ export class BinLocationService {
     this.eventEmitter.emit('bin.location.created', new BinLocationCreatedEvent(
       tenantId,
       data.warehouseId,
-      data.zoneId,
+      data.zoneId || '',
       binLocation.id,
       binLocation.binCode,
       userId,
     ));
 
     // Invalidate cache
-    await this.invalidateBinLocationCache(tenantId, data.warehouseId, data.zoneId);
+    await this.invalidateBinLocationCache(tenantId, data.warehouseId, data.zoneId || '');
 
     return binLocation;
   }
 
   async bulkCreateBinLocations(tenantId: string, data: BulkCreateBinLocationsDto, userId: string): Promise<any[]> {
     // Verify zone and warehouse exist
-    await this.zoneRepository.findById(tenantId, data.zoneId);
+    if (data.zoneId) {
+      await this.zoneRepository.findById(tenantId, data.zoneId);
+    }
     await this.warehouseRepository.findById(tenantId, data.warehouseId);
 
     const binLocations = await this.binLocationRepository.bulkCreate(tenantId, data, userId);
 
     // Update zone bin location count
-    await this.zoneRepository.updateBinLocationCount(tenantId, data.zoneId, userId);
+    if (data.zoneId) {
+      await this.zoneRepository.updateBinLocationCount(tenantId, data.zoneId, userId);
+    }
 
     // Update warehouse bin location count
     await this.warehouseRepository.updateBinLocationCounts(tenantId, data.warehouseId, userId);
 
     // Invalidate cache
-    await this.invalidateBinLocationCache(tenantId, data.warehouseId, data.zoneId);
+    await this.invalidateBinLocationCache(tenantId, data.warehouseId, data.zoneId || '');
 
     return binLocations;
   }
@@ -534,7 +542,7 @@ export class BinLocationService {
     const binLocations = await this.binLocationRepository.findByWarehouseIds([...warehouseIds]);
     
     const binMap = new Map<string, any[]>();
-    binLocations.forEach(bin => {
+    binLocations.forEach((bin: any) => {
       if (!binMap.has(bin.warehouseId)) {
         binMap.set(bin.warehouseId, []);
       }

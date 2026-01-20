@@ -1,5 +1,19 @@
-import { Field, ObjectType, ID, Int } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
+import { Field, ObjectType, ID, Int, ArgsType, InputType, registerEnumType } from '@nestjs/graphql';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsPositive, Max, IsString, IsEnum } from 'class-validator';
+
+// Re-export common types from their respective files
+export { PaginationArgs, OffsetPaginationArgs } from './pagination.args';
+export { SortOrder, BaseSortInput, EntitySortInput } from './sort.input';
+export { 
+  StringFilterOperator, 
+  NumberFilterOperator, 
+  DateFilterOperator,
+  StringFilter,
+  NumberFilter,
+  DateFilter,
+  FilterInput 
+} from './filter.input';
 
 /**
  * Base GraphQL entity with common fields for all domain objects

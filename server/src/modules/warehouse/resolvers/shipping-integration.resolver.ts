@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Subscription } from '@nestjs/graphql';
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { UseGuards, UseInterceptors, Inject } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -48,10 +48,11 @@ import { WarehousePerformanceInterceptor } from '../interceptors/warehouse-perfo
 @UseInterceptors(WarehouseAuditInterceptor, WarehousePerformanceInterceptor)
 export class ShippingIntegrationResolver extends BaseResolver {
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly shippingService: ShippingIntegrationService,
     private readonly warehouseService: WarehouseService,
     private readonly pickListService: PickListService,
+    @Inject('PUB_SUB') private readonly pubSub: any,
   ) {
     super(dataLoaderService);
   }
