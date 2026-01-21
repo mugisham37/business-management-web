@@ -45,7 +45,7 @@ export class TerritoryResolver extends BaseResolver {
   private readonly logger = new Logger(TerritoryResolver.name);
 
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly territoryService: TerritoryService,
   ) {
     super(dataLoaderService);
@@ -65,7 +65,7 @@ export class TerritoryResolver extends BaseResolver {
   ): Promise<TerritoryGraphQLType> {
     try {
       this.logger.debug(`Fetching territory ${id} for tenant ${tenantId}`);
-      return await this.territoryService.findTerritoryById(tenantId, id);
+      return await this.territoryService.findTerritoryById(tenantId, id) as any;
     } catch (error) {
       this.logger.error(`Failed to get territory ${id}:`, error);
       throw error;
@@ -86,10 +86,13 @@ export class TerritoryResolver extends BaseResolver {
   ): Promise<TerritoryListResponse> {
     try {
       this.logger.debug(`Fetching territories for tenant ${tenantId} with query:`, query);
-      const result = await this.territoryService.findTerritories(tenantId, query);
+      const result = await this.territoryService.findTerritories(tenantId, {
+        ...query,
+        sortOrder: (query.sortOrder as 'asc' | 'desc') || 'asc',
+      });
       
       return {
-        territories: result.territories,
+        territories: result.territories as any,
         total: result.total,
       };
     } catch (error) {
@@ -119,7 +122,7 @@ export class TerritoryResolver extends BaseResolver {
         id,
         query.startDate || new Date(new Date().getFullYear(), 0, 1),
         query.endDate || new Date(),
-      );
+      ) as any;
     } catch (error) {
       this.logger.error(`Failed to get territory performance for ${id}:`, error);
       throw error;
@@ -169,12 +172,12 @@ export class TerritoryResolver extends BaseResolver {
       
       const territory = await this.territoryService.createTerritory(
         tenantId,
-        input,
+        { ...input, type: input.territoryType } as any,
         user.id,
       );
 
       this.logger.log(`Created territory ${territory.territoryCode} (${territory.id})`);
-      return territory;
+      return territory as any;
     } catch (error) {
       this.logger.error(`Failed to create territory:`, error);
       throw error;
@@ -200,12 +203,12 @@ export class TerritoryResolver extends BaseResolver {
       const territory = await this.territoryService.updateTerritory(
         tenantId,
         id,
-        input,
+        { ...input, territoryId: id } as any,
         user.id,
       );
 
       this.logger.log(`Updated territory ${id}`);
-      return territory;
+      return territory as any;
     } catch (error) {
       this.logger.error(`Failed to update territory ${id}:`, error);
       throw error;
@@ -231,7 +234,7 @@ export class TerritoryResolver extends BaseResolver {
       const assignment = await this.territoryService.assignCustomerToTerritory(
         tenantId,
         territoryId,
-        input,
+        { ...input, territoryId } as any,
         user.id,
       );
 
@@ -265,7 +268,7 @@ export class TerritoryResolver extends BaseResolver {
       const assignments = await this.territoryService.bulkAssignCustomers(
         tenantId,
         territoryId,
-        input,
+        { ...input, territoryId } as any,
         user.id,
       );
 
@@ -299,12 +302,12 @@ export class TerritoryResolver extends BaseResolver {
       const territory = await this.territoryService.updateTerritory(
         tenantId,
         id,
-        { isActive },
+        { isActive, territoryId: id } as any,
         user.id,
       );
 
       this.logger.log(`Set territory ${id} active status to ${isActive}`);
-      return territory;
+      return territory as any;
     } catch (error) {
       this.logger.error(`Failed to set territory active status:`, error);
       throw error;

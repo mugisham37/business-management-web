@@ -32,15 +32,14 @@ export class TerritoryContextMiddleware implements NestMiddleware {
       const userTerritories = await this.territoryService.getUserTerritories(tenantId, userId);
       
       // Get territory-specific rules and permissions
-      const territoryRules = await this.territoryService.getTerritoryRules(tenantId, userTerritories.map(t => t.id));
+      const territoryRules = await this.territoryService.getTerritoryRules(tenantId, userTerritories.map((t: any) => t.id));
 
       // Inject territory context into request
       req.territoryContext = {
-        territories: userTerritories,
-        rules: territoryRules,
+        userTerritories: userTerritories,
+        territoryRules: territoryRules,
         userId,
         tenantId,
-        canAccessAllTerritories: req.user.permissions?.includes('territory:access_all') || false,
       };
 
       this.logger.debug(`Injected territory context: territories=${userTerritories.length}, rules=${territoryRules.length}`);

@@ -4,6 +4,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { QuoteService } from '../services/quote.service';
 import { B2BOrderService } from '../services/b2b-order.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { QuoteStatus } from '../types/quote.types';
 
 /**
  * Event handler for quote lifecycle events
@@ -113,7 +114,7 @@ export class QuoteEventHandler {
       await this.quoteService.updateQuote(
         tenantId,
         quote.id,
-        { status: 'approved', approvedBy, approvedAt: new Date() },
+        { status: QuoteStatus.APPROVED, approvedBy, approvedAt: new Date() },
         approvedBy
       );
 
@@ -150,7 +151,7 @@ export class QuoteEventHandler {
       await this.quoteService.updateQuote(
         tenantId,
         quote.id,
-        { status: 'converted', convertedToOrderId: order.id, convertedAt: new Date() },
+        { status: QuoteStatus.CONVERTED, convertedToOrderId: order.id, convertedAt: new Date() },
         convertedBy
       );
 
@@ -191,7 +192,7 @@ export class QuoteEventHandler {
       await this.quoteService.updateQuote(
         tenantId,
         quote.id,
-        { status: 'expired' },
+        { status: QuoteStatus.EXPIRED },
         'system'
       );
 

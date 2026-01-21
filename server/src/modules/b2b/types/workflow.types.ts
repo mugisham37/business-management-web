@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int, InputType, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Float, InputType, registerEnumType } from '@nestjs/graphql';
 
 /**
  * Workflow Status Enum

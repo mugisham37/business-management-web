@@ -37,6 +37,7 @@ export interface CustomerPricing {
   appliedRules: PricingRule[];
   pricingTier: string;
   contractPricing?: any;
+  effectiveDate?: Date;
 }
 
 @Injectable()
@@ -462,7 +463,7 @@ export class B2BPricingService {
       this.logger.warn(`Failed to invalidate pricing caches for tenant ${tenantId}:`, error);
     }
   }
-}
+
   // Additional methods needed for PricingResolver
 
   async getPricingRules(
@@ -498,10 +499,12 @@ export class B2BPricingService {
       }
 
       // Get total count
-      const [{ count }] = await this.drizzle.getDb()
+      const countResult = await this.drizzle.getDb()
         .select({ count: sql<number>`count(*)` })
         .from(customerPricingRules)
         .where(and(...conditions));
+      
+      const totalCount = countResult[0]?.count ?? 0;
 
       // Get paginated results
       const offset = ((query.page || 1) - 1) * (query.limit || 20);
@@ -529,7 +532,7 @@ export class B2BPricingService {
           priority: rule.priority,
           description: rule.description,
         })),
-        total: count,
+        total: totalCount,
       };
     } catch (error) {
       this.logger.error(`Failed to get pricing rules:`, error);
@@ -646,7 +649,6 @@ export class B2BPricingService {
         .update(customerPricingRules)
         .set({
           deletedAt: new Date(),
-          deletedBy: userId,
         })
         .where(and(
           eq(customerPricingRules.tenantId, tenantId),
@@ -738,6 +740,129 @@ export class B2BPricingService {
     } catch (error) {
       this.logger.error(`Failed to get pricing analytics:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Recalculate pricing for a specific customer
+   * Updates cached pricing information and applies all applicable rules
+   */
+  async recalculateCustomerPrices(tenantId: string, customerId: string): Promise<void> {
+    try {
+      this.logger.log(`Recalculating prices for customer ${customerId} in tenant ${tenantId}`);
+
+      // Get all products for this customer
+      const customerProducts = await this.drizzle.getDb()
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.tenantId, tenantId))
+        .limit(1000);
+
+      // Recalculate pricing for each product
+      for (const product of customerProducts) {
+        // Invalidate cache for this customer-product combination
+        const cacheKey = `customer_pricing:${tenantId}:${customerId}:${product.id}`;
+        await this.cacheService.invalidatePattern(cacheKey, { tenantId });
+
+        // Pre-calculate and cache the new pricing
+        await this.getCustomerPrice(tenantId, customerId, product.id, 1);
+      }
+
+      // Invalidate customer pricing cache
+      await this.cacheService.invalidatePattern(`customer_pricing:${tenantId}:${customerId}:*`);
+
+      this.logger.log(`Finished recalculating prices for customer ${customerId}`);
+    } catch (error) {
+      this.logger.error(`Failed to recalculate customer prices for ${customerId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Recalculate pricing for all customers in the tenant
+   * Used when pricing rules change significantly
+   */
+  async recalculateAllCustomerPrices(tenantId: string): Promise<void> {
+    try {
+      this.logger.log(`Recalculating prices for all customers in tenant ${tenantId}`);
+
+      // Get all B2B customers
+      const allCustomers = await this.drizzle.getDb()
+        .select({ customerId: b2bCustomers.customerId })
+        .from(b2bCustomers)
+        .where(eq(b2bCustomers.tenantId, tenantId))
+        .limit(10000);
+
+      // Recalculate for each customer
+      for (const { customerId } of allCustomers) {
+        try {
+          await this.recalculateCustomerPrices(tenantId, customerId);
+        } catch (error) {
+          this.logger.warn(`Failed to recalculate prices for customer ${customerId}:`, error);
+          // Continue processing other customers
+        }
+      }
+
+      // Invalidate all pricing caches for this tenant
+      await this.cacheService.invalidatePattern(`customer_pricing:${tenantId}:*`);
+      await this.cacheService.invalidatePattern(`pricing_rules:${tenantId}:*`);
+
+      this.logger.log(`Finished recalculating prices for all customers in tenant ${tenantId}`);
+    } catch (error) {
+      this.logger.error(`Failed to recalculate all customer prices for tenant ${tenantId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get customer's pricing tier
+   */
+  async getCustomerPricingTier(tenantId: string, customerId: string): Promise<string> {
+    try {
+      const cacheKey = `pricing-tier:${tenantId}:${customerId}`;
+      
+      // Try cache first
+      let tier = await this.cacheService.get<string>(cacheKey);
+      
+      if (!tier) {
+        // In a real implementation, this would query customer tier from database
+        // For now, default to 'standard'
+        tier = 'standard';
+        
+        // Cache for 1 hour
+        await this.cacheService.set(cacheKey, tier, { ttl: 3600 });
+      }
+      
+      return tier;
+    } catch (error) {
+      this.logger.error(`Failed to get pricing tier for customer ${customerId}:`, error);
+      return 'standard';
+    }
+  }
+
+  /**
+   * Get active pricing rules for customer
+   */
+  async getActivePricingRulesForCustomer(tenantId: string, customerId: string): Promise<PricingRule[]> {
+    try {
+      const cacheKey = `active-pricing-rules:${tenantId}:${customerId}`;
+      
+      // Try cache first
+      let rules = await this.cacheService.get<PricingRule[]>(cacheKey);
+      
+      if (!rules) {
+        // In a real implementation, this would query active rules from database
+        // For now, return empty array
+        rules = [];
+        
+        // Cache for 1 hour
+        await this.cacheService.set(cacheKey, rules, { ttl: 3600 });
+      }
+      
+      return rules;
+    } catch (error) {
+      this.logger.error(`Failed to get active pricing rules for customer ${customerId}:`, error);
+      return [];
     }
   }
 }

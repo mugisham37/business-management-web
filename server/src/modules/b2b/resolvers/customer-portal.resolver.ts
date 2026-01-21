@@ -50,7 +50,7 @@ export class CustomerPortalResolver extends BaseResolver {
   private readonly logger = new Logger(CustomerPortalResolver.name);
 
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly customerPortalService: CustomerPortalService,
   ) {
     super(dataLoaderService);
@@ -112,7 +112,10 @@ export class CustomerPortalResolver extends BaseResolver {
     try {
       this.logger.debug(`Fetching portal orders for customer ${user.id}`);
       
-      const result = await this.customerPortalService.getOrders(tenantId, user.id, query);
+      const result = await this.customerPortalService.getOrders(tenantId, user.id, {
+        ...query,
+        sortOrder: (query.sortOrder as 'asc' | 'desc') || 'desc',
+      });
       
       return {
         orders: result.orders,
@@ -163,7 +166,10 @@ export class CustomerPortalResolver extends BaseResolver {
       const result = await this.customerPortalService.getProductCatalog(
         tenantId,
         user.id,
-        query,
+        {
+          ...query,
+          sortOrder: (query.sortOrder as 'asc' | 'desc') || 'desc',
+        },
       );
       
       return {

@@ -4,6 +4,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { B2BOrderService } from '../services/b2b-order.service';
 import { B2BWorkflowService } from '../services/b2b-workflow.service';
 import { IntelligentCacheService } from '../../cache/intelligent-cache.service';
+import { B2BOrderStatus } from '../types/b2b-order.types';
 
 /**
  * Event handler for B2B order lifecycle events
@@ -94,7 +95,7 @@ export class B2BOrderEventHandler {
       await this.b2bOrderService.updateB2BOrder(
         tenantId,
         order.id,
-        { status: 'processing' },
+        { status: B2BOrderStatus.APPROVED },
         approvedBy
       );
 
@@ -172,7 +173,7 @@ export class B2BOrderEventHandler {
       await this.updateInventoryForShippedOrder(tenantId, order);
 
       // Send customer notification with tracking info
-      await this.sendCustomerNotification(tenantId, order, 'shipped', null, trackingNumber);
+      await this.sendCustomerNotification(tenantId, order, 'shipped', undefined, trackingNumber);
 
       // Schedule delivery confirmation check
       await this.scheduleDeliveryCheck(tenantId, order.id);

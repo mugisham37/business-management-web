@@ -57,6 +57,10 @@ export interface Quote {
   metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  // Computed fields for GraphQL
+  validityDays?: number;
+  isExpired?: boolean;
+  daysUntilExpiration?: number;
 }
 
 export interface QuoteItem {

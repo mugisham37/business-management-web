@@ -20,6 +20,7 @@ import {
   UpdateAccountInfoDto,
   ChangePasswordDto
 } from '../dto/customer-portal.dto';
+import { PortalOrderStatus } from '../types/customer-portal.types';
 import { B2BOrderService } from './b2b-order.service';
 import { B2BPricingService } from './b2b-pricing.service';
 
@@ -33,6 +34,7 @@ export interface PortalCustomer {
   phone: string;
   creditLimit: number;
   availableCredit: number;
+  creditUtilization: number; // Calculated field: (creditLimit - availableCredit) / creditLimit * 100
   paymentTerms: string;
   pricingTier: string;
   billingAddress: any;
@@ -59,7 +61,7 @@ export interface PortalProduct {
 export interface PortalOrder {
   id: string;
   orderNumber: string;
-  status: string;
+  status: PortalOrderStatus;
   orderDate: Date;
   requestedDeliveryDate?: Date;
   confirmedDeliveryDate?: Date;
@@ -543,7 +545,7 @@ export class CustomerPortalService {
       // Convert portal order to B2B order format
       const b2bOrderData: any = {
         customerId,
-        items: orderDto.items.map(item => ({
+        items: orderDto.items.map((item: any) => ({
           productId: item.productId,
           quantity: item.quantity,
           description: item.specialInstructions,
@@ -654,6 +656,7 @@ export class CustomerPortalService {
       phone: customerRecord.phone,
       creditLimit,
       availableCredit,
+      creditUtilization: creditLimit > 0 ? ((creditLimit - availableCredit) / creditLimit) * 100 : 0,
       paymentTerms: b2bCustomerRecord.paymentTermsType || 'net_30',
       pricingTier: b2bCustomerRecord.pricingTier,
       billingAddress: customerRecord.billingAddress,

@@ -9,7 +9,7 @@ import {
   products
 } from '../../database/schema';
 import { eq, and, or, gte, lte, desc, asc, sql, isNull, ilike, inArray } from 'drizzle-orm';
-import { CreateB2BOrderDto, UpdateB2BOrderDto, B2BOrderQueryDto, B2BOrderItemDto } from '../dto/b2b-order.dto';
+import { CreateB2BOrderInput, UpdateB2BOrderInput, B2BOrderQueryInput, B2BOrderItemInput, B2BOrderStatus, PaymentTerms, ShippingMethod, OrderPriority } from '../types/b2b-order.types';
 import { B2BPricingService } from './b2b-pricing.service';
 import { B2BWorkflowService } from './b2b-workflow.service';
 
@@ -19,7 +19,7 @@ export interface B2BOrder {
   orderNumber: string;
   customerId: string;
   quoteId?: string;
-  status: string;
+  status: B2BOrderStatus;
   orderDate: Date;
   requestedDeliveryDate?: Date;
   confirmedDeliveryDate?: Date;
@@ -28,9 +28,9 @@ export interface B2BOrder {
   shippingAmount: number;
   discountAmount: number;
   totalAmount: number;
-  paymentTerms: string;
+  paymentTerms: PaymentTerms;
   paymentDueDate?: Date;
-  shippingMethod?: string;
+  shippingMethod?: ShippingMethod;
   trackingNumber?: string;
   shippingAddress: any;
   billingAddress: any;
@@ -42,6 +42,7 @@ export interface B2BOrder {
   accountManagerId?: string;
   specialInstructions?: string;
   internalNotes?: string;
+  priority: OrderPriority;
   items: B2BOrderItem[];
   metadata: Record<string, any>;
   createdAt: Date;
@@ -78,7 +79,7 @@ export class B2BOrderService {
     private readonly workflowService: B2BWorkflowService,
   ) {}
 
-  async createB2BOrder(tenantId: string, data: CreateB2BOrderDto, userId: string): Promise<B2BOrder> {
+  async createB2BOrder(tenantId: string, data: CreateB2BOrderInput, userId: string): Promise<B2BOrder> {
     try {
       // Validate order data
       await this.validateOrderData(tenantId, data);
@@ -125,6 +126,7 @@ export class B2BOrderService {
           accountManagerId: data.accountManagerId,
           specialInstructions: data.specialInstructions,
           internalNotes: data.internalNotes,
+          priority: data.priority || 'normal',
           metadata: data.metadata || {},
           createdBy: userId,
           updatedBy: userId,
@@ -232,7 +234,7 @@ export class B2BOrderService {
     }
   }
 
-  async findB2BOrders(tenantId: string, query: B2BOrderQueryDto): Promise<{ orders: B2BOrder[]; total: number }> {
+  async findB2BOrders(tenantId: string, query: B2BOrderQueryInput): Promise<{ orders: B2BOrder[]; total: number }> {
     try {
       const cacheKey = `b2b-orders:${tenantId}:${JSON.stringify(query)}`;
       
@@ -276,12 +278,12 @@ export class B2BOrderService {
           conditions.push(eq(b2bOrders.accountManagerId, query.accountManagerId));
         }
 
-        if (query.startDate) {
-          conditions.push(gte(b2bOrders.orderDate, new Date(query.startDate)));
+        if (query.orderDateFrom) {
+          conditions.push(gte(b2bOrders.orderDate, new Date(query.orderDateFrom)));
         }
 
-        if (query.endDate) {
-          conditions.push(lte(b2bOrders.orderDate, new Date(query.endDate)));
+        if (query.orderDateTo) {
+          conditions.push(lte(b2bOrders.orderDate, new Date(query.orderDateTo)));
         }
 
         if (query.minAmount !== undefined) {
@@ -354,7 +356,7 @@ export class B2BOrderService {
     }
   }
 
-  async updateB2BOrder(tenantId: string, orderId: string, data: UpdateB2BOrderDto, userId: string): Promise<B2BOrder> {
+  async updateB2BOrder(tenantId: string, orderId: string, data: UpdateB2BOrderInput, userId: string): Promise<B2BOrder> {
     try {
       // Check if order exists and can be updated
       const existingOrder = await this.findB2BOrderById(tenantId, orderId);
@@ -498,7 +500,241 @@ export class B2BOrderService {
     }
   }
 
-  private async validateOrderData(tenantId: string, data: CreateB2BOrderDto): Promise<void> {
+  async shipOrder(tenantId: string, orderId: string, input: { trackingNumber: string; estimatedDeliveryDate?: Date; shippingMethod?: string }, userId: string): Promise<B2BOrder> {
+    try {
+      const existingOrder = await this.findB2BOrderById(tenantId, orderId);
+      
+      if (!['approved', 'processing'].includes(existingOrder.status)) {
+        throw new BadRequestException(`Cannot ship order in ${existingOrder.status} status`);
+      }
+
+      const [updatedOrder] = await this.drizzle.getDb()
+        .update(b2bOrders)
+        .set({
+          status: 'shipped',
+          trackingNumber: input.trackingNumber,
+          shippingMethod: input.shippingMethod,
+          confirmedDeliveryDate: input.estimatedDeliveryDate,
+          updatedBy: userId,
+        })
+        .where(and(
+          eq(b2bOrders.tenantId, tenantId),
+          eq(b2bOrders.id, orderId)
+        ))
+        .returning();
+
+      // Clear caches
+      await this.invalidateOrderCaches(tenantId, orderId);
+
+      // Emit event
+      this.eventEmitter.emit('b2b-order.shipped', {
+        tenantId,
+        orderId,
+        customerId: existingOrder.customerId,
+        trackingNumber: input.trackingNumber,
+        shippedBy: userId,
+      });
+
+      return this.findB2BOrderById(tenantId, orderId);
+    } catch (error) {
+      this.logger.error(`Failed to ship B2B order ${orderId}:`, error);
+      throw error;
+    }
+  }
+
+  async cancelOrder(tenantId: string, orderId: string, cancellationReason: string, userId: string): Promise<B2BOrder> {
+    try {
+      const existingOrder = await this.findB2BOrderById(tenantId, orderId);
+      
+      const cancellableStatuses = ['draft', 'pending_approval', 'approved', 'processing'];
+      if (!cancellableStatuses.includes(existingOrder.status)) {
+        throw new BadRequestException(`Cannot cancel order in ${existingOrder.status} status`);
+      }
+
+      const [updatedOrder] = await this.drizzle.getDb()
+        .update(b2bOrders)
+        .set({
+          status: 'cancelled',
+          approvalNotes: cancellationReason,
+          updatedBy: userId,
+        })
+        .where(and(
+          eq(b2bOrders.tenantId, tenantId),
+          eq(b2bOrders.id, orderId)
+        ))
+        .returning();
+
+      // Clear caches
+      await this.invalidateOrderCaches(tenantId, orderId);
+
+      // Emit event
+      this.eventEmitter.emit('b2b-order.cancelled', {
+        tenantId,
+        orderId,
+        customerId: existingOrder.customerId,
+        cancellationReason,
+        cancelledBy: userId,
+      });
+
+      return this.findB2BOrderById(tenantId, orderId);
+    } catch (error) {
+      this.logger.error(`Failed to cancel B2B order ${orderId}:`, error);
+      throw error;
+    }
+  }
+
+  async getOrdersRequiringApproval(tenantId: string, page: number = 1, limit: number = 20): Promise<{ orders: B2BOrder[]; total: number }> {
+    try {
+      const offset = ((page || 1) - 1) * (limit || 20);
+      
+      // Get total count
+      const [countResult] = await this.drizzle.getDb()
+        .select({ count: sql<number>`count(*)` })
+        .from(b2bOrders)
+        .where(and(
+          eq(b2bOrders.tenantId, tenantId),
+          eq(b2bOrders.status, 'pending_approval'),
+          isNull(b2bOrders.deletedAt)
+        ));
+
+      const total = countResult?.count || 0;
+
+      // Get paginated results
+      const orders = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrders)
+        .where(and(
+          eq(b2bOrders.tenantId, tenantId),
+          eq(b2bOrders.status, 'pending_approval'),
+          isNull(b2bOrders.deletedAt)
+        ))
+        .orderBy(desc(b2bOrders.orderDate))
+        .limit(limit || 20)
+        .offset(offset);
+
+      // Get order items
+      const orderIds = orders.map(o => o.id);
+      const allOrderItems = orderIds.length > 0 ? await this.drizzle.getDb()
+        .select()
+        .from(b2bOrderItems)
+        .where(and(
+          eq(b2bOrderItems.tenantId, tenantId),
+          inArray(b2bOrderItems.orderId, orderIds),
+          isNull(b2bOrderItems.deletedAt)
+        )) : [];
+
+      const ordersList = orders.map((order: any) => {
+        const orderItems = allOrderItems.filter(item => item.orderId === order.id);
+        return this.mapToB2BOrder(order, orderItems);
+      });
+
+      return {
+        orders: ordersList,
+        total,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get orders requiring approval for tenant ${tenantId}:`, error);
+      throw error;
+    }
+  }
+
+  async getOrderAnalytics(tenantId: string, startDate?: Date, endDate?: Date, customerId?: string, salesRepId?: string): Promise<any> {
+    try {
+      const conditions = [
+        eq(b2bOrders.tenantId, tenantId),
+        isNull(b2bOrders.deletedAt)
+      ];
+
+      if (startDate) {
+        conditions.push(gte(b2bOrders.orderDate, startDate));
+      }
+
+      if (endDate) {
+        conditions.push(lte(b2bOrders.orderDate, endDate));
+      }
+
+      if (customerId) {
+        conditions.push(eq(b2bOrders.customerId, customerId));
+      }
+
+      if (salesRepId) {
+        conditions.push(eq(b2bOrders.salesRepId, salesRepId));
+      }
+
+      const orders = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrders)
+        .where(and(...conditions));
+
+      if (orders.length === 0) {
+        return {
+          totalOrders: 0,
+          totalValue: 0,
+          averageOrderValue: 0,
+          totalQuantity: 0,
+          byStatus: {},
+          byPriority: {},
+          topCustomers: [],
+        };
+      }
+
+      const totalValue = orders.reduce((sum: number, o: any) => sum + parseFloat(o.totalAmount || '0'), 0);
+      const byStatus: Record<string, number> = {};
+      const byPriority: Record<string, number> = {};
+
+      orders.forEach((order: any) => {
+        byStatus[order.status] = (byStatus[order.status] || 0) + 1;
+        byPriority[order.priority] = (byPriority[order.priority] || 0) + 1;
+      });
+
+      return {
+        totalOrders: orders.length,
+        totalValue,
+        averageOrderValue: totalValue / orders.length,
+        byStatus,
+        byPriority,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get order analytics for tenant ${tenantId}:`, error);
+      throw error;
+    }
+  }
+
+  async findB2BOrderByNumber(tenantId: string, orderNumber: string): Promise<B2BOrder> {
+    try {
+      const [orderRecord] = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrders)
+        .where(and(
+          eq(b2bOrders.tenantId, tenantId),
+          eq(b2bOrders.orderNumber, orderNumber),
+          isNull(b2bOrders.deletedAt)
+        ));
+
+      if (!orderRecord) {
+        throw new NotFoundException(`B2B order with number ${orderNumber} not found`);
+      }
+
+      const orderItems = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrderItems)
+        .where(and(
+          eq(b2bOrderItems.tenantId, tenantId),
+          eq(b2bOrderItems.orderId, orderRecord.id),
+          isNull(b2bOrderItems.deletedAt)
+        ));
+
+      return this.mapToB2BOrder(orderRecord, orderItems);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to find B2B order by number ${orderNumber}:`, error);
+      throw error;
+    }
+  }
+
+  private async validateOrderData(tenantId: string, data: CreateB2BOrderInput): Promise<void> {
     // Validate customer exists
     const [customer] = await this.drizzle.getDb()
       .select()
@@ -568,7 +804,7 @@ export class B2BOrderService {
     return `${prefix}${nextNumber.toString().padStart(6, '0')}`;
   }
 
-  private async calculateItemPricing(tenantId: string, customerId: string, items: B2BOrderItemDto[]): Promise<any[]> {
+  private async calculateItemPricing(tenantId: string, customerId: string, items: B2BOrderItemInput[]): Promise<any[]> {
     const pricedItems = [];
 
     for (const item of items) {
@@ -698,6 +934,7 @@ export class B2BOrderService {
       salesRepId: orderRecord.salesRepId,
       accountManagerId: orderRecord.accountManagerId,
       specialInstructions: orderRecord.specialInstructions,
+      priority: orderRecord.priority || 'normal',
       internalNotes: orderRecord.internalNotes,
       items: orderItems.map(item => ({
         id: item.id,
@@ -720,6 +957,89 @@ export class B2BOrderService {
       createdAt: orderRecord.createdAt,
       updatedAt: orderRecord.updatedAt,
     };
+  }
+
+  /**
+   * Get customer order analytics
+   */
+  async getCustomerOrderAnalytics(tenantId: string, customerId: string): Promise<any> {
+    try {
+      const orders = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrders)
+        .where(
+          and(
+            eq(b2bOrders.tenantId, tenantId),
+            eq(b2bOrders.customerId, customerId)
+          )
+        );
+
+      if (orders.length === 0) {
+        return {
+          totalOrders: 0,
+          totalValue: 0,
+          averageOrderValue: 0,
+          pendingOrders: 0,
+          completedOrders: 0,
+          cancelledOrders: 0,
+        };
+      }
+
+      const totalValue = orders.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0);
+      const pendingOrders = orders.filter((o: any) => o.status === 'pending').length;
+      const completedOrders = orders.filter((o: any) => o.status === 'completed').length;
+      const cancelledOrders = orders.filter((o: any) => o.status === 'cancelled').length;
+
+      return {
+        totalOrders: orders.length,
+        totalValue,
+        averageOrderValue: totalValue / orders.length,
+        pendingOrders,
+        completedOrders,
+        cancelledOrders,
+        lastOrderDate: orders[0]?.orderDate || null,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get customer order analytics for ${customerId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get order approval status
+   */
+  async getOrderApprovalStatus(tenantId: string, orderId: string): Promise<any> {
+    try {
+      const order = await this.drizzle.getDb()
+        .select()
+        .from(b2bOrders)
+        .where(
+          and(
+            eq(b2bOrders.tenantId, tenantId),
+            eq(b2bOrders.id, orderId)
+          )
+        )
+        .limit(1);
+
+      if (order.length === 0) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      const orderRecord = order[0]!;
+
+      return {
+        orderId: orderRecord.id,
+        status: orderRecord.status,
+        requiresApproval: orderRecord.requiresApproval,
+        approvedBy: orderRecord.approvedBy,
+        approvedAt: orderRecord.approvedAt,
+        approvalNotes: orderRecord.approvalNotes,
+        isApproved: orderRecord.status === 'approved' || orderRecord.status === 'confirmed',
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get order approval status for ${orderId}:`, error);
+      throw error;
+    }
   }
 
   private async invalidateOrderCaches(tenantId: string, orderId?: string): Promise<void> {

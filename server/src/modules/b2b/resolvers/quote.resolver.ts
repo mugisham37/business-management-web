@@ -41,7 +41,7 @@ export class QuoteResolver {
       const result = await this.quoteService.findQuotes(tenantId, query);
       
       return {
-        quotes: result.quotes,
+        quotes: result.quotes as any,
         total: result.total,
       };
     } catch (error) {
@@ -58,7 +58,7 @@ export class QuoteResolver {
   ): Promise<QuoteType> {
     try {
       const tenantId = context.req.user.tenantId;
-      return await this.quoteService.findQuoteById(tenantId, id);
+      return await this.quoteService.findQuoteById(tenantId, id) as any;
     } catch (error) {
       this.logger.error(`Failed to get quote ${id}:`, error);
       throw error;
@@ -82,7 +82,7 @@ export class QuoteResolver {
       );
       
       this.logger.log(`Created quote ${quote.quoteNumber} via GraphQL`);
-      return quote;
+      return quote as any;
     } catch (error) {
       this.logger.error(`Failed to create quote via GraphQL:`, error);
       throw error;
@@ -108,7 +108,7 @@ export class QuoteResolver {
       );
       
       this.logger.log(`Updated quote ${id} via GraphQL`);
-      return quote;
+      return quote as any;
     } catch (error) {
       this.logger.error(`Failed to update quote ${id} via GraphQL:`, error);
       throw error;
@@ -135,7 +135,7 @@ export class QuoteResolver {
       
       this.logger.log(`Approved quote ${id} via GraphQL`);
       return {
-        quote,
+        quote: quote as any,
         message: 'Quote approved successfully',
       };
     } catch (error) {
@@ -164,7 +164,7 @@ export class QuoteResolver {
       
       this.logger.log(`Rejected quote ${id} via GraphQL`);
       return {
-        quote,
+        quote: quote as any,
         message: 'Quote rejected successfully',
       };
     } catch (error) {
@@ -193,7 +193,7 @@ export class QuoteResolver {
       
       this.logger.log(`Sent quote ${id} via GraphQL`);
       return {
-        quote,
+        quote: quote as any,
         message: 'Quote sent successfully',
         sentTo: input.recipients,
       };

@@ -56,17 +56,17 @@ export class WorkflowResolver extends BaseResolver {
    * Query: Get workflow by ID
    * @permission workflow:read
    */
-  @Query(() => WorkflowType)
+  @Query(() => WorkflowType, { nullable: true })
   @UseGuards(PermissionsGuard)
   @Permissions('workflow:read')
   async getWorkflow(
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
-  ): Promise<WorkflowType> {
+  ): Promise<WorkflowType | null> {
     try {
       this.logger.debug(`Fetching workflow ${id} for tenant ${tenantId}`);
-      return await this.workflowService.getWorkflow(tenantId, id);
+      return await this.workflowService.getWorkflow(tenantId, id) as any;
     } catch (error) {
       this.logger.error(`Failed to get workflow ${id}:`, error);
       throw error;
@@ -108,9 +108,9 @@ export class WorkflowResolver extends BaseResolver {
   @UseGuards(PermissionsGuard)
   @Permissions('workflow:read')
   async getPendingApprovals(
-    @Args('entityType', { type: () => EntityType, nullable: true }) entityType?: EntityType,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('entityType', { type: () => EntityType, nullable: true }) entityType?: EntityType,
   ): Promise<PendingApprovalsResponse> {
     try {
       this.logger.debug(`Fetching pending approvals for user ${user.id}`);
@@ -118,14 +118,39 @@ export class WorkflowResolver extends BaseResolver {
       const result = await this.workflowService.getPendingApprovals(
         tenantId,
         user.id,
-        entityType,
       );
       
-      return result;
+      return {
+        approvals: result as any,
+        total: result.length,
+        byEntityType: this.groupByEntityType(result),
+      };
     } catch (error) {
       this.logger.error(`Failed to get pending approvals:`, error);
       throw error;
     }
+  }
+
+  private groupByEntityType(approvals: any[]): any[] {
+    const grouped: Record<string, any> = {};
+    approvals.forEach(approval => {
+      if (!grouped[approval.entityType]) {
+        grouped[approval.entityType] = {
+          entityType: approval.entityType,
+          count: 0,
+          urgentCount: 0,
+          expiringCount: 0,
+        };
+      }
+      grouped[approval.entityType].count++;
+      if (approval.priority === 'high') {
+        grouped[approval.entityType].urgentCount++;
+      }
+      if (approval.expiresAt && new Date(approval.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) {
+        grouped[approval.entityType].expiringCount++;
+      }
+    });
+    return Object.values(grouped);
   }
 
   /**
@@ -165,11 +190,11 @@ export class WorkflowResolver extends BaseResolver {
   @UseGuards(PermissionsGuard)
   @Permissions('workflow:read')
   async getWorkflowAnalytics(
+    @CurrentUser() user: any,
+    @CurrentTenant() tenantId: string,
     @Args('startDate', { nullable: true }) startDate?: Date,
     @Args('endDate', { nullable: true }) endDate?: Date,
     @Args('entityType', { type: () => EntityType, nullable: true }) entityType?: EntityType,
-    @CurrentUser() user: any,
-    @CurrentTenant() tenantId: string,
   ): Promise<WorkflowAnalyticsType> {
     try {
       this.logger.debug(`Fetching workflow analytics for tenant ${tenantId}`);
@@ -206,10 +231,8 @@ export class WorkflowResolver extends BaseResolver {
       const result = await this.workflowService.approveStep(
         tenantId,
         workflowId,
-        stepId,
         user.id,
         input.approvalNotes,
-        input.attachments ? JSON.parse(input.attachments) : undefined,
       );
 
       // Publish approval event
@@ -225,8 +248,8 @@ export class WorkflowResolver extends BaseResolver {
 
       this.logger.log(`Approved workflow step ${stepId}`);
       return {
-        step: result.step,
-        workflow: result.workflow,
+        step: (result as any).step,
+        workflow: (result as any).workflow,
         message: 'Workflow step approved successfully',
       };
     } catch (error) {
@@ -246,9 +269,9 @@ export class WorkflowResolver extends BaseResolver {
     @Args('workflowId', { type: () => ID }) workflowId: string,
     @Args('stepId', { type: () => ID }) stepId: string,
     @Args('rejectionReason') rejectionReason: string,
-    @Args('input', { nullable: true }) input?: ApprovalStepInput,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
+    @Args('input', { nullable: true }) input?: ApprovalStepInput,
   ): Promise<ApprovalStepResponse> {
     try {
       this.logger.log(`Rejecting workflow step ${stepId} by user ${user.id}`);
@@ -256,11 +279,9 @@ export class WorkflowResolver extends BaseResolver {
       const result = await this.workflowService.rejectStep(
         tenantId,
         workflowId,
-        stepId,
         user.id,
         rejectionReason,
-        input?.attachments ? JSON.parse(input.attachments) : undefined,
-      );
+      ) as any;
 
       // Publish rejection event
       await this.pubSub.publish('WORKFLOW_STEP_REJECTED', {
@@ -276,8 +297,8 @@ export class WorkflowResolver extends BaseResolver {
 
       this.logger.log(`Rejected workflow step ${stepId}`);
       return {
-        step: result.step,
-        workflow: result.workflow,
+        step: (result as any).step,
+        workflow: (result as any).workflow,
         message: 'Workflow step rejected successfully',
       };
     } catch (error) {
@@ -468,7 +489,7 @@ export class WorkflowResolver extends BaseResolver {
   /**
    * Field Resolver: Load approver for approval step
    */
-  @ResolveField('approver', { of: () => ApprovalStepType })
+  @ResolveField('approver')
   async getApprover(
     @Parent() step: ApprovalStepType,
     @CurrentTenant() tenantId: string,
@@ -492,13 +513,13 @@ export class WorkflowResolver extends BaseResolver {
   /**
    * Field Resolver: Load workflow for approval step
    */
-  @ResolveField('workflow', { of: () => ApprovalStepType })
+  @ResolveField('workflow')
   async getWorkflowForStep(
     @Parent() step: ApprovalStepType,
     @CurrentTenant() tenantId: string,
-  ): Promise<WorkflowType> {
+  ): Promise<WorkflowType | null> {
     try {
-      return await this.workflowService.getWorkflow(tenantId, step.workflowId);
+      return await this.workflowService.getWorkflow(tenantId, step.workflowId) as any;
     } catch (error) {
       this.logger.error(`Failed to load workflow for step ${step.id}:`, error);
       throw error;
@@ -516,7 +537,7 @@ export class WorkflowResolver extends BaseResolver {
   })
   workflowStepApproved(@CurrentTenant() tenantId: string) {
     this.logger.debug(`Subscription: workflowStepApproved for tenant ${tenantId}`);
-    return this.pubSub.asyncIterator('WORKFLOW_STEP_APPROVED');
+    return (this.pubSub as any).asyncIterator('WORKFLOW_STEP_APPROVED');
   }
 
   /**
@@ -530,7 +551,7 @@ export class WorkflowResolver extends BaseResolver {
   })
   workflowStepRejected(@CurrentTenant() tenantId: string) {
     this.logger.debug(`Subscription: workflowStepRejected for tenant ${tenantId}`);
-    return this.pubSub.asyncIterator('WORKFLOW_STEP_REJECTED');
+    return (this.pubSub as any).asyncIterator('WORKFLOW_STEP_REJECTED');
   }
 
   /**
@@ -544,7 +565,7 @@ export class WorkflowResolver extends BaseResolver {
   })
   workflowStepReassigned(@CurrentTenant() tenantId: string) {
     this.logger.debug(`Subscription: workflowStepReassigned for tenant ${tenantId}`);
-    return this.pubSub.asyncIterator('WORKFLOW_STEP_REASSIGNED');
+    return (this.pubSub as any).asyncIterator('WORKFLOW_STEP_REASSIGNED');
   }
 
   /**
@@ -559,10 +580,10 @@ export class WorkflowResolver extends BaseResolver {
     },
   })
   newPendingApproval(
-    @Args('userId', { type: () => ID, nullable: true }) userId: string,
-    @CurrentTenant() tenantId: string,
+    @Args('userId', { type: () => ID, nullable: true }) userId?: string,
+    @CurrentTenant() tenantId?: string,
   ) {
     this.logger.debug(`Subscription: newPendingApproval for tenant ${tenantId}, user ${userId || 'all'}`);
-    return this.pubSub.asyncIterator('NEW_PENDING_APPROVAL');
+    return (this.pubSub as any).asyncIterator('NEW_PENDING_APPROVAL');
   }
 }

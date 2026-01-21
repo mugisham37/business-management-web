@@ -160,6 +160,18 @@ export class UpdateQuoteInput {
   @Field({ nullable: true })
   internalNotes?: string;
 
+  @Field(() => ID, { nullable: true })
+  approvedBy?: string;
+
+  @Field({ nullable: true })
+  approvedAt?: Date;
+
+  @Field(() => ID, { nullable: true })
+  convertedToOrderId?: string;
+
+  @Field({ nullable: true })
+  convertedAt?: Date;
+
   @Field({ nullable: true })
   metadata?: string; // JSON string
 }
@@ -240,6 +252,12 @@ export class SendQuoteInput {
 
   @Field({ nullable: true })
   subject?: string;
+
+  @Field()
+  emailSubject!: string;
+
+  @Field()
+  emailMessage!: string;
 
   @Field({ nullable: true })
   message?: string;

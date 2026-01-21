@@ -173,6 +173,9 @@ export class UpdateContractInput {
   specialTerms?: string;
 
   @Field({ nullable: true })
+  customerSignedAt?: Date;
+
+  @Field({ nullable: true })
   metadata?: string; // JSON string
 }
 

@@ -35,6 +35,11 @@ export interface Territory {
   metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  // Computed fields for GraphQL
+  customers?: any[];
+  customerCount?: number;
+  targetAchievement?: number;
+  currentRevenue?: number;
 }
 
 export interface TerritoryCustomerAssignment {
@@ -448,8 +453,8 @@ export class TerritoryService {
           isNull(customers.deletedAt)
         ));
 
-      const existingCustomerIds = existingCustomers.map(c => c.id);
-      const missingCustomers = data.customerIds.filter(id => !existingCustomerIds.includes(id));
+      const existingCustomerIds = existingCustomers.map((c: any) => c.id);
+      const missingCustomers = data.customerIds.filter((id: any) => !existingCustomerIds.includes(id));
       
       if (missingCustomers.length > 0) {
         throw new BadRequestException(`Customers not found: ${missingCustomers.join(', ')}`);
@@ -469,7 +474,7 @@ export class TerritoryService {
         ));
 
       // Create new assignments
-      const assignmentData = data.customerIds.map(customerId => ({
+      const assignmentData = data.customerIds.map((customerId: any) => ({
         tenantId,
         territoryId,
         customerId,
@@ -736,6 +741,60 @@ export class TerritoryService {
       }
     } catch (error) {
       this.logger.warn(`Failed to invalidate territory caches for tenant ${tenantId}:`, error);
+    }
+  }
+
+  /**
+   * Get territories assigned to a user
+   */
+  async getUserTerritories(tenantId: string, userId: string): Promise<any[]> {
+    try {
+      const cacheKey = `user-territories:${tenantId}:${userId}`;
+      
+      // Try cache first
+      let territories = await this.cacheService.get<any[]>(cacheKey);
+      
+      if (!territories) {
+        // In a real implementation, this would query user's territories from database
+        // For now, return empty array
+        territories = [];
+        
+        // Cache for 1 hour
+        await this.cacheService.set(cacheKey, territories, { ttl: 3600 });
+      }
+      
+      return territories;
+    } catch (error) {
+      this.logger.error(`Failed to get territories for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get territory rules (constraints, business rules, etc.)
+   */
+  async getTerritoryRules(tenantId: string, territoryId: string | string[]): Promise<any[]> {
+    try {
+      // Handle both single ID and array of IDs
+      const territorIds = Array.isArray(territoryId) ? territoryId : [territoryId];
+      const cacheKey = `territory-rules:${tenantId}:${territorIds.join(',')}`;
+      
+      // Try cache first
+      let rules = await this.cacheService.get<any[]>(cacheKey);
+      
+      if (!rules) {
+        // In a real implementation, this would query territory rules from database
+        // For now, return empty array
+        rules = [];
+        
+        // Cache for 1 hour
+        await this.cacheService.set(cacheKey, rules, { ttl: 3600 });
+      }
+      
+      return rules;
+    } catch (error) {
+      this.logger.error(`Failed to get rules for territories:`, error);
+      return [];
     }
   }
 }

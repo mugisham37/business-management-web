@@ -43,7 +43,7 @@ export class ContractResolver extends BaseResolver {
   private readonly logger = new Logger(ContractResolver.name);
 
   constructor(
-    protected readonly dataLoaderService: DataLoaderService,
+    protected override readonly dataLoaderService: DataLoaderService,
     private readonly contractService: ContractService,
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
   ) {
@@ -64,7 +64,7 @@ export class ContractResolver extends BaseResolver {
   ): Promise<ContractGraphQLType> {
     try {
       this.logger.debug(`Fetching contract ${id} for tenant ${tenantId}`);
-      return await this.contractService.findContractById(tenantId, id);
+      return await this.contractService.findContractById(tenantId, id) as any;
     } catch (error) {
       this.logger.error(`Failed to get contract ${id}:`, error);
       throw error;
@@ -88,7 +88,7 @@ export class ContractResolver extends BaseResolver {
       const result = await this.contractService.findContracts(tenantId, query);
       
       return {
-        contracts: result.contracts,
+        contracts: result.contracts as any,
         total: result.total,
       };
     } catch (error) {
@@ -111,7 +111,7 @@ export class ContractResolver extends BaseResolver {
   ): Promise<ContractGraphQLType[]> {
     try {
       this.logger.debug(`Fetching contracts expiring within ${days} days for tenant ${tenantId}`);
-      return await this.contractService.getExpiringContracts(tenantId, days);
+      return await this.contractService.getExpiringContracts(tenantId, days) as any;
     } catch (error) {
       this.logger.error(`Failed to get expiring contracts:`, error);
       throw error;
@@ -140,7 +140,7 @@ export class ContractResolver extends BaseResolver {
       );
 
       this.logger.log(`Created contract ${contract.contractNumber} (${contract.id})`);
-      return contract;
+      return contract as any;
     } catch (error) {
       this.logger.error(`Failed to create contract:`, error);
       throw error;
@@ -171,7 +171,7 @@ export class ContractResolver extends BaseResolver {
       );
 
       this.logger.log(`Updated contract ${id}`);
-      return contract;
+      return contract as any;
     } catch (error) {
       this.logger.error(`Failed to update contract ${id}:`, error);
       throw error;
@@ -203,7 +203,7 @@ export class ContractResolver extends BaseResolver {
 
       this.logger.log(`Approved contract ${id}`);
       return {
-        contract,
+        contract: contract as any,
         message: 'Contract approved successfully',
       };
     } catch (error) {
@@ -242,7 +242,7 @@ export class ContractResolver extends BaseResolver {
       );
 
       this.logger.log(`Signed contract ${id}`);
-      return contract;
+      return contract as any;
     } catch (error) {
       this.logger.error(`Failed to sign contract ${id}:`, error);
       throw error;
@@ -276,7 +276,7 @@ export class ContractResolver extends BaseResolver {
 
       this.logger.log(`Renewed contract ${id} with new end date ${input.newEndDate}`);
       return {
-        contract,
+        contract: contract as any,
         message: 'Contract renewed successfully',
       };
     } catch (error) {
@@ -307,12 +307,11 @@ export class ContractResolver extends BaseResolver {
         tenantId,
         id,
         {
-          status: 'terminated',
-          metadata: {
+          metadata: JSON.stringify({
             terminationReason,
             terminationDate: terminationDate || new Date(),
             terminatedBy: user.id,
-          },
+          }),
         },
         user.id,
       );
@@ -453,7 +452,7 @@ export class ContractResolver extends BaseResolver {
   })
   contractExpiring(@CurrentTenant() tenantId: string) {
     this.logger.debug(`Subscription: contractExpiring for tenant ${tenantId}`);
-    return this.pubSub.asyncIterator('CONTRACT_EXPIRING');
+    return (this.pubSub as any).asyncIterator('CONTRACT_EXPIRING');
   }
 
   /**
@@ -470,10 +469,10 @@ export class ContractResolver extends BaseResolver {
     },
   })
   contractStatusChanged(
-    @Args('contractId', { type: () => ID, nullable: true }) contractId: string,
-    @CurrentTenant() tenantId: string,
+    @Args('contractId', { type: () => ID, nullable: true }) contractId?: string,
+    @CurrentTenant() tenantId?: string,
   ) {
     this.logger.debug(`Subscription: contractStatusChanged for tenant ${tenantId}, contract ${contractId || 'all'}`);
-    return this.pubSub.asyncIterator('CONTRACT_STATUS_CHANGED');
+    return (this.pubSub as any).asyncIterator('CONTRACT_STATUS_CHANGED');
   }
 }

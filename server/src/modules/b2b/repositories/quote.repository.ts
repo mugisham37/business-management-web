@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { eq, and, desc, asc, gte, lte, ilike, inArray, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { quotes, quoteItems } from '../../database/schema/b2b.schema';
-import { CreateQuoteDto, UpdateQuoteDto, QuoteQueryDto } from '../dto/quote.dto';
+import { CreateQuoteInput, UpdateQuoteInput, QuoteQueryInput } from '../types/quote.types';
 
 export interface QuoteFilterDto {
   customerId?: string;
@@ -26,7 +26,7 @@ export interface QuoteFilterDto {
 export class QuoteRepository {
   constructor(private readonly drizzleService: DrizzleService) {}
 
-  async create(tenantId: string, data: CreateQuoteDto) {
+  async create(tenantId: string, data: CreateQuoteInput) {
     const db = this.drizzleService.getDb();
     
     // Calculate expiration date
@@ -172,7 +172,7 @@ export class QuoteRepository {
     return result;
   }
 
-  async update(tenantId: string, id: string, data: UpdateQuoteDto) {
+  async update(tenantId: string, id: string, data: UpdateQuoteInput) {
     const db = this.drizzleService.getDb();
     const [quote] = await db
       .update(quotes)

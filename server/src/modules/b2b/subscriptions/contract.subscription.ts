@@ -1,6 +1,7 @@
 import { Resolver, Subscription, Args, ID } from '@nestjs/graphql';
 import { UseGuards, Logger, Inject } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { JwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { TenantGuard } from '../../tenant/guards/tenant.guard';
 import { CurrentTenant } from '../../tenant/decorators/tenant.decorators';
@@ -21,7 +22,7 @@ export class ContractSubscriptionResolver {
   private readonly logger = new Logger(ContractSubscriptionResolver.name);
 
   constructor(
-    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+    @Inject('PUB_SUB') private readonly pubSub: RedisPubSub,
   ) {}
 
   /**

@@ -12,7 +12,8 @@ import {
   CreateContractInput, 
   UpdateContractInput, 
   ContractQueryInput, 
-  ContractStatus 
+  ContractStatus,
+  ContractType
 } from '../types/contract.types';
 
 export interface Contract {
@@ -21,7 +22,7 @@ export interface Contract {
   contractNumber: string;
   customerId: string;
   status: ContractStatus;
-  contractType: string;
+  contractType: ContractType;
   title: string;
   description?: string;
   startDate: Date;
@@ -50,6 +51,10 @@ export interface Contract {
   metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  // Computed fields for GraphQL
+  isExpired?: boolean;
+  daysUntilExpiration?: number;
+  requiresRenewalNotice?: boolean;
 }
 
 @Injectable()
@@ -62,7 +67,7 @@ export class ContractService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createContract(tenantId: string, data: CreateContractDto, userId: string): Promise<Contract> {
+  async createContract(tenantId: string, data: CreateContractInput, userId: string): Promise<Contract> {
     try {
       // Validate contract data
       await this.validateContractData(tenantId, data);
@@ -172,7 +177,7 @@ export class ContractService {
     }
   }
 
-  async findContracts(tenantId: string, query: ContractQueryDto): Promise<{ contracts: Contract[]; total: number }> {
+  async findContracts(tenantId: string, query: ContractQueryInput): Promise<{ contracts: Contract[]; total: number }> {
     try {
       const cacheKey = `contracts:${tenantId}:${JSON.stringify(query)}`;
       
@@ -312,7 +317,7 @@ export class ContractService {
     }
   }
 
-  async updateContract(tenantId: string, contractId: string, data: UpdateContractDto, userId: string): Promise<Contract> {
+  async updateContract(tenantId: string, contractId: string, data: UpdateContractInput, userId: string): Promise<Contract> {
     try {
       // Check if contract exists and can be updated
       const existingContract = await this.findContractById(tenantId, contractId);
@@ -587,7 +592,7 @@ export class ContractService {
     }
   }
 
-  private async validateContractData(tenantId: string, data: CreateContractDto): Promise<void> {
+  private async validateContractData(tenantId: string, data: CreateContractInput): Promise<void> {
     // Validate customer exists
     const [customer] = await this.drizzle.getDb()
       .select()
@@ -725,6 +730,128 @@ export class ContractService {
       }
     } catch (error) {
       this.logger.warn(`Failed to invalidate contract caches for tenant ${tenantId}:`, error);
+    }
+  }
+
+  /**
+   * Activate contract - transitions from pending_approval to active
+   */
+  async activateContract(tenantId: string, contractId: string, activatedBy: string): Promise<Contract> {
+    try {
+      const contract = await this.findContractById(tenantId, contractId);
+      
+      if (contract.status !== 'pending_approval' && contract.status !== 'draft') {
+        throw new BadRequestException(`Cannot activate contract with status ${contract.status}`);
+      }
+
+      const [updatedRecord] = await this.drizzle.getDb()
+        .update(contracts)
+        .set({
+          status: 'active',
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(contracts.tenantId, tenantId),
+          eq(contracts.id, contractId)
+        ))
+        .returning();
+
+      this.logger.log(`Contract ${contractId} activated by ${activatedBy}`);
+      
+      this.eventEmitter.emit('contract.activated', {
+        tenantId,
+        contract: this.mapToContract(updatedRecord),
+        activatedBy,
+        activatedAt: new Date(),
+      });
+
+      await this.invalidateContractCaches(tenantId, contractId);
+
+      return this.mapToContract(updatedRecord);
+    } catch (error) {
+      this.logger.error(`Failed to activate contract ${contractId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Finalize contract - transitions to signed/executed status
+   */
+  async finalizeContract(tenantId: string, contractId: string): Promise<Contract> {
+    try {
+      const contract = await this.findContractById(tenantId, contractId);
+      
+      if (contract.status !== 'pending_approval' && contract.status !== 'active') {
+        throw new BadRequestException(`Cannot finalize contract with status ${contract.status}`);
+      }
+
+      const [updatedRecord] = await this.drizzle.getDb()
+        .update(contracts)
+        .set({
+          status: 'active',
+          signedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(contracts.tenantId, tenantId),
+          eq(contracts.id, contractId)
+        ))
+        .returning();
+
+      this.logger.log(`Contract ${contractId} finalized`);
+      
+      this.eventEmitter.emit('contract.finalized', {
+        tenantId,
+        contract: this.mapToContract(updatedRecord),
+        finalizedAt: new Date(),
+      });
+
+      await this.invalidateContractCaches(tenantId, contractId);
+
+      return this.mapToContract(updatedRecord);
+    } catch (error) {
+      this.logger.error(`Failed to finalize contract ${contractId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deactivate contract - transitions to terminated/inactive status
+   */
+  async deactivateContract(tenantId: string, contractId: string): Promise<Contract> {
+    try {
+      const contract = await this.findContractById(tenantId, contractId);
+      
+      if (contract.status === 'terminated' || contract.status === 'expired') {
+        throw new BadRequestException(`Cannot deactivate contract with status ${contract.status}`);
+      }
+
+      const [updatedRecord] = await this.drizzle.getDb()
+        .update(contracts)
+        .set({
+          status: 'terminated',
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(contracts.tenantId, tenantId),
+          eq(contracts.id, contractId)
+        ))
+        .returning();
+
+      this.logger.log(`Contract ${contractId} deactivated`);
+      
+      this.eventEmitter.emit('contract.deactivated', {
+        tenantId,
+        contract: this.mapToContract(updatedRecord),
+        deactivatedAt: new Date(),
+      });
+
+      await this.invalidateContractCaches(tenantId, contractId);
+
+      return this.mapToContract(updatedRecord);
+    } catch (error) {
+      this.logger.error(`Failed to deactivate contract ${contractId}:`, error);
+      throw error;
     }
   }
 }

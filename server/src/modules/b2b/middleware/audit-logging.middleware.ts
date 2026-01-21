@@ -31,13 +31,13 @@ export class AuditLoggingMiddleware implements NestMiddleware {
         if (isB2BOperation(operation)) {
           const auditLog = {
             timestamp: new Date().toISOString(),
-            tenantId: req.user.tenantId,
-            userId: req.user.id,
-            userEmail: req.user.email,
+            tenantId: req.user?.tenantId,
+            userId: req.user?.id,
+            userEmail: req.user?.email,
             operation,
             variables: req.body.variables,
             duration,
-            ip: req.ip,
+            ip: req.ip || 'unknown',
             userAgent: req.get('User-Agent'),
             success: res.statusCode < 400,
             statusCode: res.statusCode,
@@ -64,7 +64,7 @@ export class AuditLoggingMiddleware implements NestMiddleware {
  */
 function extractGraphQLOperation(query: string): string {
   const match = query.match(/(?:query|mutation|subscription)\s+(\w+)/);
-  return match ? match[1] : 'unknown';
+  return match?.[1] || 'unknown';
 }
 
 /**
