@@ -1,0 +1,39 @@
+query GetCurrentUser {
+  currentUser {
+    id
+    email
+    firstName
+    lastName
+    avatar
+    permissions
+    tenants {
+      id
+      name
+      role
+      isActive
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetUsers($filter: UserFilter, $pagination: PaginationInput) {
+  users(filter: $filter, pagination: $pagination) {
+    nodes {
+      id
+      email
+      firstName
+      lastName
+      avatar
+      isActive
+      createdAt
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}

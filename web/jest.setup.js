@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom';
 
+// Polyfill fetch for Apollo Client
+import 'whatwg-fetch';
+
 // Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter() {
