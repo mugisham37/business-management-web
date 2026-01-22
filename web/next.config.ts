@@ -3,20 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable experimental features
   experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: ['@apollo/client'],
     // Enable optimized package imports
-    optimizePackageImports: ['@apollo/client', 'graphql', 'zustand'],
-    // Enable turbo mode for faster builds
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
+    optimizePackageImports: ['graphql', 'zustand'],
   },
+
+  // Turbopack configuration (empty to silence warnings)
+  turbopack: {},
 
   // TypeScript configuration
   typescript: {
@@ -44,10 +36,13 @@ const nextConfig: NextConfig = {
   
   // Security headers
   async headers() {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     return [
       {
         source: '/(.*)',
         headers: [
+          // Basic security headers
           {
             key: 'X-Frame-Options',
             value: 'DENY',
@@ -61,13 +56,44 @@ const nextConfig: NextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-          {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
+          // Enhanced permissions policy
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(self), picture-in-picture=()',
+          },
+          // Content Security Policy
+          {
+            key: 'Content-Security-Policy',
+            value: isDevelopment 
+              ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' localhost:* 127.0.0.1:*; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' fonts.gstatic.com data:; connect-src 'self' localhost:* 127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:*; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';"
+              : "default-src 'self'; script-src 'self' 'strict-dynamic'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com data:; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content; report-uri /api/csp-report;"
+          },
+          // HSTS (only in production)
+          ...(isDevelopment ? [] : [{
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          }]),
+          // Cross-Origin policies
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: isDevelopment ? 'unsafe-none' : 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: isDevelopment ? 'unsafe-none' : 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: isDevelopment ? 'cross-origin' : 'same-origin',
+          },
+          // Expect-CT (only in production)
+          ...(isDevelopment ? [] : [{
+            key: 'Expect-CT',
+            value: 'max-age=86400, enforce, report-uri="/api/expect-ct-report"',
+          }]),
         ],
       },
     ];
