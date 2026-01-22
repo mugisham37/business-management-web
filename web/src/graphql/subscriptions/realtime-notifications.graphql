@@ -1,0 +1,42 @@
+subscription RealtimeNotifications($tenantId: ID!, $userId: ID) {
+  realtimeNotifications(tenantId: $tenantId, userId: $userId) {
+    id
+    type
+    title
+    message
+    priority
+    data
+    tenantId
+    userId
+    createdAt
+    readAt
+  }
+}
+
+subscription SystemAlerts($tenantId: ID!) {
+  systemAlerts(tenantId: $tenantId) {
+    id
+    level
+    category
+    message
+    details
+    tenantId
+    resolvedAt
+    createdAt
+  }
+}
+
+subscription BusinessEvents($tenantId: ID!, $eventTypes: [String!]) {
+  businessEvents(tenantId: $tenantId, eventTypes: $eventTypes) {
+    id
+    type
+    entity
+    entityId
+    action
+    data
+    tenantId
+    userId
+    timestamp
+    metadata
+  }
+}

@@ -1,0 +1,40 @@
+subscription TenantUpdates($tenantId: ID!) {
+  tenantUpdates(tenantId: $tenantId) {
+    id
+    name
+    businessTier
+    settings {
+      timezone
+      currency
+      dateFormat
+      language
+    }
+    features {
+      key
+      enabled
+      config
+    }
+    updatedAt
+  }
+}
+
+subscription FeatureFlagUpdates($tenantId: ID) {
+  featureFlagUpdates(tenantId: $tenantId) {
+    key
+    enabled
+    config
+    requiredTier
+    tenantId
+    updatedAt
+  }
+}
+
+subscription UserStatusUpdates($tenantId: ID) {
+  userStatusUpdates(tenantId: $tenantId) {
+    userId
+    status
+    lastSeen
+    tenantId
+    metadata
+  }
+}

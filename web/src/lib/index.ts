@@ -2,6 +2,7 @@
 export * from './apollo';
 export * from './auth';
 export * from './tenant';
+export * from './subscriptions';
 export * from './config/env-simple';
 export * from './utils';
 
