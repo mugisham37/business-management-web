@@ -6,6 +6,7 @@ import "@/lib/error-handling/error-boundary.css";
 import { ApolloProvider } from "@/lib/apollo";
 import { PerformanceMetrics } from "@/components/performance/PerformanceMetrics";
 import { setupErrorBoundaryHierarchy, initializeErrorHandling } from "@/lib/error-handling";
+import { DevToolsProvider } from "@/lib/dev-tools";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,10 +73,12 @@ export default function RootLayout({
       >
         <ErrorBoundaries.App>
           <ApolloProvider>
-            <ErrorBoundaries.Page>
-              {children}
-            </ErrorBoundaries.Page>
-            <PerformanceMetrics />
+            <DevToolsProvider>
+              <ErrorBoundaries.Page>
+                {children}
+              </ErrorBoundaries.Page>
+              <PerformanceMetrics />
+            </DevToolsProvider>
           </ApolloProvider>
         </ErrorBoundaries.App>
       </body>
