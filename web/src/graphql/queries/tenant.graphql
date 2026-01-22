@@ -1,0 +1,115 @@
+# Tenant-related GraphQL queries
+
+query GetCurrentTenant {
+  currentTenant {
+    id
+    name
+    subdomain
+    businessTier
+    isActive
+    settings {
+      timezone
+      currency
+      dateFormat
+      language
+      features
+      limits {
+        maxUsers
+        maxStorage
+        maxApiCalls
+        maxIntegrations
+      }
+    }
+    branding {
+      primaryColor
+      secondaryColor
+      logo
+      favicon
+      customCss
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTenants {
+  tenants {
+    id
+    name
+    subdomain
+    businessTier
+    isActive
+    settings {
+      timezone
+      currency
+      dateFormat
+      language
+      features
+      limits {
+        maxUsers
+        maxStorage
+        maxApiCalls
+        maxIntegrations
+      }
+    }
+    branding {
+      primaryColor
+      secondaryColor
+      logo
+      favicon
+      customCss
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTenant($id: ID!) {
+  tenant(id: $id) {
+    id
+    name
+    subdomain
+    businessTier
+    isActive
+    settings {
+      timezone
+      currency
+      dateFormat
+      language
+      features
+      limits {
+        maxUsers
+        maxStorage
+        maxApiCalls
+        maxIntegrations
+      }
+    }
+    branding {
+      primaryColor
+      secondaryColor
+      logo
+      favicon
+      customCss
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetFeatureFlags($tenantId: ID) {
+  featureFlags(tenantId: $tenantId) {
+    key
+    enabled
+    config
+    requiredTier
+  }
+}
+
+query GetFeatureFlag($key: String!, $tenantId: ID) {
+  featureFlag(key: $key, tenantId: $tenantId) {
+    key
+    enabled
+    config
+    requiredTier
+  }
+}
