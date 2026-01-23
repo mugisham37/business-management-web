@@ -26,6 +26,43 @@ const cache = new InMemoryCache({
             return [...existing, ...incoming];
           },
         },
+        // Supplier module caching
+        suppliers: {
+          keyArgs: ['filter'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            
+            return {
+              ...incoming,
+              edges: [...(existing.edges || []), ...(incoming.edges || [])],
+            };
+          },
+        },
+        purchaseOrders: {
+          keyArgs: ['filter'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            
+            return {
+              ...incoming,
+              edges: [...(existing.edges || []), ...(incoming.edges || [])],
+            };
+          },
+        },
+        supplierCommunications: {
+          keyArgs: ['supplierId'],
+          merge(existing = [], incoming) {
+            return [...existing, ...incoming];
+          },
+        },
+        supplierEvaluations: {
+          keyArgs: ['supplierId'],
+          merge(existing = [], incoming) {
+            return [...existing, ...incoming];
+          },
+        },
       },
     },
     User: {
@@ -39,6 +76,30 @@ const cache = new InMemoryCache({
       fields: {
         features: {
           merge: false, // Replace instead of merging
+        },
+      },
+    },
+    // Supplier module type policies
+    Supplier: {
+      fields: {
+        contacts: {
+          merge: false,
+        },
+        communications: {
+          merge: false,
+        },
+        evaluations: {
+          merge: false,
+        },
+        purchaseOrders: {
+          merge: false,
+        },
+      },
+    },
+    PurchaseOrder: {
+      fields: {
+        lineItems: {
+          merge: false,
         },
       },
     },
