@@ -12,6 +12,7 @@ import {
   CreateBinLocationInput,
   UpdateBinLocationInput,
   BinLocationConnection,
+  OffsetPaginationArgs,
 } from '@/types/warehouse';
 
 // GraphQL Operations
@@ -92,19 +93,19 @@ export function useBinLocation(binLocationId: string) {
   }, [deleteBinLocation, binLocation]);
 
   const assignProductToBin = useCallback(async (
-    productId: string,
-    variantId?: string,
+    productId: string, 
+    variantId?: string, 
     dedicated: boolean = false
   ) => {
     if (!binLocation?.id) return null;
     
     try {
       const result = await assignProduct({
-        variables: {
-          binLocationId: binLocation.id,
-          productId,
-          variantId,
-          dedicated,
+        variables: { 
+          binLocationId: binLocation.id, 
+          productId, 
+          variantId, 
+          dedicated 
         },
         optimisticResponse: {
           assignProductToBin: {
@@ -112,7 +113,6 @@ export function useBinLocation(binLocationId: string) {
             assignedProductId: productId,
             assignedVariantId: variantId,
             dedicatedProduct: dedicated,
-            status: BinLocationStatus.OCCUPIED,
             updatedAt: new Date(),
           },
         },
@@ -136,9 +136,6 @@ export function useBinLocation(binLocationId: string) {
             assignedProductId: null,
             assignedVariantId: null,
             dedicatedProduct: false,
-            occupancyPercentage: 0,
-            currentWeight: 0,
-            status: BinLocationStatus.AVAILABLE,
             updatedAt: new Date(),
           },
         },
@@ -151,24 +148,23 @@ export function useBinLocation(binLocationId: string) {
   }, [unassignProduct, binLocation]);
 
   const updateBinOccupancy = useCallback(async (
-    occupancyPercentage: number,
+    occupancyPercentage: number, 
     currentWeight?: number
   ) => {
     if (!binLocation?.id) return null;
     
     try {
       const result = await updateOccupancy({
-        variables: {
-          binLocationId: binLocation.id,
-          occupancyPercentage,
-          currentWeight,
+        variables: { 
+          binLocationId: binLocation.id, 
+          occupancyPercentage, 
+          currentWeight 
         },
         optimisticResponse: {
           updateBinOccupancy: {
             ...binLocation,
             occupancyPercentage,
-            currentWeight: currentWeight || binLocation.currentWeight,
-            status: occupancyPercentage > 0 ? BinLocationStatus.OCCUPIED : BinLocationStatus.AVAILABLE,
+            currentWeight,
             updatedAt: new Date(),
           },
         },
@@ -189,19 +185,33 @@ export function useBinLocation(binLocationId: string) {
     return binLocation?.status === BinLocationStatus.OCCUPIED;
   }, [binLocation?.status]);
 
-  const isBlocked = useMemo(() => {
-    return binLocation?.status === BinLocationStatus.BLOCKED || 
-           binLocation?.status === BinLocationStatus.MAINTENANCE ||
-           binLocation?.status === BinLocationStatus.DAMAGED;
+  const isReserved = useMemo(() => {
+    return binLocation?.status === BinLocationStatus.RESERVED;
   }, [binLocation?.status]);
 
-  const capacityUtilization = useMemo(() => {
-    return binLocation?.occupancyPercentage || 0;
+  const isBlocked = useMemo(() => {
+    return [BinLocationStatus.BLOCKED, BinLocationStatus.MAINTENANCE, BinLocationStatus.DAMAGED]
+      .includes(binLocation?.status as BinLocationStatus);
+  }, [binLocation?.status]);
+
+  const hasProduct = useMemo(() => {
+    return !!binLocation?.assignedProductId;
+  }, [binLocation?.assignedProductId]);
+
+  const occupancyLevel = useMemo(() => {
+    const occupancy = binLocation?.occupancyPercentage || 0;
+    if (occupancy >= 90) return 'full';
+    if (occupancy >= 75) return 'high';
+    if (occupancy >= 50) return 'medium';
+    if (occupancy > 0) return 'low';
+    return 'empty';
   }, [binLocation?.occupancyPercentage]);
 
-  const remainingCapacity = useMemo(() => {
-    return 100 - (binLocation?.occupancyPercentage || 0);
-  }, [binLocation?.occupancyPercentage]);
+  const capacityRemaining = useMemo(() => {
+    const maxCapacity = binLocation?.maxCapacity || 0;
+    const occupancy = binLocation?.occupancyPercentage || 0;
+    return maxCapacity * (1 - occupancy / 100);
+  }, [binLocation?.maxCapacity, binLocation?.occupancyPercentage]);
 
   return {
     binLocation,
@@ -215,16 +225,18 @@ export function useBinLocation(binLocationId: string) {
     updateBinOccupancy,
     isAvailable,
     isOccupied,
+    isReserved,
     isBlocked,
-    capacityUtilization,
-    remainingCapacity,
+    hasProduct,
+    occupancyLevel,
+    capacityRemaining,
   };
 }
 
 // ===== BIN INVENTORY HOOK =====
 
 /**
- * Hook for managing bin inventory within a warehouse or zone
+ * Hook for managing bin inventory within a warehouse/zone
  */
 export function useBinInventory(warehouseId: string, zoneId?: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
@@ -243,28 +255,10 @@ export function useBinInventory(warehouseId: string, zoneId?: string) {
   const create = useCallback(async (input: CreateBinLocationInput) => {
     try {
       const result = await createBinLocation({
-        variables: { input },
-        update: (cache, { data: mutationData }) => {
-          if (mutationData?.createBinLocation) {
-            const existingBins = cache.readQuery({
-              query: GET_BIN_INVENTORY,
-              variables: { warehouseId, zoneId },
-            });
-
-            if (existingBins) {
-              cache.writeQuery({
-                query: GET_BIN_INVENTORY,
-                variables: { warehouseId, zoneId },
-                data: {
-                  binInventory: [
-                    ...existingBins.binInventory,
-                    mutationData.createBinLocation,
-                  ],
-                },
-              });
-            }
-          }
-        },
+        variables: { input: { ...input, warehouseId, zoneId } },
+        refetchQueries: [
+          { query: GET_BIN_INVENTORY, variables: { warehouseId, zoneId } },
+        ],
       });
       return result.data?.createBinLocation;
     } catch (error) {
@@ -273,10 +267,16 @@ export function useBinInventory(warehouseId: string, zoneId?: string) {
     }
   }, [createBinLocation, warehouseId, zoneId]);
 
-  const bulkCreate = useCallback(async (input: any) => {
+  const bulkCreate = useCallback(async (binLocations: CreateBinLocationInput[]) => {
     try {
       const result = await bulkCreateBinLocations({
-        variables: { input },
+        variables: { 
+          input: { 
+            warehouseId, 
+            zoneId, 
+            binLocations 
+          } 
+        },
         refetchQueries: [
           { query: GET_BIN_INVENTORY, variables: { warehouseId, zoneId } },
         ],
@@ -288,32 +288,54 @@ export function useBinInventory(warehouseId: string, zoneId?: string) {
     }
   }, [bulkCreateBinLocations, warehouseId, zoneId]);
 
-  // Filter bins by status
-  const availableBins = useMemo(() => 
-    binLocations.filter(bin => bin.status === BinLocationStatus.AVAILABLE), 
-    [binLocations]
-  );
+  // Statistics and groupings
+  const binStats = useMemo(() => {
+    const totalBins = binLocations.length;
+    const availableBins = binLocations.filter(bin => bin.status === BinLocationStatus.AVAILABLE).length;
+    const occupiedBins = binLocations.filter(bin => bin.status === BinLocationStatus.OCCUPIED).length;
+    const reservedBins = binLocations.filter(bin => bin.status === BinLocationStatus.RESERVED).length;
+    const blockedBins = binLocations.filter(bin => 
+      [BinLocationStatus.BLOCKED, BinLocationStatus.MAINTENANCE, BinLocationStatus.DAMAGED]
+        .includes(bin.status)
+    ).length;
 
-  const occupiedBins = useMemo(() => 
-    binLocations.filter(bin => bin.status === BinLocationStatus.OCCUPIED), 
-    [binLocations]
-  );
+    const totalCapacity = binLocations.reduce((sum, bin) => sum + (bin.maxCapacity || 0), 0);
+    const usedCapacity = binLocations.reduce((sum, bin) => 
+      sum + ((bin.maxCapacity || 0) * (bin.occupancyPercentage || 0) / 100), 0
+    );
+    const utilizationPercentage = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0;
 
-  const reservedBins = useMemo(() => 
-    binLocations.filter(bin => bin.status === BinLocationStatus.RESERVED), 
-    [binLocations]
-  );
+    return {
+      totalBins,
+      availableBins,
+      occupiedBins,
+      reservedBins,
+      blockedBins,
+      totalCapacity,
+      usedCapacity,
+      utilizationPercentage,
+    };
+  }, [binLocations]);
 
-  const blockedBins = useMemo(() => 
-    binLocations.filter(bin => 
-      bin.status === BinLocationStatus.BLOCKED ||
-      bin.status === BinLocationStatus.MAINTENANCE ||
-      bin.status === BinLocationStatus.DAMAGED
-    ), 
-    [binLocations]
-  );
+  const binsByStatus = useMemo(() => {
+    const grouped: Record<BinLocationStatus, BinLocation[]> = {
+      [BinLocationStatus.AVAILABLE]: [],
+      [BinLocationStatus.OCCUPIED]: [],
+      [BinLocationStatus.RESERVED]: [],
+      [BinLocationStatus.BLOCKED]: [],
+      [BinLocationStatus.MAINTENANCE]: [],
+      [BinLocationStatus.DAMAGED]: [],
+    };
 
-  // Group bins by aisle for easier navigation
+    binLocations.forEach(bin => {
+      if (bin.status && grouped[bin.status]) {
+        grouped[bin.status].push(bin);
+      }
+    });
+
+    return grouped;
+  }, [binLocations]);
+
   const binsByAisle = useMemo(() => {
     const grouped: Record<string, BinLocation[]> = {};
     
@@ -325,54 +347,29 @@ export function useBinInventory(warehouseId: string, zoneId?: string) {
       grouped[aisle].push(bin);
     });
 
-    // Sort bins within each aisle by bay and level
-    Object.keys(grouped).forEach(aisle => {
-      grouped[aisle].sort((a, b) => {
-        const bayA = a.bay || '';
-        const bayB = b.bay || '';
-        const levelA = a.level || '';
-        const levelB = b.level || '';
-        
-        if (bayA !== bayB) return bayA.localeCompare(bayB);
-        return levelA.localeCompare(levelB);
-      });
+    return grouped;
+  }, [binLocations]);
+
+  const binsByOccupancyLevel = useMemo(() => {
+    const grouped = {
+      empty: [] as BinLocation[],
+      low: [] as BinLocation[],
+      medium: [] as BinLocation[],
+      high: [] as BinLocation[],
+      full: [] as BinLocation[],
+    };
+
+    binLocations.forEach(bin => {
+      const occupancy = bin.occupancyPercentage || 0;
+      if (occupancy === 0) grouped.empty.push(bin);
+      else if (occupancy < 50) grouped.low.push(bin);
+      else if (occupancy < 75) grouped.medium.push(bin);
+      else if (occupancy < 90) grouped.high.push(bin);
+      else grouped.full.push(bin);
     });
 
     return grouped;
   }, [binLocations]);
-
-  // Bin statistics
-  const binStats = useMemo(() => {
-    const totalBins = binLocations.length;
-    const availableCount = availableBins.length;
-    const occupiedCount = occupiedBins.length;
-    const reservedCount = reservedBins.length;
-    const blockedCount = blockedBins.length;
-    
-    const utilizationPercentage = totalBins > 0 ? (occupiedCount / totalBins) * 100 : 0;
-    const availabilityPercentage = totalBins > 0 ? (availableCount / totalBins) * 100 : 0;
-    
-    const totalCapacity = binLocations.reduce((sum, bin) => sum + (bin.maxCapacity || 0), 0);
-    const usedCapacity = binLocations.reduce((sum, bin) => {
-      const occupancy = (bin.occupancyPercentage || 0) / 100;
-      return sum + ((bin.maxCapacity || 0) * occupancy);
-    }, 0);
-    
-    const capacityUtilization = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0;
-
-    return {
-      totalBins,
-      availableCount,
-      occupiedCount,
-      reservedCount,
-      blockedCount,
-      utilizationPercentage,
-      availabilityPercentage,
-      totalCapacity,
-      usedCapacity,
-      capacityUtilization,
-    };
-  }, [binLocations, availableBins, occupiedBins, reservedBins, blockedBins]);
 
   return {
     binLocations,
@@ -381,12 +378,10 @@ export function useBinInventory(warehouseId: string, zoneId?: string) {
     refetch,
     create,
     bulkCreate,
-    availableBins,
-    occupiedBins,
-    reservedBins,
-    blockedBins,
-    binsByAisle,
     binStats,
+    binsByStatus,
+    binsByAisle,
+    binsByOccupancyLevel,
   };
 }
 
@@ -407,12 +402,10 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
     create: createBinLocation,
     bulkCreate: bulkCreateBinLocations,
     refetch: refetchBinLocations,
-    availableBins,
-    occupiedBins,
-    reservedBins,
-    blockedBins,
-    binsByAisle,
     binStats,
+    binsByStatus,
+    binsByAisle,
+    binsByOccupancyLevel,
   } = useBinInventory(warehouseId, zoneId);
 
   // Get selected bin details
@@ -427,9 +420,11 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
     updateBinOccupancy,
     isAvailable,
     isOccupied,
+    isReserved,
     isBlocked,
-    capacityUtilization,
-    remainingCapacity,
+    hasProduct,
+    occupancyLevel,
+    capacityRemaining,
   } = useBinLocation(selectedBinId || '');
 
   const selectBin = useCallback((binId: string) => {
@@ -440,115 +435,66 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
     setSelectedBinId(null);
   }, []);
 
-  // Find optimal bin for product placement
-  const findOptimalBin = useCallback((
-    productId: string,
-    requiredCapacity?: number,
-    preferredAisle?: string
-  ) => {
-    let candidates = availableBins;
-
-    // Filter by capacity if specified
-    if (requiredCapacity) {
-      candidates = candidates.filter(bin => (bin.maxCapacity || 0) >= requiredCapacity);
-    }
-
-    // Filter by aisle preference
-    if (preferredAisle) {
-      const aisleMatches = candidates.filter(bin => bin.aisle === preferredAisle);
-      if (aisleMatches.length > 0) {
-        candidates = aisleMatches;
-      }
-    }
-
-    // Sort by picking sequence and capacity
-    candidates.sort((a, b) => {
-      const sequenceA = a.pickingSequence || 999999;
-      const sequenceB = b.pickingSequence || 999999;
-      
-      if (sequenceA !== sequenceB) {
-        return sequenceA - sequenceB;
-      }
-      
-      // Prefer smaller bins to optimize space usage
-      const capacityA = a.maxCapacity || 0;
-      const capacityB = b.maxCapacity || 0;
-      return capacityA - capacityB;
-    });
-
-    return candidates[0] || null;
-  }, [availableBins]);
-
-  // Get bins by product
-  const getBinsByProduct = useCallback((productId: string, variantId?: string) => {
-    return binLocations.filter(bin => {
-      if (bin.assignedProductId !== productId) return false;
-      if (variantId && bin.assignedVariantId !== variantId) return false;
-      return true;
-    });
+  // Bin search and filtering
+  const searchBins = useCallback((searchTerm: string) => {
+    return binLocations.filter(bin => 
+      bin.binCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bin.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bin.aisle?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [binLocations]);
 
-  // Get bins in picking sequence
-  const getBinsInPickingSequence = useCallback(() => {
-    return [...binLocations].sort((a, b) => {
-      const sequenceA = a.pickingSequence || 999999;
-      const sequenceB = b.pickingSequence || 999999;
-      return sequenceA - sequenceB;
-    });
+  const filterBinsByStatus = useCallback((status: BinLocationStatus) => {
+    return binLocations.filter(bin => bin.status === status);
+  }, [binLocations]);
+
+  const filterBinsByAisle = useCallback((aisle: string) => {
+    return binLocations.filter(bin => bin.aisle === aisle);
+  }, [binLocations]);
+
+  const getAvailableBins = useCallback(() => {
+    return binLocations.filter(bin => 
+      bin.status === BinLocationStatus.AVAILABLE && 
+      (bin.occupancyPercentage || 0) < 100
+    );
+  }, [binLocations]);
+
+  const getNearFullBins = useCallback((threshold: number = 85) => {
+    return binLocations.filter(bin => 
+      (bin.occupancyPercentage || 0) >= threshold
+    );
   }, [binLocations]);
 
   // Bin validation
-  const validateBinCode = useCallback((code: string): string | null => {
-    if (!code) return 'Bin code is required';
-    if (code.length < 1) return 'Bin code is required';
-    if (code.length > 50) return 'Bin code must be less than 50 characters';
+  const validateBinCode = useCallback((binCode: string): string | null => {
+    if (!binCode) return 'Bin code is required';
+    if (binCode.length < 1) return 'Bin code is required';
+    if (binCode.length > 50) return 'Bin code must be less than 50 characters';
     
-    const existingBin = binLocations.find(bin => bin.binCode === code);
-    if (existingBin && existingBin.id !== selectedBinId) {
-      return 'Bin code already exists in this warehouse';
+    const existingBin = binLocations.find(bin => bin.binCode === binCode && bin.id !== selectedBinId);
+    if (existingBin) {
+      return 'Bin code already exists in this warehouse/zone';
     }
     
     return null;
   }, [binLocations, selectedBinId]);
 
-  const validateCapacity = useCallback((capacity: number): string | null => {
-    if (capacity < 0) return 'Capacity cannot be negative';
-    if (capacity > 1000000) return 'Capacity seems unreasonably large';
-    return null;
-  }, []);
-
-  const validateCoordinates = useCallback((x?: number, y?: number, z?: number): string | null => {
-    if (x !== undefined && x < 0) return 'X coordinate cannot be negative';
-    if (y !== undefined && y < 0) return 'Y coordinate cannot be negative';
-    if (z !== undefined && z < 0) return 'Z coordinate cannot be negative';
-    return null;
-  }, []);
-
-  // Generate bin codes for bulk creation
+  // Generate bin codes
   const generateBinCodes = useCallback((
-    aislePrefix: string,
-    aisleCount: number,
-    bayCount: number,
+    aislePrefix: string, 
+    bayCount: number, 
     levelCount: number
-  ) => {
-    const binCodes: string[] = [];
-    
-    for (let aisle = 1; aisle <= aisleCount; aisle++) {
-      for (let bay = 1; bay <= bayCount; bay++) {
-        for (let level = 1; level <= levelCount; level++) {
-          const aisleCode = `${aislePrefix}${aisle.toString().padStart(2, '0')}`;
-          const bayCode = bay.toString().padStart(2, '0');
-          const levelCode = level.toString().padStart(2, '0');
-          const binCode = `${aisleCode}-${bayCode}-${levelCode}`;
-          binCodes.push(binCode);
-        }
+  ): string[] => {
+    const codes: string[] = [];
+    for (let bay = 1; bay <= bayCount; bay++) {
+      for (let level = 1; level <= levelCount; level++) {
+        codes.push(`${aislePrefix}-${bay.toString().padStart(2, '0')}-${level.toString().padStart(2, '0')}`);
       }
     }
-    
-    return binCodes;
+    return codes;
   }, []);
 
-  // Clear cache for bin location data
+  // Clear cache for bin data
   const clearCache = useCallback(() => {
     apolloClient.cache.evict({ fieldName: 'binInventory' });
     apolloClient.cache.evict({ fieldName: 'binLocation' });
@@ -564,13 +510,11 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
     bulkCreateBinLocations,
     refetchBinLocations,
 
-    // Bin organization
-    availableBins,
-    occupiedBins,
-    reservedBins,
-    blockedBins,
-    binsByAisle,
+    // Statistics and groupings
     binStats,
+    binsByStatus,
+    binsByAisle,
+    binsByOccupancyLevel,
 
     // Selected bin
     selectedBin,
@@ -581,26 +525,30 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
     clearSelection,
     updateBinLocation,
     deleteBinLocation,
+
+    // Bin operations
     assignProductToBin,
     unassignProductFromBin,
     updateBinOccupancy,
+
+    // Bin state
     isAvailable,
     isOccupied,
+    isReserved,
     isBlocked,
-    capacityUtilization,
-    remainingCapacity,
+    hasProduct,
+    occupancyLevel,
+    capacityRemaining,
 
-    // Bin queries and utilities
-    findOptimalBin,
-    getBinsByProduct,
-    getBinsInPickingSequence,
+    // Search and filtering
+    searchBins,
+    filterBinsByStatus,
+    filterBinsByAisle,
+    getAvailableBins,
+    getNearFullBins,
 
-    // Validation
+    // Validation and utilities
     validateBinCode,
-    validateCapacity,
-    validateCoordinates,
-
-    // Bulk operations
     generateBinCodes,
 
     // Utilities
@@ -608,80 +556,101 @@ export function useBinLocationManagement(warehouseId: string, zoneId?: string) {
   };
 }
 
-// ===== BIN LOCATION SEARCH HOOK =====
+// ===== BIN LOCATION VALIDATION HOOK =====
 
 /**
- * Hook for searching and filtering bin locations
+ * Hook for bin location validation
  */
-export function useBinLocationSearch(warehouseId: string, zoneId?: string) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<BinLocationStatus | 'all'>('all');
-  const [aisleFilter, setAisleFilter] = useState<string>('all');
+export function useBinLocationValidation() {
+  const validateBinCode = useCallback((binCode: string): string | null => {
+    if (!binCode) return 'Bin code is required';
+    if (binCode.length < 1) return 'Bin code is required';
+    if (binCode.length > 50) return 'Bin code must be less than 50 characters';
+    if (!/^[A-Z0-9_-]+$/i.test(binCode)) return 'Bin code can only contain letters, numbers, hyphens, and underscores';
+    return null;
+  }, []);
 
-  const { binLocations, loading, error } = useBinInventory(warehouseId, zoneId);
+  const validateDimensions = useCallback((
+    length?: number, 
+    width?: number, 
+    height?: number
+  ): Record<string, string> => {
+    const errors: Record<string, string> = {};
 
-  const filteredBinLocations = useMemo(() => {
-    let filtered = binLocations;
-
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(bin =>
-        bin.binCode.toLowerCase().includes(term) ||
-        bin.displayName?.toLowerCase().includes(term) ||
-        bin.aisle?.toLowerCase().includes(term) ||
-        bin.bay?.toLowerCase().includes(term) ||
-        bin.level?.toLowerCase().includes(term)
-      );
+    if (length !== undefined && length <= 0) {
+      errors.length = 'Length must be greater than 0';
+    }
+    if (width !== undefined && width <= 0) {
+      errors.width = 'Width must be greater than 0';
+    }
+    if (height !== undefined && height <= 0) {
+      errors.height = 'Height must be greater than 0';
     }
 
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(bin => bin.status === statusFilter);
+    return errors;
+  }, []);
+
+  const validateCapacity = useCallback((
+    maxCapacity?: number, 
+    maxWeight?: number
+  ): Record<string, string> => {
+    const errors: Record<string, string> = {};
+
+    if (maxCapacity !== undefined && maxCapacity <= 0) {
+      errors.maxCapacity = 'Max capacity must be greater than 0';
+    }
+    if (maxWeight !== undefined && maxWeight <= 0) {
+      errors.maxWeight = 'Max weight must be greater than 0';
     }
 
-    // Filter by aisle
-    if (aisleFilter !== 'all') {
-      filtered = filtered.filter(bin => bin.aisle === aisleFilter);
+    return errors;
+  }, []);
+
+  const validateCoordinates = useCallback((
+    x?: number, 
+    y?: number, 
+    z?: number
+  ): Record<string, string> => {
+    const errors: Record<string, string> = {};
+
+    if (x !== undefined && x < 0) {
+      errors.xCoordinate = 'X coordinate cannot be negative';
+    }
+    if (y !== undefined && y < 0) {
+      errors.yCoordinate = 'Y coordinate cannot be negative';
+    }
+    if (z !== undefined && z < 0) {
+      errors.zCoordinate = 'Z coordinate cannot be negative';
     }
 
-    return filtered;
-  }, [binLocations, searchTerm, statusFilter, aisleFilter]);
-
-  const availableAisles = useMemo(() => {
-    const aisles = new Set(binLocations.map(bin => bin.aisle).filter(Boolean));
-    return Array.from(aisles).sort();
-  }, [binLocations]);
-
-  const updateSearchTerm = useCallback((term: string) => {
-    setSearchTerm(term);
+    return errors;
   }, []);
 
-  const updateStatusFilter = useCallback((status: BinLocationStatus | 'all') => {
-    setStatusFilter(status);
-  }, []);
+  const validateCreateBinLocationInput = useCallback((input: CreateBinLocationInput): Record<string, string> => {
+    const errors: Record<string, string> = {};
 
-  const updateAisleFilter = useCallback((aisle: string) => {
-    setAisleFilter(aisle);
-  }, []);
+    const codeError = validateBinCode(input.binCode);
+    if (codeError) errors.binCode = codeError;
 
-  const clearFilters = useCallback(() => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setAisleFilter('all');
-  }, []);
+    if (!input.warehouseId) errors.warehouseId = 'Warehouse is required';
+
+    const dimensionErrors = validateDimensions(input.length, input.width, input.height);
+    Object.assign(errors, dimensionErrors);
+
+    const capacityErrors = validateCapacity(input.maxCapacity, input.maxWeight);
+    Object.assign(errors, capacityErrors);
+
+    const coordinateErrors = validateCoordinates(input.xCoordinate, input.yCoordinate, input.zCoordinate);
+    Object.assign(errors, coordinateErrors);
+
+    return errors;
+  }, [validateBinCode, validateDimensions, validateCapacity, validateCoordinates]);
 
   return {
-    searchTerm,
-    statusFilter,
-    aisleFilter,
-    filteredBinLocations,
-    availableAisles,
-    loading,
-    error,
-    updateSearchTerm,
-    updateStatusFilter,
-    updateAisleFilter,
-    clearFilters,
+    validateBinCode,
+    validateDimensions,
+    validateCapacity,
+    validateCoordinates,
+    validateCreateBinLocationInput,
   };
 }

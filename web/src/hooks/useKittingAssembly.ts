@@ -1,24 +1,22 @@
 /**
- * Kitting and Assembly Management Hooks
- * Complete set of hooks for kit definition and assembly work order operations
+ * Kitting Assembly Operations Hooks
+ * Complete set of hooks for kit assembly and component management
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo/client';
 import { useTenantStore } from '@/lib/stores/tenant-store';
 import {
   KitDefinition,
   AssemblyWorkOrder,
-  KitType,
   AssemblyWorkOrderStatus,
-  AssemblyPriority,
-  ComponentStatus,
-  QualityResult,
+  KitComponent,
+  AssemblyComponent,
+  AssemblyMetrics,
   CreateKitDefinitionInput,
-  UpdateKitDefinitionInput,
   CreateAssemblyWorkOrderInput,
   UpdateAssemblyWorkOrderInput,
-  PaginationArgs,
+  OffsetPaginationArgs,
   KitDefinitionConnection,
   AssemblyWorkOrderConnection,
 } from '@/types/warehouse';
@@ -31,7 +29,9 @@ import {
   GET_ACTIVE_KIT_DEFINITIONS,
   GET_ASSEMBLY_WORK_ORDER,
   GET_ASSEMBLY_WORK_ORDERS,
+  GET_ASSEMBLY_WORK_ORDER_BY_NUMBER,
   GET_ASSEMBLY_WORK_ORDERS_BY_KIT,
+  GET_ASSEMBLY_WORK_ORDERS_BY_WAREHOUSE,
   GET_ASSEMBLY_WORK_ORDERS_BY_ASSEMBLER,
   GET_PENDING_ASSEMBLY_WORK_ORDERS,
   GET_OVERDUE_ASSEMBLY_WORK_ORDERS,
@@ -59,12 +59,10 @@ import {
 
 import {
   KIT_DEFINITION_UPDATED,
-  KIT_DEFINITION_STATUS_CHANGED,
   ASSEMBLY_WORK_ORDER_UPDATED,
   ASSEMBLY_WORK_ORDER_STATUS_CHANGED,
   ASSEMBLY_WORK_ORDER_COMPLETED,
   COMPONENT_SHORTAGE_DETECTED,
-  ASSEMBLY_PROGRESS_UPDATED,
 } from '@/graphql/subscriptions/warehouse-subscriptions';
 
 // ===== SINGLE KIT DEFINITION HOOK =====
@@ -94,7 +92,7 @@ export function useKitDefinition(kitId: string) {
     variables: { kitId },
     skip: !kitId,
     onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.kitDefinitionUpdated?.id === kitId) {
+      if (subscriptionData.data?.kitDefinitionUpdated) {
         apolloClient.cache.writeQuery({
           query: GET_KIT_DEFINITION,
           variables: { id: kitId },
@@ -104,7 +102,7 @@ export function useKitDefinition(kitId: string) {
     },
   });
 
-  const update = useCallback(async (input: UpdateKitDefinitionInput) => {
+  const update = useCallback(async (input: CreateKitDefinitionInput) => {
     if (!kitDefinition?.id) return null;
     
     try {
@@ -129,13 +127,14 @@ export function useKitDefinition(kitId: string) {
     if (!kitDefinition?.id) return false;
     
     try {
-      const result = await deleteKitDefinition({
+      await deleteKitDefinition({
         variables: { id: kitDefinition.id },
-        refetchQueries: [
-          { query: GET_KIT_DEFINITIONS, variables: { first: 20 } },
-        ],
+        update: (cache) => {
+          cache.evict({ id: cache.identify(kitDefinition) });
+          cache.gc();
+        },
       });
-      return result.data?.deleteKitDefinition?.success || false;
+      return true;
     } catch (error) {
       console.error('Failed to delete kit definition:', error);
       throw error;
@@ -148,6 +147,13 @@ export function useKitDefinition(kitId: string) {
     try {
       const result = await activateKitDefinition({
         variables: { id: kitDefinition.id },
+        optimisticResponse: {
+          activateKitDefinition: {
+            ...kitDefinition,
+            isActive: true,
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.activateKitDefinition;
     } catch (error) {
@@ -162,6 +168,13 @@ export function useKitDefinition(kitId: string) {
     try {
       const result = await deactivateKitDefinition({
         variables: { id: kitDefinition.id },
+        optimisticResponse: {
+          deactivateKitDefinition: {
+            ...kitDefinition,
+            isActive: false,
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.deactivateKitDefinition;
     } catch (error) {
@@ -171,37 +184,25 @@ export function useKitDefinition(kitId: string) {
   }, [deactivateKitDefinition, kitDefinition]);
 
   // Computed properties
-  const totalComponents = useMemo(() => {
-    return kitDefinition?.components?.length || 0;
-  }, [kitDefinition]);
-
-  const requiredComponents = useMemo(() => {
-    return kitDefinition?.components?.filter(component => !component.isOptional).length || 0;
-  }, [kitDefinition]);
-
-  const optionalComponents = useMemo(() => {
-    return kitDefinition?.components?.filter(component => component.isOptional).length || 0;
-  }, [kitDefinition]);
-
-  const totalQualityChecks = useMemo(() => {
-    return kitDefinition?.qualityChecks?.length || 0;
-  }, [kitDefinition]);
-
-  const requiredQualityChecks = useMemo(() => {
-    return kitDefinition?.qualityChecks?.filter(check => check.isRequired).length || 0;
-  }, [kitDefinition]);
-
   const isActive = useMemo(() => {
-    return kitDefinition?.isActive === true;
-  }, [kitDefinition]);
+    return kitDefinition?.isActive;
+  }, [kitDefinition?.isActive]);
+
+  const componentCount = useMemo(() => {
+    return kitDefinition?.components?.length || 0;
+  }, [kitDefinition?.components]);
+
+  const totalCost = useMemo(() => {
+    return kitDefinition?.totalCost || 0;
+  }, [kitDefinition?.totalCost]);
 
   const canActivate = useMemo(() => {
-    return !isActive && totalComponents > 0;
-  }, [isActive, totalComponents]);
+    return !kitDefinition?.isActive && componentCount > 0;
+  }, [kitDefinition?.isActive, componentCount]);
 
   const canDeactivate = useMemo(() => {
-    return isActive;
-  }, [isActive]);
+    return kitDefinition?.isActive;
+  }, [kitDefinition?.isActive]);
 
   return {
     kitDefinition,
@@ -212,12 +213,9 @@ export function useKitDefinition(kitId: string) {
     remove,
     activate,
     deactivate,
-    totalComponents,
-    requiredComponents,
-    optionalComponents,
-    totalQualityChecks,
-    requiredQualityChecks,
     isActive,
+    componentCount,
+    totalCost,
     canActivate,
     canDeactivate,
   };
@@ -226,18 +224,18 @@ export function useKitDefinition(kitId: string) {
 // ===== MULTIPLE KIT DEFINITIONS HOOK =====
 
 /**
- * Hook for managing multiple kit definitions
+ * Hook for managing multiple kit definitions with pagination and filtering
  */
 export function useKitDefinitions(
-  paginationArgs?: PaginationArgs,
+  paginationArgs?: OffsetPaginationArgs,
   filter?: any
 ) {
   const currentTenant = useTenantStore(state => state.currentTenant);
   
   const { data, loading, error, refetch, fetchMore } = useQuery(GET_KIT_DEFINITIONS, {
-    variables: { 
-      first: paginationArgs?.first || 20,
-      after: paginationArgs?.after,
+    variables: {
+      first: paginationArgs?.limit || 20,
+      after: null,
       filter,
     },
     skip: !currentTenant?.id,
@@ -245,27 +243,45 @@ export function useKitDefinitions(
     notifyOnNetworkStatusChange: true,
   });
 
-  const { data: activeData, loading: activeLoading } = useQuery(GET_ACTIVE_KIT_DEFINITIONS, {
-    skip: !currentTenant?.id,
-    errorPolicy: 'all',
-  });
-
   const [createKitDefinition] = useMutation(CREATE_KIT_DEFINITION);
 
-  const kitDefinitions = useMemo(() => {
-    return data?.kitDefinitions?.edges?.map(edge => edge.node) || [];
-  }, [data]);
-
-  const activeKitDefinitions = activeData?.activeKitDefinitions || [];
+  const kitDefinitions = data?.kitDefinitions?.edges?.map(edge => edge.node) || [];
+  const pageInfo = data?.kitDefinitions?.pageInfo;
+  const totalCount = data?.kitDefinitions?.totalCount || 0;
 
   const create = useCallback(async (input: CreateKitDefinitionInput) => {
     try {
       const result = await createKitDefinition({
         variables: { input },
-        refetchQueries: [
-          { query: GET_KIT_DEFINITIONS, variables: { first: 20, filter } },
-          { query: GET_ACTIVE_KIT_DEFINITIONS },
-        ],
+        update: (cache, { data: mutationData }) => {
+          if (mutationData?.createKitDefinition) {
+            const existingKits = cache.readQuery({
+              query: GET_KIT_DEFINITIONS,
+              variables: { first: 20, filter },
+            });
+
+            if (existingKits) {
+              cache.writeQuery({
+                query: GET_KIT_DEFINITIONS,
+                variables: { first: 20, filter },
+                data: {
+                  kitDefinitions: {
+                    ...existingKits.kitDefinitions,
+                    edges: [
+                      {
+                        node: mutationData.createKitDefinition,
+                        cursor: `kit-${Date.now()}`,
+                        __typename: 'KitDefinitionEdge',
+                      },
+                      ...existingKits.kitDefinitions.edges,
+                    ],
+                    totalCount: existingKits.kitDefinitions.totalCount + 1,
+                  },
+                },
+              });
+            }
+          }
+        },
       });
       return result.data?.createKitDefinition;
     } catch (error) {
@@ -274,38 +290,66 @@ export function useKitDefinitions(
     }
   }, [createKitDefinition, filter]);
 
-  // Statistics
-  const kitsByType = useMemo(() => {
-    const grouped: Record<KitType, KitDefinition[]> = {} as any;
-    
-    kitDefinitions.forEach((kit: KitDefinition) => {
-      if (!grouped[kit.kitType]) {
-        grouped[kit.kitType] = [];
-      }
-      grouped[kit.kitType].push(kit);
-    });
-    
-    return grouped;
-  }, [kitDefinitions]);
+  const loadMore = useCallback(async () => {
+    if (!pageInfo?.hasNextPage || loading) return;
 
-  const activeKitsCount = useMemo(() => {
-    return activeKitDefinitions.length;
-  }, [activeKitDefinitions]);
+    try {
+      await fetchMore({
+        variables: {
+          after: pageInfo.endCursor,
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return prev;
 
-  const inactiveKitsCount = useMemo(() => {
-    return kitDefinitions.filter((kit: KitDefinition) => !kit.isActive).length;
-  }, [kitDefinitions]);
+          return {
+            kitDefinitions: {
+              ...fetchMoreResult.kitDefinitions,
+              edges: [
+                ...prev.kitDefinitions.edges,
+                ...fetchMoreResult.kitDefinitions.edges,
+              ],
+            },
+          };
+        },
+      });
+    } catch (error) {
+      console.error('Failed to load more kit definitions:', error);
+      throw error;
+    }
+  }, [fetchMore, pageInfo, loading]);
 
   return {
     kitDefinitions,
-    activeKitDefinitions,
-    kitsByType,
-    activeKitsCount,
-    inactiveKitsCount,
-    loading: loading || activeLoading,
+    loading,
     error,
+    pageInfo,
+    totalCount,
     refetch,
     create,
+    loadMore,
+  };
+}
+
+// ===== ACTIVE KIT DEFINITIONS HOOK =====
+
+/**
+ * Hook for getting active kit definitions
+ */
+export function useActiveKitDefinitions() {
+  const currentTenant = useTenantStore(state => state.currentTenant);
+  
+  const { data, loading, error, refetch } = useQuery(GET_ACTIVE_KIT_DEFINITIONS, {
+    skip: !currentTenant?.id,
+    errorPolicy: 'all',
+  });
+
+  const activeKitDefinitions = data?.activeKitDefinitions || [];
+
+  return {
+    activeKitDefinitions,
+    loading,
+    error,
+    refetch,
   };
 }
 
@@ -324,25 +368,24 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     errorPolicy: 'all',
   });
 
-  const [updateAssemblyWorkOrder] = useMutation(UPDATE_ASSEMBLY_WORK_ORDER);
-  const [deleteAssemblyWorkOrder] = useMutation(DELETE_ASSEMBLY_WORK_ORDER);
-  const [startAssemblyWorkOrder] = useMutation(START_ASSEMBLY_WORK_ORDER);
-  const [completeAssemblyWorkOrder] = useMutation(COMPLETE_ASSEMBLY_WORK_ORDER);
-  const [cancelAssemblyWorkOrder] = useMutation(CANCEL_ASSEMBLY_WORK_ORDER);
+  const [updateWorkOrder] = useMutation(UPDATE_ASSEMBLY_WORK_ORDER);
+  const [deleteWorkOrder] = useMutation(DELETE_ASSEMBLY_WORK_ORDER);
+  const [startWorkOrder] = useMutation(START_ASSEMBLY_WORK_ORDER);
+  const [completeWorkOrder] = useMutation(COMPLETE_ASSEMBLY_WORK_ORDER);
+  const [cancelWorkOrder] = useMutation(CANCEL_ASSEMBLY_WORK_ORDER);
   const [allocateComponents] = useMutation(ALLOCATE_COMPONENTS);
   const [consumeComponents] = useMutation(CONSUME_COMPONENTS);
   const [recordQualityCheck] = useMutation(RECORD_QUALITY_CHECK);
   const [assignAssembler] = useMutation(ASSIGN_ASSEMBLER);
-  const [disassembleKit] = useMutation(DISASSEMBLE_KIT);
 
   const workOrder = data?.assemblyWorkOrder;
 
   // Real-time subscriptions
   useSubscription(ASSEMBLY_WORK_ORDER_UPDATED, {
-    variables: { warehouseId: workOrder?.warehouseId },
-    skip: !workOrder?.warehouseId,
+    variables: { workOrderId },
+    skip: !workOrderId,
     onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.assemblyWorkOrderUpdated?.id === workOrderId) {
+      if (subscriptionData.data?.assemblyWorkOrderUpdated) {
         apolloClient.cache.writeQuery({
           query: GET_ASSEMBLY_WORK_ORDER,
           variables: { id: workOrderId },
@@ -352,32 +395,11 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     },
   });
 
-  useSubscription(ASSEMBLY_PROGRESS_UPDATED, {
-    variables: { workOrderId },
-    skip: !workOrderId,
-    onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.assemblyProgressUpdated) {
-        refetch();
-      }
-    },
-  });
-
-  useSubscription(COMPONENT_SHORTAGE_DETECTED, {
-    variables: { warehouseId: workOrder?.warehouseId },
-    skip: !workOrder?.warehouseId,
-    onData: ({ data: subscriptionData }) => {
-      const shortageData = subscriptionData.data?.componentShortageDetected;
-      if (shortageData?.workOrderId === workOrderId) {
-        refetch();
-      }
-    },
-  });
-
   const update = useCallback(async (input: UpdateAssemblyWorkOrderInput) => {
     if (!workOrder?.id) return null;
     
     try {
-      const result = await updateAssemblyWorkOrder({
+      const result = await updateWorkOrder({
         variables: { id: workOrder.id, input },
         optimisticResponse: {
           updateAssemblyWorkOrder: {
@@ -392,70 +414,97 @@ export function useAssemblyWorkOrder(workOrderId: string) {
       console.error('Failed to update assembly work order:', error);
       throw error;
     }
-  }, [updateAssemblyWorkOrder, workOrder]);
+  }, [updateWorkOrder, workOrder]);
 
   const remove = useCallback(async () => {
     if (!workOrder?.id) return false;
     
     try {
-      const result = await deleteAssemblyWorkOrder({
+      await deleteWorkOrder({
         variables: { id: workOrder.id },
+        update: (cache) => {
+          cache.evict({ id: cache.identify(workOrder) });
+          cache.gc();
+        },
       });
-      return result.data?.deleteAssemblyWorkOrder?.success || false;
+      return true;
     } catch (error) {
       console.error('Failed to delete assembly work order:', error);
       throw error;
     }
-  }, [deleteAssemblyWorkOrder, workOrder]);
+  }, [deleteWorkOrder, workOrder]);
 
   const start = useCallback(async () => {
     if (!workOrder?.id) return null;
     
     try {
-      const result = await startAssemblyWorkOrder({
+      const result = await startWorkOrder({
         variables: { id: workOrder.id },
+        optimisticResponse: {
+          startAssemblyWorkOrder: {
+            ...workOrder,
+            status: AssemblyWorkOrderStatus.IN_PROGRESS,
+            startedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.startAssemblyWorkOrder;
     } catch (error) {
       console.error('Failed to start assembly work order:', error);
       throw error;
     }
-  }, [startAssemblyWorkOrder, workOrder]);
+  }, [startWorkOrder, workOrder]);
 
   const complete = useCallback(async () => {
     if (!workOrder?.id) return null;
     
     try {
-      const result = await completeAssemblyWorkOrder({
+      const result = await completeWorkOrder({
         variables: { id: workOrder.id },
+        optimisticResponse: {
+          completeAssemblyWorkOrder: {
+            ...workOrder,
+            status: AssemblyWorkOrderStatus.COMPLETED,
+            completedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.completeAssemblyWorkOrder;
     } catch (error) {
       console.error('Failed to complete assembly work order:', error);
       throw error;
     }
-  }, [completeAssemblyWorkOrder, workOrder]);
+  }, [completeWorkOrder, workOrder]);
 
-  const cancel = useCallback(async () => {
+  const cancel = useCallback(async (reason?: string) => {
     if (!workOrder?.id) return null;
     
     try {
-      const result = await cancelAssemblyWorkOrder({
-        variables: { id: workOrder.id },
+      const result = await cancelWorkOrder({
+        variables: { id: workOrder.id, reason },
+        optimisticResponse: {
+          cancelAssemblyWorkOrder: {
+            ...workOrder,
+            status: AssemblyWorkOrderStatus.CANCELLED,
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.cancelAssemblyWorkOrder;
     } catch (error) {
       console.error('Failed to cancel assembly work order:', error);
       throw error;
     }
-  }, [cancelAssemblyWorkOrder, workOrder]);
+  }, [cancelWorkOrder, workOrder]);
 
-  const allocateComponentsForOrder = useCallback(async (input: any) => {
+  const allocateWorkOrderComponents = useCallback(async (components: any[]) => {
     if (!workOrder?.id) return null;
     
     try {
       const result = await allocateComponents({
-        variables: { id: workOrder.id, input },
+        variables: { workOrderId: workOrder.id, components },
       });
       return result.data?.allocateComponents;
     } catch (error) {
@@ -464,12 +513,12 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     }
   }, [allocateComponents, workOrder]);
 
-  const consumeComponentsForOrder = useCallback(async (componentIds: string[]) => {
+  const consumeWorkOrderComponents = useCallback(async (components: any[]) => {
     if (!workOrder?.id) return null;
     
     try {
       const result = await consumeComponents({
-        variables: { id: workOrder.id, componentIds },
+        variables: { workOrderId: workOrder.id, components },
       });
       return result.data?.consumeComponents;
     } catch (error) {
@@ -478,12 +527,12 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     }
   }, [consumeComponents, workOrder]);
 
-  const recordQualityCheckForOrder = useCallback(async (input: any) => {
+  const recordQuality = useCallback(async (qualityCheck: any) => {
     if (!workOrder?.id) return null;
     
     try {
       const result = await recordQualityCheck({
-        variables: { id: workOrder.id, input },
+        variables: { workOrderId: workOrder.id, qualityCheck },
       });
       return result.data?.recordQualityCheck;
     } catch (error) {
@@ -492,12 +541,19 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     }
   }, [recordQualityCheck, workOrder]);
 
-  const assignAssemblerToOrder = useCallback(async (assemblerId: string) => {
+  const assignToAssembler = useCallback(async (assemblerId: string) => {
     if (!workOrder?.id) return null;
     
     try {
       const result = await assignAssembler({
-        variables: { id: workOrder.id, assemblerId },
+        variables: { workOrderId: workOrder.id, assemblerId },
+        optimisticResponse: {
+          assignAssembler: {
+            ...workOrder,
+            assignedTo: assemblerId,
+            updatedAt: new Date(),
+          },
+        },
       });
       return result.data?.assignAssembler;
     } catch (error) {
@@ -506,72 +562,58 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     }
   }, [assignAssembler, workOrder]);
 
-  const disassemble = useCallback(async (reason: string) => {
-    if (!workOrder?.id) return null;
-    
-    try {
-      const result = await disassembleKit({
-        variables: { workOrderId: workOrder.id, reason },
-      });
-      return result.data?.disassembleKit;
-    } catch (error) {
-      console.error('Failed to disassemble kit:', error);
-      throw error;
-    }
-  }, [disassembleKit, workOrder]);
-
   // Computed properties
-  const completionPercentage = useMemo(() => {
-    if (!workOrder?.quantityToAssemble || workOrder.quantityToAssemble === 0) return 0;
-    return (workOrder.quantityCompleted / workOrder.quantityToAssemble) * 100;
-  }, [workOrder]);
+  const isPending = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.PENDING;
+  }, [workOrder?.status]);
 
-  const assemblyProgress = useMemo(() => {
-    if (!workOrder?.quantityToAssemble || workOrder.quantityToAssemble === 0) return 0;
-    return (workOrder.quantityAssembled / workOrder.quantityToAssemble) * 100;
-  }, [workOrder]);
+  const isPlanned = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.PLANNED;
+  }, [workOrder?.status]);
 
-  const hasComponentShortage = useMemo(() => {
-    return workOrder?.components?.some(component => 
-      component.status === ComponentStatus.SHORTAGE
-    ) || false;
-  }, [workOrder]);
+  const isInProgress = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.IN_PROGRESS;
+  }, [workOrder?.status]);
 
-  const isOverdue = useMemo(() => {
-    if (!workOrder?.estimatedCompletionTime) return false;
-    const now = new Date();
-    const estimated = new Date(workOrder.estimatedCompletionTime);
-    return now > estimated && workOrder.status !== AssemblyWorkOrderStatus.COMPLETED;
-  }, [workOrder]);
+  const isCompleted = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.COMPLETED;
+  }, [workOrder?.status]);
+
+  const isCancelled = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.CANCELLED;
+  }, [workOrder?.status]);
+
+  const isOnHold = useMemo(() => {
+    return workOrder?.status === AssemblyWorkOrderStatus.ON_HOLD;
+  }, [workOrder?.status]);
 
   const canStart = useMemo(() => {
-    return workOrder?.status === AssemblyWorkOrderStatus.PENDING;
-  }, [workOrder]);
+    return [AssemblyWorkOrderStatus.PENDING, AssemblyWorkOrderStatus.PLANNED].includes(
+      workOrder?.status as AssemblyWorkOrderStatus
+    );
+  }, [workOrder?.status]);
 
   const canComplete = useMemo(() => {
     return workOrder?.status === AssemblyWorkOrderStatus.IN_PROGRESS;
-  }, [workOrder]);
+  }, [workOrder?.status]);
 
   const canCancel = useMemo(() => {
-    return [
-      AssemblyWorkOrderStatus.PENDING,
-      AssemblyWorkOrderStatus.IN_PROGRESS,
-      AssemblyWorkOrderStatus.ON_HOLD,
-    ].includes(workOrder?.status as AssemblyWorkOrderStatus);
-  }, [workOrder]);
+    return ![AssemblyWorkOrderStatus.COMPLETED, AssemblyWorkOrderStatus.CANCELLED].includes(
+      workOrder?.status as AssemblyWorkOrderStatus
+    );
+  }, [workOrder?.status]);
 
-  const isAssigned = useMemo(() => {
-    return !!workOrder?.assemblerId;
-  }, [workOrder]);
+  const completionPercentage = useMemo(() => {
+    return workOrder?.completionPercentage || 0;
+  }, [workOrder?.completionPercentage]);
 
-  const estimatedCost = useMemo(() => {
-    if (!workOrder?.components) return 0;
-    // This would typically be calculated based on component costs
-    return workOrder.components.reduce((total, component) => {
-      // Placeholder calculation - would need actual component pricing
-      return total + (component.quantityRequired * 10); // $10 per component as example
-    }, 0);
-  }, [workOrder]);
+  const hasComponentShortage = useMemo(() => {
+    return workOrder?.hasComponentShortage || false;
+  }, [workOrder?.hasComponentShortage]);
+
+  const isOverdue = useMemo(() => {
+    return workOrder?.isOverdue || false;
+  }, [workOrder?.isOverdue]);
 
   return {
     workOrder,
@@ -583,279 +625,378 @@ export function useAssemblyWorkOrder(workOrderId: string) {
     start,
     complete,
     cancel,
-    allocateComponentsForOrder,
-    consumeComponentsForOrder,
-    recordQualityCheckForOrder,
-    assignAssemblerToOrder,
-    disassemble,
-    completionPercentage,
-    assemblyProgress,
-    hasComponentShortage,
-    isOverdue,
+    allocateWorkOrderComponents,
+    consumeWorkOrderComponents,
+    recordQuality,
+    assignToAssembler,
+    isPending,
+    isPlanned,
+    isInProgress,
+    isCompleted,
+    isCancelled,
+    isOnHold,
     canStart,
     canComplete,
     canCancel,
-    isAssigned,
-    estimatedCost,
+    completionPercentage,
+    hasComponentShortage,
+    isOverdue,
   };
 }
 
 // ===== MULTIPLE ASSEMBLY WORK ORDERS HOOK =====
 
 /**
- * Hook for managing multiple assembly work orders
+ * Hook for managing multiple assembly work orders with pagination and filtering
  */
 export function useAssemblyWorkOrders(
-  warehouseId: string,
-  paginationArgs?: PaginationArgs,
+  paginationArgs?: OffsetPaginationArgs,
   filter?: any
 ) {
   const currentTenant = useTenantStore(state => state.currentTenant);
   
-  const { data, loading, error, refetch } = useQuery(GET_ASSEMBLY_WORK_ORDERS, {
-    variables: { 
-      warehouseId,
-      first: paginationArgs?.first || 20,
-      after: paginationArgs?.after,
+  const { data, loading, error, refetch, fetchMore } = useQuery(GET_ASSEMBLY_WORK_ORDERS, {
+    variables: {
+      first: paginationArgs?.limit || 20,
+      after: null,
       filter,
     },
-    skip: !currentTenant?.id || !warehouseId,
+    skip: !currentTenant?.id,
     errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
-  const { data: pendingData, loading: pendingLoading } = useQuery(GET_PENDING_ASSEMBLY_WORK_ORDERS, {
-    variables: { warehouseId },
-    skip: !warehouseId,
-    errorPolicy: 'all',
-  });
+  const [createWorkOrder] = useMutation(CREATE_ASSEMBLY_WORK_ORDER);
 
-  const { data: overdueData, loading: overdueLoading } = useQuery(GET_OVERDUE_ASSEMBLY_WORK_ORDERS, {
-    variables: { warehouseId },
-    skip: !warehouseId,
-    errorPolicy: 'all',
-  });
-
-  const [createAssemblyWorkOrder] = useMutation(CREATE_ASSEMBLY_WORK_ORDER);
-
-  const workOrders = useMemo(() => {
-    return data?.assemblyWorkOrders?.edges?.map(edge => edge.node) || [];
-  }, [data]);
-
-  const pendingWorkOrders = pendingData?.pendingAssemblyWorkOrders || [];
-  const overdueWorkOrders = overdueData?.overdueAssemblyWorkOrders || [];
+  const workOrders = data?.assemblyWorkOrders?.edges?.map(edge => edge.node) || [];
+  const pageInfo = data?.assemblyWorkOrders?.pageInfo;
+  const totalCount = data?.assemblyWorkOrders?.totalCount || 0;
 
   const create = useCallback(async (input: CreateAssemblyWorkOrderInput) => {
     try {
-      const result = await createAssemblyWorkOrder({
-        variables: { input: { ...input, warehouseId } },
-        refetchQueries: [
-          { 
-            query: GET_ASSEMBLY_WORK_ORDERS, 
-            variables: { warehouseId, first: 20, filter } 
-          },
-          { query: GET_PENDING_ASSEMBLY_WORK_ORDERS, variables: { warehouseId } },
-        ],
+      const result = await createWorkOrder({
+        variables: { input },
+        update: (cache, { data: mutationData }) => {
+          if (mutationData?.createAssemblyWorkOrder) {
+            const existingWorkOrders = cache.readQuery({
+              query: GET_ASSEMBLY_WORK_ORDERS,
+              variables: { first: 20, filter },
+            });
+
+            if (existingWorkOrders) {
+              cache.writeQuery({
+                query: GET_ASSEMBLY_WORK_ORDERS,
+                variables: { first: 20, filter },
+                data: {
+                  assemblyWorkOrders: {
+                    ...existingWorkOrders.assemblyWorkOrders,
+                    edges: [
+                      {
+                        node: mutationData.createAssemblyWorkOrder,
+                        cursor: `workorder-${Date.now()}`,
+                        __typename: 'AssemblyWorkOrderEdge',
+                      },
+                      ...existingWorkOrders.assemblyWorkOrders.edges,
+                    ],
+                    totalCount: existingWorkOrders.assemblyWorkOrders.totalCount + 1,
+                  },
+                },
+              });
+            }
+          }
+        },
       });
       return result.data?.createAssemblyWorkOrder;
     } catch (error) {
       console.error('Failed to create assembly work order:', error);
       throw error;
     }
-  }, [createAssemblyWorkOrder, warehouseId, filter]);
+  }, [createWorkOrder, filter]);
 
-  // Statistics
-  const workOrdersByStatus = useMemo(() => {
-    const grouped: Record<AssemblyWorkOrderStatus, AssemblyWorkOrder[]> = {} as any;
-    
-    workOrders.forEach((workOrder: AssemblyWorkOrder) => {
-      if (!grouped[workOrder.status]) {
-        grouped[workOrder.status] = [];
-      }
-      grouped[workOrder.status].push(workOrder);
-    });
-    
-    return grouped;
-  }, [workOrders]);
+  const loadMore = useCallback(async () => {
+    if (!pageInfo?.hasNextPage || loading) return;
 
-  const activeWorkOrders = useMemo(() => {
-    return workOrders.filter((workOrder: AssemblyWorkOrder) => 
-      [
-        AssemblyWorkOrderStatus.PENDING,
-        AssemblyWorkOrderStatus.IN_PROGRESS,
-        AssemblyWorkOrderStatus.ON_HOLD,
-      ].includes(workOrder.status)
-    );
-  }, [workOrders]);
+    try {
+      await fetchMore({
+        variables: {
+          after: pageInfo.endCursor,
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return prev;
 
-  const completedWorkOrders = useMemo(() => {
-    return workOrders.filter((workOrder: AssemblyWorkOrder) => 
-      workOrder.status === AssemblyWorkOrderStatus.COMPLETED
-    );
-  }, [workOrders]);
+          return {
+            assemblyWorkOrders: {
+              ...fetchMoreResult.assemblyWorkOrders,
+              edges: [
+                ...prev.assemblyWorkOrders.edges,
+                ...fetchMoreResult.assemblyWorkOrders.edges,
+              ],
+            },
+          };
+        },
+      });
+    } catch (error) {
+      console.error('Failed to load more assembly work orders:', error);
+      throw error;
+    }
+  }, [fetchMore, pageInfo, loading]);
 
   return {
     workOrders,
-    pendingWorkOrders,
-    overdueWorkOrders,
-    workOrdersByStatus,
-    activeWorkOrders,
-    completedWorkOrders,
-    loading: loading || pendingLoading || overdueLoading,
+    loading,
     error,
+    pageInfo,
+    totalCount,
     refetch,
     create,
+    loadMore,
   };
 }
 
-// ===== ASSEMBLY METRICS HOOK =====
+// ===== WORK ORDERS BY WAREHOUSE HOOK =====
 
 /**
- * Hook for assembly performance metrics
+ * Hook for getting work orders by warehouse
  */
-export function useAssemblyMetrics(warehouseId: string, dateRange?: any) {
+export function useAssemblyWorkOrdersByWarehouse(warehouseId: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
   
-  const { data, loading, error, refetch } = useQuery(GET_ASSEMBLY_METRICS, {
-    variables: { warehouseId, dateRange },
+  const { data, loading, error, refetch } = useQuery(GET_ASSEMBLY_WORK_ORDERS_BY_WAREHOUSE, {
+    variables: { warehouseId },
     skip: !currentTenant?.id || !warehouseId,
     errorPolicy: 'all',
-    pollInterval: 60000, // Poll every minute
   });
 
-  const metrics = data?.assemblyMetrics;
+  const workOrders = data?.assemblyWorkOrdersByWarehouse || [];
 
-  const performanceScore = useMemo(() => {
-    if (!metrics) return 0;
-    
-    const {
-      assemblyAccuracy = 0,
-      utilizationRate = 0,
-      throughputPerHour = 0,
-    } = metrics;
-    
-    // Calculate weighted performance score
-    const accuracyScore = assemblyAccuracy * 0.4;
-    const utilizationScore = utilizationRate * 0.3;
-    const throughputScore = Math.min(throughputPerHour / 50, 1) * 0.3; // Normalize to 50 units/hour
-    
-    return Math.round((accuracyScore + utilizationScore + throughputScore) * 100);
-  }, [metrics]);
+  // Real-time subscriptions for warehouse work orders
+  useSubscription(ASSEMBLY_WORK_ORDER_STATUS_CHANGED, {
+    variables: { warehouseId },
+    skip: !warehouseId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.assemblyWorkOrderStatusChanged) {
+        refetch();
+      }
+    },
+  });
 
-  const alerts = useMemo(() => {
-    if (!metrics) return [];
-    
-    const alerts = [];
-    
-    if (metrics.componentShortages > 0) {
-      alerts.push({
-        type: 'warning',
-        message: `${metrics.componentShortages} component shortages detected`,
-        severity: 'high',
-      });
-    }
-    
-    if (metrics.qualityFailures > 0) {
-      alerts.push({
-        type: 'error',
-        message: `${metrics.qualityFailures} quality failures recorded`,
-        severity: 'medium',
-      });
-    }
-    
-    if (metrics.overdueWorkOrders > 0) {
-      alerts.push({
-        type: 'warning',
-        message: `${metrics.overdueWorkOrders} work orders are overdue`,
-        severity: 'high',
-      });
-    }
-    
-    return alerts;
-  }, [metrics]);
+  useSubscription(ASSEMBLY_WORK_ORDER_COMPLETED, {
+    variables: { warehouseId },
+    skip: !warehouseId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.assemblyWorkOrderCompleted) {
+        refetch();
+      }
+    },
+  });
+
+  useSubscription(COMPONENT_SHORTAGE_DETECTED, {
+    variables: { warehouseId },
+    skip: !warehouseId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.componentShortageDetected) {
+        refetch();
+      }
+    },
+  });
 
   return {
-    metrics,
-    performanceScore,
-    alerts,
+    workOrders,
     loading,
     error,
     refetch,
   };
 }
 
+// ===== PENDING AND OVERDUE WORK ORDERS HOOKS =====
+
+/**
+ * Hook for getting pending assembly work orders
+ */
+export function usePendingAssemblyWorkOrders(warehouseId?: string) {
+  const currentTenant = useTenantStore(state => state.currentTenant);
+  
+  const { data, loading, error, refetch } = useQuery(GET_PENDING_ASSEMBLY_WORK_ORDERS, {
+    variables: { warehouseId },
+    skip: !currentTenant?.id,
+    errorPolicy: 'all',
+    pollInterval: 30000, // Poll every 30 seconds
+  });
+
+  const pendingWorkOrders = data?.pendingAssemblyWorkOrders || [];
+
+  return {
+    pendingWorkOrders,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+/**
+ * Hook for getting overdue assembly work orders
+ */
+export function useOverdueAssemblyWorkOrders(warehouseId?: string) {
+  const currentTenant = useTenantStore(state => state.currentTenant);
+  
+  const { data, loading, error, refetch } = useQuery(GET_OVERDUE_ASSEMBLY_WORK_ORDERS, {
+    variables: { warehouseId },
+    skip: !currentTenant?.id,
+    errorPolicy: 'all',
+    pollInterval: 60000, // Poll every minute
+  });
+
+  const overdueWorkOrders = data?.overdueAssemblyWorkOrders || [];
+
+  return {
+    overdueWorkOrders,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+// ===== ASSEMBLY METRICS HOOK =====
+
+/**
+ * Hook for getting assembly metrics
+ */
+export function useAssemblyMetrics(
+  kitId: string,
+  startDate?: Date,
+  endDate?: Date
+) {
+  const currentTenant = useTenantStore(state => state.currentTenant);
+  
+  const { data, loading, error, refetch } = useQuery(GET_ASSEMBLY_METRICS, {
+    variables: { kitId, startDate, endDate },
+    skip: !currentTenant?.id || !kitId,
+    errorPolicy: 'all',
+  });
+
+  const metrics = data?.assemblyMetrics;
+
+  return {
+    metrics,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+// ===== KIT DISASSEMBLY HOOK =====
+
+/**
+ * Hook for kit disassembly operations
+ */
+export function useKitDisassembly() {
+  const [disassembleKit] = useMutation(DISASSEMBLE_KIT);
+
+  const disassemble = useCallback(async (
+    kitId: string,
+    quantity: number,
+    reason: string
+  ) => {
+    try {
+      const result = await disassembleKit({
+        variables: { kitId, quantity, reason },
+      });
+      return result.data?.disassembleKit;
+    } catch (error) {
+      console.error('Failed to disassemble kit:', error);
+      throw error;
+    }
+  }, [disassembleKit]);
+
+  return {
+    disassemble,
+  };
+}
+
 // ===== KITTING ASSEMBLY MANAGEMENT HOOK =====
 
 /**
- * Combined hook for comprehensive kitting and assembly management
+ * Combined hook for comprehensive kitting assembly management
  */
-export function useKittingAssemblyManagement(warehouseId: string) {
-  const [selectedKitId, setSelectedKitId] = useState<string>('');
-  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string>('');
-  
+export function useKittingAssemblyManagement(warehouseId?: string) {
+  const apolloClient = useApolloClient();
+  const [selectedKitId, setSelectedKitId] = useState<string | null>(null);
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string | null>(null);
+
+  // Get all kit definitions
   const {
     kitDefinitions,
-    activeKitDefinitions,
-    kitsByType,
-    activeKitsCount,
-    inactiveKitsCount,
-    loading: kitsLoading,
-    error: kitsError,
-    create: createKit,
-    refetch: refetchKits,
+    loading: kitDefinitionsLoading,
+    error: kitDefinitionsError,
+    create: createKitDefinition,
+    refetch: refetchKitDefinitions,
   } = useKitDefinitions();
 
-  const {
-    kitDefinition: selectedKit,
-    loading: kitLoading,
-    error: kitError,
-    update: updateKit,
-    remove: deleteKit,
-    activate: activateKit,
-    deactivate: deactivateKit,
-    isActive: selectedKitIsActive,
-    canActivate: selectedKitCanActivate,
-    canDeactivate: selectedKitCanDeactivate,
-  } = useKitDefinition(selectedKitId);
+  // Get active kit definitions
+  const { activeKitDefinitions } = useActiveKitDefinitions();
 
+  // Get all work orders
   const {
     workOrders,
-    pendingWorkOrders,
-    overdueWorkOrders,
-    workOrdersByStatus,
-    activeWorkOrders,
-    completedWorkOrders,
     loading: workOrdersLoading,
     error: workOrdersError,
     create: createWorkOrder,
     refetch: refetchWorkOrders,
-  } = useAssemblyWorkOrders(warehouseId);
+  } = useAssemblyWorkOrders();
 
+  // Get warehouse work orders
+  const {
+    workOrders: warehouseWorkOrders,
+    loading: warehouseWorkOrdersLoading,
+  } = useAssemblyWorkOrdersByWarehouse(warehouseId || '');
+
+  // Get pending and overdue work orders
+  const { pendingWorkOrders } = usePendingAssemblyWorkOrders(warehouseId);
+  const { overdueWorkOrders } = useOverdueAssemblyWorkOrders(warehouseId);
+
+  // Get selected kit definition details
+  const {
+    kitDefinition: selectedKit,
+    loading: selectedKitLoading,
+    error: selectedKitError,
+    update: updateKitDefinition,
+    remove: deleteKitDefinition,
+    activate: activateKitDefinition,
+    deactivate: deactivateKitDefinition,
+    isActive: selectedKitIsActive,
+    componentCount: selectedKitComponentCount,
+    totalCost: selectedKitTotalCost,
+    canActivate: selectedKitCanActivate,
+    canDeactivate: selectedKitCanDeactivate,
+  } = useKitDefinition(selectedKitId || '');
+
+  // Get selected work order details
   const {
     workOrder: selectedWorkOrder,
-    loading: workOrderLoading,
-    error: workOrderError,
+    loading: selectedWorkOrderLoading,
+    error: selectedWorkOrderError,
     update: updateWorkOrder,
+    remove: deleteWorkOrder,
     start: startWorkOrder,
     complete: completeWorkOrder,
     cancel: cancelWorkOrder,
-    assignAssemblerToOrder,
-    allocateComponentsForOrder,
-    consumeComponentsForOrder,
-    recordQualityCheckForOrder,
-    completionPercentage: selectedWorkOrderCompletion,
-    hasComponentShortage: selectedWorkOrderHasShortage,
-    isOverdue: selectedWorkOrderIsOverdue,
+    allocateWorkOrderComponents,
+    consumeWorkOrderComponents,
+    recordQuality,
+    assignToAssembler,
+    isPending: selectedWorkOrderIsPending,
+    isInProgress: selectedWorkOrderIsInProgress,
+    isCompleted: selectedWorkOrderIsCompleted,
     canStart: selectedWorkOrderCanStart,
     canComplete: selectedWorkOrderCanComplete,
     canCancel: selectedWorkOrderCanCancel,
-  } = useAssemblyWorkOrder(selectedWorkOrderId);
+    completionPercentage: selectedWorkOrderCompletion,
+    hasComponentShortage: selectedWorkOrderHasShortage,
+    isOverdue: selectedWorkOrderIsOverdue,
+  } = useAssemblyWorkOrder(selectedWorkOrderId || '');
 
-  const {
-    metrics,
-    performanceScore,
-    alerts,
-    loading: metricsLoading,
-  } = useAssemblyMetrics(warehouseId);
+  // Kit disassembly
+  const { disassemble: disassembleKit } = useKitDisassembly();
 
   const selectKit = useCallback((kitId: string) => {
     setSelectedKitId(kitId);
@@ -866,78 +1007,162 @@ export function useKittingAssemblyManagement(warehouseId: string) {
   }, []);
 
   const clearSelections = useCallback(() => {
-    setSelectedKitId('');
-    setSelectedWorkOrderId('');
+    setSelectedKitId(null);
+    setSelectedWorkOrderId(null);
   }, []);
 
-  const isLoading = kitsLoading || kitLoading || workOrdersLoading || workOrderLoading || metricsLoading;
-  const error = kitsError || kitError || workOrdersError || workOrderError;
+  // Assembly statistics
+  const assemblyStats = useMemo(() => {
+    const relevantWorkOrders = warehouseId ? warehouseWorkOrders : workOrders;
+    
+    const totalWorkOrders = relevantWorkOrders.length;
+    const pendingCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.PENDING).length;
+    const plannedCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.PLANNED).length;
+    const inProgressCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.IN_PROGRESS).length;
+    const completedCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.COMPLETED).length;
+    const cancelledCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.CANCELLED).length;
+    const onHoldCount = relevantWorkOrders.filter(wo => wo.status === AssemblyWorkOrderStatus.ON_HOLD).length;
+
+    const totalQuantityToAssemble = relevantWorkOrders.reduce((sum, wo) => sum + (wo.quantityToAssemble || 0), 0);
+    const totalQuantityAssembled = relevantWorkOrders.reduce((sum, wo) => sum + (wo.quantityAssembled || 0), 0);
+
+    const completedWorkOrders = relevantWorkOrders.filter(wo => 
+      wo.status === AssemblyWorkOrderStatus.COMPLETED && wo.actualDuration
+    );
+    
+    const averageAssemblyTime = completedWorkOrders.length > 0
+      ? completedWorkOrders.reduce((sum, wo) => sum + (wo.actualDuration || 0), 0) / completedWorkOrders.length
+      : 0;
+
+    const qualityPassRate = completedWorkOrders.length > 0
+      ? completedWorkOrders.reduce((sum, wo) => {
+          const total = wo.qualityChecksTotal || 0;
+          const passed = wo.qualityChecksPassed || 0;
+          return sum + (total > 0 ? (passed / total) * 100 : 100);
+        }, 0) / completedWorkOrders.length
+      : 0;
+
+    return {
+      totalWorkOrders,
+      pendingCount,
+      plannedCount,
+      inProgressCount,
+      completedCount,
+      cancelledCount,
+      onHoldCount,
+      overdueCount: overdueWorkOrders.length,
+      totalQuantityToAssemble,
+      totalQuantityAssembled,
+      averageAssemblyTime,
+      qualityPassRate,
+    };
+  }, [workOrders, warehouseWorkOrders, warehouseId, overdueWorkOrders]);
+
+  const kitStats = useMemo(() => {
+    const totalKits = kitDefinitions.length;
+    const activeKits = kitDefinitions.filter(kit => kit.isActive).length;
+    const inactiveKits = kitDefinitions.filter(kit => !kit.isActive).length;
+
+    const totalComponents = kitDefinitions.reduce((sum, kit) => 
+      sum + (kit.components?.length || 0), 0
+    );
+
+    const averageComponentsPerKit = totalKits > 0 ? totalComponents / totalKits : 0;
+
+    return {
+      totalKits,
+      activeKits,
+      inactiveKits,
+      totalComponents,
+      averageComponentsPerKit,
+    };
+  }, [kitDefinitions]);
+
+  // Clear cache for assembly data
+  const clearCache = useCallback(() => {
+    apolloClient.cache.evict({ fieldName: 'kitDefinitions' });
+    apolloClient.cache.evict({ fieldName: 'kitDefinition' });
+    apolloClient.cache.evict({ fieldName: 'activeKitDefinitions' });
+    apolloClient.cache.evict({ fieldName: 'assemblyWorkOrders' });
+    apolloClient.cache.evict({ fieldName: 'assemblyWorkOrder' });
+    apolloClient.cache.evict({ fieldName: 'assemblyWorkOrdersByWarehouse' });
+    apolloClient.cache.evict({ fieldName: 'pendingAssemblyWorkOrders' });
+    apolloClient.cache.evict({ fieldName: 'overdueAssemblyWorkOrders' });
+    apolloClient.cache.gc();
+  }, [apolloClient]);
 
   return {
-    // Kit Definitions
+    // Kit definitions
     kitDefinitions,
     activeKitDefinitions,
-    kitsByType,
-    activeKitsCount,
-    inactiveKitsCount,
-    selectedKit,
-    selectedKitId,
-    selectKit,
-    
-    // Work Orders
-    workOrders,
+    kitDefinitionsLoading,
+    kitDefinitionsError,
+    createKitDefinition,
+    refetchKitDefinitions,
+
+    // Work orders
+    workOrders: warehouseId ? warehouseWorkOrders : workOrders,
+    workOrdersLoading: warehouseId ? warehouseWorkOrdersLoading : workOrdersLoading,
+    workOrdersError,
+    createWorkOrder,
+    refetchWorkOrders,
+
+    // Pending and overdue
     pendingWorkOrders,
     overdueWorkOrders,
-    workOrdersByStatus,
-    activeWorkOrders,
-    completedWorkOrders,
+
+    // Selected kit
+    selectedKit,
+    selectedKitId,
+    selectedKitLoading,
+    selectedKitError,
+    selectKit,
+    updateKitDefinition,
+    deleteKitDefinition,
+    activateKitDefinition,
+    deactivateKitDefinition,
+    selectedKitIsActive,
+    selectedKitComponentCount,
+    selectedKitTotalCost,
+    selectedKitCanActivate,
+    selectedKitCanDeactivate,
+
+    // Selected work order
     selectedWorkOrder,
     selectedWorkOrderId,
+    selectedWorkOrderLoading,
+    selectedWorkOrderError,
     selectWorkOrder,
-    
-    // Selection Management
-    clearSelections,
-    
-    // Kit Operations
-    createKit,
-    updateKit,
-    deleteKit,
-    activateKit,
-    deactivateKit,
-    refetchKits,
-    
-    // Work Order Operations
-    createWorkOrder,
     updateWorkOrder,
+    deleteWorkOrder,
     startWorkOrder,
     completeWorkOrder,
     cancelWorkOrder,
-    assignAssemblerToOrder,
-    allocateComponentsForOrder,
-    consumeComponentsForOrder,
-    recordQualityCheckForOrder,
-    refetchWorkOrders,
-    
-    // Kit State
-    selectedKitIsActive,
-    selectedKitCanActivate,
-    selectedKitCanDeactivate,
-    
-    // Work Order State
-    selectedWorkOrderCompletion,
-    selectedWorkOrderHasShortage,
-    selectedWorkOrderIsOverdue,
+    allocateWorkOrderComponents,
+    consumeWorkOrderComponents,
+    recordQuality,
+    assignToAssembler,
+    selectedWorkOrderIsPending,
+    selectedWorkOrderIsInProgress,
+    selectedWorkOrderIsCompleted,
     selectedWorkOrderCanStart,
     selectedWorkOrderCanComplete,
     selectedWorkOrderCanCancel,
-    
-    // Metrics
-    metrics,
-    performanceScore,
-    alerts,
-    
-    // State
-    isLoading,
-    error,
+    selectedWorkOrderCompletion,
+    selectedWorkOrderHasShortage,
+    selectedWorkOrderIsOverdue,
+
+    // Selection management
+    clearSelections,
+
+    // Kit operations
+    disassembleKit,
+
+    // Statistics
+    assemblyStats,
+    kitStats,
+
+    // Utilities
+    clearCache,
   };
 }

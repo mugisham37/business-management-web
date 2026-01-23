@@ -1,6 +1,6 @@
 /**
- * Lot Tracking Management Hooks
- * Complete set of hooks for lot tracking and FIFO operations
+ * Lot Tracking Operations Hooks
+ * Complete set of hooks for lot/batch tracking and traceability
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -11,6 +11,7 @@ import {
   LotStatus,
   LotMovement,
   CreateLotInput,
+  UpdateLotInput,
   LotFilterInput,
   OffsetPaginationArgs,
   LotInfoConnection,
@@ -56,8 +57,9 @@ import {
 /**
  * Hook for managing a single lot
  */
-export function useLotInfo(lotNumber: string, productId: string) {
+export function useLot(lotNumber: string, productId: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
+  const apolloClient = useApolloClient();
   
   const { data, loading, error, refetch } = useQuery(GET_LOT_INFO, {
     variables: { lotNumber, productId },
@@ -73,7 +75,32 @@ export function useLotInfo(lotNumber: string, productId: string) {
 
   const lot = data?.lotInfo;
 
-  const update = useCallback(async (input: Partial<CreateLotInput>) => {
+  // Real-time subscriptions
+  useSubscription(LOT_UPDATED, {
+    variables: { lotNumber, productId },
+    skip: !lotNumber || !productId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.lotUpdated) {
+        apolloClient.cache.writeQuery({
+          query: GET_LOT_INFO,
+          variables: { lotNumber, productId },
+          data: { lotInfo: subscriptionData.data.lotUpdated },
+        });
+      }
+    },
+  });
+
+  useSubscription(LOT_MOVEMENT_RECORDED, {
+    variables: { lotNumber, productId },
+    skip: !lotNumber || !productId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.lotMovementRecorded) {
+        refetch();
+      }
+    },
+  });
+
+  const update = useCallback(async (input: UpdateLotInput) => {
     if (!lot?.lotNumber || !lot?.productId) return null;
     
     try {
@@ -119,94 +146,131 @@ export function useLotInfo(lotNumber: string, productId: string) {
     }
   }, [deleteLot, lot]);
 
-  const recordLotMovement = useCallback(async (input: any) => {
+  const recordLotMovement = useCallback(async (input: {
+    movementType: string;
+    fromLocationId?: string;
+    toLocationId?: string;
+    quantity: number;
+    unitOfMeasure: string;
+    reason?: string;
+    referenceId?: string;
+    referenceType?: string;
+  }) => {
+    if (!lot?.lotNumber || !lot?.productId) return null;
+    
     try {
       const result = await recordMovement({
-        variables: { input },
-        refetchQueries: [
-          { query: GET_LOT_MOVEMENT_HISTORY, variables: { lotNumber, productId } },
-        ],
+        variables: { 
+          input: {
+            ...input,
+            lotNumber: lot.lotNumber,
+            productId: lot.productId,
+          }
+        },
       });
+      
+      if (result.data?.recordLotMovement) {
+        refetch();
+      }
+      
       return result.data?.recordLotMovement;
     } catch (error) {
       console.error('Failed to record lot movement:', error);
       throw error;
     }
-  }, [recordMovement, lotNumber, productId]);
+  }, [recordMovement, lot, refetch]);
 
   const quarantine = useCallback(async (reason: string) => {
-    if (!lot?.lotNumber || !lot?.productId) return false;
+    if (!lot?.lotNumber || !lot?.productId) return null;
     
     try {
-      await quarantineLot({
+      const result = await quarantineLot({
         variables: { 
           lotNumber: lot.lotNumber, 
           productId: lot.productId, 
           reason 
         },
-        optimisticResponse: {
-          quarantineLot: true,
-        },
       });
-      return true;
+      
+      if (result.data?.quarantineLot) {
+        refetch();
+      }
+      
+      return result.data?.quarantineLot;
     } catch (error) {
       console.error('Failed to quarantine lot:', error);
       throw error;
     }
-  }, [quarantineLot, lot]);
+  }, [quarantineLot, lot, refetch]);
 
   const releaseFromQuarantine = useCallback(async () => {
-    if (!lot?.lotNumber || !lot?.productId) return false;
+    if (!lot?.lotNumber || !lot?.productId) return null;
     
     try {
-      await releaseLot({
+      const result = await releaseLot({
         variables: { 
           lotNumber: lot.lotNumber, 
           productId: lot.productId 
         },
       });
-      return true;
+      
+      if (result.data?.releaseLotFromQuarantine) {
+        refetch();
+      }
+      
+      return result.data?.releaseLotFromQuarantine;
     } catch (error) {
       console.error('Failed to release lot from quarantine:', error);
       throw error;
     }
-  }, [releaseLot, lot]);
-
-  // Real-time subscription
-  useSubscription(LOT_UPDATED, {
-    variables: { lotNumber, productId },
-    skip: !lotNumber || !productId,
-    onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.lotUpdated) {
-        console.log('Lot updated via subscription:', subscriptionData.data.lotUpdated);
-      }
-    },
-  });
+  }, [releaseLot, lot, refetch]);
 
   // Computed properties
+  const isActive = useMemo(() => {
+    return lot?.status === LotStatus.ACTIVE;
+  }, [lot?.status]);
+
   const isExpired = useMemo(() => {
-    if (!lot?.expiryDate) return false;
-    return new Date() > new Date(lot.expiryDate);
-  }, [lot?.expiryDate]);
+    return lot?.status === LotStatus.EXPIRED || lot?.isExpired;
+  }, [lot?.status, lot?.isExpired]);
 
   const isNearExpiry = useMemo(() => {
-    if (!lot?.expiryDate) return false;
-    const warningDate = new Date();
-    warningDate.setDate(warningDate.getDate() + 30); // 30 days warning
-    const expiryDate = new Date(lot.expiryDate);
-    return expiryDate <= warningDate && expiryDate > new Date();
-  }, [lot?.expiryDate]);
-
-  const daysUntilExpiry = useMemo(() => {
-    if (!lot?.expiryDate) return null;
-    const today = new Date();
-    const expiryDate = new Date(lot.expiryDate);
-    const diffTime = expiryDate.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }, [lot?.expiryDate]);
+    return lot?.isNearExpiry;
+  }, [lot?.isNearExpiry]);
 
   const isQuarantined = useMemo(() => {
     return lot?.status === LotStatus.QUARANTINE;
+  }, [lot?.status]);
+
+  const isRecalled = useMemo(() => {
+    return lot?.status === LotStatus.RECALLED;
+  }, [lot?.status]);
+
+  const isConsumed = useMemo(() => {
+    return lot?.status === LotStatus.CONSUMED;
+  }, [lot?.status]);
+
+  const daysUntilExpiry = useMemo(() => {
+    if (!lot?.expiryDate) return null;
+    
+    const now = new Date();
+    const expiry = new Date(lot.expiryDate);
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  }, [lot?.expiryDate]);
+
+  const canQuarantine = useMemo(() => {
+    return lot?.status === LotStatus.ACTIVE;
+  }, [lot?.status]);
+
+  const canRelease = useMemo(() => {
+    return lot?.status === LotStatus.QUARANTINE;
+  }, [lot?.status]);
+
+  const canMove = useMemo(() => {
+    return [LotStatus.ACTIVE, LotStatus.QUARANTINE].includes(lot?.status as LotStatus);
   }, [lot?.status]);
 
   return {
@@ -219,10 +283,16 @@ export function useLotInfo(lotNumber: string, productId: string) {
     recordLotMovement,
     quarantine,
     releaseFromQuarantine,
+    isActive,
     isExpired,
     isNearExpiry,
-    daysUntilExpiry,
     isQuarantined,
+    isRecalled,
+    isConsumed,
+    daysUntilExpiry,
+    canQuarantine,
+    canRelease,
+    canMove,
   };
 }
 
@@ -276,7 +346,7 @@ export function useLots(
                       {
                         node: mutationData.createLot,
                         cursor: `lot-${Date.now()}`,
-                        __typename: 'LotInfoEdge',
+                        __typename: 'LotEdge',
                       },
                       ...existingLots.lots.edges,
                     ],
@@ -375,6 +445,27 @@ export function useLotsByWarehouse(warehouseId: string) {
 
   const lots = data?.lotsByWarehouse || [];
 
+  // Real-time subscriptions for warehouse lots
+  useSubscription(LOT_EXPIRED, {
+    variables: { warehouseId },
+    skip: !warehouseId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.lotExpired) {
+        refetch();
+      }
+    },
+  });
+
+  useSubscription(LOT_NEAR_EXPIRY, {
+    variables: { warehouseId },
+    skip: !warehouseId,
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.lotNearExpiry) {
+        refetch();
+      }
+    },
+  });
+
   return {
     lots,
     loading,
@@ -400,17 +491,6 @@ export function useExpiredLots(warehouseId?: string) {
 
   const expiredLots = data?.expiredLots || [];
 
-  // Real-time subscription for expired lots
-  useSubscription(LOT_EXPIRED, {
-    variables: { warehouseId },
-    skip: !warehouseId,
-    onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.lotExpired) {
-        console.log('Lot expired:', subscriptionData.data.lotExpired);
-      }
-    },
-  });
-
   return {
     expiredLots,
     loading,
@@ -422,7 +502,7 @@ export function useExpiredLots(warehouseId?: string) {
 // ===== NEAR EXPIRY LOTS HOOK =====
 
 /**
- * Hook for getting lots near expiry
+ * Hook for getting near expiry lots
  */
 export function useNearExpiryLots(days: number = 30, warehouseId?: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
@@ -436,17 +516,6 @@ export function useNearExpiryLots(days: number = 30, warehouseId?: string) {
 
   const nearExpiryLots = data?.nearExpiryLots || [];
 
-  // Real-time subscription for near expiry lots
-  useSubscription(LOT_NEAR_EXPIRY, {
-    variables: { warehouseId },
-    skip: !warehouseId,
-    onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.lotNearExpiry) {
-        console.log('Lot near expiry:', subscriptionData.data.lotNearExpiry);
-      }
-    },
-  });
-
   return {
     nearExpiryLots,
     loading,
@@ -458,7 +527,7 @@ export function useNearExpiryLots(days: number = 30, warehouseId?: string) {
 // ===== LOT TRACEABILITY HOOK =====
 
 /**
- * Hook for getting lot traceability information
+ * Hook for lot traceability
  */
 export function useLotTraceability(lotNumber: string, productId: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
@@ -482,7 +551,7 @@ export function useLotTraceability(lotNumber: string, productId: string) {
 // ===== LOT MOVEMENT HISTORY HOOK =====
 
 /**
- * Hook for getting lot movement history
+ * Hook for lot movement history
  */
 export function useLotMovementHistory(lotNumber: string, productId: string) {
   const currentTenant = useTenantStore(state => state.currentTenant);
@@ -495,23 +564,181 @@ export function useLotMovementHistory(lotNumber: string, productId: string) {
 
   const movementHistory = data?.lotMovementHistory || [];
 
-  // Real-time subscription for movement updates
-  useSubscription(LOT_MOVEMENT_RECORDED, {
-    variables: { lotNumber, productId },
-    skip: !lotNumber || !productId,
-    onData: ({ data: subscriptionData }) => {
-      if (subscriptionData.data?.lotMovementRecorded) {
-        console.log('Lot movement recorded:', subscriptionData.data.lotMovementRecorded);
-        refetch();
-      }
-    },
-  });
-
   return {
     movementHistory,
     loading,
     error,
     refetch,
+  };
+}
+
+// ===== FIFO RULES HOOK =====
+
+/**
+ * Hook for managing FIFO rules
+ */
+export function useFIFORules() {
+  const [createFIFORule] = useMutation(CREATE_FIFO_RULE);
+  const [updateFIFORule] = useMutation(UPDATE_FIFO_RULE);
+  const [deleteFIFORule] = useMutation(DELETE_FIFO_RULE);
+
+  const createRule = useCallback(async (input: {
+    productId: string;
+    warehouseId: string;
+    enabled: boolean;
+    strictMode?: boolean;
+    exceptionRules?: any;
+  }) => {
+    try {
+      const result = await createFIFORule({
+        variables: { input },
+      });
+      return result.data?.createFIFORule;
+    } catch (error) {
+      console.error('Failed to create FIFO rule:', error);
+      throw error;
+    }
+  }, [createFIFORule]);
+
+  const updateRule = useCallback(async (id: string, input: {
+    productId?: string;
+    warehouseId?: string;
+    enabled?: boolean;
+    strictMode?: boolean;
+    exceptionRules?: any;
+  }) => {
+    try {
+      const result = await updateFIFORule({
+        variables: { id, input },
+      });
+      return result.data?.updateFIFORule;
+    } catch (error) {
+      console.error('Failed to update FIFO rule:', error);
+      throw error;
+    }
+  }, [updateFIFORule]);
+
+  const deleteRule = useCallback(async (id: string) => {
+    try {
+      const result = await deleteFIFORule({
+        variables: { id },
+      });
+      return result.data?.deleteFIFORule;
+    } catch (error) {
+      console.error('Failed to delete FIFO rule:', error);
+      throw error;
+    }
+  }, [deleteFIFORule]);
+
+  return {
+    createRule,
+    updateRule,
+    deleteRule,
+  };
+}
+
+// ===== RECALLS HOOK =====
+
+/**
+ * Hook for managing recalls
+ */
+export function useRecalls() {
+  const [createRecall] = useMutation(CREATE_RECALL);
+  const [updateRecallStatus] = useMutation(UPDATE_RECALL_STATUS);
+
+  // Real-time subscription for recall notifications
+  useSubscription(RECALL_CREATED, {
+    onData: ({ data: subscriptionData }) => {
+      if (subscriptionData.data?.recallCreated) {
+        console.log('New recall created:', subscriptionData.data.recallCreated);
+        // Handle recall notification
+      }
+    },
+  });
+
+  const createNewRecall = useCallback(async (input: {
+    productId: string;
+    lotNumbers: string[];
+    reason: string;
+    severity: string;
+  }) => {
+    try {
+      const result = await createRecall({
+        variables: { input },
+      });
+      return result.data?.createRecall;
+    } catch (error) {
+      console.error('Failed to create recall:', error);
+      throw error;
+    }
+  }, [createRecall]);
+
+  const updateStatus = useCallback(async (recallId: string, status: string) => {
+    try {
+      const result = await updateRecallStatus({
+        variables: { recallId, status },
+      });
+      return result.data?.updateRecallStatus;
+    } catch (error) {
+      console.error('Failed to update recall status:', error);
+      throw error;
+    }
+  }, [updateRecallStatus]);
+
+  return {
+    createNewRecall,
+    updateStatus,
+  };
+}
+
+// ===== LOT EXPIRY MANAGEMENT HOOK =====
+
+/**
+ * Hook for lot expiry management
+ */
+export function useLotExpiryManagement(warehouseId?: string) {
+  const [checkLotExpiry] = useMutation(CHECK_LOT_EXPIRY);
+
+  const { expiredLots } = useExpiredLots(warehouseId);
+  const { nearExpiryLots } = useNearExpiryLots(30, warehouseId);
+
+  const checkExpiry = useCallback(async () => {
+    try {
+      const result = await checkLotExpiry({
+        variables: { warehouseId },
+      });
+      return result.data?.checkLotExpiry;
+    } catch (error) {
+      console.error('Failed to check lot expiry:', error);
+      throw error;
+    }
+  }, [checkLotExpiry, warehouseId]);
+
+  const expiryStats = useMemo(() => {
+    const expiredCount = expiredLots.length;
+    const nearExpiryCount = nearExpiryLots.length;
+    
+    const criticalLots = nearExpiryLots.filter(lot => 
+      (lot.daysUntilExpiry || 0) <= 7
+    ).length;
+    
+    const warningLots = nearExpiryLots.filter(lot => 
+      (lot.daysUntilExpiry || 0) > 7 && (lot.daysUntilExpiry || 0) <= 30
+    ).length;
+
+    return {
+      expiredCount,
+      nearExpiryCount,
+      criticalLots,
+      warningLots,
+    };
+  }, [expiredLots, nearExpiryLots]);
+
+  return {
+    expiredLots,
+    nearExpiryLots,
+    expiryStats,
+    checkExpiry,
   };
 }
 
@@ -522,9 +749,8 @@ export function useLotMovementHistory(lotNumber: string, productId: string) {
  */
 export function useLotTrackingManagement(warehouseId?: string) {
   const apolloClient = useApolloClient();
-  const [selectedLotNumber, setSelectedLotNumber] = useState<string | null>(null);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [checkExpiryMutation] = useMutation(CHECK_LOT_EXPIRY);
+  const [selectedLotNumber, setSelectedLotNumber] = useState<string>('');
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
 
   // Get all lots
   const {
@@ -535,17 +761,11 @@ export function useLotTrackingManagement(warehouseId?: string) {
     refetch: refetchLots,
   } = useLots();
 
-  // Get expired lots
+  // Get warehouse lots
   const {
-    expiredLots,
-    loading: expiredLotsLoading,
-  } = useExpiredLots(warehouseId);
-
-  // Get near expiry lots
-  const {
-    nearExpiryLots,
-    loading: nearExpiryLotsLoading,
-  } = useNearExpiryLots(30, warehouseId);
+    lots: warehouseLots,
+    loading: warehouseLotsLoading,
+  } = useLotsByWarehouse(warehouseId || '');
 
   // Get selected lot details
   const {
@@ -555,19 +775,40 @@ export function useLotTrackingManagement(warehouseId?: string) {
     update: updateLot,
     remove: deleteLot,
     recordLotMovement,
-    quarantine,
+    quarantine: quarantineLot,
     releaseFromQuarantine,
+    isActive,
     isExpired,
     isNearExpiry,
-    daysUntilExpiry,
     isQuarantined,
-  } = useLotInfo(selectedLotNumber || '', selectedProductId || '');
+    canQuarantine,
+    canRelease,
+    canMove,
+    daysUntilExpiry,
+  } = useLot(selectedLotNumber, selectedProductId);
 
-  // Get movement history for selected lot
+  // Get traceability and movement history
+  const {
+    traceability,
+    loading: traceabilityLoading,
+  } = useLotTraceability(selectedLotNumber, selectedProductId);
+
   const {
     movementHistory,
     loading: movementHistoryLoading,
-  } = useLotMovementHistory(selectedLotNumber || '', selectedProductId || '');
+  } = useLotMovementHistory(selectedLotNumber, selectedProductId);
+
+  // Expiry management
+  const {
+    expiredLots,
+    nearExpiryLots,
+    expiryStats,
+    checkExpiry,
+  } = useLotExpiryManagement(warehouseId);
+
+  // FIFO and recalls
+  const { createRule: createFIFORule, updateRule: updateFIFORule, deleteRule: deleteFIFORule } = useFIFORules();
+  const { createNewRecall, updateStatus: updateRecallStatus } = useRecalls();
 
   const selectLot = useCallback((lotNumber: string, productId: string) => {
     setSelectedLotNumber(lotNumber);
@@ -575,74 +816,44 @@ export function useLotTrackingManagement(warehouseId?: string) {
   }, []);
 
   const clearSelection = useCallback(() => {
-    setSelectedLotNumber(null);
-    setSelectedProductId(null);
+    setSelectedLotNumber('');
+    setSelectedProductId('');
   }, []);
-
-  // Check lot expiry for all lots in warehouse
-  const checkLotExpiry = useCallback(async () => {
-    try {
-      await checkExpiryMutation({
-        variables: { warehouseId },
-        refetchQueries: [
-          { query: GET_EXPIRED_LOTS, variables: { warehouseId } },
-          { query: GET_NEAR_EXPIRY_LOTS, variables: { days: 30, warehouseId } },
-        ],
-      });
-      return true;
-    } catch (error) {
-      console.error('Failed to check lot expiry:', error);
-      throw error;
-    }
-  }, [checkExpiryMutation, warehouseId]);
 
   // Lot statistics
   const lotStats = useMemo(() => {
-    const totalLots = lots.length;
-    const activeLots = lots.filter(lot => lot.status === LotStatus.ACTIVE).length;
-    const expiredCount = expiredLots.length;
-    const nearExpiryCount = nearExpiryLots.length;
-    const quarantinedLots = lots.filter(lot => lot.status === LotStatus.QUARANTINE).length;
-    const recalledLots = lots.filter(lot => lot.status === LotStatus.RECALLED).length;
+    const relevantLots = warehouseId ? warehouseLots : lots;
+    
+    const totalLots = relevantLots.length;
+    const activeLots = relevantLots.filter(lot => lot.status === LotStatus.ACTIVE).length;
+    const expiredLotsCount = relevantLots.filter(lot => lot.status === LotStatus.EXPIRED).length;
+    const quarantinedLots = relevantLots.filter(lot => lot.status === LotStatus.QUARANTINE).length;
+    const recalledLots = relevantLots.filter(lot => lot.status === LotStatus.RECALLED).length;
+    const consumedLots = relevantLots.filter(lot => lot.status === LotStatus.CONSUMED).length;
 
-    const totalQuantity = lots.reduce((sum, lot) => sum + (lot.quantity || 0), 0);
-    const expiredQuantity = expiredLots.reduce((sum, lot) => sum + (lot.quantity || 0), 0);
-    const nearExpiryQuantity = nearExpiryLots.reduce((sum, lot) => sum + (lot.quantity || 0), 0);
+    const totalQuantity = relevantLots.reduce((sum, lot) => sum + (lot.quantity || 0), 0);
+    const activeQuantity = relevantLots
+      .filter(lot => lot.status === LotStatus.ACTIVE)
+      .reduce((sum, lot) => sum + (lot.quantity || 0), 0);
 
     return {
       totalLots,
       activeLots,
-      expiredCount,
-      nearExpiryCount,
+      expiredLotsCount,
       quarantinedLots,
       recalledLots,
+      consumedLots,
       totalQuantity,
-      expiredQuantity,
-      nearExpiryQuantity,
+      activeQuantity,
     };
-  }, [lots, expiredLots, nearExpiryLots]);
-
-  // Get lots by status
-  const getLotsByStatus = useCallback((status: LotStatus) => {
-    return lots.filter(lot => lot.status === status);
-  }, [lots]);
-
-  // Get lots expiring within days
-  const getLotsExpiringWithin = useCallback((days: number) => {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() + days);
-    
-    return lots.filter(lot => {
-      if (!lot.expiryDate) return false;
-      const expiryDate = new Date(lot.expiryDate);
-      return expiryDate <= cutoffDate && expiryDate > new Date();
-    });
-  }, [lots]);
+  }, [lots, warehouseLots, warehouseId]);
 
   // Clear cache for lot data
   const clearCache = useCallback(() => {
     apolloClient.cache.evict({ fieldName: 'lots' });
     apolloClient.cache.evict({ fieldName: 'lotInfo' });
+    apolloClient.cache.evict({ fieldName: 'lotsByProduct' });
+    apolloClient.cache.evict({ fieldName: 'lotsByWarehouse' });
     apolloClient.cache.evict({ fieldName: 'expiredLots' });
     apolloClient.cache.evict({ fieldName: 'nearExpiryLots' });
     apolloClient.cache.gc();
@@ -650,18 +861,11 @@ export function useLotTrackingManagement(warehouseId?: string) {
 
   return {
     // Lots list
-    lots,
-    lotsLoading,
+    lots: warehouseId ? warehouseLots : lots,
+    lotsLoading: warehouseId ? warehouseLotsLoading : lotsLoading,
     lotsError,
     createLot,
     refetchLots,
-
-    // Expiry tracking
-    expiredLots,
-    expiredLotsLoading,
-    nearExpiryLots,
-    nearExpiryLotsLoading,
-    checkLotExpiry,
 
     // Selected lot
     selectedLot,
@@ -671,86 +875,49 @@ export function useLotTrackingManagement(warehouseId?: string) {
     selectedLotError,
     selectLot,
     clearSelection,
+
+    // Lot operations
     updateLot,
     deleteLot,
     recordLotMovement,
-    quarantine,
+    quarantineLot,
     releaseFromQuarantine,
+
+    // Lot state
+    isActive,
     isExpired,
     isNearExpiry,
-    daysUntilExpiry,
     isQuarantined,
+    canQuarantine,
+    canRelease,
+    canMove,
+    daysUntilExpiry,
 
-    // Movement history
+    // Traceability
+    traceability,
+    traceabilityLoading,
     movementHistory,
     movementHistoryLoading,
 
-    // Statistics and queries
+    // Expiry management
+    expiredLots,
+    nearExpiryLots,
+    expiryStats,
+    checkExpiry,
+
+    // FIFO rules
+    createFIFORule,
+    updateFIFORule,
+    deleteFIFORule,
+
+    // Recalls
+    createNewRecall,
+    updateRecallStatus,
+
+    // Statistics
     lotStats,
-    getLotsByStatus,
-    getLotsExpiringWithin,
 
     // Utilities
     clearCache,
-  };
-}
-
-// ===== LOT VALIDATION HOOK =====
-
-/**
- * Hook for lot data validation
- */
-export function useLotValidation() {
-  const validateLotNumber = useCallback((lotNumber: string): string | null => {
-    if (!lotNumber) return 'Lot number is required';
-    if (lotNumber.length < 1) return 'Lot number is required';
-    if (lotNumber.length > 100) return 'Lot number must be less than 100 characters';
-    return null;
-  }, []);
-
-  const validateQuantity = useCallback((quantity: number): string | null => {
-    if (quantity <= 0) return 'Quantity must be greater than 0';
-    if (quantity > 1000000) return 'Quantity seems unreasonably large';
-    return null;
-  }, []);
-
-  const validateExpiryDate = useCallback((expiryDate: Date): string | null => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (expiryDate < today) return 'Expiry date cannot be in the past';
-    
-    const maxDate = new Date();
-    maxDate.setFullYear(maxDate.getFullYear() + 10);
-    if (expiryDate > maxDate) return 'Expiry date seems too far in the future';
-    
-    return null;
-  }, []);
-
-  const validateCreateLotInput = useCallback((input: CreateLotInput): Record<string, string> => {
-    const errors: Record<string, string> = {};
-
-    if (!input.productId) errors.productId = 'Product is required';
-    if (!input.warehouseId) errors.warehouseId = 'Warehouse is required';
-
-    const lotNumberError = validateLotNumber(input.lotNumber);
-    if (lotNumberError) errors.lotNumber = lotNumberError;
-
-    const quantityError = validateQuantity(input.quantity);
-    if (quantityError) errors.quantity = quantityError;
-
-    if (input.expiryDate) {
-      const expiryError = validateExpiryDate(input.expiryDate);
-      if (expiryError) errors.expiryDate = expiryError;
-    }
-
-    return errors;
-  }, [validateLotNumber, validateQuantity, validateExpiryDate]);
-
-  return {
-    validateLotNumber,
-    validateQuantity,
-    validateExpiryDate,
-    validateCreateLotInput,
   };
 }
