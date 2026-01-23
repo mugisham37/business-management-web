@@ -23,8 +23,22 @@ export const NotificationCenter = lazy(() =>
   }))
 );
 
-export { useRealtime } from './hooks/useRealtime';
-export { useLiveData } from './hooks/useLiveData';
+// Export hooks from the main hooks directory
+export { 
+  useRealtime, 
+  useUserPresence, 
+  useNotifications, 
+  useLiveData as useRealtimeLiveData,
+  useCommunication 
+} from '@/hooks/useRealtime';
+
+export { 
+  useLiveInventory,
+  useLiveSales,
+  useLiveCustomerActivity,
+  useLiveAnalytics,
+  useLiveData 
+} from '@/hooks/useLiveData';
 
 export const realtimeModule = {
   name: 'Real-time Dashboard',

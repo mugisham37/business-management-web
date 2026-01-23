@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSubscriptionStatus } from '@/lib/subscriptions';
+import { useRealtime } from '@/hooks/useRealtime';
 
 interface SubscriptionHealthMonitorProps {
   className?: string;
@@ -25,6 +26,12 @@ export function SubscriptionHealthMonitor({
   hideDelay = 5000
 }: SubscriptionHealthMonitorProps) {
   const { status, stats, isConnected, hasError } = useSubscriptionStatus();
+  const { 
+    isConnected: wsConnected, 
+    connectionStatus, 
+    activeSubscriptions,
+    lastActivity 
+  } = useRealtime();
   const [isVisible, setIsVisible] = useState(!autoHide);
   const [metrics, setMetrics] = useState<HealthMetrics>({
     uptime: 0,
@@ -34,41 +41,45 @@ export function SubscriptionHealthMonitor({
     errorRate: 0
   });
 
+  // Use combined connection status
+  const actuallyConnected = wsConnected || isConnected;
+  const actuallyHasError = connectionStatus === 'error' || hasError;
+
   // Auto-hide logic
   useEffect(() => {
-    if (autoHide && isConnected) {
+    if (autoHide && actuallyConnected) {
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, hideDelay);
 
       return () => clearTimeout(timer);
-    } else if (!isConnected || hasError) {
+    } else if (!actuallyConnected || actuallyHasError) {
       setIsVisible(true);
     }
-  }, [autoHide, isConnected, hasError, hideDelay]);
+  }, [autoHide, actuallyConnected, actuallyHasError, hideDelay]);
 
   // Update metrics
   useEffect(() => {
     const interval = setInterval(() => {
       setMetrics(prev => ({
         ...prev,
-        uptime: isConnected ? prev.uptime + 1 : 0
+        uptime: actuallyConnected ? prev.uptime + 1 : 0
       }));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnected]);
+  }, [actuallyConnected]);
 
   // Track reconnections
   useEffect(() => {
-    if (status === 'reconnecting') {
+    if (connectionStatus === 'reconnecting') {
       setMetrics(prev => ({
         ...prev,
         reconnectCount: prev.reconnectCount + 1,
         lastReconnect: new Date()
       }));
     }
-  }, [status]);
+  }, [connectionStatus]);
 
   if (!isVisible) {
     return null;
@@ -92,9 +103,9 @@ export function SubscriptionHealthMonitor({
     let score = 100;
     
     // Deduct points for errors
-    if (hasError) score -= 30;
-    if (status === 'disconnected') score -= 50;
-    if (status === 'reconnecting') score -= 20;
+    if (actuallyHasError) score -= 30;
+    if (!actuallyConnected) score -= 50;
+    if (connectionStatus === 'reconnecting') score -= 20;
     
     // Deduct points for frequent reconnections
     if (metrics.reconnectCount > 5) score -= 20;
@@ -139,9 +150,9 @@ export function SubscriptionHealthMonitor({
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Status</span>
           <span className={`text-sm font-medium ${
-            isConnected ? 'text-green-600' : hasError ? 'text-red-600' : 'text-yellow-600'
+            actuallyConnected ? 'text-green-600' : actuallyHasError ? 'text-red-600' : 'text-yellow-600'
           }`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {actuallyConnected ? 'Connected' : actuallyHasError ? 'Error' : 'Disconnected'}
           </span>
         </div>
 
@@ -149,7 +160,7 @@ export function SubscriptionHealthMonitor({
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Active Subscriptions</span>
           <span className="text-sm font-medium text-gray-900">
-            {stats.totalSubscriptions}
+            {activeSubscriptions.length + stats.totalSubscriptions}
           </span>
         </div>
 

@@ -68,3 +68,6 @@ export type {
   GraphQLOperation,
   AppError,
 } from '@/types/core';
+
+// Real-time functionality
+export * from './realtime';

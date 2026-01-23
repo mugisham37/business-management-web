@@ -1,3 +1,105 @@
+# Real-time User Presence and Messaging Subscriptions
+subscription UserStatusChanged {
+  userStatusChanged {
+    userId
+    email
+    displayName
+    status
+    connectedAt
+    lastActivity
+    rooms
+  }
+}
+
+subscription UserOnline {
+  userOnline {
+    userId
+    email
+    displayName
+    status
+    connectedAt
+    lastActivity
+    rooms
+  }
+}
+
+subscription UserOffline {
+  userOffline {
+    userId
+    email
+    displayName
+    status
+    connectedAt
+    lastActivity
+    rooms
+  }
+}
+
+subscription MessageReceived {
+  messageReceived {
+    id
+    senderId
+    senderName
+    recipientIds
+    content
+    priority
+    timestamp
+    metadata
+  }
+}
+
+subscription TypingIndicator {
+  typingIndicator
+}
+
+# Notification Subscriptions
+subscription NotificationReceived {
+  notificationReceived {
+    id
+    recipientId
+    type
+    channel
+    subject
+    message
+    status
+    priority
+    scheduledAt
+    sentAt
+    deliveredAt
+    readAt
+    deliveryAttempts
+    failureReason
+    metadata
+    createdAt
+  }
+}
+
+# Live Data Subscriptions
+subscription InventoryUpdated {
+  inventoryUpdated
+}
+
+subscription LowStockAlert {
+  lowStockAlert
+}
+
+subscription SalesUpdated {
+  salesUpdated
+}
+
+subscription CustomerActivityUpdated {
+  customerActivityUpdated
+}
+
+subscription AnalyticsUpdated {
+  analyticsUpdated
+}
+
+subscription AlertTriggered {
+  alertTriggered
+}
+
+# Legacy subscriptions for backward compatibility
 subscription RealtimeNotifications($tenantId: ID!, $userId: ID) {
   realtimeNotifications(tenantId: $tenantId, userId: $userId) {
     id

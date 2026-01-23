@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSubscriptionStatus } from '@/lib/subscriptions';
+import { useRealtime } from '@/hooks/useRealtime';
 
 interface RealtimeIndicatorProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
@@ -17,18 +18,24 @@ export function RealtimeIndicator({
   className = ''
 }: RealtimeIndicatorProps) {
   const { status, isConnected, isConnecting, hasError } = useSubscriptionStatus();
+  const { isConnected: wsConnected, connectionStatus } = useRealtime();
   const [pulseCount, setPulseCount] = useState(0);
+
+  // Use WebSocket connection status if available, otherwise fall back to GraphQL subscriptions
+  const actuallyConnected = wsConnected || isConnected;
+  const actuallyConnecting = connectionStatus === 'connecting' || connectionStatus === 'reconnecting' || isConnecting;
+  const actuallyHasError = connectionStatus === 'error' || hasError;
 
   // Pulse animation for activity indication
   useEffect(() => {
-    if (isConnected) {
+    if (actuallyConnected) {
       const interval = setInterval(() => {
         setPulseCount(prev => prev + 1);
       }, 2000);
 
       return () => clearInterval(interval);
     }
-  }, [isConnected]);
+  }, [actuallyConnected]);
 
   const getPositionClasses = () => {
     switch (position) {
@@ -59,27 +66,17 @@ export function RealtimeIndicator({
   };
 
   const getIndicatorColor = () => {
-    if (isConnected) return 'bg-green-400';
-    if (isConnecting) return 'bg-yellow-400';
-    if (hasError) return 'bg-red-400';
+    if (actuallyConnected) return 'bg-green-400';
+    if (actuallyConnecting) return 'bg-yellow-400';
+    if (actuallyHasError) return 'bg-red-400';
     return 'bg-gray-400';
   };
 
   const getStatusText = () => {
-    switch (status) {
-      case 'connected':
-        return 'Real-time connected';
-      case 'connecting':
-        return 'Connecting...';
-      case 'reconnecting':
-        return 'Reconnecting...';
-      case 'disconnected':
-        return 'Offline';
-      case 'error':
-        return 'Connection error';
-      default:
-        return 'Unknown status';
-    }
+    if (actuallyConnected) return 'Real-time connected';
+    if (actuallyConnecting) return 'Connecting...';
+    if (actuallyHasError) return 'Connection error';
+    return 'Offline';
   };
 
   return (
@@ -90,7 +87,7 @@ export function RealtimeIndicator({
           <div className={`${getSizeClasses()} ${getIndicatorColor()} rounded-full`} />
           
           {/* Pulse animation for connected state */}
-          {isConnected && (
+          {actuallyConnected && (
             <div 
               key={pulseCount}
               className={`absolute inset-0 ${getSizeClasses()} bg-green-400 rounded-full animate-ping opacity-75`}
@@ -98,7 +95,7 @@ export function RealtimeIndicator({
           )}
           
           {/* Spinning animation for connecting states */}
-          {isConnecting && (
+          {actuallyConnecting && (
             <div className={`absolute inset-0 ${getSizeClasses()} border-2 border-yellow-400 border-t-transparent rounded-full animate-spin`} />
           )}
         </div>
