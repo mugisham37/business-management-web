@@ -1,0 +1,228 @@
+# Communication Subscriptions
+
+# General communication events
+subscription CommunicationEvents($tenantId: ID!, $filter: CommunicationEventFilterInput) {
+  communicationEvents(tenantId: $tenantId, filter: $filter) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Alert events
+subscription AlertEvents($tenantId: ID!, $severity: AlertSeverity) {
+  alertEvents(tenantId: $tenantId, severity: $severity) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Business notification events
+subscription BusinessNotificationEvents($tenantId: ID!, $notificationType: String) {
+  businessNotificationEvents(tenantId: $tenantId, notificationType: $notificationType) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Email events
+subscription EmailEvents($tenantId: ID!, $userId: ID) {
+  emailEvents(tenantId: $tenantId, userId: $userId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription EmailDeliveryEvents($tenantId: ID!, $messageId: String) {
+  emailDeliveryEvents(tenantId: $tenantId, messageId: $messageId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription EmailBulkEvents($tenantId: ID!, $batchId: String) {
+  emailBulkEvents(tenantId: $tenantId, batchId: $batchId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# SMS events
+subscription SMSEvents($tenantId: ID!, $userId: ID) {
+  smsEvents(tenantId: $tenantId, userId: $userId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription SMSDeliveryEvents($tenantId: ID!, $messageId: String) {
+  smsDeliveryEvents(tenantId: $tenantId, messageId: $messageId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription SMSBulkEvents($tenantId: ID!, $batchId: String) {
+  smsBulkEvents(tenantId: $tenantId, batchId: $batchId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Slack events
+subscription SlackEvents($tenantId: ID!, $channel: String) {
+  slackEvents(tenantId: $tenantId, channel: $channel) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription SlackNotificationEvents($tenantId: ID!, $notificationType: String) {
+  slackNotificationEvents(tenantId: $tenantId, notificationType: $notificationType) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription SlackAlertEvents($tenantId: ID!, $severity: AlertSeverity) {
+  slackAlertEvents(tenantId: $tenantId, severity: $severity) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Teams events
+subscription TeamsEvents($tenantId: ID!) {
+  teamsEvents(tenantId: $tenantId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription TeamsNotificationEvents($tenantId: ID!, $notificationType: String) {
+  teamsNotificationEvents(tenantId: $tenantId, notificationType: $notificationType) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription TeamsAlertEvents($tenantId: ID!, $severity: AlertSeverity) {
+  teamsAlertEvents(tenantId: $tenantId, severity: $severity) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+subscription TeamsRichCardEvents($tenantId: ID!) {
+  teamsRichCardEvents(tenantId: $tenantId) {
+    id
+    type
+    channel
+    success
+    error
+    metadata
+    timestamp
+    tenantId
+  }
+}
+
+# Notification delivery status
+subscription NotificationDeliveryStatus($tenantId: ID!, $notificationId: ID!) {
+  notificationDeliveryStatus(tenantId: $tenantId, notificationId: $notificationId) {
+    notificationId
+    channel
+    status
+    deliveredAt
+    error
+    metadata
+  }
+}

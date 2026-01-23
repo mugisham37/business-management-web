@@ -15,3 +15,13 @@ export {
   useCurrentUser, 
   useTokens 
 } from './useAuth';
+
+// Communication hooks
+export { 
+  useCommunication, 
+  useNotifications, 
+  useEmail, 
+  useSMS,
+  useSlack,
+  useTeams
+} from '@/modules/communication';

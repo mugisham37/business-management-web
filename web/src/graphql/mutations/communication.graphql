@@ -1,0 +1,309 @@
+# Communication Mutations
+
+# Multi-channel communication
+mutation SendMultiChannelNotification($tenantId: ID!, $notification: MultiChannelNotificationInput!) {
+  sendMultiChannelNotification(tenantId: $tenantId, notification: $notification) {
+    totalChannels
+    successfulChannels
+    failedChannels
+    results {
+      channel
+      success
+      messageId
+      error
+      recipientCount
+    }
+    overallSuccess
+  }
+}
+
+mutation SendAlert($tenantId: ID!, $alert: AlertInput!) {
+  sendAlert(tenantId: $tenantId, alert: $alert) {
+    totalChannels
+    successfulChannels
+    failedChannels
+    results {
+      channel
+      success
+      messageId
+      error
+      recipientCount
+    }
+    overallSuccess
+  }
+}
+
+mutation SendBusinessNotification($tenantId: ID!, $notification: BusinessNotificationInput!) {
+  sendBusinessNotification(tenantId: $tenantId, notification: $notification) {
+    totalChannels
+    successfulChannels
+    failedChannels
+    results {
+      channel
+      success
+      messageId
+      error
+      recipientCount
+    }
+    overallSuccess
+  }
+}
+
+# Channel configuration
+mutation ConfigureCommunicationChannels($tenantId: ID!, $channels: [CommunicationChannelConfigInput!]!, $updatedBy: String!) {
+  configureCommunicationChannels(tenantId: $tenantId, channels: $channels, updatedBy: $updatedBy)
+}
+
+mutation EnableCommunicationChannel($tenantId: ID!, $channelType: CommunicationChannelType!, $updatedBy: String!) {
+  enableCommunicationChannel(tenantId: $tenantId, channelType: $channelType, updatedBy: $updatedBy)
+}
+
+mutation DisableCommunicationChannel($tenantId: ID!, $channelType: CommunicationChannelType!, $updatedBy: String!) {
+  disableCommunicationChannel(tenantId: $tenantId, channelType: $channelType, updatedBy: $updatedBy)
+}
+
+# Email mutations
+mutation SendEmail($tenantId: ID!, $message: EmailMessageInput!, $options: NotificationOptionsInput) {
+  sendEmail(tenantId: $tenantId, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendEmailToUsers($tenantId: ID!, $userIds: [ID!]!, $notification: EmailNotificationInput!, $options: NotificationOptionsInput) {
+  sendEmailToUsers(tenantId: $tenantId, userIds: $userIds, notification: $notification, options: $options) {
+    totalSent
+    totalFailed
+    results {
+      userId
+      success
+      error
+      messageId
+    }
+  }
+}
+
+mutation CreateEmailTemplate($tenantId: ID!, $template: EmailTemplateInput!, $createdBy: String!) {
+  createEmailTemplate(tenantId: $tenantId, template: $template, createdBy: $createdBy)
+}
+
+mutation UpdateEmailTemplate($tenantId: ID!, $templateName: String!, $template: EmailTemplateInput!, $updatedBy: String!) {
+  updateEmailTemplate(tenantId: $tenantId, templateName: $templateName, template: $template, updatedBy: $updatedBy)
+}
+
+mutation DeleteEmailTemplate($tenantId: ID!, $templateName: String!, $deletedBy: String!) {
+  deleteEmailTemplate(tenantId: $tenantId, templateName: $templateName, deletedBy: $deletedBy)
+}
+
+mutation ConfigureEmailProvider($tenantId: ID!, $provider: EmailProviderConfigInput!, $updatedBy: String!) {
+  configureEmailProvider(tenantId: $tenantId, provider: $provider, updatedBy: $updatedBy)
+}
+
+mutation TestEmailProvider($tenantId: ID!, $provider: EmailProviderConfigInput!) {
+  testEmailProvider(tenantId: $tenantId, provider: $provider) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+# SMS mutations
+mutation SendSMS($tenantId: ID!, $message: SMSMessageInput!, $options: NotificationOptionsInput) {
+  sendSMS(tenantId: $tenantId, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendSMSToUsers($tenantId: ID!, $userIds: [ID!]!, $notification: SMSNotificationInput!, $options: NotificationOptionsInput) {
+  sendSMSToUsers(tenantId: $tenantId, userIds: $userIds, notification: $notification, options: $options) {
+    totalSent
+    totalFailed
+    results {
+      userId
+      success
+      error
+      messageId
+    }
+  }
+}
+
+mutation SendOTP($tenantId: ID!, $otp: OTPInput!, $options: NotificationOptionsInput) {
+  sendOTP(tenantId: $tenantId, otp: $otp, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendSMSAlert($tenantId: ID!, $phoneNumbers: [String!]!, $alert: AlertInput!, $options: NotificationOptionsInput) {
+  sendSMSAlert(tenantId: $tenantId, phoneNumbers: $phoneNumbers, alert: $alert, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation CreateSMSTemplate($tenantId: ID!, $template: SMSTemplateInput!, $createdBy: String!) {
+  createSMSTemplate(tenantId: $tenantId, template: $template, createdBy: $createdBy)
+}
+
+mutation UpdateSMSTemplate($tenantId: ID!, $templateName: String!, $template: SMSTemplateInput!, $updatedBy: String!) {
+  updateSMSTemplate(tenantId: $tenantId, templateName: $templateName, template: $template, updatedBy: $updatedBy)
+}
+
+mutation DeleteSMSTemplate($tenantId: ID!, $templateName: String!, $deletedBy: String!) {
+  deleteSMSTemplate(tenantId: $tenantId, templateName: $templateName, deletedBy: $deletedBy)
+}
+
+mutation ConfigureSMSProvider($tenantId: ID!, $provider: SMSProviderConfigInput!, $updatedBy: String!) {
+  configureSMSProvider(tenantId: $tenantId, provider: $provider, updatedBy: $updatedBy)
+}
+
+mutation TestSMSProvider($tenantId: ID!, $provider: SMSProviderConfigInput!) {
+  testSMSProvider(tenantId: $tenantId, provider: $provider) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+# Slack mutations
+mutation SendSlackMessage($tenantId: ID!, $message: SlackMessageInput!, $options: NotificationOptionsInput) {
+  sendSlackMessage(tenantId: $tenantId, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendSlackNotification($tenantId: ID!, $notification: SlackNotificationInput!) {
+  sendSlackNotification(tenantId: $tenantId, notification: $notification) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendSlackAlert($tenantId: ID!, $alert: SlackAlertInput!) {
+  sendSlackAlert(tenantId: $tenantId, alert: $alert) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation ConfigureSlackIntegration($tenantId: ID!, $config: SlackIntegrationConfigInput!, $updatedBy: String!) {
+  configureSlackIntegration(tenantId: $tenantId, config: $config, updatedBy: $updatedBy)
+}
+
+mutation TestSlackIntegration($tenantId: ID!, $config: SlackIntegrationConfigInput!) {
+  testSlackIntegration(tenantId: $tenantId, config: $config) {
+    success
+    error
+    messageId
+    responseTime
+  }
+}
+
+mutation DisableSlackIntegration($tenantId: ID!, $updatedBy: String!) {
+  disableSlackIntegration(tenantId: $tenantId, updatedBy: $updatedBy)
+}
+
+mutation SendSlackMessageToChannel($tenantId: ID!, $channel: String!, $message: String!, $options: NotificationOptionsInput) {
+  sendSlackMessageToChannel(tenantId: $tenantId, channel: $channel, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+# Teams mutations
+mutation SendTeamsMessage($tenantId: ID!, $message: TeamsMessageInput!, $options: NotificationOptionsInput) {
+  sendTeamsMessage(tenantId: $tenantId, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendTeamsNotification($tenantId: ID!, $notification: TeamsNotificationInput!) {
+  sendTeamsNotification(tenantId: $tenantId, notification: $notification) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendTeamsAlert($tenantId: ID!, $alert: TeamsAlertInput!) {
+  sendTeamsAlert(tenantId: $tenantId, alert: $alert) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation SendTeamsRichCard($tenantId: ID!, $card: TeamsRichCardInput!) {
+  sendTeamsRichCard(tenantId: $tenantId, card: $card) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}
+
+mutation ConfigureTeamsIntegration($tenantId: ID!, $config: TeamsIntegrationConfigInput!, $updatedBy: String!) {
+  configureTeamsIntegration(tenantId: $tenantId, config: $config, updatedBy: $updatedBy)
+}
+
+mutation TestTeamsIntegration($tenantId: ID!, $config: TeamsIntegrationConfigInput!) {
+  testTeamsIntegration(tenantId: $tenantId, config: $config) {
+    success
+    error
+    messageId
+    responseTime
+  }
+}
+
+mutation DisableTeamsIntegration($tenantId: ID!, $updatedBy: String!) {
+  disableTeamsIntegration(tenantId: $tenantId, updatedBy: $updatedBy)
+}
+
+mutation SendTeamsSimpleMessage($tenantId: ID!, $message: String!, $options: NotificationOptionsInput) {
+  sendTeamsSimpleMessage(tenantId: $tenantId, message: $message, options: $options) {
+    channel
+    success
+    messageId
+    error
+    recipientCount
+  }
+}

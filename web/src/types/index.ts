@@ -1,5 +1,6 @@
 // Type definitions exports
 export * from './core';
+export * from './communication';
 
 // Re-export generated types when available (excluding conflicting types)
 export type {

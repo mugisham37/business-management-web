@@ -23,8 +23,19 @@ export const NotificationSettings = lazy(() =>
   }))
 );
 
+// Export all communication hooks
 export { useCommunication } from './hooks/useCommunication';
 export { useNotifications } from './hooks/useNotifications';
+export { useEmail } from './hooks/useEmail';
+export { useSMS } from './hooks/useSMS';
+export { useSlack } from './hooks/useSlack';
+export { useTeams } from './hooks/useTeams';
+
+// Re-export communication types for convenience
+export * from '@/types/communication';
+
+// Re-export communication utilities
+export { CommunicationUtils } from '@/lib/utils/communication';
 
 export const communicationModule = {
   name: 'Communication Center',
