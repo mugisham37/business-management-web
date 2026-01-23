@@ -1,382 +1,304 @@
 /**
- * Tenant-Specific Theming System
- * Dynamic theming based on tenant branding and configuration
- * Requirements: 4.7
+ * Tenant Theming Service
+ * Handles tenant-specific theming and branding
+ * Requirements: 4.1, 4.3
  */
 
-import React from 'react';
-import { BrandingConfig, Tenant } from '@/types/core';
+import { Tenant, TenantSettings, BrandingConfig } from '@/types/core';
 
 export interface ThemeConfig {
-  colors: {
-    primary: string;
-    secondary: string;
-    accent?: string;
-    background: string;
-    surface: string;
-    text: string;
-    textSecondary: string;
-    border: string;
-    error: string;
-    warning: string;
-    success: string;
-    info: string;
-  };
-  typography: {
-    fontFamily: string;
-    fontSize: {
-      xs: string;
-      sm: string;
-      base: string;
-      lg: string;
-      xl: string;
-      '2xl': string;
-      '3xl': string;
-    };
-    fontWeight: {
-      normal: number;
-      medium: number;
-      semibold: number;
-      bold: number;
-    };
-  };
-  spacing: {
-    xs: string;
-    sm: string;
-    md: string;
-    lg: string;
-    xl: string;
-    '2xl': string;
-  };
-  borderRadius: {
-    none: string;
-    sm: string;
-    md: string;
-    lg: string;
-    full: string;
-  };
-  shadows: {
-    sm: string;
-    md: string;
-    lg: string;
-    xl: string;
-  };
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  textColor: string;
+  logoUrl?: string;
+  favicon?: string;
   customCss?: string;
 }
 
 export interface ThemeVariables {
-  [key: string]: string | number;
+  '--primary-color': string;
+  '--secondary-color': string;
+  '--accent-color': string;
+  '--background-color': string;
+  '--text-color': string;
+  '--border-color': string;
+  '--shadow-color': string;
 }
 
 /**
- * Default theme configuration
- */
-const DEFAULT_THEME: ThemeConfig = {
-  colors: {
-    primary: '#3b82f6',
-    secondary: '#64748b',
-    background: '#ffffff',
-    surface: '#f8fafc',
-    text: '#1e293b',
-    textSecondary: '#64748b',
-    border: '#e2e8f0',
-    error: '#ef4444',
-    warning: '#f59e0b',
-    success: '#10b981',
-    info: '#3b82f6',
-  },
-  typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: {
-      xs: '0.75rem',
-      sm: '0.875rem',
-      base: '1rem',
-      lg: '1.125rem',
-      xl: '1.25rem',
-      '2xl': '1.5rem',
-      '3xl': '1.875rem',
-    },
-    fontWeight: {
-      normal: 400,
-      medium: 500,
-      semibold: 600,
-      bold: 700,
-    },
-  },
-  spacing: {
-    xs: '0.25rem',
-    sm: '0.5rem',
-    md: '1rem',
-    lg: '1.5rem',
-    xl: '2rem',
-    '2xl': '3rem',
-  },
-  borderRadius: {
-    none: '0',
-    sm: '0.125rem',
-    md: '0.375rem',
-    lg: '0.5rem',
-    full: '9999px',
-  },
-  shadows: {
-    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-    md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-  },
-};
-
-/**
  * Tenant Theming Service
- * Manages dynamic theming based on tenant branding configuration
+ * Manages tenant-specific themes and branding
  */
 export class TenantThemingService {
-  private currentTheme: ThemeConfig = DEFAULT_THEME;
-  private themeListeners: Set<(theme: ThemeConfig) => void> = new Set();
-  private cssVariablesApplied = false;
+  private currentTheme: ThemeConfig | null = null;
+  private styleElement: HTMLStyleElement | null = null;
+  private themeListeners: Set<(theme: ThemeConfig | null) => void> = new Set();
 
   /**
-   * Apply tenant-specific theme
+   * Apply theme for a tenant
    */
   applyTenantTheme(tenant: Tenant | null): void {
-    if (!tenant || !tenant.branding) {
-      this.applyTheme(DEFAULT_THEME);
+    if (!tenant || !tenant.settings) {
+      this.clearTheme();
       return;
     }
 
-    const tenantTheme = this.createTenantTheme(tenant.branding);
-    this.applyTheme(tenantTheme);
+    const theme = this.createThemeFromTenant(tenant);
+    this.applyTheme(theme);
   }
 
   /**
-   * Create theme configuration from tenant branding
-   */
-  createTenantTheme(branding: BrandingConfig): ThemeConfig {
-    const theme: ThemeConfig = {
-      ...DEFAULT_THEME,
-      colors: {
-        ...DEFAULT_THEME.colors,
-        primary: branding.primaryColor || DEFAULT_THEME.colors.primary,
-        secondary: branding.secondaryColor || DEFAULT_THEME.colors.secondary,
-      },
-      ...(branding.customCss && { customCss: branding.customCss }),
-    };
-
-    // Generate complementary colors based on primary color
-    if (branding.primaryColor) {
-      theme.colors = {
-        ...theme.colors,
-        ...this.generateComplementaryColors(branding.primaryColor),
-      };
-    }
-
-    return theme;
-  }
-
-  /**
-   * Apply theme configuration
+   * Apply a custom theme configuration
    */
   applyTheme(theme: ThemeConfig): void {
     this.currentTheme = theme;
-    
-    // Apply CSS variables
-    this.applyCssVariables();
-    
-    // Apply custom CSS if provided
-    if (theme.customCss) {
-      this.applyCustomCss(theme.customCss);
-    }
-    
-    // Apply favicon if provided in branding
-    this.applyFavicon();
-    
-    // Notify listeners
-    this.notifyThemeChange(theme);
+    this.updateCSSVariables(theme);
+    this.updateFavicon(theme.favicon);
+    this.applyCustomCSS(theme.customCss);
+    this.notifyThemeListeners();
+  }
+
+  /**
+   * Clear current theme and reset to defaults
+   */
+  clearTheme(): void {
+    this.currentTheme = null;
+    this.removeCSSVariables();
+    this.removeCustomCSS();
+    this.resetFavicon();
+    this.notifyThemeListeners();
   }
 
   /**
    * Get current theme configuration
    */
-  getCurrentTheme(): ThemeConfig {
-    return { ...this.currentTheme };
+  getCurrentTheme(): ThemeConfig | null {
+    return this.currentTheme;
   }
 
   /**
    * Subscribe to theme changes
    */
-  onThemeChange(listener: (theme: ThemeConfig) => void): () => void {
+  onThemeChange(listener: (theme: ThemeConfig | null) => void): () => void {
     this.themeListeners.add(listener);
-    // Immediately call with current theme
-    listener(this.currentTheme);
-    
     return () => this.themeListeners.delete(listener);
   }
 
   /**
-   * Generate CSS variables object from theme
+   * Create theme configuration from tenant settings
    */
-  getThemeVariables(): ThemeVariables {
-    const variables: ThemeVariables = {};
-    
-    // Color variables
-    Object.entries(this.currentTheme.colors).forEach(([key, value]) => {
-      variables[`--color-${key}`] = value;
-    });
-    
-    // Typography variables
-    variables['--font-family'] = this.currentTheme.typography.fontFamily;
-    Object.entries(this.currentTheme.typography.fontSize).forEach(([key, value]) => {
-      variables[`--font-size-${key}`] = value;
-    });
-    Object.entries(this.currentTheme.typography.fontWeight).forEach(([key, value]) => {
-      variables[`--font-weight-${key}`] = value;
-    });
-    
-    // Spacing variables
-    Object.entries(this.currentTheme.spacing).forEach(([key, value]) => {
-      variables[`--spacing-${key}`] = value;
-    });
-    
-    // Border radius variables
-    Object.entries(this.currentTheme.borderRadius).forEach(([key, value]) => {
-      variables[`--border-radius-${key}`] = value;
-    });
-    
-    // Shadow variables
-    Object.entries(this.currentTheme.shadows).forEach(([key, value]) => {
-      variables[`--shadow-${key}`] = value;
-    });
-    
-    return variables;
+  private createThemeFromTenant(tenant: Tenant): ThemeConfig {
+    const settings = tenant.settings || {};
+    const primaryColor = settings.primaryColor || '#3b82f6'; // Default blue
+
+    return {
+      primaryColor,
+      secondaryColor: this.adjustColorBrightness(primaryColor, -20),
+      accentColor: this.adjustColorBrightness(primaryColor, 20),
+      backgroundColor: '#ffffff',
+      textColor: '#1f2937',
+      logoUrl: settings.logoUrl,
+      favicon: this.generateFaviconFromColor(primaryColor),
+      customCss: this.generateCustomCSS(tenant),
+    };
   }
 
   /**
-   * Reset to default theme
+   * Update CSS custom properties
    */
-  resetToDefault(): void {
-    this.applyTheme(DEFAULT_THEME);
-    this.removeCustomCss();
-  }
-
-  /**
-   * Apply CSS variables to document root
-   */
-  private applyCssVariables(): void {
-    if (typeof document === 'undefined') return;
-    
+  private updateCSSVariables(theme: ThemeConfig): void {
     const root = document.documentElement;
-    const variables = this.getThemeVariables();
-    
+    const variables: ThemeVariables = {
+      '--primary-color': theme.primaryColor,
+      '--secondary-color': theme.secondaryColor,
+      '--accent-color': theme.accentColor,
+      '--background-color': theme.backgroundColor,
+      '--text-color': theme.textColor,
+      '--border-color': this.adjustColorOpacity(theme.textColor, 0.2),
+      '--shadow-color': this.adjustColorOpacity(theme.textColor, 0.1),
+    };
+
     Object.entries(variables).forEach(([property, value]) => {
-      root.style.setProperty(property, String(value));
+      root.style.setProperty(property, value);
     });
-    
-    this.cssVariablesApplied = true;
+  }
+
+  /**
+   * Remove CSS custom properties
+   */
+  private removeCSSVariables(): void {
+    const root = document.documentElement;
+    const properties = [
+      '--primary-color',
+      '--secondary-color',
+      '--accent-color',
+      '--background-color',
+      '--text-color',
+      '--border-color',
+      '--shadow-color',
+    ];
+
+    properties.forEach(property => {
+      root.style.removeProperty(property);
+    });
   }
 
   /**
    * Apply custom CSS styles
    */
-  private applyCustomCss(customCss: string): void {
-    if (typeof document === 'undefined') return;
-    
-    // Remove existing custom CSS
-    this.removeCustomCss();
-    
-    // Create and append new style element
-    const styleElement = document.createElement('style');
-    styleElement.id = 'tenant-custom-css';
-    styleElement.textContent = customCss;
-    document.head.appendChild(styleElement);
+  private applyCustomCSS(customCss?: string): void {
+    this.removeCustomCSS();
+
+    if (!customCss) return;
+
+    this.styleElement = document.createElement('style');
+    this.styleElement.setAttribute('data-tenant-theme', 'true');
+    this.styleElement.textContent = customCss;
+    document.head.appendChild(this.styleElement);
   }
 
   /**
    * Remove custom CSS styles
    */
-  private removeCustomCss(): void {
-    if (typeof document === 'undefined') return;
-    
-    const existingStyle = document.getElementById('tenant-custom-css');
-    if (existingStyle) {
-      existingStyle.remove();
+  private removeCustomCSS(): void {
+    if (this.styleElement) {
+      document.head.removeChild(this.styleElement);
+      this.styleElement = null;
     }
   }
 
   /**
-   * Apply tenant favicon
+   * Update favicon
    */
-  private applyFavicon(): void {
-    if (typeof document === 'undefined') return;
-    
-    // This would be implemented based on tenant branding configuration
-    // For now, we'll just log that it would be applied
-    console.log('Favicon would be applied based on tenant branding');
+  private updateFavicon(faviconUrl?: string): void {
+    if (!faviconUrl) return;
+
+    const link = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+    if (link) {
+      link.href = faviconUrl;
+    } else {
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon';
+      newLink.href = faviconUrl;
+      document.head.appendChild(newLink);
+    }
   }
 
   /**
-   * Generate complementary colors from primary color
+   * Reset favicon to default
    */
-  private generateComplementaryColors(primaryColor: string): Partial<ThemeConfig['colors']> {
-    // This is a simplified implementation
-    // In a real application, you'd use a color manipulation library
-    // to generate proper complementary colors, shades, and tints
-    
-    return {
-      primary: primaryColor,
-      // You could generate accent, hover states, etc. here
-    };
+  private resetFavicon(): void {
+    const link = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+    if (link) {
+      link.href = '/favicon.ico'; // Default favicon
+    }
   }
 
   /**
-   * Notify all theme change listeners
+   * Generate custom CSS for tenant
    */
-  private notifyThemeChange(theme: ThemeConfig): void {
-    this.themeListeners.forEach(listener => {
-      try {
-        listener(theme);
-      } catch (error) {
-        console.error('Error in theme change listener:', error);
+  private generateCustomCSS(tenant: Tenant): string {
+    const settings = tenant.settings || {};
+    const primaryColor = settings.primaryColor || '#3b82f6';
+
+    return `
+      /* Tenant-specific styles for ${tenant.name} */
+      .tenant-branded {
+        --tenant-primary: ${primaryColor};
+        --tenant-primary-hover: ${this.adjustColorBrightness(primaryColor, -10)};
+        --tenant-primary-light: ${this.adjustColorOpacity(primaryColor, 0.1)};
       }
-    });
+
+      .tenant-branded .btn-primary {
+        background-color: var(--tenant-primary);
+        border-color: var(--tenant-primary);
+      }
+
+      .tenant-branded .btn-primary:hover {
+        background-color: var(--tenant-primary-hover);
+        border-color: var(--tenant-primary-hover);
+      }
+
+      .tenant-branded .nav-link.active {
+        color: var(--tenant-primary);
+        border-bottom-color: var(--tenant-primary);
+      }
+
+      .tenant-branded .form-control:focus {
+        border-color: var(--tenant-primary);
+        box-shadow: 0 0 0 0.2rem var(--tenant-primary-light);
+      }
+    `;
   }
 
   /**
-   * Cleanup resources
+   * Generate favicon from color
    */
-  destroy(): void {
-    this.themeListeners.clear();
-    this.removeCustomCss();
-    
-    if (this.cssVariablesApplied && typeof document !== 'undefined') {
-      // Reset CSS variables to defaults
-      const root = document.documentElement;
-      const variables = this.getThemeVariables();
+  private generateFaviconFromColor(color: string): string {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, 32, 32);
       
-      Object.keys(variables).forEach(property => {
-        root.style.removeProperty(property);
-      });
+      // Add a simple icon (circle)
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(16, 16, 10, 0, 2 * Math.PI);
+      ctx.fill();
     }
+
+    return canvas.toDataURL();
+  }
+
+  /**
+   * Adjust color brightness
+   */
+  private adjustColorBrightness(color: string, percent: number): string {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+  }
+
+  /**
+   * Adjust color opacity
+   */
+  private adjustColorOpacity(color: string, opacity: number): string {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  }
+
+  /**
+   * Notify theme change listeners
+   */
+  private notifyThemeListeners(): void {
+    this.themeListeners.forEach(listener => listener(this.currentTheme));
   }
 }
 
 /**
- * React hook for tenant theming
+ * Default tenant theming service instance
+ */
+export const tenantThemingService = new TenantThemingService();
+
+/**
+ * Hook for tenant theming
  */
 export function useTenantTheming() {
-  const [theme, setTheme] = React.useState<ThemeConfig>(DEFAULT_THEME);
-  
-  React.useEffect(() => {
-    const unsubscribe = tenantThemingService.onThemeChange(setTheme);
-    return unsubscribe;
-  }, []);
-  
-  return {
-    theme,
-    applyTenantTheme: (tenant: Tenant | null) => tenantThemingService.applyTenantTheme(tenant),
-    resetToDefault: () => tenantThemingService.resetToDefault(),
-    getThemeVariables: () => tenantThemingService.getThemeVariables(),
-  };
+  return tenantThemingService;
 }
-
-// Export singleton instance
-export const tenantThemingService = new TenantThemingService();

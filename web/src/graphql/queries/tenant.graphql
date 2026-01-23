@@ -1,66 +1,48 @@
-# Tenant-related GraphQL queries
+# Complete Tenant GraphQL Queries
+# Matches all backend tenant resolver operations
 
+# Core Tenant Queries
 query GetCurrentTenant {
-  currentTenant {
-    id
-    name
-    subdomain
+  tenantContext {
+    tenant {
+      id
+      name
+      slug
+      businessTier
+      subscriptionStatus
+      settings {
+        timezone
+        locale
+        currency
+        logoUrl
+        primaryColor
+      }
+      metrics {
+        employeeCount
+        locationCount
+        monthlyTransactionVolume
+        monthlyRevenue
+      }
+      contactEmail
+      contactPhone
+      createdAt
+      updatedAt
+      subscriptionStartDate
+      subscriptionEndDate
+      trialEndDate
+      isActive
+      # Computed fields
+      daysUntilTrialEnd
+      isTrialActive
+      tierProgressPercentage
+      nextTier
+      availableFeatures
+      featureCount
+      healthStatus
+      accountAge
+    }
     businessTier
     isActive
-    settings {
-      timezone
-      currency
-      dateFormat
-      language
-      features
-      limits {
-        maxUsers
-        maxStorage
-        maxApiCalls
-        maxIntegrations
-      }
-    }
-    branding {
-      primaryColor
-      secondaryColor
-      logo
-      favicon
-      customCss
-    }
-    createdAt
-    updatedAt
-  }
-}
-
-query GetTenants {
-  tenants {
-    id
-    name
-    subdomain
-    businessTier
-    isActive
-    settings {
-      timezone
-      currency
-      dateFormat
-      language
-      features
-      limits {
-        maxUsers
-        maxStorage
-        maxApiCalls
-        maxIntegrations
-      }
-    }
-    branding {
-      primaryColor
-      secondaryColor
-      logo
-      favicon
-      customCss
-    }
-    createdAt
-    updatedAt
   }
 }
 
@@ -68,48 +50,374 @@ query GetTenant($id: ID!) {
   tenant(id: $id) {
     id
     name
-    subdomain
+    slug
     businessTier
-    isActive
+    subscriptionStatus
     settings {
       timezone
+      locale
       currency
-      dateFormat
-      language
-      features
-      limits {
-        maxUsers
-        maxStorage
-        maxApiCalls
-        maxIntegrations
-      }
-    }
-    branding {
+      logoUrl
       primaryColor
-      secondaryColor
-      logo
-      favicon
-      customCss
     }
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    contactEmail
+    contactPhone
     createdAt
     updatedAt
+    subscriptionStartDate
+    subscriptionEndDate
+    trialEndDate
+    isActive
+    # Computed fields
+    daysUntilTrialEnd
+    isTrialActive
+    tierProgressPercentage
+    nextTier
+    availableFeatures
+    featureCount
+    healthStatus
+    accountAge
   }
 }
 
-query GetFeatureFlags($tenantId: ID) {
-  featureFlags(tenantId: $tenantId) {
-    key
-    enabled
-    config
-    requiredTier
+query GetTenants($query: TenantQueryInput) {
+  tenants(query: $query) {
+    id
+    name
+    slug
+    businessTier
+    subscriptionStatus
+    settings {
+      timezone
+      locale
+      currency
+      logoUrl
+      primaryColor
+    }
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    contactEmail
+    contactPhone
+    createdAt
+    updatedAt
+    isActive
+    healthStatus
+    accountAge
   }
 }
 
-query GetFeatureFlag($key: String!, $tenantId: ID) {
-  featureFlag(key: $key, tenantId: $tenantId) {
-    key
-    enabled
-    config
+query GetTenantsPaginated($query: TenantQueryInput) {
+  tenantsPaginated(query: $query) {
+    tenants {
+      id
+      name
+      slug
+      businessTier
+      subscriptionStatus
+      settings {
+        timezone
+        locale
+        currency
+        logoUrl
+        primaryColor
+      }
+      metrics {
+        employeeCount
+        locationCount
+        monthlyTransactionVolume
+        monthlyRevenue
+      }
+      contactEmail
+      contactPhone
+      createdAt
+      updatedAt
+      isActive
+      healthStatus
+      accountAge
+    }
+    total
+    page
+    pageSize
+    totalPages
+  }
+}
+
+# Business Tier Queries
+query CalculateBusinessTier(
+  $employeeCount: Int!
+  $locationCount: Int!
+  $monthlyTransactionVolume: Int!
+  $monthlyRevenue: Float!
+) {
+  calculateBusinessTier(
+    employeeCount: $employeeCount
+    locationCount: $locationCount
+    monthlyTransactionVolume: $monthlyTransactionVolume
+    monthlyRevenue: $monthlyRevenue
+  )
+}
+
+query GetUpgradeRequirements {
+  getUpgradeRequirements {
+    nextTier
+    requirements
+    missingCriteria
+  }
+}
+
+query GetUpgradeRequirementsForTenant($tenantId: ID!) {
+  upgradeRequirementsForTenant(tenantId: $tenantId) {
+    nextTier
+    requirements
+    missingCriteria
+  }
+}
+
+query GetTierProgress {
+  tierProgress {
+    currentTier
+    currentTierProgress
+    nextTierProgress
+    nextTier
+  }
+}
+
+query GetTenantAnalytics($tenantId: ID!) {
+  tenantAnalytics(tenantId: $tenantId) {
+    tenantId
+    businessTier
+    metricsQuality
+    criteriaMetCount
+    readiness
+  }
+}
+
+query GetAllTierBenefits {
+  allTierBenefits {
+    tier
+    description
+    features
+    limits
+  }
+}
+
+query GetTierBenefits($tier: String!) {
+  tierBenefits(tier: $tier) {
+    tier
+    description
+    features
+    limits
+  }
+}
+
+query ValidateMetrics(
+  $employeeCount: Int!
+  $locationCount: Int!
+  $monthlyTransactionVolume: Int!
+  $monthlyRevenue: Float!
+) {
+  validateMetrics(
+    employeeCount: $employeeCount
+    locationCount: $locationCount
+    monthlyTransactionVolume: $monthlyTransactionVolume
+    monthlyRevenue: $monthlyRevenue
+  ) {
+    isValid
+    errors
+  }
+}
+
+query GetRecommendedActions {
+  recommendedActions
+}
+
+query IsValidTenant($tenantId: ID!) {
+  isValidTenant(tenantId: $tenantId)
+}
+
+# Feature Flag Queries
+query GetFeatureDefinitions {
+  featureDefinitions {
+    name
+    displayName
+    description
     requiredTier
+    category
+    dependencies
+  }
+}
+
+query GetAvailableFeatures {
+  availableFeatures {
+    available {
+      name
+      displayName
+      description
+      requiredTier
+      category
+      dependencies
+    }
+    unavailable {
+      name
+      displayName
+      description
+      requiredTier
+      category
+      dependencies
+    }
+    upgradeRequired {
+      name
+      displayName
+      description
+      requiredTier
+      category
+      dependencies
+    }
+  }
+}
+
+query CheckFeatureAccess($featureName: String!) {
+  checkFeatureAccess(featureName: $featureName) {
+    featureName
+    hasAccess
+    reason
+  }
+}
+
+query CheckMultipleFeatures($featureNames: [String!]!) {
+  checkMultipleFeatures(featureNames: $featureNames) {
+    featureName
+    hasAccess
+    reason
+  }
+}
+
+query GetFeaturesByCategory($category: String!) {
+  featuresByCategory(category: $category) {
+    name
+    displayName
+    description
+    requiredTier
+    category
+    dependencies
+  }
+}
+
+query GetFeaturesByTier($tier: String!) {
+  featuresByTier(tier: $tier) {
+    name
+    displayName
+    description
+    requiredTier
+    category
+    dependencies
+  }
+}
+
+query GetFeatureCategoryDetails($category: String!) {
+  featureCategoryDetails(category: $category) {
+    category
+    features {
+      name
+      displayName
+      description
+      requiredTier
+      category
+      dependencies
+    }
+    count
+  }
+}
+
+query GetFeatureTierDetails($tier: String!) {
+  featureTierDetails(tier: $tier) {
+    tier
+    features {
+      name
+      displayName
+      description
+      requiredTier
+      category
+      dependencies
+    }
+    count
+  }
+}
+
+query GetFeatureDependencies($featureName: String!) {
+  featureDependencies(featureName: $featureName) {
+    featureName
+    dependencies
+    dependenciesStatus {
+      featureName
+      hasAccess
+      reason
+    }
+  }
+}
+
+# Metrics Queries
+query GetTenantMetrics {
+  tenantMetrics {
+    employeeCount
+    locationCount
+    monthlyTransactionVolume
+    monthlyRevenue
+  }
+}
+
+query GetTenantUsage {
+  tenantUsage {
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    businessTier
+    lastUpdated
+  }
+}
+
+query GetTenantLimits {
+  tenantLimits {
+    maxEmployees
+    maxLocations
+    maxMonthlyTransactions
+    currentTier
+    nextTier
+  }
+}
+
+query GetTierProgression {
+  tierProgression {
+    currentTier
+    nextTier
+    progress
+    requirements
+    recommendations
+  }
+}
+
+query GetMetricsHistory($startDate: DateTime!, $endDate: DateTime!) {
+  metricsHistory(startDate: $startDate, endDate: $endDate) {
+    date
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    tier
   }
 }

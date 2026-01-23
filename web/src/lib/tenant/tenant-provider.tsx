@@ -100,6 +100,91 @@ interface FeatureGateProps {
   feature: string;
   children: ReactNode;
   fallback?: ReactNode;
+  manager?: TenantContextManager;
+}
+
+export function FeatureGate({ feature, children, fallback = null, manager }: FeatureGateProps) {
+  const { isEnabled } = useFeatureGate(feature, manager);
+  return isEnabled ? <>{children}</> : <>{fallback}</>;
+}
+
+/**
+ * Component for conditional rendering based on tier
+ */
+interface TierGateProps {
+  requiredTier: BusinessTier;
+  children: ReactNode;
+  fallback?: ReactNode;
+  manager?: TenantContextManager;
+}
+
+export function TierGate({ requiredTier, children, fallback = null, manager }: TierGateProps) {
+  const { hasAccess } = useTierGate(requiredTier, manager);
+  return hasAccess ? <>{children}</> : <>{fallback}</>;
+}
+
+/**
+ * Component for conditional rendering based on tenant access
+ */
+interface TenantGateProps {
+  tenantId?: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+  manager?: TenantContextManager;
+}
+
+export function TenantGate({ tenantId, children, fallback = null, manager }: TenantGateProps) {
+  const contextManager = manager || tenantContextManager;
+  const { currentTenant } = useTenantContext(manager);
+  
+  const hasAccess = useMemo(() => {
+    if (!tenantId) return !!currentTenant;
+    return contextManager.validateTenantAccess(tenantId);
+  }, [contextManager, tenantId, currentTenant]);
+
+  return hasAccess ? <>{children}</> : <>{fallback}</>;
+}
+
+/**
+ * Loading component for tenant operations
+ */
+interface TenantLoadingProps {
+  message?: string;
+  className?: string;
+}
+
+export function TenantLoading({ message = 'Loading tenant information...', className = '' }: TenantLoadingProps) {
+  return (
+    <div className={`tenant-loading ${className}`}>
+      <div className="spinner" />
+      <span>{message}</span>
+    </div>
+  );
+}
+
+/**
+ * Error component for tenant operations
+ */
+interface TenantErrorProps {
+  error: string;
+  onRetry?: () => void;
+  className?: string;
+}
+
+export function TenantError({ error, onRetry, className = '' }: TenantErrorProps) {
+  return (
+    <div className={`tenant-error ${className}`}>
+      <div className="error-message">{error}</div>
+      {onRetry && (
+        <button onClick={onRetry} className="retry-button">
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
+  children: ReactNode;
+  fallback?: ReactNode;
   requiredTier?: BusinessTier;
 }
 

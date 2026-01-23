@@ -1,0 +1,210 @@
+# Complete Tenant GraphQL Mutations
+# Matches all backend tenant resolver operations
+
+# Core Tenant Mutations
+mutation CreateTenant($input: CreateTenantInput!) {
+  createTenant(input: $input) {
+    id
+    name
+    slug
+    businessTier
+    subscriptionStatus
+    settings {
+      timezone
+      locale
+      currency
+      logoUrl
+      primaryColor
+    }
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    contactEmail
+    contactPhone
+    createdAt
+    updatedAt
+    trialEndDate
+    isActive
+  }
+}
+
+mutation UpdateTenant($id: ID!, $input: UpdateTenantInput!) {
+  updateTenant(id: $id, input: $input) {
+    id
+    name
+    slug
+    businessTier
+    subscriptionStatus
+    settings {
+      timezone
+      locale
+      currency
+      logoUrl
+      primaryColor
+    }
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    contactEmail
+    contactPhone
+    createdAt
+    updatedAt
+    isActive
+    # Computed fields
+    daysUntilTrialEnd
+    isTrialActive
+    tierProgressPercentage
+    nextTier
+    healthStatus
+  }
+}
+
+mutation UpdateBusinessMetrics($id: ID!, $input: UpdateBusinessMetricsInput!) {
+  updateBusinessMetrics(id: $id, input: $input) {
+    id
+    name
+    slug
+    businessTier
+    subscriptionStatus
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    # Computed fields
+    tierProgressPercentage
+    nextTier
+    healthStatus
+  }
+}
+
+mutation DeleteTenant($id: ID!) {
+  deleteTenant(id: $id)
+}
+
+# Feature Flag Mutations
+mutation CreateFeatureFlag($input: CreateFeatureFlagInput!) {
+  createFeatureFlag(input: $input) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    customRules {
+      condition
+      value
+      description
+    }
+    status
+    description
+    enabledAt
+    disabledAt
+    createdAt
+    updatedAt
+    # Computed fields
+    displayName
+    category
+    dependencies
+    isFullyRolledOut
+    daysEnabled
+    daysDisabled
+  }
+}
+
+mutation EnableFeature($featureName: String!) {
+  enableFeature(featureName: $featureName) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    status
+    enabledAt
+    # Computed fields
+    displayName
+    category
+    isFullyRolledOut
+  }
+}
+
+mutation DisableFeature($featureName: String!) {
+  disableFeature(featureName: $featureName) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    status
+    disabledAt
+    # Computed fields
+    displayName
+    category
+    isFullyRolledOut
+  }
+}
+
+mutation UpdateFeatureFlag($featureName: String!, $input: UpdateFeatureFlagInput!) {
+  updateFeatureFlag(featureName: $featureName, input: $input) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    customRules {
+      condition
+      value
+      description
+    }
+    status
+    description
+    enabledAt
+    disabledAt
+    updatedAt
+    # Computed fields
+    displayName
+    category
+    dependencies
+    isFullyRolledOut
+  }
+}
+
+mutation BulkUpdateFeatureFlags($updates: [UpdateFeatureFlagInput!]!) {
+  bulkUpdateFeatureFlags(updates: $updates) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    status
+    updatedAt
+    # Computed fields
+    displayName
+    category
+    isFullyRolledOut
+  }
+}
+
+mutation InvalidateFeatureCache($featureName: String) {
+  invalidateFeatureCache(featureName: $featureName)
+}
+
+mutation InvalidateAllFeatureCache {
+  invalidateAllFeatureCache
+}
+
+# Metrics Mutations
+mutation RecalculateMetrics {
+  recalculateMetrics {
+    employeeCount
+    locationCount
+    monthlyTransactionVolume
+    monthlyRevenue
+  }
+}

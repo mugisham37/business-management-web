@@ -68,9 +68,28 @@ export interface Tenant {
   id: string;
   name: string;
   subdomain: string;
+  slug?: string; // Add this for compatibility
   businessTier: BusinessTier;
   settings: TenantSettings;
   branding: BrandingConfig;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive?: boolean;
+  subscriptionStatus?: string;
+  healthStatus?: string;
+  trialEndDate?: Date;
+  daysUntilTrialEnd?: number;
+  tierProgressPercentage?: number;
+  nextTier?: string;
+  accountAge?: number;
+  contactEmail?: string;
+  contactPhone?: string;
+  metrics?: {
+    employeeCount: number;
+    locationCount: number;
+    monthlyTransactionVolume: number;
+    monthlyRevenue: number;
+  };
 }
 
 export interface TenantSettings {
@@ -99,9 +118,17 @@ export interface BrandingConfig {
 
 export interface FeatureFlag {
   key: string;
+  featureName: string; // Add this for compatibility
   enabled: boolean;
+  isEnabled: boolean; // Add this for compatibility
   config: Record<string, unknown>;
+  customRules?: Record<string, unknown>; // Add this for compatibility
   requiredTier: BusinessTier;
+  displayName?: string;
+  description?: string;
+  category?: string;
+  rolloutPercentage?: number;
+  status?: string;
 }
 
 export interface TenantContext {

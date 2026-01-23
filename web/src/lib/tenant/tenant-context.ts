@@ -97,7 +97,246 @@ export class TenantContextManager {
       }
 
       // Call switch tenant mutation
-      // TODO: Implement SWITCH_TENANT_MUTATION when auth mutations are updated
+      const { data } = await apolloClient.mutate({
+        mutation: gql`
+          mutation SwitchTenant($tenantId: ID!) {
+            switchTenant(tenantId: $tenantId) {
+              success
+              message
+              user {
+                id
+                email
+                tenantId
+                role
+                permissions
+              }
+            }
+          }
+        `,
+        variables: { tenantId },
+      });
+
+      if (!data?.switchTenant?.success) {
+        throw new Error(data?.switchTenant?.message || 'Failed to switch tenant');
+      }
+
+  /**
+   * Check if user has access to a specific feature
+   */
+  hasFeature(featureKey: string): boolean {
+    const cached = this.featureCache.get(featureKey);
+    if (cached) {
+      return cached.enabled;
+    }
+
+    // Check if feature is available based on current tier and flags
+    const feature = this.currentState.features.find(f => f.featureName === featureKey);
+    if (!feature) {
+      return false;
+    }
+
+    const hasAccess = feature.isEnabled && this.isTierSufficient(feature.requiredTier);
+    
+    // Cache the result
+    this.featureCache.set(featureKey, {
+      enabled: hasAccess,
+      config: feature.customRules || {},
+      requiredTier: feature.requiredTier,
+    });
+
+    return hasAccess;
+  }
+
+  /**
+   * Get feature configuration
+   */
+  getFeatureConfig(featureKey: string): FeatureConfig | null {
+    const cached = this.featureCache.get(featureKey);
+    if (cached) {
+      return cached;
+    }
+
+    const feature = this.currentState.features.find(f => f.featureName === featureKey);
+    if (!feature) {
+      return null;
+    }
+
+    const config: FeatureConfig = {
+      enabled: feature.isEnabled && this.isTierSufficient(feature.requiredTier),
+      config: feature.customRules || {},
+      requiredTier: feature.requiredTier,
+    };
+
+    this.featureCache.set(featureKey, config);
+    return config;
+  }
+
+  /**
+   * Get all available features for current tenant
+   */
+  getAvailableFeatures(): string[] {
+    return this.currentState.features
+      .filter(f => f.isEnabled && this.isTierSufficient(f.requiredTier))
+      .map(f => f.featureName);
+  }
+
+  /**
+   * Get tenant settings
+   */
+  getTenantSettings(): TenantSettings | null {
+    return this.currentState.currentTenant?.settings || null;
+  }
+
+  /**
+   * Check if current tier is sufficient for required tier
+   */
+  isTierSufficient(requiredTier: BusinessTier): boolean {
+    const tierHierarchy: Record<BusinessTier, number> = {
+      'MICRO': 0,
+      'SMALL': 1,
+      'MEDIUM': 2,
+      'ENTERPRISE': 3,
+    };
+
+    const currentLevel = tierHierarchy[this.currentState.businessTier];
+    const requiredLevel = tierHierarchy[requiredTier];
+
+    return currentLevel >= requiredLevel;
+  }
+
+  /**
+   * Validate tenant access for current user
+   */
+  validateTenantAccess(tenantId: string): boolean {
+    return this.currentState.availableTenants.some(t => t.id === tenantId);
+  }
+
+  /**
+   * Subscribe to state changes
+   */
+  onStateChange(listener: (state: TenantContextState) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * Refresh tenant context from server
+   */
+  async refreshTenantContext(): Promise<void> {
+    this.setLoading(true);
+    this.clearError();
+
+    try {
+      const { data } = await apolloClient.query({
+        query: GET_CURRENT_TENANT_QUERY,
+        fetchPolicy: 'network-only',
+      });
+
+      if (data?.tenantContext) {
+        this.updateState({
+          currentTenant: data.tenantContext.tenant,
+          businessTier: data.tenantContext.businessTier,
+        });
+      }
+
+      // Fetch feature flags
+      const { data: featureData } = await apolloClient.query({
+        query: GET_FEATURE_FLAGS_QUERY,
+        fetchPolicy: 'network-only',
+      });
+
+      if (featureData?.availableFeatures) {
+        this.updateState({
+          features: [
+            ...featureData.availableFeatures.available,
+            ...featureData.availableFeatures.unavailable,
+            ...featureData.availableFeatures.upgradeRequired,
+          ],
+        });
+      }
+
+      // Clear feature cache on refresh
+      this.featureCache.clear();
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh tenant context';
+      this.setError(errorMessage);
+      this.config.onError?.(error instanceof Error ? error : new Error(errorMessage));
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  /**
+   * Initialize tenant context on startup
+   */
+  private async initializeTenantContext(): Promise<void> {
+    await this.refreshTenantContext();
+  }
+
+  /**
+   * Update state and notify listeners
+   */
+  private updateState(updates: Partial<TenantContextState>): void {
+    this.currentState = { ...this.currentState, ...updates };
+    this.notifyListeners();
+  }
+
+  /**
+   * Set loading state
+   */
+  private setLoading(isLoading: boolean): void {
+    this.updateState({ isLoading });
+  }
+
+  /**
+   * Set error state
+   */
+  private setError(error: string): void {
+    this.updateState({ error });
+  }
+
+  /**
+   * Clear error state
+   */
+  private clearError(): void {
+    this.updateState({ error: null });
+  }
+
+  /**
+   * Notify all listeners of state changes
+   */
+  private notifyListeners(): void {
+    this.listeners.forEach(listener => listener(this.currentState));
+  }
+}
+
+/**
+ * Create a new tenant context manager
+ */
+export function createTenantContextManager(config?: TenantContextConfig): TenantContextManager {
+  return new TenantContextManager(config);
+}
+
+/**
+ * Default tenant context manager instance
+ */
+export const tenantContextManager = createTenantContextManager();
+
+/**
+ * Get the default tenant manager
+ */
+export function getDefaultTenantManager(): TenantContextManager {
+  return tenantContextManager;
+}
+
+/**
+ * Set a new default tenant manager
+ */
+export function setDefaultTenantManager(manager: TenantContextManager): void {
+  // Replace the default manager (for testing or custom configurations)
+  Object.setPrototypeOf(tenantContextManager, manager);
+}
       const result = { data: { switchTenant: { success: true, message: 'Tenant switched successfully' } } };
       /*
       const result = await apolloClient.mutate({

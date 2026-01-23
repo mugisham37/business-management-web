@@ -1,19 +1,16 @@
 /**
- * Tenant Switching and Validation Service
- * Secure tenant switching logic with access validation and cache management
- * Requirements: 4.2, 4.5, 4.6
+ * Tenant Switching Service
+ * Handles tenant switching logic and validation
+ * Requirements: 4.1, 4.3
  */
 
-import { Tenant, User, TenantSettings, BrandingConfig } from '@/types/core';
 import { apolloClient } from '@/lib/apollo/client';
-import { authManager } from '@/lib/auth/auth-manager';
-// Note: SWITCH_TENANT_MUTATION will be imported when auth mutations are updated
-// import { SWITCH_TENANT_MUTATION } from '@/graphql/mutations/auth';
-import { GET_CURRENT_TENANT_QUERY } from '@/graphql/queries/tenant';
+import { gql } from '@apollo/client';
+import { Tenant } from '@/types/core';
 
 export interface TenantSwitchResult {
   success: boolean;
-  message?: string;
+  message: string;
   tenant?: Tenant;
   error?: string;
 }
@@ -21,26 +18,25 @@ export interface TenantSwitchResult {
 export interface TenantAccessValidation {
   hasAccess: boolean;
   reason?: string;
-  requiredPermissions?: string[];
+  tenant?: Tenant;
 }
 
 export interface TenantSwitchOptions {
   clearCache?: boolean;
+  refreshContext?: boolean;
   validateAccess?: boolean;
-  onProgress?: (step: string) => void;
-  onError?: (error: Error) => void;
 }
 
 /**
  * Tenant Switching Service
- * Handles secure tenant switching with comprehensive validation
+ * Manages tenant switching operations with validation and caching
  */
 export class TenantSwitchingService {
   private switchingInProgress = false;
-  private switchingQueue: Array<{ tenantId: string; resolve: (value: TenantSwitchResult) => void; reject: (error: Error) => void }> = [];
+  private currentSwitchPromise: Promise<TenantSwitchResult> | null = null;
 
   /**
-   * Switch to a different tenant with full validation and cache management
+   * Switch to a different tenant
    */
   async switchTenant(
     tenantId: string, 
@@ -48,326 +44,245 @@ export class TenantSwitchingService {
   ): Promise<TenantSwitchResult> {
     const {
       clearCache = true,
+      refreshContext = true,
       validateAccess = true,
-      onProgress,
-      onError,
     } = options;
 
     // Prevent concurrent switches
-    if (this.switchingInProgress) {
-      return new Promise((resolve, reject) => {
-        this.switchingQueue.push({ tenantId, resolve, reject });
-      });
+    if (this.switchingInProgress && this.currentSwitchPromise) {
+      return await this.currentSwitchPromise;
     }
 
     this.switchingInProgress = true;
-    onProgress?.('Starting tenant switch...');
+    this.currentSwitchPromise = this.performTenantSwitch(
+      tenantId, 
+      { clearCache, refreshContext, validateAccess }
+    );
 
     try {
-      // Step 1: Validate user authentication
-      onProgress?.('Validating authentication...');
-      const currentUser = authManager.getCurrentUser();
-      if (!currentUser) {
-        throw new Error('User not authenticated');
-      }
-
-      // Step 2: Validate tenant access
-      if (validateAccess) {
-        onProgress?.('Validating tenant access...');
-        const accessValidation = await this.validateTenantAccess(tenantId, currentUser);
-        if (!accessValidation.hasAccess) {
-          throw new Error(accessValidation.reason || 'Access denied to tenant');
-        }
-      }
-
-      // Step 3: Clear tenant-specific cache if requested
-      if (clearCache) {
-        onProgress?.('Clearing tenant cache...');
-        await this.clearTenantSpecificCache();
-      }
-
-      // Step 4: Execute tenant switch mutation
-      onProgress?.('Switching tenant...');
-      const switchResult = await this.executeTenantSwitch(tenantId);
-
-      if (!switchResult.success) {
-        throw new Error(switchResult.message || 'Tenant switch failed');
-      }
-
-      // Step 5: Refresh tenant context
-      onProgress?.('Refreshing tenant context...');
-      const newTenant = await this.refreshTenantContext();
-
-      // Step 6: Update authentication context with new tenant
-      onProgress?.('Updating authentication context...');
-      await this.updateAuthenticationContext(newTenant);
-
-      onProgress?.('Tenant switch completed successfully');
-
-      return {
-        success: true,
-        tenant: newTenant,
-        message: 'Tenant switched successfully',
-      };
-
-    } catch (error) {
-      console.error('Tenant switch failed:', error);
-      onError?.(error as Error);
-      
-      return {
-        success: false,
-        error: (error as Error).message,
-      };
+      const result = await this.currentSwitchPromise;
+      return result;
     } finally {
       this.switchingInProgress = false;
-      this.processQueue();
+      this.currentSwitchPromise = null;
     }
   }
 
   /**
-   * Validate if user has access to specific tenant
+   * Validate tenant access for current user
    */
-  async validateTenantAccess(
-    tenantId: string, 
-    user?: User
-  ): Promise<TenantAccessValidation> {
+  async validateTenantAccess(tenantId: string): Promise<TenantAccessValidation> {
     try {
-      const currentUser = user || authManager.getCurrentUser();
-      
-      if (!currentUser) {
+      const { data } = await apolloClient.query({
+        query: gql`
+          query ValidateTenantAccess($tenantId: ID!) {
+            isValidTenant(tenantId: $tenantId)
+            tenant(id: $tenantId) {
+              id
+              name
+              slug
+              businessTier
+              subscriptionStatus
+              isActive
+            }
+          }
+        `,
+        variables: { tenantId },
+        fetchPolicy: 'network-only',
+      });
+
+      if (!data.isValidTenant) {
         return {
           hasAccess: false,
-          reason: 'User not authenticated',
+          reason: 'Tenant not found or access denied',
         };
       }
 
-      // Check if user has access to the tenant
-      const userTenant = currentUser.tenants?.find(t => t.tenantId === tenantId);
-      
-      if (!userTenant) {
+      if (!data.tenant.isActive) {
         return {
           hasAccess: false,
-          reason: 'User does not have access to this tenant',
+          reason: 'Tenant is inactive',
+          tenant: data.tenant,
         };
       }
-
-      // Check if tenant access is active
-      if (!userTenant.isActive) {
-        return {
-          hasAccess: false,
-          reason: 'User access to this tenant is inactive',
-        };
-      }
-
-      // Additional permission checks could be added here
-      // For example, checking specific permissions required for tenant switching
 
       return {
         hasAccess: true,
+        tenant: data.tenant,
       };
-
     } catch (error) {
-      console.error('Tenant access validation failed:', error);
       return {
         hasAccess: false,
-        reason: 'Failed to validate tenant access',
+        reason: error instanceof Error ? error.message : 'Validation failed',
       };
     }
   }
 
   /**
-   * Get list of tenants accessible by current user
+   * Get available tenants for current user
    */
-  async getAccessibleTenants(): Promise<Tenant[]> {
+  async getAvailableTenants(): Promise<Tenant[]> {
     try {
-      const currentUser = authManager.getCurrentUser();
-      
-      if (!currentUser || !currentUser.tenants) {
-        return [];
-      }
+      const { data } = await apolloClient.query({
+        query: gql`
+          query GetAvailableTenants {
+            tenants {
+              id
+              name
+              slug
+              businessTier
+              subscriptionStatus
+              isActive
+              healthStatus
+              createdAt
+            }
+          }
+        `,
+        fetchPolicy: 'cache-first',
+      });
 
-      // Filter active tenant access
-      const activeTenantIds = currentUser.tenants
-        .filter(ut => ut.isActive)
-        .map(ut => ut.tenantId);
-
-      // This would typically fetch full tenant details from the server
-      // For now, we'll return a simplified version
-      return activeTenantIds.map(id => ({
-        id,
-        name: `Tenant ${id}`,
-        subdomain: `tenant-${id}`,
-        businessTier: 'SMALL' as const,
-        settings: {
-          timezone: 'UTC',
-          currency: 'USD',
-          dateFormat: 'yyyy-MM-dd',
-          language: 'en',
-          features: {},
-          limits: { maxUsers: 10, maxStorage: 1000, maxApiCalls: 10000, maxIntegrations: 5 }
-        } as TenantSettings,
-        branding: {
-          primaryColor: '#000000',
-          secondaryColor: '#ffffff',
-        } as BrandingConfig,
-      }));
-
+      return data.tenants.filter((tenant: Tenant) => tenant.isActive);
     } catch (error) {
-      console.error('Failed to get accessible tenants:', error);
+      console.error('Failed to fetch available tenants:', error);
       return [];
     }
   }
 
   /**
-   * Check if tenant switch is currently in progress
+   * Check if switching is currently in progress
    */
-  isSwitchingInProgress(): boolean {
+  isSwitching(): boolean {
     return this.switchingInProgress;
   }
 
   /**
-   * Execute the actual tenant switch mutation
+   * Cancel current switch operation (if possible)
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async executeTenantSwitch(tenantId: string): Promise<{ success: boolean; message?: string }> {
-    try {
-      // TODO: Implement SWITCH_TENANT_MUTATION when auth mutations are updated
-      const result = { data: { switchTenant: { success: true, message: 'Tenant switched successfully' } } };
-      /*
-      const result = await apolloClient.mutate({
-        mutation: SWITCH_TENANT_MUTATION,
-        variables: { tenantId },
-        errorPolicy: 'all',
-      });
-      */
-
-      const switchResult = result.data?.switchTenant;
-      
-      return {
-        success: switchResult?.success || false,
-        message: switchResult?.message,
-      };
-
-    } catch (error) {
-      console.error('Tenant switch mutation failed:', error);
-      throw new Error('Failed to execute tenant switch');
+  cancelSwitch(): void {
+    if (this.switchingInProgress) {
+      this.switchingInProgress = false;
+      this.currentSwitchPromise = null;
     }
   }
 
   /**
-   * Clear tenant-specific cached data
+   * Perform the actual tenant switch operation
    */
-  private async clearTenantSpecificCache(): Promise<void> {
+  private async performTenantSwitch(
+    tenantId: string,
+    options: Required<TenantSwitchOptions>
+  ): Promise<TenantSwitchResult> {
     try {
-      // Clear Apollo cache for tenant-specific queries
-      await apolloClient.cache.evict({ fieldName: 'currentTenant' });
-      await apolloClient.cache.evict({ fieldName: 'featureFlags' });
-      
-      // Clear tenant-specific data from cache
-      const cacheKeys = [
-        'tenant_settings',
-        'tenant_features',
-        'tenant_branding',
-        'tenant_permissions',
-      ];
+      // Validate access if requested
+      if (options.validateAccess) {
+        const validation = await this.validateTenantAccess(tenantId);
+        if (!validation.hasAccess) {
+          return {
+            success: false,
+            message: validation.reason || 'Access denied',
+            error: validation.reason,
+          };
+        }
+      }
 
-      cacheKeys.forEach(key => {
-        apolloClient.cache.evict({ fieldName: key });
+      // Perform the switch mutation
+      const { data } = await apolloClient.mutate({
+        mutation: gql`
+          mutation SwitchTenant($tenantId: ID!) {
+            switchTenant(tenantId: $tenantId) {
+              success
+              message
+              user {
+                id
+                email
+                tenantId
+                role
+                permissions
+              }
+            }
+          }
+        `,
+        variables: { tenantId },
       });
 
-      // Clear localStorage tenant data
-      const localStorageKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith('tenant_') || 
-        key.includes('_tenant_') ||
-        key.startsWith('feature_')
-      );
+      if (!data?.switchTenant?.success) {
+        return {
+          success: false,
+          message: data?.switchTenant?.message || 'Switch failed',
+          error: data?.switchTenant?.message,
+        };
+      }
 
-      localStorageKeys.forEach(key => {
-        localStorage.removeItem(key);
-      });
+      // Clear Apollo cache if requested
+      if (options.clearCache) {
+        await apolloClient.clearStore();
+      }
 
-      // Clear sessionStorage tenant data
-      const sessionStorageKeys = Object.keys(sessionStorage).filter(key => 
-        key.startsWith('tenant_') || 
-        key.includes('_tenant_')
-      );
+      // Refresh tenant context if requested
+      if (options.refreshContext) {
+        await this.refreshTenantContext();
+      }
 
-      sessionStorageKeys.forEach(key => {
-        sessionStorage.removeItem(key);
-      });
-
-      // Garbage collect the cache
-      await apolloClient.cache.gc();
-
-      console.log('Tenant-specific cache cleared successfully');
+      return {
+        success: true,
+        message: 'Tenant switched successfully',
+      };
 
     } catch (error) {
-      console.error('Failed to clear tenant cache:', error);
-      // Don't throw here as cache clearing failure shouldn't block tenant switch
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return {
+        success: false,
+        message: `Failed to switch tenant: ${errorMessage}`,
+        error: errorMessage,
+      };
     }
   }
 
   /**
    * Refresh tenant context after switch
    */
-  private async refreshTenantContext(): Promise<Tenant> {
+  private async refreshTenantContext(): Promise<void> {
     try {
-      const result = await apolloClient.query({
-        query: GET_CURRENT_TENANT_QUERY,
+      await apolloClient.query({
+        query: gql`
+          query RefreshTenantContext {
+            tenantContext {
+              tenant {
+                id
+                name
+                slug
+                businessTier
+                subscriptionStatus
+                settings {
+                  timezone
+                  locale
+                  currency
+                  logoUrl
+                  primaryColor
+                }
+                isActive
+              }
+              businessTier
+              isActive
+            }
+          }
+        `,
         fetchPolicy: 'network-only',
       });
-
-      const currentTenant = result.data?.currentTenant;
-      
-      if (!currentTenant) {
-        throw new Error('Failed to fetch current tenant after switch');
-      }
-
-      return currentTenant;
-
     } catch (error) {
       console.error('Failed to refresh tenant context:', error);
-      throw new Error('Failed to refresh tenant context');
-    }
-  }
-
-  /**
-   * Update authentication context with new tenant information
-   */
-  private async updateAuthenticationContext(tenant: Tenant): Promise<void> {
-    try {
-      // This would update the auth manager with new tenant context
-      // The specific implementation depends on how auth manager handles tenant context
-      
-      // For now, we'll trigger a refresh of the authentication state
-      // which should pick up the new tenant context
-      
-      console.log('Authentication context updated for tenant:', tenant.id);
-
-    } catch (error) {
-      console.error('Failed to update authentication context:', error);
-      // Don't throw here as this is not critical for the switch operation
-    }
-  }
-
-  /**
-   * Process queued tenant switch requests
-   */
-  private async processQueue(): Promise<void> {
-    if (this.switchingQueue.length === 0) {
-      return;
-    }
-
-    const { tenantId, resolve, reject } = this.switchingQueue.shift()!;
-    
-    try {
-      const result = await this.switchTenant(tenantId);
-      resolve(result);
-    } catch (error) {
-      reject(error instanceof Error ? error : new Error(String(error)));
     }
   }
 }
 
-// Export singleton instance
+/**
+ * Default tenant switching service instance
+ */
 export const tenantSwitchingService = new TenantSwitchingService();
+
+/**
+ * Hook for tenant switching functionality
+ */
+export function useTenantSwitchingService() {
+  return tenantSwitchingService;
+}

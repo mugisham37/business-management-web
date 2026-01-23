@@ -1,0 +1,82 @@
+# Complete Tenant GraphQL Subscriptions
+# Real-time updates for tenant operations
+
+# Tenant Updates Subscription
+subscription TenantUpdated($tenantId: ID!) {
+  tenantUpdated(tenantId: $tenantId) {
+    id
+    name
+    slug
+    businessTier
+    subscriptionStatus
+    settings {
+      timezone
+      locale
+      currency
+      logoUrl
+      primaryColor
+    }
+    metrics {
+      employeeCount
+      locationCount
+      monthlyTransactionVolume
+      monthlyRevenue
+    }
+    contactEmail
+    contactPhone
+    updatedAt
+    isActive
+    # Computed fields
+    daysUntilTrialEnd
+    isTrialActive
+    tierProgressPercentage
+    nextTier
+    healthStatus
+  }
+}
+
+# Metrics Updates Subscription
+subscription MetricsUpdated($tenantId: ID!) {
+  metricsUpdated(tenantId: $tenantId)
+}
+
+# Tier Changes Subscription
+subscription TierChanged($tenantId: ID!) {
+  tierChanged(tenantId: $tenantId)
+}
+
+# Feature Flag Changes Subscription
+subscription FeatureFlagChanged($tenantId: ID!) {
+  featureFlagChanged(tenantId: $tenantId) {
+    id
+    tenantId
+    featureName
+    isEnabled
+    rolloutPercentage
+    customRules {
+      condition
+      value
+      description
+    }
+    status
+    description
+    enabledAt
+    disabledAt
+    updatedAt
+    # Computed fields
+    displayName
+    category
+    dependencies
+    isFullyRolledOut
+  }
+}
+
+# Subscription Status Changes Subscription
+subscription SubscriptionStatusChanged($tenantId: ID!) {
+  subscriptionStatusChanged(tenantId: $tenantId)
+}
+
+# Tenant Activity Subscription
+subscription TenantActivity($tenantId: ID!) {
+  tenantActivity(tenantId: $tenantId)
+}

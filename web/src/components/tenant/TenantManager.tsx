@@ -42,7 +42,6 @@ export function TenantManager({ className = '' }: TenantManagerProps) {
   const {
     enabledFeatures,
     availableFeatures,
-    hasFeature,
   } = useFeatureFlags();
 
   const {
@@ -78,8 +77,27 @@ export function TenantManager({ className = '' }: TenantManagerProps) {
     return (
       <div className={`tenant-manager ${className}`}>
         <div className="error-state">
-          <span className="error-icon">⚠️</span>
-          <span>Error: {error}</span>
+          <div className="error-message">
+            <h3>Error Loading Tenant Information</h3>
+            <p>{error}</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="retry-button"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentTenant) {
+    return (
+      <div className={`tenant-manager ${className}`}>
+        <div className="no-tenant-state">
+          <h3>No Tenant Selected</h3>
+          <p>Please select a tenant to continue.</p>
         </div>
       </div>
     );
@@ -87,199 +105,174 @@ export function TenantManager({ className = '' }: TenantManagerProps) {
 
   return (
     <div className={`tenant-manager ${className}`}>
-      {/* Current Tenant Information */}
-      <div className="current-tenant-section">
-        <h3>Current Tenant</h3>
-        {currentTenant ? (
-          <div className="tenant-info">
-            <div className="tenant-header">
-              <h4>{currentTenant.name}</h4>
-              <span className={`tier-badge tier-${businessTier.toLowerCase()}`}>
-                {businessTier}
-              </span>
-            </div>
-            <div className="tenant-details">
-              <p><strong>Subdomain:</strong> {currentTenant.subdomain}</p>
-              <p><strong>Timezone:</strong> {currentTenant.settings?.timezone}</p>
-              <p><strong>Currency:</strong> {currentTenant.settings?.currency}</p>
-            </div>
-          </div>
-        ) : (
-          <p>No tenant selected</p>
-        )}
+      <div className="tenant-manager-header">
+        <h2>Tenant Management</h2>
+        <div className="tenant-info">
+          <span className="tenant-name">{currentTenant.name}</span>
+          <span className="tenant-tier">{businessTier}</span>
+        </div>
       </div>
 
-      {/* Tenant Switching */}
-      <TierGate requiredTier="SMALL">
-        <div className="tenant-switching-section">
+      <div className="tenant-manager-content">
+        {/* Tenant Switching Section */}
+        <div className="section tenant-switching">
           <h3>Switch Tenant</h3>
-          <div className="tenant-switch-form">
+          <div className="tenant-switch-controls">
             <select
               value={selectedTenantId}
               onChange={(e) => setSelectedTenantId(e.target.value)}
               disabled={isSwitching}
+              className="tenant-select"
             >
               <option value="">Select a tenant...</option>
-              {availableTenants.map((tenant) => (
-                <option 
-                  key={tenant.id} 
-                  value={tenant.id}
-                  disabled={tenant.id === currentTenant?.id}
-                >
-                  {tenant.name} ({tenant.businessTier})
-                </option>
-              ))}
+              {availableTenants
+                .filter(t => t.id !== currentTenant.id)
+                .map(tenant => (
+                  <option 
+                    key={tenant.id} 
+                    value={tenant.id}
+                    disabled={!canSwitchTo(tenant.id)}
+                  >
+                    {tenant.name} ({tenant.businessTier})
+                  </option>
+                ))
+              }
             </select>
             <button
               onClick={handleTenantSwitch}
               disabled={!selectedTenantId || isSwitching || !canSwitchTo(selectedTenantId)}
               className="switch-button"
             >
-              {isSwitchingTo(selectedTenantId) ? 'Switching...' : 'Switch Tenant'}
+              {isSwitching ? 'Switching...' : 'Switch Tenant'}
             </button>
           </div>
-        </div>
-      </TierGate>
-
-      {/* Feature Flags */}
-      <div className="features-section">
-        <h3>Available Features</h3>
-        <div className="features-grid">
-          {availableFeatures.map((feature) => (
-            <div 
-              key={feature.key} 
-              className={`feature-card ${feature.enabled ? 'enabled' : 'disabled'}`}
-            >
-              <div className="feature-header">
-                <span className="feature-name">{feature.key}</span>
-                <span className={`feature-status ${feature.enabled ? 'enabled' : 'disabled'}`}>
-                  {feature.enabled ? '✓' : '✗'}
-                </span>
-              </div>
-              <div className="feature-tier">
-                Required Tier: {feature.requiredTier}
-              </div>
-              {!isTierSufficient(feature.requiredTier) && (
-                <div className="upgrade-notice">
-                  Upgrade to {feature.requiredTier} tier to access this feature
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tier Information */}
-      <div className="tier-section">
-        <h3>Business Tier Information</h3>
-        <div className="tier-info">
-          <div className="current-tier">
-            <span className="tier-label">Current Tier:</span>
-            <span className={`tier-value tier-${businessTier.toLowerCase()}`}>
-              {businessTier}
-            </span>
-          </div>
-          
-          {tierLimits && (
-            <div className="tier-limits">
-              <h4>Tier Limits</h4>
-              <ul>
-                <li>Max Users: {tierLimits.maxUsers}</li>
-                <li>Max Storage: {tierLimits.maxStorage} GB</li>
-                <li>Max API Calls: {tierLimits.maxApiCalls}/month</li>
-                <li>Max Integrations: {tierLimits.maxIntegrations}</li>
-              </ul>
+          {isSwitchingTo && (
+            <div className="switching-indicator">
+              Switching to {availableTenants.find(t => t.id === isSwitchingTo)?.name}...
             </div>
           )}
         </div>
+
+        {/* Business Tier Section */}
+        <div className="section business-tier">
+          <h3>Business Tier: {businessTier}</h3>
+          <div className="tier-info">
+            <div className="tier-limits">
+              <h4>Current Limits</h4>
+              <ul>
+                <li>Max Employees: {tierLimits.maxEmployees === Infinity ? 'Unlimited' : tierLimits.maxEmployees}</li>
+                <li>Max Locations: {tierLimits.maxLocations === Infinity ? 'Unlimited' : tierLimits.maxLocations}</li>
+                <li>Max Transactions: {tierLimits.maxTransactions === Infinity ? 'Unlimited' : tierLimits.maxTransactions}</li>
+                <li>Max Revenue: {tierLimits.maxRevenue === Infinity ? 'Unlimited' : `$${tierLimits.maxRevenue.toLocaleString()}`}</li>
+              </ul>
+            </div>
+            <div className="tier-progress">
+              <h4>Tier Progress</h4>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `50%` }}
+                />
+              </div>
+              <span>50% to Next Tier</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Management Section */}
+        <div className="section feature-management">
+          <h3>Available Features ({enabledFeatures.length})</h3>
+          <div className="features-grid">
+            {availableFeatures.map((featureName: string) => (
+              <div key={featureName} className="feature-card">
+                <div className="feature-name">{featureName}</div>
+                <div className="feature-status enabled">Enabled</div>
+              </div>
+            ))}
+          </div>
+          
+          {enabledFeatures.length !== availableFeatures.length && (
+            <div className="disabled-features">
+              <h4>Disabled Features</h4>
+              <div className="features-grid">
+                {enabledFeatures
+                  .filter(f => f.featureName && !availableFeatures.includes(f.featureName))
+                  .map(feature => (
+                    <div key={feature.featureName || feature.key} className="feature-card disabled">
+                      <div className="feature-name">{feature.featureName || feature.key}</div>
+                      <div className="feature-status disabled">
+                        {isTierSufficient('SMALL' as BusinessTier) ? 'Disabled' : 'Upgrade Required'}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tenant Information Section */}
+        <div className="section tenant-info-section">
+          <h3>Tenant Information</h3>
+          <div className="info-grid">
+            <div className="info-item">
+              <label>Name:</label>
+              <span>{currentTenant.name}</span>
+            </div>
+            <div className="info-item">
+              <label>ID:</label>
+              <span>{currentTenant.id}</span>
+            </div>
+            <div className="info-item">
+              <label>Status:</label>
+              <span className="status active">Active</span>
+            </div>
+            <div className="info-item">
+              <label>Health:</label>
+              <span className="health healthy">Healthy</span>
+            </div>
+            <div className="info-item">
+              <label>Created:</label>
+              <span>{currentTenant.createdAt ? new Date(currentTenant.createdAt).toLocaleDateString() : 'N/A'}</span>
+            </div>
+            <div className="info-item">
+              <label>Updated:</label>
+              <span>{currentTenant.updatedAt ? new Date(currentTenant.updatedAt).toLocaleDateString() : 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Gates Demo */}
+        <div className="section feature-gates-demo">
+          <h3>Feature Gates Demo</h3>
+          
+          <FeatureGate 
+            feature="advanced-analytics" 
+            fallback={<div className="feature-locked">Advanced Analytics requires upgrade</div>}
+          >
+            <div className="feature-enabled">✅ Advanced Analytics Available</div>
+          </FeatureGate>
+
+          <TierGate 
+            requiredTier={'MEDIUM' as BusinessTier}
+            fallback={<div className="feature-locked">Medium tier required for this feature</div>}
+          >
+            <div className="feature-enabled">✅ Medium Tier Feature Available</div>
+          </TierGate>
+
+          <FeatureGate 
+            feature="api-access"
+            fallback={<div className="feature-locked">API Access not available</div>}
+          >
+            <TierGate 
+              requiredTier={'SMALL' as BusinessTier}
+              fallback={<div className="feature-locked">Small tier required for API access</div>}
+            >
+              <div className="feature-enabled">✅ API Access Available</div>
+            </TierGate>
+          </FeatureGate>
+        </div>
       </div>
-
-      {/* Feature-Gated Content Examples */}
-      <div className="feature-examples-section">
-        <h3>Feature-Gated Content Examples</h3>
-        
-        <FeatureGate feature="advanced-analytics">
-          <div className="feature-example">
-            <h4>Advanced Analytics</h4>
-            <p>This content is only visible when advanced analytics feature is enabled.</p>
-          </div>
-        </FeatureGate>
-
-        <FeatureGate feature="custom-branding">
-          <div className="feature-example">
-            <h4>Custom Branding</h4>
-            <p>This content is only visible when custom branding feature is enabled.</p>
-          </div>
-        </FeatureGate>
-
-        <TierGate requiredTier="ENTERPRISE">
-          <div className="feature-example">
-            <h4>Enterprise Features</h4>
-            <p>This content is only visible for Enterprise tier tenants.</p>
-          </div>
-        </TierGate>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Tenant Switcher Component
- * Simplified tenant switching dropdown
- */
-export function TenantSwitcher({ className = '' }: { className?: string }) {
-  const { currentTenant } = useTenantProvider();
-  const { availableTenants, switchTenant, isSwitching } = useTenantSwitching();
-
-  const handleSwitch = async (tenantId: string) => {
-    if (tenantId !== currentTenant?.id) {
-      await switchTenant(tenantId);
-    }
-  };
-
-  return (
-    <div className={`tenant-switcher ${className}`}>
-      <select
-        value={currentTenant?.id || ''}
-        onChange={(e) => handleSwitch(e.target.value)}
-        disabled={isSwitching}
-        className="tenant-select"
-      >
-        {availableTenants.map((tenant) => (
-          <option key={tenant.id} value={tenant.id}>
-            {tenant.name}
-          </option>
-        ))}
-      </select>
-      {isSwitching && <span className="switching-indicator">Switching...</span>}
-    </div>
-  );
-}
-
-/**
- * Feature Status Indicator Component
- */
-interface FeatureStatusProps {
-  featureKey: string;
-  className?: string;
-}
-
-export function FeatureStatus({ featureKey, className = '' }: FeatureStatusProps) {
-  const { hasFeature, getFeatureConfig } = useFeatureFlags();
-  const isEnabled = hasFeature(featureKey);
-  const config = getFeatureConfig(featureKey);
-
-  return (
-    <div className={`feature-status ${className} ${isEnabled ? 'enabled' : 'disabled'}`}>
-      <span className="feature-name">{featureKey}</span>
-      <span className={`status-indicator ${isEnabled ? 'enabled' : 'disabled'}`}>
-        {isEnabled ? '✓ Enabled' : '✗ Disabled'}
-      </span>
-      {config && (
-        <span className="required-tier">
-          (Requires: {config.requiredTier})
-        </span>
-      )}
     </div>
   );
 }
