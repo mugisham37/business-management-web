@@ -100,13 +100,57 @@ export const useFeatureStore = create<FeatureStore>()(
             const updatedFeatures = [...state.features];
             const currentFeature = updatedFeatures[featureIndex];
             if (currentFeature) {
-              updatedFeatures[featureIndex] = { 
+              const mergedFeature: FeatureFlag = { 
                 key: currentFeature.key,
+                featureName: currentFeature.featureName,
                 enabled: currentFeature.enabled,
+                isEnabled: currentFeature.isEnabled,
                 config: currentFeature.config,
+                customRules: currentFeature.customRules as Record<string, unknown> | undefined,
                 requiredTier: currentFeature.requiredTier,
-                ...updates,
-              };
+                displayName: currentFeature.displayName,
+                description: currentFeature.description,
+                category: currentFeature.category,
+                rolloutPercentage: currentFeature.rolloutPercentage,
+                status: currentFeature.status,
+              } as unknown as FeatureFlag;
+              
+              // Apply updates, handling optional fields carefully
+              if (updates.displayName !== undefined) {
+                mergedFeature.displayName = updates.displayName;
+              }
+              if (updates.description !== undefined) {
+                mergedFeature.description = updates.description;
+              }
+              if (updates.category !== undefined) {
+                mergedFeature.category = updates.category;
+              }
+              if (updates.rolloutPercentage !== undefined) {
+                mergedFeature.rolloutPercentage = updates.rolloutPercentage;
+              }
+              if (updates.status !== undefined) {
+                mergedFeature.status = updates.status;
+              }
+              if (updates.enabled !== undefined) {
+                mergedFeature.enabled = updates.enabled;
+              }
+              if (updates.isEnabled !== undefined) {
+                mergedFeature.isEnabled = updates.isEnabled;
+              }
+              if (updates.config !== undefined) {
+                mergedFeature.config = updates.config;
+              }
+              if (updates.customRules !== undefined) {
+                mergedFeature.customRules = updates.customRules;
+              }
+              if (updates.requiredTier !== undefined) {
+                mergedFeature.requiredTier = updates.requiredTier;
+              }
+              if (updates.featureName !== undefined) {
+                mergedFeature.featureName = updates.featureName;
+              }
+              
+              updatedFeatures[featureIndex] = mergedFeature;
               
               const newCache = new Map(state.featureCache);
               newCache.delete(key); // Remove from cache to force recalculation

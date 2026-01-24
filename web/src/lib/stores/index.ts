@@ -54,11 +54,12 @@ export {
 export {
   StoreProvider,
   StoreLoading,
-  StoreStatus,
   useStoreContext,
   withStores,
   storeHydration,
 } from './store-provider';
+
+export type { StoreStatus } from './store-provider';
 
 // Integration hooks for backward compatibility
 export {

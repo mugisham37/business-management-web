@@ -9,7 +9,7 @@ export {
   MODULE_REGISTRY,
   type ModuleConfig,
   type LoadedModule,
-} from '../../components/module-loader';
+} from '@/components/module-loader';
 
 // Route-based code splitting
 export {
@@ -55,7 +55,7 @@ export {
   useAssetOptimization,
   type ImageOptimizationConfig,
   type AssetMetrics,
-} from '../../components/asset-optimizer';
+} from '@/components/asset-optimizer';
 
 // Tree shaking and dead code elimination
 export {
@@ -67,8 +67,5 @@ export {
 } from './tree-shaking';
 
 // Re-export components
-export { LazyModule, useLazyModule } from '@/components/common/LazyModule';
-export { LoadingSpinner } from '@/components/common/LoadingSpinner';
 export { ModuleErrorFallback } from '@/components/common/ModuleErrorFallback';
 export { PerformanceDashboard } from '@/components/performance/PerformanceDashboard';
-export { PerformanceMetrics as PerformanceMetricsComponent } from '@/components/performance/PerformanceMetrics';

@@ -4,11 +4,10 @@
  */
 
 import { EventEmitter } from 'events';
-import { config } from '@/lib/config/env';
 
 export interface WebSocketConfig {
   url: string;
-  protocols?: string[];
+  protocols?: string[] | undefined;
   reconnectAttempts: number;
   reconnectDelay: number;
   heartbeatInterval: number;
@@ -17,7 +16,7 @@ export interface WebSocketConfig {
 
 export interface WebSocketMessage {
   type: string;
-  data?: any;
+  data?: Record<string, unknown>;
   timestamp?: Date;
 }
 
@@ -26,10 +25,10 @@ export interface WebSocketConnectionState {
   isConnecting: boolean;
   isReconnecting: boolean;
   hasError: boolean;
-  error?: Error;
+  error?: Error | undefined;
   reconnectAttempts: number;
-  lastConnected?: Date;
-  lastDisconnected?: Date;
+  lastConnected?: Date | undefined;
+  lastDisconnected?: Date | undefined;
 }
 
 export class WebSocketManager extends EventEmitter {
@@ -116,6 +115,7 @@ export class WebSocketManager extends EventEmitter {
       isReconnecting: false,
       reconnectAttempts: 0,
       lastDisconnected: new Date(),
+      error: undefined,
     });
   }
 
@@ -146,7 +146,7 @@ export class WebSocketManager extends EventEmitter {
   /**
    * Subscribe to a specific event type
    */
-  subscribe(eventType: string, data?: any): void {
+  subscribe(eventType: string, data?: Record<string, unknown>): void {
     this.subscriptions.add(eventType);
     this.send({
       type: 'subscribe',
@@ -218,9 +218,9 @@ export class WebSocketManager extends EventEmitter {
     this.emit('connected');
   }
 
-  private handleMessage(event: MessageEvent): void {
+  private handleMessage(event: MessageEvent<string>): void {
     try {
-      const message = JSON.parse(event.data);
+      const message = JSON.parse(event.data) as WebSocketMessage & Record<string, unknown>;
       this.emit('message', message);
       
       // Handle specific message types
@@ -258,6 +258,9 @@ export class WebSocketManager extends EventEmitter {
       isConnected: false,
       isConnecting: false,
       lastDisconnected: new Date(),
+      hasError: false,
+      error: undefined,
+      isReconnecting: false,
     });
 
     this.emit('disconnected', { code: event.code, reason: event.reason });
@@ -277,6 +280,8 @@ export class WebSocketManager extends EventEmitter {
       hasError: true,
       error: errorObj,
       isConnecting: false,
+      isConnected: false,
+      isReconnecting: false,
     });
 
     this.emit('error', errorObj);
@@ -292,6 +297,10 @@ export class WebSocketManager extends EventEmitter {
     this.setState({
       isReconnecting: true,
       reconnectAttempts: this.state.reconnectAttempts + 1,
+      hasError: false,
+      error: undefined,
+      isConnected: false,
+      isConnecting: false,
     });
 
     const delay = this.config.reconnectDelay * Math.pow(2, this.state.reconnectAttempts - 1);

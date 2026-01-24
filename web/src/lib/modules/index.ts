@@ -4,8 +4,8 @@
  */
 
 // Core module system
-export { moduleLoader, MODULE_REGISTRY } from '@/src/components/module-loader';
-export type { ModuleConfig, LoadedModule } from '@/src/components/module-loader';
+export { moduleLoader, MODULE_REGISTRY } from '@/components/module-loader';
+export type { ModuleConfig, LoadedModule } from '@/components/module-loader';
 
 // Enhanced module registry - Only export what exists
 export { ENHANCED_MODULE_REGISTRY } from './module-registry';
@@ -29,12 +29,11 @@ export type { RouteConfig } from '@/lib/routing/module-router';
 export { ModuleWrapper, ModuleSection, ModuleGrid } from '@/components/common/ModuleWrapper';
 export type { ModuleWrapperProps, ModuleSectionProps, ModuleGridProps } from '@/components/common/ModuleWrapper';
 
-export { LazyModule, useLazyModule } from '@/components/common/LazyModule';
 export { ModuleNavigation } from '@/components/layout/ModuleNavigation';
 
 // Import for internal use
 import { ENHANCED_MODULE_REGISTRY } from './module-registry';
-import { moduleLoader } from '@/src/components/module-loader';
+import { moduleLoader } from '@/components/module-loader';
 
 /**
  * Module System Configuration

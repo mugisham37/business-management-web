@@ -5,15 +5,15 @@
 
 export interface StateSnapshot {
   storeName: string;
-  state: any;
+  state: Record<string, unknown>;
   timestamp: Date;
 }
 
 export interface StateChange {
   storeName: string;
   action: string;
-  previousState: any;
-  newState: any;
+  previousState: Record<string, unknown>;
+  newState: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -29,7 +29,7 @@ export class StateDebugManager {
   /**
    * Record state snapshot
    */
-  recordSnapshot(storeName: string, state: any): void {
+  recordSnapshot(storeName: string, state: Record<string, unknown>): void {
     this.snapshots.push({
       storeName,
       state: JSON.parse(JSON.stringify(state)), // Deep copy
@@ -44,7 +44,12 @@ export class StateDebugManager {
   /**
    * Record state change
    */
-  recordChange(storeName: string, action: string, previousState: any, newState: any): void {
+  recordChange(
+    storeName: string,
+    action: string,
+    previousState: Record<string, unknown>,
+    newState: Record<string, unknown>
+  ): void {
     this.changes.push({
       storeName,
       action,
@@ -113,10 +118,14 @@ export function useStateDebug() {
  * State debug utilities
  */
 export const stateDebugUtils = {
-  recordSnapshot: (storeName: string, state: any) =>
+  recordSnapshot: (storeName: string, state: Record<string, unknown>) =>
     defaultDebugManager.recordSnapshot(storeName, state),
-  recordChange: (storeName: string, action: string, previousState: any, newState: any) =>
-    defaultDebugManager.recordChange(storeName, action, previousState, newState),
+  recordChange: (
+    storeName: string,
+    action: string,
+    previousState: Record<string, unknown>,
+    newState: Record<string, unknown>
+  ) => defaultDebugManager.recordChange(storeName, action, previousState, newState),
   getSnapshots: () => defaultDebugManager.getSnapshots(),
   getChanges: () => defaultDebugManager.getChanges(),
   clear: () => defaultDebugManager.clear(),

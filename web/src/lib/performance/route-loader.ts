@@ -4,7 +4,7 @@
  */
 
 import { ComponentType } from 'react';
-import { moduleLoader } from '../../components/module-loader';
+import { moduleLoader } from '@/components/module-loader';
 
 export interface RouteConfig {
   path: string;

@@ -3,11 +3,15 @@
  * Handles dynamic module routing and loading
  */
 
-export interface ModuleRouteConfig {
+export interface RouteConfig {
   path: string;
   name: string;
-  component?: any;
+  component?: React.ComponentType<unknown>;
   enabled: boolean;
+}
+
+export interface ModuleRouteConfig extends RouteConfig {
+  moduleName?: string;
 }
 
 export interface ModuleRouteContext {
@@ -20,7 +24,7 @@ export interface ModuleRouteContext {
 /**
  * Module Router Implementation
  */
-class ModuleRouter implements ModuleRouteContext {
+export class ModuleRouter implements ModuleRouteContext {
   private routes: Map<string, ModuleRouteConfig> = new Map();
 
   /**
@@ -71,10 +75,58 @@ class ModuleRouter implements ModuleRouteContext {
 export const moduleRouter = new ModuleRouter();
 
 /**
+ * Module routes constant
+ */
+export const MODULE_ROUTES = moduleRouter;
+
+/**
  * Hook to use module router
  */
 export function useModuleRouter(): ModuleRouteContext {
   return moduleRouter;
+}
+
+/**
+ * Hook for module navigation
+ */
+export function useModuleNavigation() {
+  return {
+    getRoute: (moduleName: string) => moduleRouter.getRoute(moduleName),
+    getRoutes: () => moduleRouter.getRoutes(),
+    navigate: (moduleName: string) => {
+      const route = moduleRouter.getRoute(moduleName);
+      if (route && route.enabled) {
+        // Navigate using browser history or router
+        if (typeof window !== 'undefined') {
+          window.history.pushState({}, '', route.path);
+        }
+      }
+    },
+  };
+}
+
+/**
+ * Hook for module breadcrumbs
+ */
+export function useModuleBreadcrumbs() {
+  return {
+    getBreadcrumbs: () => {
+      // Get breadcrumbs from current path
+      if (typeof window === 'undefined') return [];
+      
+      const pathname = window.location.pathname;
+      const segments = pathname.split('/').filter(Boolean);
+      
+      return segments.map((segment, index) => {
+        const path = '/' + segments.slice(0, index + 1).join('/');
+        return {
+          name: segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' '),
+          path,
+          enabled: true,
+        };
+      });
+    },
+  };
 }
 
 /**

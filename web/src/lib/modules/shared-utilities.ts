@@ -4,7 +4,7 @@
  * Requirements: 11.3, 11.6
  */
 
-import { ModuleConfig } from '@/src/components/module-loader';
+import { ModuleConfig } from '@/components/module-loader';
 
 /**
  * Module dependency resolver
@@ -357,7 +357,7 @@ export const moduleUtils = {
       return true;
     }
     
-    return moduleConfig.permissions.some(permission => 
+    return moduleConfig.permissions.some((permission: string) => 
       userPermissions.includes(permission)
     );
   },
