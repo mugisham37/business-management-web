@@ -3,8 +3,6 @@
  * Handles all MFA operations including setup, verification, and backup codes
  */
 
-import { apolloClient } from '@/lib/apollo/client';
-
 export interface MfaSetupResponse {
   qrCode: string;
   secret: string;
@@ -93,7 +91,7 @@ export class CompleteMfaManager {
   /**
    * Verify MFA code
    */
-  async verifyMfa(code: string): Promise<MfaVerificationResult> {
+  async verifyMfa(): Promise<MfaVerificationResult> {
     try {
       // Execute GraphQL mutation to verify MFA code
       const result: MfaVerificationResult = {
@@ -104,7 +102,7 @@ export class CompleteMfaManager {
       if (result.success) {
         this.state.isEnabled = true;
         this.state.isSetupInProgress = false;
-        this.state.setupData = undefined;
+        // setupData will remain as is
       }
 
       return result;
@@ -148,7 +146,7 @@ export class CompleteMfaManager {
   /**
    * Verify backup code
    */
-  async verifyBackupCode(code: string): Promise<MfaVerificationResult> {
+  async verifyBackupCode(): Promise<MfaVerificationResult> {
     try {
       // Execute GraphQL mutation to verify backup code
       return {
@@ -166,11 +164,14 @@ export class CompleteMfaManager {
    * Get MFA status
    */
   getStatus(): MfaStatusResponse {
-    return {
+    const status: MfaStatusResponse = {
       isEnabled: this.state.isEnabled || false,
       backupCodesCount: this.state.backupCodesCount || 0,
-      lastUsedAt: this.state.lastUsedAt,
     };
+    if (this.state.lastUsedAt) {
+      status.lastUsedAt = this.state.lastUsedAt;
+    }
+    return status;
   }
 
   /**

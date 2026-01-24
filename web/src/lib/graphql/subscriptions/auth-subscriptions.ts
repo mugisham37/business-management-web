@@ -143,7 +143,7 @@ export interface AuthEvent {
   userId: string;
   tenantId: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }

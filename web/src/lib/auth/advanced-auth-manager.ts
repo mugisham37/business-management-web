@@ -6,6 +6,7 @@
 
 import { apolloClient } from '@/lib/apollo/client';
 import { TokenManager } from './token-manager';
+import { DocumentNode } from '@apollo/client';
 
 export interface SessionInfo {
   id: string;
@@ -54,7 +55,7 @@ export class AdvancedAuthManager {
   async initialize(): Promise<void> {
     try {
       // Verify tokens are valid
-      const tokens = this.tokenManager.getTokens();
+      const tokens = await this.tokenManager.getValidTokens();
       if (!tokens) {
         console.warn('No tokens available for initialization');
       }
@@ -85,7 +86,7 @@ export class AdvancedAuthManager {
     try {
       // Execute GraphQL mutation to logout from all sessions
       await apolloClient.mutate({
-        mutation: {} as any, // Placeholder for LOGOUT_ALL_SESSIONS_MUTATION
+        mutation: {} as DocumentNode, // Placeholder for LOGOUT_ALL_SESSIONS_MUTATION
       });
       this.tokenManager.clearTokens();
     } catch (error) {
@@ -101,7 +102,7 @@ export class AdvancedAuthManager {
     try {
       // Execute GraphQL mutation to change password
       await apolloClient.mutate({
-        mutation: {} as any, // Placeholder for CHANGE_PASSWORD_MUTATION
+        mutation: {} as DocumentNode, // Placeholder for CHANGE_PASSWORD_MUTATION
         variables: request,
       });
     } catch (error) {
@@ -117,7 +118,7 @@ export class AdvancedAuthManager {
     try {
       // Execute GraphQL mutation to request password reset
       await apolloClient.mutate({
-        mutation: {} as any, // Placeholder for FORGOT_PASSWORD_MUTATION
+        mutation: {} as DocumentNode, // Placeholder for FORGOT_PASSWORD_MUTATION
         variables: { email },
       });
     } catch (error) {
@@ -133,7 +134,7 @@ export class AdvancedAuthManager {
     try {
       // Execute GraphQL mutation to confirm password reset
       await apolloClient.mutate({
-        mutation: {} as any, // Placeholder for RESET_PASSWORD_MUTATION
+        mutation: {} as DocumentNode, // Placeholder for RESET_PASSWORD_MUTATION
         variables: request,
       });
     } catch (error) {
@@ -168,9 +169,11 @@ export class AdvancedAuthManager {
   }
 }
 
-// Create singleton instance
-let tokenManager: TokenManager | null = null;
+// Note: advancedAuthManager should be initialized after tokenManager is created
+// This will be done in the auth initialization process
 
-export const advancedAuthManager = new AdvancedAuthManager(
-  (typeof window !== 'undefined' && tokenManager) || new TokenManager()
-);
+export let advancedAuthManager: AdvancedAuthManager | null = null;
+
+export function initializeAdvancedAuthManager(tm: TokenManager): void {
+  advancedAuthManager = new AdvancedAuthManager(tm);
+}

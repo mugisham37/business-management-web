@@ -4,7 +4,6 @@
  */
 
 import { apolloClient } from '@/lib/apollo/client';
-import { Observable, Subscription } from 'rxjs';
 import {
   USER_AUTH_EVENTS_SUBSCRIPTION,
   USER_PERMISSION_EVENTS_SUBSCRIPTION,
@@ -24,12 +23,16 @@ export interface AuthSubscriptionOptions {
   onComplete?: () => void;
 }
 
+// Type alias for any subscription-like object with unsubscribe method
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySubscription = any;
+
 /**
  * Auth Subscription Manager
  * Manages real-time auth event subscriptions with automatic reconnection
  */
 export class AuthSubscriptionManager {
-  private subscriptions = new Map<string, Subscription>();
+  private subscriptions = new Map<string, AnySubscription>();
   private eventListeners = new Map<AuthEventType, Set<(event: AuthEvent) => void>>();
   private isConnected = false;
 
@@ -397,7 +400,7 @@ export class AuthSubscriptionManager {
    * Unsubscribe from all subscriptions
    */
   unsubscribeAll(): void {
-    this.subscriptions.forEach((subscription, key) => {
+    this.subscriptions.forEach((subscription) => {
       subscription.unsubscribe();
     });
     this.subscriptions.clear();

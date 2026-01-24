@@ -32,7 +32,7 @@
       "@/hooks/*": ["./src/hooks/*"],
       "@/types/*": ["./src/types/*"],
       "@/modules/*": ["./src/modules/*"],
-      "@/graphql/*": ["./src/graphql/*"],
+      "@/graphql/*": ["./src/lib/graphql/*"],
       "@/utils/*": ["./src/utils/*"]
     }
   },

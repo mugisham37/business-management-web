@@ -4,7 +4,7 @@
  */
 
 import { apolloClient } from '@/lib/apollo/client';
-import { AuthEvent, AuthEventType } from '@/graphql/subscriptions/auth-subscriptions';
+import { AuthEvent } from '@/graphql/subscriptions/auth-subscriptions';
 import {
   LOGOUT_ALL_SESSIONS_MUTATION,
   CHANGE_PASSWORD_MUTATION,
@@ -257,7 +257,7 @@ export const advancedAuthManager = new AdvancedAuthManager();
 export interface AuthManager {
   getAccessToken(): Promise<string | null>;
   logout(): Promise<void>;
-  getCurrentUser(): Promise<any>;
+  getCurrentUser(): Promise<Record<string, unknown> | null>;
   requiresMfa(email: string): Promise<boolean>;
   logoutAllSessions(): Promise<void>;
   changePassword(request: PasswordChangeRequest): Promise<void>;
@@ -310,10 +310,11 @@ class AuthManagerImpl implements AuthManager {
 
       // Optionally logout from backend if needed
       try {
-        await apolloClient.mutate({
-          mutation: {} as any, // Use LOGOUT_MUTATION when available
-        });
-      } catch (e) {
+        // Note: Placeholder for LOGOUT_MUTATION - implement when available
+        // await apolloClient.mutate({
+        //   mutation: LOGOUT_MUTATION,
+        // });
+      } catch {
         // Logout mutation may fail due to invalid token, which is fine
       }
     } catch (error) {
@@ -325,7 +326,7 @@ class AuthManagerImpl implements AuthManager {
   /**
    * Get current user
    */
-  async getCurrentUser(): Promise<any> {
+  async getCurrentUser(): Promise<Record<string, unknown> | null> {
     return this.advancedAuthManager.getCurrentUser();
   }
 

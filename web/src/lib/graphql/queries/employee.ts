@@ -11,7 +11,6 @@ import {
   EMPLOYEE_SCHEDULE_FRAGMENT,
   TRAINING_RECORD_FRAGMENT,
   EMPLOYEE_GOAL_FRAGMENT,
-  PERFORMANCE_REVIEW_FRAGMENT,
 } from '../fragments/employee';
 
 // Employee Queries

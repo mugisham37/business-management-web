@@ -63,6 +63,7 @@ import {
   PageErrorFallback,
   ModuleErrorFallback,
   ComponentErrorFallback,
+  type ErrorBoundaryProps,
 } from './global-error-boundary';
 
 /**
@@ -144,56 +145,80 @@ export const ErrorHandlingUtils = {
  */
 export function setupErrorBoundaryHierarchy() {
   return {
-    App: ({ children }: { children: React.ReactNode }) => (
-      React.createElement(GlobalErrorBoundary, {
-        level: "app" as const,
-        fallback: AppErrorFallback,
-        onError: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
-          errorLogger.logError(error, {
-            component: 'app-boundary',
-            operationId: errorId,
-          }, { errorInfo }, ['app-error', 'critical']);
-        },
-      }, children)
-    ),
+    App: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(
+        GlobalErrorBoundary,
+        {
+          level: 'app' as const,
+          fallback: (error: Error, retry: () => void) =>
+            React.createElement(AppErrorFallback, { error, errorInfo: null, retry }),
+          onError: (error: Error, errorInfo: React.ErrorInfo) => {
+            errorLogger.logError(
+              error,
+              { component: 'app-boundary' },
+              { errorInfo },
+              ['app-error', 'critical']
+            );
+          },
+          children,
+        } as ErrorBoundaryProps
+      ),
 
-    Page: ({ children }: { children: React.ReactNode }) => (
-      React.createElement(GlobalErrorBoundary, {
-        level: "page" as const,
-        fallback: PageErrorFallback,
-        onError: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
-          errorLogger.logError(error, {
-            component: 'page-boundary',
-            operationId: errorId,
-          }, { errorInfo }, ['page-error']);
-        },
-      }, children)
-    ),
+    Page: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(
+        GlobalErrorBoundary,
+        {
+          level: 'page' as const,
+          fallback: (error: Error, retry: () => void) =>
+            React.createElement(PageErrorFallback, { error, errorInfo: null, retry }),
+          onError: (error: Error, errorInfo: React.ErrorInfo) => {
+            errorLogger.logError(
+              error,
+              { component: 'page-boundary' },
+              { errorInfo },
+              ['page-error']
+            );
+          },
+          children,
+        } as ErrorBoundaryProps
+      ),
 
-    Module: ({ children, moduleName }: { children: React.ReactNode; moduleName?: string }) => (
-      React.createElement(GlobalErrorBoundary, {
-        level: "module" as const,
-        fallback: ModuleErrorFallback,
-        onError: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
-          errorLogger.logError(error, {
-            component: moduleName || 'unknown-module',
-            operationId: errorId,
-          }, { errorInfo }, ['module-error']);
-        },
-      }, children)
-    ),
+    Module: ({ children, moduleName }: { children: React.ReactNode; moduleName?: string }) =>
+      React.createElement(
+        GlobalErrorBoundary,
+        {
+          level: 'module' as const,
+          fallback: (error: Error, retry: () => void) =>
+            React.createElement(ModuleErrorFallback, { error, errorInfo: null, retry }),
+          onError: (error: Error, errorInfo: React.ErrorInfo) => {
+            errorLogger.logError(
+              error,
+              { component: moduleName || 'unknown-module' },
+              { errorInfo },
+              ['module-error']
+            );
+          },
+          children,
+        } as ErrorBoundaryProps
+      ),
 
-    Component: ({ children, componentName }: { children: React.ReactNode; componentName?: string }) => (
-      React.createElement(GlobalErrorBoundary, {
-        level: "component" as const,
-        fallback: ComponentErrorFallback,
-        onError: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
-          errorLogger.logError(error, {
-            component: componentName || 'unknown-component',
-            operationId: errorId,
-          }, { errorInfo }, ['component-error']);
-        },
-      }, children)
-    )
+    Component: ({ children, componentName }: { children: React.ReactNode; componentName?: string }) =>
+      React.createElement(
+        GlobalErrorBoundary,
+        {
+          level: 'component' as const,
+          fallback: (error: Error, retry: () => void) =>
+            React.createElement(ComponentErrorFallback, { error, errorInfo: null, retry }),
+          onError: (error: Error, errorInfo: React.ErrorInfo) => {
+            errorLogger.logError(
+              error,
+              { component: componentName || 'unknown-component' },
+              { errorInfo },
+              ['component-error']
+            );
+          },
+          children,
+        } as ErrorBoundaryProps
+      ),
   };
 }

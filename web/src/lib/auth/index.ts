@@ -14,7 +14,7 @@ export {
 // Advanced Auth Management
 export {
   AdvancedAuthManager,
-  advancedAuthManager,
+  initializeAdvancedAuthManager,
   type SessionInfo,
   type PasswordChangeRequest,
   type PasswordResetRequest,
@@ -61,6 +61,10 @@ export {
   authSubscriptionManager,
   type AuthSubscriptionOptions,
 } from './subscription-manager';
+
+// Import authSubscriptionManager and permissionsManager for internal use
+import { authSubscriptionManager } from './subscription-manager';
+import { permissionsManager } from './permissions-manager';
 
 /**
  * Complete Auth System Configuration

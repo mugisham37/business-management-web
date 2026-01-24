@@ -11,7 +11,6 @@ import {
   SMSTemplate,
   EmailProvider,
   SMSProvider,
-  CommunicationEvent,
   ChannelUsageStats
 } from '@/types/communication';
 
@@ -23,7 +22,7 @@ export const communicationCacheConfig = {
         // Communication channels - cache by tenant
         getCommunicationChannels: {
           keyArgs: ['tenantId'],
-          merge(existing: CommunicationChannel[] = [], incoming: CommunicationChannel[]) {
+          merge(_existing: unknown, incoming: CommunicationChannel[]) {
             return incoming;
           },
         },
@@ -31,7 +30,7 @@ export const communicationCacheConfig = {
         // Communication stats - cache with time-based invalidation
         getCommunicationStats: {
           keyArgs: ['tenantId', 'filter'],
-          merge(existing: CommunicationStats | undefined, incoming: CommunicationStats) {
+          merge(_existing: unknown, incoming: CommunicationStats) {
             return incoming;
           },
         },
@@ -39,7 +38,7 @@ export const communicationCacheConfig = {
         // Channel usage stats
         getChannelUsageStats: {
           keyArgs: ['tenantId', 'filter'],
-          merge(existing: ChannelUsageStats[] = [], incoming: ChannelUsageStats[]) {
+          merge(_existing: unknown, incoming: ChannelUsageStats[]) {
             return incoming;
           },
         },
@@ -47,7 +46,7 @@ export const communicationCacheConfig = {
         // Email templates - cache by tenant and category
         getEmailTemplates: {
           keyArgs: ['tenantId', 'category'],
-          merge(existing: EmailTemplate[] = [], incoming: EmailTemplate[]) {
+          merge(_existing: unknown, incoming: EmailTemplate[]) {
             return incoming;
           },
         },
@@ -55,7 +54,7 @@ export const communicationCacheConfig = {
         // SMS templates - cache by tenant and category
         getSMSTemplates: {
           keyArgs: ['tenantId', 'category'],
-          merge(existing: SMSTemplate[] = [], incoming: SMSTemplate[]) {
+          merge(_existing: unknown, incoming: SMSTemplate[]) {
             return incoming;
           },
         },
@@ -63,7 +62,7 @@ export const communicationCacheConfig = {
         // Email providers - cache by tenant
         getEmailProviders: {
           keyArgs: ['tenantId'],
-          merge(existing: EmailProvider[] = [], incoming: EmailProvider[]) {
+          merge(_existing: unknown, incoming: EmailProvider[]) {
             return incoming;
           },
         },
@@ -71,7 +70,7 @@ export const communicationCacheConfig = {
         // SMS providers - cache by tenant
         getSMSProviders: {
           keyArgs: ['tenantId'],
-          merge(existing: SMSProvider[] = [], incoming: SMSProvider[]) {
+          merge(_existing: unknown, incoming: SMSProvider[]) {
             return incoming;
           },
         },
@@ -121,7 +120,7 @@ export const communicationCacheConfig = {
       keyFields: ['name'],
       fields: {
         variables: {
-          merge(existing: string[] = [], incoming: string[]) {
+          merge(_existing: unknown, incoming: string[]) {
             return incoming;
           },
         },
@@ -133,7 +132,7 @@ export const communicationCacheConfig = {
       keyFields: ['name'],
       fields: {
         variables: {
-          merge(existing: string[] = [], incoming: string[]) {
+          merge(_existing: unknown, incoming: string[]) {
             return incoming;
           },
         },
@@ -145,8 +144,8 @@ export const communicationCacheConfig = {
       keyFields: ['type'],
       fields: {
         configuration: {
-          merge(existing = {}, incoming = {}) {
-            return { ...existing, ...incoming };
+          merge(_existing: Record<string, unknown>, incoming: Record<string, unknown>) {
+            return { ...incoming };
           },
         },
       },
@@ -156,8 +155,8 @@ export const communicationCacheConfig = {
       keyFields: ['type'],
       fields: {
         configuration: {
-          merge(existing = {}, incoming = {}) {
-            return { ...existing, ...incoming };
+          merge(_existing: Record<string, unknown>, incoming: Record<string, unknown>) {
+            return { ...incoming };
           },
         },
       },
@@ -168,12 +167,12 @@ export const communicationCacheConfig = {
       keyFields: false, // Don't normalize, always replace
       fields: {
         channelBreakdown: {
-          merge(existing = {}, incoming = {}) {
+          merge(_existing: Record<string, unknown>, incoming: Record<string, unknown>) {
             return incoming;
           },
         },
         priorityBreakdown: {
-          merge(existing = {}, incoming = {}) {
+          merge(_existing: Record<string, unknown>, incoming: Record<string, unknown>) {
             return incoming;
           },
         },
@@ -212,7 +211,7 @@ export class CommunicationCacheManager {
   }
 
   // Invalidate communication stats cache
-  invalidateStats(tenantId: string, filter?: any): void {
+  invalidateStats(tenantId: string, filter?: Record<string, unknown>): void {
     if (filter) {
       this.cache.evict({
         fieldName: 'getCommunicationStats',
@@ -348,8 +347,9 @@ export class CommunicationCacheManager {
   updateChannelAfterConfiguration(tenantId: string, channelType: string, enabled: boolean): void {
     this.cache.modify({
       fields: {
-        getCommunicationChannels(existingChannels: CommunicationChannel[] = [], { readField }) {
-          return existingChannels.map(channel => 
+        getCommunicationChannels(existing: unknown): CommunicationChannel[] | unknown {
+          if (!existing || !Array.isArray(existing)) return existing;
+          return (existing as CommunicationChannel[]).map((channel: CommunicationChannel) => 
             channel.type === channelType 
               ? { ...channel, enabled }
               : channel
@@ -369,9 +369,9 @@ export class CommunicationCacheManager {
     
     this.cache.modify({
       fields: {
-        [fieldName](existingTemplates: (EmailTemplate | SMSTemplate)[] = [], { readField }) {
-          // Add new template to the beginning of the list
-          return [template, ...existingTemplates];
+        [fieldName](existing: unknown): (EmailTemplate | SMSTemplate)[] | unknown {
+          if (!existing || !Array.isArray(existing)) return existing;
+          return [template, ...(existing as (EmailTemplate | SMSTemplate)[])];
         },
       },
     });
@@ -382,8 +382,9 @@ export class CommunicationCacheManager {
     
     this.cache.modify({
       fields: {
-        [fieldName](existingTemplates: (EmailTemplate | SMSTemplate)[] = [], { readField }) {
-          return existingTemplates.filter(template => template.name !== templateName);
+        [fieldName](existing: unknown): (EmailTemplate | SMSTemplate)[] | unknown {
+          if (!existing || !Array.isArray(existing)) return existing;
+          return (existing as (EmailTemplate | SMSTemplate)[]).filter((template: EmailTemplate | SMSTemplate) => template.name !== templateName);
         },
       },
     });
@@ -394,8 +395,9 @@ export class CommunicationCacheManager {
     
     this.cache.modify({
       fields: {
-        [fieldName](existingTemplates: (EmailTemplate | SMSTemplate)[] = [], { readField }) {
-          return existingTemplates.map(template => 
+        [fieldName](existing: unknown): (EmailTemplate | SMSTemplate)[] | unknown {
+          if (!existing || !Array.isArray(existing)) return existing;
+          return (existing as (EmailTemplate | SMSTemplate)[]).map((template: EmailTemplate | SMSTemplate) => 
             template.name === templateName 
               ? { ...template, ...updatedTemplate }
               : template
@@ -554,8 +556,8 @@ export class CommunicationCacheManager {
     
     this.cache.modify({
       fields: {
-        getCommunicationStats(existing, { DELETE, readField }) {
-          const generatedAt = readField('generatedAt');
+        getCommunicationStats(existing: unknown, { DELETE, readField }) {
+          const generatedAt = readField('generatedAt') as string | number | Date | undefined;
           if (generatedAt && new Date(generatedAt) < oneHourAgo) {
             return DELETE;
           }
@@ -576,7 +578,7 @@ export const createCommunicationCacheManager = (cache: InMemoryCache): Communica
 // Cache key generators
 export const generateCacheKey = {
   channels: (tenantId: string) => `communication:channels:${tenantId}`,
-  stats: (tenantId: string, filter?: any) => 
+  stats: (tenantId: string, filter?: Record<string, unknown>) => 
     `communication:stats:${tenantId}:${filter ? JSON.stringify(filter) : 'all'}`,
   emailTemplates: (tenantId: string, category?: string) => 
     `communication:email:templates:${tenantId}:${category || 'all'}`,

@@ -117,11 +117,14 @@ export class CompleteMfaManager {
         backupCodesCount: 0,
       };
 
-      this.updateState({
+      const stateUpdate: Partial<MfaState> = {
         isEnabled: status.isEnabled,
         backupCodesCount: status.backupCodesCount,
-        lastUsedAt: status.lastUsedAt ? new Date(status.lastUsedAt) : undefined,
-      });
+      };
+      if (status.lastUsedAt) {
+        stateUpdate.lastUsedAt = new Date(status.lastUsedAt);
+      }
+      this.updateState(stateUpdate);
 
       return status;
     } catch (error) {
@@ -172,8 +175,9 @@ export class CompleteMfaManager {
         this.updateState({
           isEnabled: true,
           isSetupInProgress: false,
-          setupData: undefined,
         });
+        // Clear setupData by creating new state without it
+        delete this.currentState.setupData;
       }
 
       return {
@@ -206,8 +210,9 @@ export class CompleteMfaManager {
         this.updateState({
           isEnabled: false,
           backupCodesCount: 0,
-          lastUsedAt: undefined,
         });
+        // Clear lastUsedAt
+        delete this.currentState.lastUsedAt;
       }
 
       return {
@@ -290,8 +295,8 @@ export class CompleteMfaManager {
   cancelMfaSetup(): void {
     this.updateState({
       isSetupInProgress: false,
-      setupData: undefined,
     });
+    delete this.currentState.setupData;
   }
 }
 
