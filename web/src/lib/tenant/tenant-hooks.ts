@@ -5,12 +5,12 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  TenantContextManager, 
-  TenantContextState, 
-  tenantContextManager 
+import {
+  TenantContextManager,
+  TenantContextState,
+  tenantContextManager,
 } from './tenant-context';
-import { BusinessTier, TenantSettings } from '@/types/core';
+import { BusinessTier, TenantSettings, FeatureFlag } from '@/types/core';
 
 /**
  * Hook for accessing tenant context state
@@ -79,10 +79,11 @@ export function useFeatureFlags(manager?: TenantContextManager) {
 
   const availableFeatures = useMemo(() => {
     return contextManager.getAvailableFeatures();
-  }, [contextManager, features]);
+  }, [contextManager]);
 
   const enabledFeatures = useMemo(() => {
-    return features.filter(f => f.isEnabled);
+    const isEnabled = (f: FeatureFlag) => (f as FeatureFlag).enabled !== undefined ? (f as FeatureFlag).enabled : (f as FeatureFlag).isEnabled;
+    return features.filter(f => isEnabled(f));
   }, [features]);
 
   return {
@@ -132,7 +133,7 @@ export function useTenantSwitching(manager?: TenantContextManager) {
     canSwitchTo,
     isSwitching,
     isSwitchingTo,
-    isLoading,
+    isLoading: isLoading || isSwitching,
   };
 }
 
@@ -153,7 +154,12 @@ export function useBusinessTier(manager?: TenantContextManager) {
       MICRO: { maxEmployees: 5, maxLocations: 1, maxTransactions: 100, maxRevenue: 5000 },
       SMALL: { maxEmployees: 20, maxLocations: 2, maxTransactions: 1000, maxRevenue: 50000 },
       MEDIUM: { maxEmployees: 100, maxLocations: 5, maxTransactions: 10000, maxRevenue: 500000 },
-      ENTERPRISE: { maxEmployees: Infinity, maxLocations: Infinity, maxTransactions: Infinity, maxRevenue: Infinity },
+      ENTERPRISE: {
+        maxEmployees: Infinity,
+        maxLocations: Infinity,
+        maxTransactions: Infinity,
+        maxRevenue: Infinity,
+      },
     };
     return limits[businessTier];
   }, [businessTier]);
@@ -176,11 +182,19 @@ export function useTenantSettings(manager?: TenantContextManager) {
 
   const settings = useMemo(() => {
     return contextManager.getTenantSettings();
-  }, [contextManager, currentTenant]);
+  }, [contextManager]);
+
+  const getSetting = useCallback(
+    <T = unknown,>(key: keyof TenantSettings): T | null => {
+      return (settings?.[key] as T) || null;
+    },
+    [settings]
+  );
 
   return {
     settings,
     tenant: currentTenant,
+    getSetting,
     isLoading,
   };
 }
@@ -221,6 +235,7 @@ export function useTierGate(requiredTier: BusinessTier, manager?: TenantContextM
     hasAccess,
     currentTier: businessTier,
     requiredTier,
+    isUpgradeRequired: !hasAccess,
   };
 }
 
@@ -228,196 +243,23 @@ export function useTierGate(requiredTier: BusinessTier, manager?: TenantContextM
  * Hook for combined feature and tier gating
  */
 export function useFeatureAndTierGate(
-  featureKey: string, 
-  requiredTier: BusinessTier, 
-  manager?: TenantContextManager
-) {
-  const { isEnabled: hasFeature, config } = useFeatureGate(featureKey, manager);
-  const { hasAccess: hasTier } = useTierGate(requiredTier, manager);
-
-  const hasAccess = useMemo(() => {
-    return hasFeature && hasTier;
-  }, [hasFeature, hasTier]);
-
-  return {
-    hasAccess,
-    hasFeature,
-    hasTier,
-    config,
-    featureKey,
-    requiredTier,
-  };
-}
-    return contextManager.getAvailableFeatures();
-  }, [contextManager]);
-
-  const enabledFeatures = useMemo(() => {
-    return features.filter(feature => 
-      feature.enabled && contextManager.isTierSufficient(feature.requiredTier)
-    );
-  }, [features, contextManager]);
-
-  return {
-    features,
-    availableFeatures,
-    enabledFeatures,
-    hasFeature,
-    getFeatureConfig,
-    isLoading,
-  };
-}
-
-/**
- * Hook for tenant switching functionality
- */
-export function useTenantSwitching(manager?: TenantContextManager) {
-  const contextManager = manager || tenantContextManager;
-  const { availableTenants, currentTenant, isLoading } = useTenantContext(manager);
-  const [switchingTo, setSwitchingTo] = useState<string | null>(null);
-
-  const switchTenant = useCallback(async (tenantId: string) => {
-    if (switchingTo || isLoading) {
-      return false; // Prevent concurrent switches
-    }
-
-    setSwitchingTo(tenantId);
-    try {
-      const success = await contextManager.switchTenant(tenantId);
-      return success;
-    } finally {
-      setSwitchingTo(null);
-    }
-  }, [contextManager, switchingTo, isLoading]);
-
-  const canSwitchTo = useCallback((tenantId: string): boolean => {
-    return contextManager.validateTenantAccess(tenantId);
-  }, [contextManager]);
-
-  const isSwitching = switchingTo !== null;
-  const isSwitchingTo = useCallback((tenantId: string) => {
-    return switchingTo === tenantId;
-  }, [switchingTo]);
-
-  return {
-    availableTenants,
-    currentTenant,
-    switchTenant,
-    canSwitchTo,
-    isSwitching,
-    isSwitchingTo,
-    isLoading: isLoading || isSwitching,
-  };
-}
-
-/**
- * Hook for business tier functionality
- */
-export function useBusinessTier(manager?: TenantContextManager) {
-  const contextManager = manager || tenantContextManager;
-  const { businessTier } = useTenantContext(manager);
-
-  const isTierSufficient = useCallback((requiredTier: BusinessTier): boolean => {
-    return contextManager.isTierSufficient(requiredTier);
-  }, [contextManager]);
-
-  const getTierFeatures = useCallback(() => {
-    return contextManager.getAvailableFeatures();
-  }, [contextManager]);
-
-  const tierLimits = useMemo(() => {
-    const settings = contextManager.getTenantSettings();
-    return settings?.limits || null;
-  }, [contextManager]);
-
-  return {
-    businessTier,
-    isTierSufficient,
-    getTierFeatures,
-    tierLimits,
-  };
-}
-
-/**
- * Hook for tenant settings management
- */
-export function useTenantSettings(manager?: TenantContextManager) {
-  const contextManager = manager || tenantContextManager;
-
-  const settings = useMemo(() => {
-    return contextManager.getTenantSettings();
-  }, [contextManager]);
-
-  const getSetting = useCallback(<T = unknown>(key: keyof TenantSettings): T | null => {
-    return settings?.[key] as T || null;
-  }, [settings]);
-
-  const getFeatureSetting = useCallback((featureKey: string, settingKey: string) => {
-    const featureConfig = contextManager.getFeatureConfig(featureKey);
-    return featureConfig?.config?.[settingKey] || null;
-  }, [contextManager]);
-
-  return {
-    settings,
-    getSetting,
-    getFeatureSetting,
-    timezone: settings?.timezone || 'UTC',
-    currency: settings?.currency || 'USD',
-    dateFormat: settings?.dateFormat || 'MM/dd/yyyy',
-    language: settings?.language || 'en',
-  };
-}
-
-/**
- * Hook for conditional feature rendering
- */
-export function useFeatureGate(featureKey: string, manager?: TenantContextManager) {
-  const contextManager = manager || tenantContextManager;
-  const hasFeature = contextManager.hasFeature(featureKey);
-  const featureConfig = contextManager.getFeatureConfig(featureKey);
-
-  return {
-    hasFeature,
-    featureConfig,
-    isEnabled: hasFeature,
-  };
-}
-
-/**
- * Hook for progressive feature disclosure based on business tier
- */
-export function useTierGate(requiredTier: BusinessTier, manager?: TenantContextManager) {
-  const { isTierSufficient, businessTier } = useBusinessTier(manager);
-  const hasAccess = isTierSufficient(requiredTier);
-
-  return {
-    hasAccess,
-    currentTier: businessTier,
-    requiredTier,
-    isUpgradeRequired: !hasAccess,
-  };
-}
-
-/**
- * Combined hook for feature and tier gating
- */
-export function useFeatureAndTierGate(
-  featureKey: string, 
+  featureKey: string,
   requiredTier?: BusinessTier,
   manager?: TenantContextManager
 ) {
-  const { hasFeature, featureConfig } = useFeatureGate(featureKey, manager);
-  const tierGate = useTierGate(
-    requiredTier || featureConfig?.requiredTier || 'MICRO', 
-    manager
-  );
+  const { isEnabled: hasFeature, config } = useFeatureGate(featureKey, manager);
+  const tierGate = useTierGate(requiredTier || config?.requiredTier || 'MICRO', manager);
 
-  const isAvailable = hasFeature && tierGate.hasAccess;
+  const hasAccess = useMemo(() => {
+    return hasFeature && tierGate.hasAccess;
+  }, [hasFeature, tierGate.hasAccess]);
 
   return {
-    isAvailable,
+    hasAccess,
     hasFeature,
     hasTierAccess: tierGate.hasAccess,
-    featureConfig,
-    ...tierGate,
+    config,
+    featureKey,
+    requiredTier: requiredTier || config?.requiredTier || 'MICRO',
   };
 }

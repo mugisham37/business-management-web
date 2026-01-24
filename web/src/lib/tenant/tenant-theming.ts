@@ -4,7 +4,7 @@
  * Requirements: 4.1, 4.3
  */
 
-import { Tenant, TenantSettings, BrandingConfig } from '@/types/core';
+import { Tenant } from '@/types/core';
 
 export interface ThemeConfig {
   primaryColor: string;
@@ -12,7 +12,7 @@ export interface ThemeConfig {
   accentColor: string;
   backgroundColor: string;
   textColor: string;
-  logoUrl?: string;
+  logo?: string;
   favicon?: string;
   customCss?: string;
 }
@@ -90,19 +90,24 @@ export class TenantThemingService {
    * Create theme configuration from tenant settings
    */
   private createThemeFromTenant(tenant: Tenant): ThemeConfig {
-    const settings = tenant.settings || {};
-    const primaryColor = settings.primaryColor || '#3b82f6'; // Default blue
+    const branding = tenant.branding || {};
+    const primaryColor = branding.primaryColor || '#3b82f6'; // Default blue
 
-    return {
+    const theme: ThemeConfig = {
       primaryColor,
       secondaryColor: this.adjustColorBrightness(primaryColor, -20),
       accentColor: this.adjustColorBrightness(primaryColor, 20),
       backgroundColor: '#ffffff',
       textColor: '#1f2937',
-      logoUrl: settings.logoUrl,
       favicon: this.generateFaviconFromColor(primaryColor),
       customCss: this.generateCustomCSS(tenant),
     };
+
+    if (branding.logo) {
+      theme.logo = branding.logo;
+    }
+
+    return theme;
   }
 
   /**
@@ -200,8 +205,8 @@ export class TenantThemingService {
    * Generate custom CSS for tenant
    */
   private generateCustomCSS(tenant: Tenant): string {
-    const settings = tenant.settings || {};
-    const primaryColor = settings.primaryColor || '#3b82f6';
+    const branding = tenant.branding || {};
+    const primaryColor = branding.primaryColor || '#3b82f6';
 
     return `
       /* Tenant-specific styles for ${tenant.name} */

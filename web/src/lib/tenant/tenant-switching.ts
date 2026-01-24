@@ -12,7 +12,7 @@ export interface TenantSwitchResult {
   success: boolean;
   message: string;
   tenant?: Tenant;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface TenantAccessValidation {
