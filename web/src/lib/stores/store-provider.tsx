@@ -21,9 +21,23 @@ const StoreStatusContext = createContext<StoreStatus>({
 });
 
 /**
+ * Store Provider Props
+ */
+export interface StoreProviderProps {
+  children: ReactNode;
+  enableDebug?: boolean;
+}
+
+/**
  * Store Provider Component
  */
-export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const StoreProvider: React.FC<StoreProviderProps> = ({ children, enableDebug = false }) => {
+  React.useEffect(() => {
+    if (enableDebug) {
+      console.log('[StoreProvider] Debug mode enabled');
+    }
+  }, [enableDebug]);
+
   return <>{children}</>;
 };
 

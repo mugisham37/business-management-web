@@ -7,6 +7,16 @@ import { Providers } from "./providers";
 import { PerformanceMetrics } from "@/components/performance/PerformanceMetrics";
 import { initializeErrorHandling } from "@/lib/error-handling";
 
+type Environment = 'development' | 'production' | 'staging';
+
+const getEnvironment = (): Environment => {
+  const env = process.env.NODE_ENV;
+  if (env === 'production' || env === 'development') {
+    return env;
+  }
+  return 'staging';
+};
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -48,7 +58,7 @@ export default function RootLayout({
     initializeErrorHandling({
       errorReporting: {
         enabled: process.env.NODE_ENV === 'production',
-        environment: process.env.NODE_ENV as any,
+        environment: getEnvironment(),
         sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
       },
       networkRetry: {
@@ -63,6 +73,11 @@ export default function RootLayout({
     });
   }, []);
 
+  const performanceMetrics = [
+    { label: 'Response Time', value: '245ms', unit: 'ms' },
+    { label: 'Memory', value: '45', unit: 'MB' },
+  ];
+
   return (
     <html lang="en">
       <body
@@ -70,7 +85,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <PerformanceMetrics />
+          <PerformanceMetrics items={performanceMetrics} />
         </Providers>
       </body>
     </html>

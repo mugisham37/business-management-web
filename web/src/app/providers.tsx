@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { ApolloProvider } from '@/lib/apollo';
-import { AuthProvider } from '@/components/auth';
-import { TenantProvider } from '@/components/tenant';
+import { AuthProvider } from '@/components/auth/auth-provider';
+import { TenantProvider } from '@/components/tenant/tenant-provider';
 import { StoreProvider } from '@/lib/stores';
 import { DevToolsProvider } from '@/lib/dev-tools';
 import { setupErrorBoundaryHierarchy } from '@/lib/error-handling';
