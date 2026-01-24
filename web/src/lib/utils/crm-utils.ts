@@ -171,11 +171,11 @@ export const loyaltyUtils = {
    * Get tier for points amount
    */
   getTierForPoints: (points: number): LoyaltyTier => {
-    if (points >= 25000) return 'diamond';
-    if (points >= 10000) return 'platinum';
-    if (points >= 5000) return 'gold';
-    if (points >= 1000) return 'silver';
-    return 'bronze';
+    if (points >= 25000) return LoyaltyTier.DIAMOND;
+    if (points >= 10000) return LoyaltyTier.PLATINUM;
+    if (points >= 5000) return LoyaltyTier.GOLD;
+    if (points >= 1000) return LoyaltyTier.SILVER;
+    return LoyaltyTier.BRONZE;
   },
 
   /**
@@ -201,34 +201,35 @@ export const churnUtils = {
    * Get churn risk level from score
    */
   getRiskLevel: (riskScore: number): ChurnRiskLevel => {
-    if (riskScore >= 0.8) return 'critical';
-    if (riskScore >= 0.6) return 'high';
-    if (riskScore >= 0.3) return 'medium';
-    return 'low';
+    if (riskScore >= 0.8) return ChurnRiskLevel.CRITICAL;
+    if (riskScore >= 0.6) return ChurnRiskLevel.HIGH;
+    if (riskScore >= 0.3) return ChurnRiskLevel.MEDIUM;
+    return ChurnRiskLevel.LOW;
   },
 
   /**
    * Get churn risk color
    */
   getRiskColor: (riskLevel: ChurnRiskLevel): string => {
-    const colors = {
-      low: 'green',
-      medium: 'yellow',
-      high: 'orange',
-      critical: 'red',
+    const colors: Record<ChurnRiskLevel, string> = {
+      [ChurnRiskLevel.LOW]: 'green',
+      [ChurnRiskLevel.MEDIUM]: 'yellow',
+      [ChurnRiskLevel.HIGH]: 'orange',
+      [ChurnRiskLevel.CRITICAL]: 'red',
     };
     return colors[riskLevel];
+  },
   },
 
   /**
    * Get churn risk icon
    */
   getRiskIcon: (riskLevel: ChurnRiskLevel): string => {
-    const icons = {
-      low: '✅',
-      medium: '⚠️',
-      high: '🔶',
-      critical: '🚨',
+    const icons: Record<ChurnRiskLevel, string> = {
+      [ChurnRiskLevel.LOW]: '✅',
+      [ChurnRiskLevel.MEDIUM]: '⚠️',
+      [ChurnRiskLevel.HIGH]: '🔶',
+      [ChurnRiskLevel.CRITICAL]: '🚨',
     };
     return icons[riskLevel];
   },

@@ -1,5 +1,7 @@
 import type {
   Supplier,
+} from '@/types/supplier';
+import {
   SupplierStatus,
   SupplierType,
   SupplierRating,

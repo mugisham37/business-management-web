@@ -6,12 +6,11 @@
 import type {
   Transaction,
   TransactionItem,
-  PaymentMethod,
-  TransactionStatus,
   PaymentRecord,
   ReconciliationReport,
   DailySalesSummary,
 } from '@/types/pos';
+import { PaymentMethod, TransactionStatus } from '@/types/pos';
 
 // Transaction Utilities
 export const transactionUtils = {

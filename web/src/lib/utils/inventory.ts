@@ -80,10 +80,6 @@ export function calculateInventoryValue(
     return { totalValue: 0, averageCost: 0, totalQuantity: 0 };
   }
 
-  let totalValue = 0;
-  let totalQuantity = 0;
-  let averageCost = 0;
-
   switch (method) {
     case InventoryValuationMethod.FIFO:
       return calculateFIFOValue(movements);
@@ -125,7 +121,7 @@ function calculateFIFOValue(movements: InventoryMovement[]) {
       let remainingToRemove = Math.abs(movement.quantity);
       
       while (remainingToRemove > 0 && inventory.length > 0) {
-        const batch = inventory[0];
+        const batch = inventory[0]!; // We know this exists due to inventory.length check
         const removeFromBatch = Math.min(remainingToRemove, batch.quantity);
         
         batch.quantity -= removeFromBatch;
@@ -169,7 +165,7 @@ function calculateLIFOValue(movements: InventoryMovement[]) {
       let remainingToRemove = Math.abs(movement.quantity);
       
       while (remainingToRemove > 0 && inventory.length > 0) {
-        const batch = inventory[0];
+        const batch = inventory[0]!; // We know this exists due to inventory.length check
         const removeFromBatch = Math.min(remainingToRemove, batch.quantity);
         
         batch.quantity -= removeFromBatch;

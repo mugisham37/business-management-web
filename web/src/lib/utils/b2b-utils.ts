@@ -347,7 +347,7 @@ export const pricingUtils = {
    * Get pricing tier color
    */
   getPricingTierColor: (tier: string): string => {
-    const colors = {
+    const colors: Record<string, string> = {
       'standard': 'gray',
       'bronze': '#CD7F32',
       'silver': '#C0C0C0',

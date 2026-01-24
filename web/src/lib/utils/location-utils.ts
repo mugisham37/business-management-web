@@ -179,12 +179,13 @@ export function parseAddress(addressString: string): Partial<Location['address']
   const parts = addressString.split(',').map(part => part.trim());
   
   if (parts.length >= 4) {
+    const statePostal = parts[2] ?? '';
     return {
-      street: parts[0],
-      city: parts[1],
-      state: parts[2].split(' ')[0],
-      postalCode: parts[2].split(' ').slice(1).join(' '),
-      country: parts[3],
+      street: parts[0] ?? undefined,
+      city: parts[1] ?? undefined,
+      state: statePostal.split(' ')[0] ?? undefined,
+      postalCode: (statePostal.split(' ').slice(1).join(' ')) || undefined,
+      country: parts[3] ?? undefined,
     };
   }
 
@@ -256,14 +257,13 @@ export function formatOperatingHours(operatingHours?: Location['operatingHours']
 }
 
 export function isLocationOpen(
-  operatingHours?: Location['operatingHours'],
-  timezone?: string
+  operatingHours?: Location['operatingHours']
 ): boolean {
   if (!operatingHours) return false;
 
   const now = new Date();
   const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const currentDay = dayNames[now.getDay()];
+  const currentDay = dayNames[now.getDay()] as keyof Location['operatingHours'];
   const dayHours = operatingHours[currentDay];
 
   if (!dayHours || dayHours.closed) return false;
@@ -304,8 +304,8 @@ export function sortLocations(
   sortOrder: 'asc' | 'desc' = 'asc'
 ): Location[] {
   return [...locations].sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: string | Date;
+    let bValue: string | Date;
 
     switch (sortBy) {
       case 'name':

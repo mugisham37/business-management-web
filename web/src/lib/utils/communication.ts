@@ -7,6 +7,7 @@ import {
   CommunicationChannelType, 
   NotificationPriority, 
   AlertSeverity,
+  ActionStyle,
   EmailMessage,
   SMSMessage,
   SlackMessage,
@@ -119,7 +120,7 @@ export const formatDuration = (milliseconds: number): string => {
 };
 
 // Template Processing Functions
-export const parseTemplate = (template: string, variables: Record<string, any>): string => {
+export const parseTemplate = (template: string, variables: Record<string, unknown>): string => {
   let result = template;
   
   // Replace {{variable}} patterns
@@ -145,7 +146,7 @@ export const extractVariablesFromTemplate = (template: string): string[] => {
   return [...new Set(variables)]; // Remove duplicates
 };
 
-export const validateTemplateVariables = (template: string, variables: Record<string, any>): string[] => {
+export const validateTemplateVariables = (template: string, variables: Record<string, unknown>): string[] => {
   const requiredVariables = extractVariablesFromTemplate(template);
   const missingVariables: string[] = [];
   
@@ -158,12 +159,13 @@ export const validateTemplateVariables = (template: string, variables: Record<st
   return missingVariables;
 };
 
-export const previewTemplate = (template: EmailTemplate | SMSTemplate, variables: Record<string, any>): {
+export const previewTemplate = (template: EmailTemplate | SMSTemplate, variables: Record<string, unknown>): {
   subject?: string;
   content: string;
   missingVariables: string[];
 } => {
-  const missingVariables = validateTemplateVariables(template.htmlTemplate || template.message, variables);
+  const templateContent = 'htmlTemplate' in template ? template.htmlTemplate : template.message;
+  const missingVariables = validateTemplateVariables(templateContent, variables);
   
   if ('subject' in template && 'htmlTemplate' in template) {
     // Email template
@@ -172,12 +174,19 @@ export const previewTemplate = (template: EmailTemplate | SMSTemplate, variables
       content: parseTemplate(template.htmlTemplate, variables),
       missingVariables,
     };
-  } else {
+  } else if ('message' in template) {
     // SMS template
     return {
       content: parseTemplate(template.message, variables),
       missingVariables,
     };
+  }
+  
+  return {
+    content: '',
+    missingVariables,
+  };
+};
   }
 };
 
@@ -291,10 +300,10 @@ export const buildTeamsMessage = (params: {
   if (params.summary) message.summary = params.summary;
   if (params.themeColor) message.themeColor = params.themeColor;
   
-  if (params.title || params.subtitle) {
+  if (params.title !== undefined || params.subtitle !== undefined) {
     message.sections = [{
-      activityTitle: params.title,
-      activitySubtitle: params.subtitle,
+      activityTitle: params.title ?? undefined,
+      activitySubtitle: params.subtitle ?? undefined,
     }];
   }
   
@@ -302,7 +311,7 @@ export const buildTeamsMessage = (params: {
 };
 
 // Security Functions
-export const maskSensitiveData = (data: any): any => {
+export const maskSensitiveData = (data: unknown): unknown => {
   if (typeof data !== 'object' || data === null) {
     return data;
   }
@@ -312,10 +321,10 @@ export const maskSensitiveData = (data: any): any => {
     'webhookUrl', 'botToken', 'serverToken', 'accountSid', 'authToken'
   ];
   
-  const masked = { ...data };
+  const masked = { ...(data as Record<string, unknown>) };
 
   for (const field of sensitiveFields) {
-    if (masked[field]) {
+    if (field in masked && masked[field]) {
       const value = String(masked[field]);
       if (value.length > 8) {
         masked[field] = `${value.substring(0, 4)}***${value.substring(value.length - 4)}`;
@@ -343,14 +352,16 @@ export const calculateRetryDelay = (attempt: number, baseDelay = 1000, maxDelay 
   return delay + Math.random() * 1000;
 };
 
-export const shouldRetry = (error: any, attempt: number, maxAttempts: number): boolean => {
+export const shouldRetry = (error: unknown, attempt: number, maxAttempts: number): boolean => {
   if (attempt >= maxAttempts) return false;
   
+  const errorObj = error as Record<string, unknown>;
+  
   // Don't retry client errors (4xx)
-  if (error?.status >= 400 && error?.status < 500) return false;
+  if (typeof errorObj.status === 'number' && errorObj.status >= 400 && errorObj.status < 500) return false;
   
   // Don't retry validation errors
-  if (error?.code === 'VALIDATION_ERROR') return false;
+  if (errorObj?.code === 'VALIDATION_ERROR') return false;
   
   // Retry server errors and network errors
   return true;
@@ -359,7 +370,7 @@ export const shouldRetry = (error: any, attempt: number, maxAttempts: number): b
 export const createCommunicationError = (
   code: string,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): CommunicationError => {
   return {
     code,
@@ -419,7 +430,7 @@ export const createNotificationAction = (
   id: string,
   label: string,
   url?: string,
-  style: 'primary' | 'secondary' | 'danger' = 'primary'
+  style: ActionStyle = ActionStyle.PRIMARY
 ): NotificationAction => {
   return {
     id,
@@ -497,8 +508,8 @@ export const getChannelFallbacks = (
 export const createCommunicationMetadata = (
   tenantId: string,
   userId: string,
-  additionalData?: Record<string, any>
-): Record<string, any> => {
+  additionalData?: Record<string, unknown>
+): Record<string, unknown> => {
   return {
     tenantId,
     userId,

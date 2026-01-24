@@ -6,14 +6,12 @@
 import type {
   Metric,
   KPI,
-  Trend,
   TrendDataPoint,
   ComparisonResult,
   MetricValue,
   ForecastDataPoint,
-  TimePeriod,
-  MetricCategory,
 } from '@/types/analytics';
+import { TimePeriod } from '@/types/analytics';
 
 // ============================================================================
 // DATA FORMATTING UTILITIES
@@ -77,13 +75,22 @@ export function formatMetricValue(metric: Metric): string {
  * Format a date for display
  */
 export function formatDate(date: Date, format: 'short' | 'medium' | 'long' = 'medium'): string {
-  const options: Intl.DateTimeFormatOptions = {
-    short: { month: 'short', day: 'numeric' },
-    medium: { month: 'short', day: 'numeric', year: 'numeric' },
-    long: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
-  };
+  let options: Intl.DateTimeFormatOptions;
 
-  return new Intl.DateTimeFormat('en-US', options[format]).format(date);
+  switch (format) {
+    case 'short':
+      options = { month: 'short', day: 'numeric' };
+      break;
+    case 'long':
+      options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      break;
+    case 'medium':
+    default:
+      options = { month: 'short', day: 'numeric', year: 'numeric' };
+      break;
+  }
+
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 }
 
 /**
@@ -177,14 +184,26 @@ export function smoothTrendData(
 ): TrendDataPoint[] {
   if (dataPoints.length === 0) return [];
 
-  const smoothed = [dataPoints[0]];
+  const firstPoint = dataPoints[0];
+  if (!firstPoint) return [];
+  
+  const smoothed: TrendDataPoint[] = [firstPoint];
 
   for (let i = 1; i < dataPoints.length; i++) {
-    const smoothedValue = alpha * dataPoints[i].value + (1 - alpha) * smoothed[i - 1].value;
-    smoothed.push({
-      ...dataPoints[i],
+    const currentPoint = dataPoints[i];
+    const prevSmoothed = smoothed[i - 1];
+    
+    if (!currentPoint || !prevSmoothed) continue;
+    
+    const smoothedValue = alpha * currentPoint.value + (1 - alpha) * prevSmoothed.value;
+    const newPoint: TrendDataPoint = {
+      timestamp: currentPoint.timestamp,
       value: smoothedValue,
-    });
+    };
+    if (currentPoint.label !== undefined) {
+      newPoint.label = currentPoint.label;
+    }
+    smoothed.push(newPoint);
   }
 
   return smoothed;
@@ -262,7 +281,10 @@ export function aggregateMetricsByPeriod(
     if (!groups[key]) {
       groups[key] = [];
     }
-    groups[key].push(metric);
+    const groupArray = groups[key];
+    if (groupArray) {
+      groupArray.push(metric);
+    }
     return groups;
   }, {} as Record<string, Metric[]>);
 }
@@ -282,13 +304,13 @@ export function calculateSummaryStats(values: number[]): {
   }
 
   const sorted = [...values].sort((a, b) => a - b);
-  const min = sorted[0];
-  const max = sorted[sorted.length - 1];
+  const min = sorted[0] ?? 0;
+  const max = sorted[sorted.length - 1] ?? 0;
   const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
   
   const median = sorted.length % 2 === 0
-    ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
-    : sorted[Math.floor(sorted.length / 2)];
+    ? ((sorted[sorted.length / 2 - 1] ?? 0) + (sorted[sorted.length / 2] ?? 0)) / 2
+    : sorted[Math.floor(sorted.length / 2)] ?? 0;
 
   const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
   const stdDev = Math.sqrt(variance);
@@ -379,8 +401,8 @@ export function detectOutliers(dataPoints: TrendDataPoint[]): TrendDataPoint[] {
   
   const q1Index = Math.floor(sorted.length * 0.25);
   const q3Index = Math.floor(sorted.length * 0.75);
-  const q1 = sorted[q1Index];
-  const q3 = sorted[q3Index];
+  const q1 = sorted[q1Index] ?? 0;
+  const q3 = sorted[q3Index] ?? 0;
   const iqr = q3 - q1;
   
   const lowerBound = q1 - 1.5 * iqr;
@@ -448,7 +470,7 @@ export function validateKPI(kpi: Partial<KPI>): string[] {
 /**
  * Convert analytics data to CSV format
  */
-export function convertToCSV(data: any[], headers: string[]): string {
+export function convertToCSV(data: Record<string, unknown>[], headers: string[]): string {
   const csvHeaders = headers.join(',');
   const csvRows = data.map(row => 
     headers.map(header => {
@@ -456,7 +478,7 @@ export function convertToCSV(data: any[], headers: string[]): string {
       if (typeof value === 'string' && value.includes(',')) {
         return `"${value}"`;
       }
-      return value;
+      return value ?? '';
     }).join(',')
   );
 
@@ -466,7 +488,7 @@ export function convertToCSV(data: any[], headers: string[]): string {
 /**
  * Download data as CSV file
  */
-export function downloadCSV(data: any[], filename: string, headers: string[]): void {
+export function downloadCSV(data: Record<string, unknown>[], filename: string, headers: string[]): void {
   const csv = convertToCSV(data, headers);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
@@ -509,7 +531,11 @@ export function generateReportSummary(metrics: Metric[], kpis: KPI[]): {
 
   // Calculate actual averages
   Object.keys(averageValues).forEach(category => {
-    averageValues[category] = averageValues[category] / categoryCounts[category];
+    const categoryCount = categoryCounts[category] || 1;
+    const avgValue = averageValues[category];
+    if (avgValue !== undefined) {
+      averageValues[category] = avgValue / categoryCount;
+    }
   });
 
   const improvingKPIs = kpis.filter(kpi => kpi.changePercentage > 0).length;
