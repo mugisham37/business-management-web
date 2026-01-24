@@ -23,6 +23,3 @@ export * from './cache-strategies';
 
 // Error handling utilities
 export * from './error-handling';
-
-// Business logic utilities
-export * from './business-logic';

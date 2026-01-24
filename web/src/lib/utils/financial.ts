@@ -3,8 +3,6 @@
  * Helper functions for financial calculations, formatting, and operations
  */
 
-import { formatCurrency } from './index';
-
 // Financial Calculation Types
 export interface FinancialRatio {
   value: number;

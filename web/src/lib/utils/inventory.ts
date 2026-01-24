@@ -514,7 +514,7 @@ export function sortProducts(
 /**
  * Convert inventory data to CSV format
  */
-export function convertInventoryToCSV(inventoryLevels: InventoryLevel[]): string {
+export function convertInventoryToCSV(inventoryLevels: (InventoryLevel & { product?: { sku?: string; name?: string }; location?: { name?: string } })[]): string {
   const headers = [
     'Product SKU',
     'Product Name',

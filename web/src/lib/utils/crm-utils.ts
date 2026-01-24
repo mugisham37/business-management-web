@@ -162,7 +162,7 @@ export const loyaltyUtils = {
     if (currentIndex === tiers.length - 1) return 0; // Already at highest tier
     
     const nextTier = tiers[currentIndex + 1];
-    const nextThreshold = tierThresholds[nextTier];
+    const nextThreshold = nextTier ? tierThresholds[nextTier] : 0;
     
     return Math.max(0, nextThreshold - currentPoints);
   },
@@ -219,7 +219,6 @@ export const churnUtils = {
     };
     return colors[riskLevel];
   },
-  },
 
   /**
    * Get churn risk icon
@@ -240,13 +239,13 @@ export const churnUtils = {
   getPreventionRecommendations: (riskLevel: ChurnRiskLevel, customer: Customer): string[] => {
     const recommendations: string[] = [];
 
-    if (riskLevel === 'critical' || riskLevel === 'high') {
+    if (riskLevel === ChurnRiskLevel.CRITICAL || riskLevel === ChurnRiskLevel.HIGH) {
       recommendations.push('Schedule immediate personal outreach');
       recommendations.push('Offer exclusive discount or promotion');
       recommendations.push('Provide priority customer support');
     }
 
-    if (riskLevel === 'medium' || riskLevel === 'high') {
+    if (riskLevel === ChurnRiskLevel.MEDIUM || riskLevel === ChurnRiskLevel.HIGH) {
       recommendations.push('Send personalized email campaign');
       recommendations.push('Invite to loyalty program if not enrolled');
       recommendations.push('Gather feedback through survey');
@@ -297,7 +296,7 @@ export const campaignUtils = {
   /**
    * Check if campaign is currently active
    */
-  isCurrentlyActive: (campaign: any): boolean => {
+  isCurrentlyActive: (campaign: { status: string; startDate: Date | string; endDate: Date | string }): boolean => {
     if (campaign.status !== 'active') return false;
     
     const now = new Date();

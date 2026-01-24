@@ -352,8 +352,8 @@ export function sortSuppliers(
   sortOrder: 'asc' | 'desc' = 'asc'
 ): Supplier[] {
   const sorted = [...suppliers].sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: string | Date | number;
+    let bValue: string | Date | number;
     
     switch (sortBy) {
       case 'name':

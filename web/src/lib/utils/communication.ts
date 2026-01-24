@@ -12,6 +12,7 @@ import {
   SMSMessage,
   SlackMessage,
   TeamsMessage,
+  TeamsSection,
   NotificationAction,
   CommunicationEvent,
   CommunicationError,
@@ -187,8 +188,6 @@ export const previewTemplate = (template: EmailTemplate | SMSTemplate, variables
     missingVariables,
   };
 };
-  }
-};
 
 // Content Processing Functions
 export const sanitizeHtml = (html: string): string => {
@@ -301,10 +300,10 @@ export const buildTeamsMessage = (params: {
   if (params.themeColor) message.themeColor = params.themeColor;
   
   if (params.title !== undefined || params.subtitle !== undefined) {
-    message.sections = [{
-      activityTitle: params.title ?? undefined,
-      activitySubtitle: params.subtitle ?? undefined,
-    }];
+    const section: TeamsSection = {};
+    if (params.title !== undefined) section.activityTitle = params.title;
+    if (params.subtitle !== undefined) section.activitySubtitle = params.subtitle;
+    message.sections = [section];
   }
   
   return message;
@@ -375,7 +374,7 @@ export const createCommunicationError = (
   return {
     code,
     message,
-    details,
+    ...(details && { details }),
     timestamp: new Date(),
   };
 };
@@ -394,7 +393,7 @@ export const calculateAverageResponseTime = (responseTimes: number[]): number =>
 
 export const groupEventsByChannel = (events: CommunicationEvent[]): Record<string, CommunicationEvent[]> => {
   return events.reduce((groups, event) => {
-    const channel = event.channel;
+    const channel = event.channel as string;
     if (!groups[channel]) {
       groups[channel] = [];
     }
@@ -405,7 +404,7 @@ export const groupEventsByChannel = (events: CommunicationEvent[]): Record<strin
 
 export const groupEventsByPriority = (events: CommunicationEvent[]): Record<string, CommunicationEvent[]> => {
   return events.reduce((groups, event) => {
-    const priority = event.metadata?.priority || 'unknown';
+    const priority = (event.metadata?.priority as string) || 'unknown';
     if (!groups[priority]) {
       groups[priority] = [];
     }
@@ -479,7 +478,7 @@ export const processBatchesWithDelay = async <T, R>(
   const results: R[] = [];
   
   for (let i = 0; i < batches.length; i++) {
-    const result = await processor(batches[i]);
+    const result = await processor(batches[i] ?? []);
     results.push(result);
     
     // Add delay between batches (except for the last one)
@@ -519,8 +518,8 @@ export const createCommunicationMetadata = (
   };
 };
 
-export const extractMetadataValue = (metadata: Record<string, any> | undefined, key: string, defaultValue?: any): any => {
-  return metadata?.[key] ?? defaultValue;
+export const extractMetadataValue = <T = unknown>(metadata: Record<string, unknown> | undefined, key: string, defaultValue?: T): T | undefined => {
+  return (metadata?.[key] as T) ?? defaultValue;
 };
 
 // Helper Functions

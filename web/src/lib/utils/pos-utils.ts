@@ -6,7 +6,6 @@
 import type {
   Transaction,
   TransactionItem,
-  PaymentRecord,
   ReconciliationReport,
   DailySalesSummary,
 } from '@/types/pos';
@@ -420,14 +419,14 @@ export const validationUtils = {
   /**
    * Validate transaction data
    */
-  validateTransaction: (data: any) => {
+  validateTransaction: (data: Record<string, unknown>) => {
     const errors: string[] = [];
 
     if (!data.locationId) {
       errors.push('Location ID is required');
     }
 
-    if (!data.items || data.items.length === 0) {
+    if (!data.items || (Array.isArray(data.items) && data.items.length === 0)) {
       errors.push('At least one item is required');
     }
 
@@ -448,15 +447,15 @@ export const validationUtils = {
   /**
    * Validate refund data
    */
-  validateRefund: (data: any, transaction: Transaction) => {
+  validateRefund: (data: Record<string, unknown>, transaction: Transaction) => {
     const errors: string[] = [];
 
-    if (!data.amount || data.amount <= 0) {
+    if (!data.amount || typeof data.amount !== 'number' || data.amount <= 0) {
       errors.push('Refund amount must be greater than 0');
     }
 
     const refundableAmount = transactionUtils.getRefundableAmount(transaction);
-    if (data.amount > refundableAmount) {
+    if (typeof data.amount === 'number' && data.amount > refundableAmount) {
       errors.push(`Refund amount cannot exceed $${refundableAmount.toFixed(2)}`);
     }
 

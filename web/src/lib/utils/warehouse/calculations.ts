@@ -6,12 +6,7 @@
 import {
   Warehouse,
   WarehouseCapacity,
-  BinLocation,
-  PickingWave,
   PickList,
-  Shipment,
-  LotInfo,
-  AssemblyWorkOrder,
 } from '@/types/warehouse';
 
 // ===== CAPACITY CALCULATIONS =====

@@ -178,18 +178,23 @@ export function parseAddress(addressString: string): Partial<Location['address']
   // Simple address parsing - in production, use a proper address parsing service
   const parts = addressString.split(',').map(part => part.trim());
   
+  const result: Partial<Location['address']> = {};
+  
   if (parts.length >= 4) {
+    if (parts[0]) result.street = parts[0];
+    if (parts[1]) result.city = parts[1];
+    
     const statePostal = parts[2] ?? '';
-    return {
-      street: parts[0] ?? undefined,
-      city: parts[1] ?? undefined,
-      state: statePostal.split(' ')[0] ?? undefined,
-      postalCode: (statePostal.split(' ').slice(1).join(' ')) || undefined,
-      country: parts[3] ?? undefined,
-    };
+    const stateParts = statePostal.split(' ');
+    if (stateParts[0]) result.state = stateParts[0];
+    
+    const postalCodePart = statePostal.split(' ').slice(1).join(' ');
+    if (postalCodePart) result.postalCode = postalCodePart;
+    
+    if (parts[3]) result.country = parts[3];
   }
 
-  return {};
+  return result;
 }
 
 // Coordinates utilities

@@ -126,7 +126,7 @@ export const WAREHOUSE_CACHE_STRATEGIES: Record<string, CacheStrategy> = {
 // ===== INTELLIGENT CACHE MANAGER =====
 
 export class IntelligentCacheManager {
-  private caches = new Map<string, MemoryCache<any>>();
+  private caches = new Map<string, MemoryCache<unknown>>();
   private strategies = new Map<string, CacheStrategy>();
   private eventListeners = new Map<string, Set<string>>();
   private accessPatterns = new Map<string, { hits: number; misses: number; lastAccessed: number }>();
@@ -177,7 +177,7 @@ export class IntelligentCacheManager {
     if (!cache) return null;
 
     const fullKey = `${strategyName}:${key}`;
-    const data = cache.get(fullKey);
+    const data = cache.get(fullKey) as T | null;
 
     // Track access patterns
     const pattern = this.accessPatterns.get(fullKey) || { hits: 0, misses: 0, lastAccessed: 0 };
@@ -217,7 +217,7 @@ export class IntelligentCacheManager {
   /**
    * Invalidate cache entries based on event
    */
-  invalidateByEvent(event: string, metadata?: Record<string, any>): void {
+  invalidateByEvent(event: string, metadata?: Record<string, unknown>): void {
     const affectedStrategies = this.eventListeners.get(event);
     if (!affectedStrategies) return;
 
@@ -236,13 +236,13 @@ export class IntelligentCacheManager {
   /**
    * Invalidate all entries for a strategy
    */
-  invalidateStrategy(strategyName: string, metadata?: Record<string, any>): void {
+  invalidateStrategy(strategyName: string, metadata?: Record<string, unknown>): void {
     const cache = this.caches.get(strategyName);
     if (!cache) return;
 
     // If metadata contains specific keys to invalidate
-    if (metadata?.keys) {
-      metadata.keys.forEach((key: string) => {
+    if (metadata?.keys && Array.isArray(metadata.keys)) {
+      (metadata.keys as string[]).forEach((key: string) => {
         const fullKey = `${strategyName}:${key}`;
         cache.delete(fullKey);
       });
@@ -257,7 +257,7 @@ export class IntelligentCacheManager {
   /**
    * Schedule cache refresh
    */
-  private scheduleRefresh(strategyName: string, metadata?: Record<string, any>): void {
+  private scheduleRefresh(strategyName: string, metadata?: Record<string, unknown>): void {
     // This could trigger background refresh of cache data
     console.log(`Cache refresh scheduled for strategy: ${strategyName}`, metadata);
   }
@@ -265,8 +265,8 @@ export class IntelligentCacheManager {
   /**
    * Get cache statistics
    */
-  getStatistics(): Record<string, any> {
-    const stats: Record<string, any> = {};
+  getStatistics(): Record<string, unknown> {
+    const stats: Record<string, unknown> = {};
 
     this.caches.forEach((cache, strategyName) => {
       const cacheStats = cache.getStats();
@@ -326,13 +326,23 @@ export class IntelligentCacheManager {
       const strategy = this.strategies.get(strategyName);
       if (!strategy) return;
 
+      // Type guard for stat object
+      if (typeof stat !== 'object' || stat === null) return;
+      const statObj = stat as Record<string, unknown>;
+      const hitRate = typeof statObj.hitRate === 'string' 
+        ? parseFloat(statObj.hitRate) 
+        : typeof statObj.hitRate === 'number' 
+        ? statObj.hitRate 
+        : 0;
+      const priority = statObj.priority as string || 'medium';
+
       // Adjust TTL based on hit rate and priority
       let newTTL = strategy.ttl;
       
-      if (stat.hitRate > 80 && strategy.priority === 'high') {
+      if (hitRate > 80 && priority === 'high') {
         // High hit rate and high priority - increase TTL
         newTTL = Math.min(strategy.ttl * 1.5, CACHE_TTL.VERY_LONG);
-      } else if (stat.hitRate < 20 && strategy.priority === 'low') {
+      } else if (hitRate < 20 && priority === 'low') {
         // Low hit rate and low priority - decrease TTL
         newTTL = Math.max(strategy.ttl * 0.5, CACHE_TTL.SHORT);
       }
@@ -347,12 +357,14 @@ export class IntelligentCacheManager {
   /**
    * Preload cache with commonly accessed data
    */
-  async preloadCache(strategyName: string, dataLoader: () => Promise<any[]>): Promise<void> {
+  async preloadCache(strategyName: string, dataLoader: () => Promise<unknown[]>): Promise<void> {
     try {
       const data = await dataLoader();
       
       data.forEach((item, index) => {
-        this.set(strategyName, item.id || index.toString(), item);
+        const itemObj = item as Record<string, unknown>;
+        const key = (itemObj.id as string | number) || index.toString();
+        this.set(strategyName, key.toString(), item);
       });
 
       console.log(`Preloaded ${data.length} items for strategy: ${strategyName}`);
@@ -394,7 +406,7 @@ export class IntelligentCacheManager {
   async warmUp(
     strategyName: string, 
     keys: string[], 
-    dataLoader: (key: string) => Promise<any>
+    dataLoader: (key: string) => Promise<unknown>
   ): Promise<void> {
     const promises = keys.map(async (key) => {
       try {
@@ -415,12 +427,12 @@ export class IntelligentCacheManager {
 /**
  * Cache decorator for functions
  */
-export function withCache<T extends (...args: any[]) => Promise<any>>(
+export function withCache<T extends (...args: unknown[]) => Promise<unknown>>(
   strategyName: string,
   keyGenerator: (...args: Parameters<T>) => string,
   cacheManager: IntelligentCacheManager
 ) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
     descriptor.value = async function (...args: Parameters<T>) {
@@ -452,10 +464,10 @@ export function invalidateCache(
   events: string[],
   cacheManager: IntelligentCacheManager
 ) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const result = await method.apply(this, args);
       
       // Invalidate cache after successful operation
@@ -479,7 +491,7 @@ export const warehouseCacheManager = new IntelligentCacheManager();
 /**
  * Generate cache key from object
  */
-export function generateCacheKey(prefix: string, params: Record<string, any>): string {
+export function generateCacheKey(prefix: string, params: Record<string, unknown>): string {
   const sortedParams = Object.keys(params)
     .sort()
     .map(key => `${key}:${JSON.stringify(params[key])}`)
@@ -493,23 +505,23 @@ export function generateCacheKey(prefix: string, params: Record<string, any>): s
  */
 export const cacheKeyGenerators = {
   warehouse: (id: string) => `warehouse:${id}`,
-  warehouseList: (filter?: any, pagination?: any) => 
+  warehouseList: (filter?: unknown, pagination?: unknown) => 
     generateCacheKey('warehouse_list', { filter, pagination }),
   warehouseCapacity: (warehouseId: string) => `capacity:${warehouseId}`,
   warehouseZones: (warehouseId: string) => `zones:${warehouseId}`,
   binLocations: (warehouseId: string, zoneId?: string) => 
     `bins:${warehouseId}:${zoneId || 'all'}`,
-  pickingWaves: (warehouseId?: string, filter?: any) => 
+  pickingWaves: (warehouseId?: string, filter?: unknown) => 
     generateCacheKey('waves', { warehouseId, filter }),
-  pickLists: (warehouseId?: string, waveId?: string, filter?: any) => 
+  pickLists: (warehouseId?: string, waveId?: string, filter?: unknown) => 
     generateCacheKey('picklists', { warehouseId, waveId, filter }),
-  shipments: (warehouseId?: string, filter?: any) => 
+  shipments: (warehouseId?: string, filter?: unknown) => 
     generateCacheKey('shipments', { warehouseId, filter }),
-  lots: (warehouseId?: string, productId?: string, filter?: any) => 
+  lots: (warehouseId?: string, productId?: string, filter?: unknown) => 
     generateCacheKey('lots', { warehouseId, productId, filter }),
-  kitDefinitions: (filter?: any) => 
+  kitDefinitions: (filter?: unknown) => 
     generateCacheKey('kits', { filter }),
-  assemblyWorkOrders: (warehouseId?: string, kitId?: string, filter?: any) => 
+  assemblyWorkOrders: (warehouseId?: string, kitId?: string, filter?: unknown) => 
     generateCacheKey('workorders', { warehouseId, kitId, filter }),
 };
 

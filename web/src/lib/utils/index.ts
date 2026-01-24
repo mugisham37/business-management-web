@@ -182,14 +182,55 @@ export function omit<T extends Record<string, unknown>, K extends keyof T>(
   return result;
 }
 
-// Re-export analytics utilities
-export * from './analytics';
+// Re-export analytics utilities (selective to avoid conflicts)
+export {
+  formatNumber,
+  formatMetricValue,
+  getTrendDirection,
+  getTrendColor,
+  calculateMovingAverage,
+  smoothTrendData,
+  calculateTrendSlope,
+  groupMetricsByCategory,
+  aggregateMetricsByPeriod,
+  calculateSummaryStats,
+  compareMetrics,
+  rankByMetric,
+  calculateConfidenceIntervals,
+  detectOutliers,
+  validateMetric,
+  validateKPI,
+  convertToCSV,
+  downloadCSV,
+  generateReportSummary,
+  calculatePercentageChange,
+} from './analytics';
 
 // Re-export supplier utilities
 export * from './supplier';
 
-// Re-export financial utilities
-export * from './financial';
+// Re-export financial utilities (selective to avoid conflicts)
+export {
+  type FinancialRatio,
+  type VarianceAnalysis,
+  type CashFlowProjection,
+  formatFinancialAmount,
+  parseFinancialAmount,
+  calculateCurrentRatio,
+  calculateQuickRatio,
+  calculateDebtToEquityRatio,
+  calculateReturnOnAssets,
+  calculateReturnOnEquity,
+  calculateGrossProfitMargin,
+  calculateNetProfitMargin,
+  calculateBudgetUtilization,
+  calculateWorkingCapital,
+  calculateCashConversionCycle,
+  projectCashFlow,
+  calculateAccountBalance,
+  isDebitAccount,
+  isCreditAccount,
+} from './financial';
 
 // Re-export POS utilities
 export * from './pos-utils';

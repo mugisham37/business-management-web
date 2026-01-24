@@ -6,23 +6,9 @@
 import {
   Warehouse,
   WarehouseStatus,
-  LayoutType,
-  SecurityLevel,
   WarehouseZoneType,
-  BinLocationStatus,
   PickingWaveStatus,
-  PickListStatus,
-  ShipmentStatus,
-  LotStatus,
-  AssemblyWorkOrderStatus,
   CreateWarehouseInput,
-  CreateWarehouseZoneInput,
-  CreateBinLocationInput,
-  CreatePickingWaveInput,
-  CreateShipmentInput,
-  CreateLotInput,
-  CreateKitDefinitionInput,
-  CreateAssemblyWorkOrderInput,
   Address,
 } from '@/types/warehouse';
 
@@ -686,8 +672,11 @@ export function validateBusinessHours(
   if (!businessHours) return errors;
 
   const operationHour = operationTime.getHours();
-  const startHour = parseInt(businessHours.start.split(':')[0]);
-  const endHour = parseInt(businessHours.end.split(':')[0]);
+  const startHourStr = businessHours.start?.split(':')[0];
+  const endHourStr = businessHours.end?.split(':')[0];
+  
+  const startHour = startHourStr ? parseInt(startHourStr, 10) : 0;
+  const endHour = endHourStr ? parseInt(endHourStr, 10) : 23;
 
   if (operationHour < startHour || operationHour >= endHour) {
     errors.push({ 
@@ -721,7 +710,11 @@ export function createValidationError(
   message: string,
   code?: string
 ): ValidationError {
-  return { field, message, code };
+  return {
+    field,
+    message,
+    ...(code && { code }),
+  };
 }
 
 /**

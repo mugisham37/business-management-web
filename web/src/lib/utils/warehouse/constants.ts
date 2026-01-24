@@ -8,12 +8,11 @@ import {
   WarehouseZoneType,
   BinLocationStatus,
   PickingWaveStatus,
-  PickListStatus,
   ShipmentStatus,
   LotStatus,
   AssemblyWorkOrderStatus,
-  LayoutType,
   SecurityLevel,
+  LayoutType,
 } from '@/types/warehouse';
 
 // ===== WAREHOUSE CONSTANTS =====

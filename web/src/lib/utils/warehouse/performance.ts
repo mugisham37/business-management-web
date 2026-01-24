@@ -3,7 +3,7 @@
  * Performance monitoring and optimization helpers
  */
 
-import { PERFORMANCE_THRESHOLDS, POLLING_INTERVALS } from './constants';
+import { POLLING_INTERVALS } from './constants';
 
 // ===== PERFORMANCE MONITORING =====
 
@@ -13,12 +13,12 @@ import { PERFORMANCE_THRESHOLDS, POLLING_INTERVALS } from './constants';
 export interface PerformanceMetrics {
   operationName: string;
   startTime: number;
-  endTime?: number;
-  duration?: number;
-  memoryUsage?: number;
+  endTime?: number | undefined;
+  duration?: number | undefined;
+  memoryUsage?: number | undefined;
   success: boolean;
-  errorMessage?: string;
-  metadata?: Record<string, any>;
+  errorMessage?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
 }
 
 /**
@@ -26,7 +26,7 @@ export interface PerformanceMetrics {
  */
 export class PerformanceMonitor {
   private metrics: Map<string, PerformanceMetrics> = new Map();
-  private thresholds: Record<string, number> = {
+  private thresholds: { slowOperation: number; highMemoryUsage: number } = {
     slowOperation: 5000, // 5 seconds
     highMemoryUsage: 50 * 1024 * 1024, // 50MB
   };
@@ -34,7 +34,7 @@ export class PerformanceMonitor {
   /**
    * Start monitoring an operation
    */
-  startOperation(operationName: string, metadata?: Record<string, any>): string {
+  startOperation(operationName: string, metadata?: Record<string, unknown>): string {
     const operationId = `${operationName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     this.metrics.set(operationId, {
@@ -80,7 +80,8 @@ export class PerformanceMonitor {
    */
   private getMemoryUsage(): number {
     if ('memory' in performance) {
-      return (performance as any).memory.usedJSHeapSize;
+      const perfWithMemory = performance as unknown as { memory: { usedJSHeapSize: number } };
+      return perfWithMemory.memory.usedJSHeapSize;
     }
     return 0;
   }
@@ -89,12 +90,14 @@ export class PerformanceMonitor {
    * Check performance thresholds and log warnings
    */
   private checkPerformanceThresholds(metric: PerformanceMetrics): void {
-    if (metric.duration && metric.duration > this.thresholds.slowOperation) {
-      console.warn(`Slow operation detected: ${metric.operationName} took ${metric.duration.toFixed(2)}ms`);
+    const { duration, memoryUsage } = metric;
+    
+    if (typeof duration === 'number' && duration > this.thresholds.slowOperation) {
+      console.warn(`Slow operation detected: ${metric.operationName} took ${duration.toFixed(2)}ms`);
     }
 
-    if (metric.memoryUsage && metric.memoryUsage > this.thresholds.highMemoryUsage) {
-      console.warn(`High memory usage detected: ${metric.operationName} used ${(metric.memoryUsage / 1024 / 1024).toFixed(2)}MB`);
+    if (typeof memoryUsage === 'number' && memoryUsage > this.thresholds.highMemoryUsage) {
+      console.warn(`High memory usage detected: ${metric.operationName} used ${(memoryUsage / 1024 / 1024).toFixed(2)}MB`);
     }
   }
 
@@ -146,11 +149,11 @@ export class PerformanceMonitor {
     const averageDuration = totalOperations > 0 ? totalDuration / totalOperations : 0;
 
     const slowOperations = completedMetrics.filter(m => 
-      (m.duration || 0) > this.thresholds.slowOperation
+      (m.duration ?? 0) > this.thresholds.slowOperation
     ).length;
 
     const highMemoryOperations = completedMetrics.filter(m => 
-      (m.memoryUsage || 0) > this.thresholds.highMemoryUsage
+      (m.memoryUsage ?? 0) > this.thresholds.highMemoryUsage
     ).length;
 
     return {
@@ -171,25 +174,26 @@ export const performanceMonitor = new PerformanceMonitor();
 /**
  * Performance monitoring decorator for functions
  */
-export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
+export function withPerformanceMonitoring<T extends (...args: unknown[]) => unknown>(
   operationName: string,
   fn: T
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     const operationId = performanceMonitor.startOperation(operationName, { args });
     
     try {
       const result = fn(...args);
       
       // Handle promises
-      if (result && typeof result.then === 'function') {
-        return result
-          .then((value: any) => {
+      if (result && typeof result === 'object' && 'then' in result && typeof (result as Record<string, unknown>).then === 'function') {
+        return (result as Promise<unknown>)
+          .then((value: unknown) => {
             performanceMonitor.endOperation(operationId, true);
             return value;
           })
-          .catch((error: any) => {
-            performanceMonitor.endOperation(operationId, false, error.message);
+          .catch((error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            performanceMonitor.endOperation(operationId, false, errorMessage);
             throw error;
           });
       }
@@ -299,7 +303,7 @@ export class MemoryCache<T> {
 /**
  * Debounce function calls
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -314,7 +318,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function calls
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -336,11 +340,11 @@ export function throttle<T extends (...args: any[]) => any>(
  * Batch processor for handling multiple operations efficiently
  */
 export class BatchProcessor<T, R> {
-  private batch: T[] = [];
+  private batch: Array<T & { __resolve?: (value: R) => void; __reject?: (reason?: unknown) => void }> = [];
   private batchSize: number;
   private batchTimeout: number;
   private processor: (items: T[]) => Promise<R[]>;
-  private timeoutId?: NodeJS.Timeout;
+  private timeoutId: NodeJS.Timeout | undefined;
 
   constructor(
     processor: (items: T[]) => Promise<R[]>,
@@ -357,11 +361,10 @@ export class BatchProcessor<T, R> {
    */
   add(item: T): Promise<R> {
     return new Promise((resolve, reject) => {
-      this.batch.push(item);
-      
-      // Store resolve/reject for this item
-      (item as any).__resolve = resolve;
-      (item as any).__reject = reject;
+      const wrappedItem = item as T & { __resolve?: (value: R) => void; __reject?: (reason?: unknown) => void };
+      wrappedItem.__resolve = resolve;
+      wrappedItem.__reject = reject;
+      this.batch.push(wrappedItem);
       
       // Process if batch is full
       if (this.batch.length >= this.batchSize) {
@@ -394,27 +397,32 @@ export class BatchProcessor<T, R> {
   private async processBatch(): Promise<void> {
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
-      this.timeoutId = undefined;
     }
+    this.timeoutId = undefined;
     
     const currentBatch = this.batch.splice(0);
     
     try {
-      const results = await this.processor(currentBatch);
+      const plainItems = currentBatch.map(item => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { __resolve, __reject, ...rest } = item as Record<string, unknown>;
+        return rest as T;
+      });
+      const results = await this.processor(plainItems);
       
       // Resolve promises
       currentBatch.forEach((item, index) => {
-        const resolve = (item as any).__resolve;
-        if (resolve) {
-          resolve(results[index]);
+        const wrappedItem = item as T & { __resolve?: (value: R) => void; __reject?: (reason?: unknown) => void };
+        if (wrappedItem.__resolve && results[index] !== undefined) {
+          wrappedItem.__resolve(results[index] as R);
         }
       });
     } catch (error) {
       // Reject all promises
       currentBatch.forEach(item => {
-        const reject = (item as any).__reject;
-        if (reject) {
-          reject(error);
+        const wrappedItem = item as T & { __resolve?: (value: R) => void; __reject?: (reason?: unknown) => void };
+        if (wrappedItem.__reject) {
+          wrappedItem.__reject(error);
         }
       });
     }
@@ -436,7 +444,7 @@ export class BatchProcessor<T, R> {
  * Smart polling with exponential backoff
  */
 export class SmartPoller {
-  private intervalId?: NodeJS.Timeout;
+  private intervalId: NodeJS.Timeout | undefined;
   private currentInterval: number;
   private maxInterval: number;
   private backoffMultiplier: number;
@@ -448,6 +456,7 @@ export class SmartPoller {
     maxInterval: number = POLLING_INTERVALS.VERY_SLOW,
     backoffMultiplier: number = 1.5
   ) {
+    this.intervalId = undefined;
     this.currentInterval = initialInterval;
     this.maxInterval = maxInterval;
     this.backoffMultiplier = backoffMultiplier;
@@ -609,7 +618,7 @@ export const arrayUtils = {
   /**
    * Remove duplicates from array
    */
-  unique<T>(array: T[], keyFn?: (item: T) => any): T[] {
+  unique<T>(array: T[], keyFn?: (item: T) => string | number): T[] {
     if (!keyFn) {
       return [...new Set(array)];
     }

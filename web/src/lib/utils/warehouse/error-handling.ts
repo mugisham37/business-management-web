@@ -3,16 +3,17 @@
  * Centralized error handling for warehouse operations
  */
 
+import React from 'react';
 import { ERROR_CODES } from './constants';
 
 // ===== ERROR TYPES =====
 
 export interface WarehouseError extends Error {
   code: string;
-  field?: string;
-  details?: Record<string, any>;
+  field?: string | undefined;
+  details?: Record<string, unknown> | undefined;
   timestamp: Date;
-  operation?: string;
+  operation?: string | undefined;
   severity: 'low' | 'medium' | 'high' | 'critical';
   retryable: boolean;
 }
@@ -21,17 +22,17 @@ export interface ErrorContext {
   operation: string;
   warehouseId?: string;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ===== ERROR CLASSES =====
 
-export class ValidationError extends Error implements WarehouseError {
+export class WarehouseValidationError extends Error implements WarehouseError {
   code: string;
-  field?: string;
-  details?: Record<string, any>;
+  field?: string | undefined;
+  details?: Record<string, unknown> | undefined;
   timestamp: Date;
-  operation?: string;
+  operation?: string | undefined;
   severity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
   retryable: boolean = false;
 
@@ -39,10 +40,10 @@ export class ValidationError extends Error implements WarehouseError {
     message: string,
     field?: string,
     code: string = ERROR_CODES.VALIDATION.INVALID_FORMAT,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = 'WarehouseValidationError';
     this.code = code;
     this.field = field;
     this.details = details;
@@ -52,17 +53,17 @@ export class ValidationError extends Error implements WarehouseError {
 
 export class BusinessRuleError extends Error implements WarehouseError {
   code: string;
-  field?: string;
-  details?: Record<string, any>;
+  field?: string | undefined;
+  details?: Record<string, unknown> | undefined;
   timestamp: Date;
-  operation?: string;
+  operation?: string | undefined;
   severity: 'low' | 'medium' | 'high' | 'critical' = 'high';
   retryable: boolean = false;
 
   constructor(
     message: string,
     code: string = ERROR_CODES.BUSINESS_RULE.OPERATION_NOT_ALLOWED,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'BusinessRuleError';
@@ -74,17 +75,17 @@ export class BusinessRuleError extends Error implements WarehouseError {
 
 export class SystemError extends Error implements WarehouseError {
   code: string;
-  field?: string;
-  details?: Record<string, any>;
+  field?: string | undefined;
+  details?: Record<string, unknown> | undefined;
   timestamp: Date;
-  operation?: string;
+  operation?: string | undefined;
   severity: 'low' | 'medium' | 'high' | 'critical' = 'critical';
   retryable: boolean = true;
 
   constructor(
     message: string,
     code: string = ERROR_CODES.SYSTEM.SERVER_ERROR,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'SystemError';
@@ -96,14 +97,14 @@ export class SystemError extends Error implements WarehouseError {
 
 export class NetworkError extends Error implements WarehouseError {
   code: string = ERROR_CODES.SYSTEM.NETWORK_ERROR;
-  field?: string;
-  details?: Record<string, any>;
+  field?: string | undefined;
+  details?: Record<string, unknown> | undefined;
   timestamp: Date;
-  operation?: string;
+  operation?: string | undefined;
   severity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
   retryable: boolean = true;
 
-  constructor(message: string, details?: Record<string, any>) {
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'NetworkError';
     this.details = details;
@@ -192,8 +193,15 @@ export class WarehouseErrorHandler {
   /**
    * Check if error is a WarehouseError
    */
-  private isWarehouseError(error: any): error is WarehouseError {
-    return error && typeof error.code === 'string' && error.timestamp instanceof Date;
+  private isWarehouseError(error: unknown): error is WarehouseError {
+    if (!error || typeof error !== 'object') return false;
+    const obj = error as Record<string, unknown>;
+    return (
+      'code' in obj &&
+      typeof obj.code === 'string' && 
+      'timestamp' in obj &&
+      obj.timestamp instanceof Date
+    );
   }
 
   /**
@@ -369,7 +377,7 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
   maxDelay: 10000,
   backoffMultiplier: 2,
   retryCondition: (error: Error) => {
-    if (error instanceof WarehouseError) {
+    if (error instanceof WarehouseValidationError || error instanceof BusinessRuleError || error instanceof SystemError || error instanceof NetworkError) {
       return error.retryable;
     }
     return error instanceof NetworkError || error.name === 'TimeoutError';
@@ -510,7 +518,7 @@ export function formatErrorForDeveloper(error: WarehouseError): string {
 export function extractValidationErrors(error: WarehouseError): Record<string, string> {
   const errors: Record<string, string> = {};
   
-  if (error instanceof ValidationError && error.field) {
+  if (error instanceof WarehouseValidationError && error.field) {
     errors[error.field] = formatErrorForUser(error);
   } else if (error.details?.validationErrors) {
     Object.assign(errors, error.details.validationErrors);
@@ -528,14 +536,14 @@ export const warehouseErrorHandler = new WarehouseErrorHandler();
 /**
  * Create error from GraphQL error
  */
-export function createErrorFromGraphQL(graphqlError: any): WarehouseError {
-  const extensions = graphqlError.extensions || {};
-  const code = extensions.code || ERROR_CODES.SYSTEM.SERVER_ERROR;
+export function createErrorFromGraphQL(graphqlError: Record<string, unknown>): WarehouseError {
+  const extensions = (graphqlError.extensions as Record<string, unknown>) || {};
+  const code = (extensions.code as string) || ERROR_CODES.SYSTEM.SERVER_ERROR;
   
   if (code.startsWith('VALIDATION_')) {
-    return new ValidationError(
-      graphqlError.message,
-      extensions.field,
+    return new WarehouseValidationError(
+      graphqlError.message as string,
+      extensions.field as string,
       code,
       extensions
     );
@@ -543,14 +551,14 @@ export function createErrorFromGraphQL(graphqlError: any): WarehouseError {
   
   if (code.startsWith('BUSINESS_')) {
     return new BusinessRuleError(
-      graphqlError.message,
+      graphqlError.message as string,
       code,
       extensions
     );
   }
   
   return new SystemError(
-    graphqlError.message,
+    graphqlError.message as string,
     code,
     extensions
   );
@@ -559,20 +567,20 @@ export function createErrorFromGraphQL(graphqlError: any): WarehouseError {
 /**
  * Handle Apollo Client errors
  */
-export function handleApolloError(error: any): WarehouseError {
+export function handleApolloError(error: Record<string, unknown>): WarehouseError {
   if (error.networkError) {
     return new NetworkError(
       'Network error occurred',
-      { originalError: error.networkError }
+      { originalError: error.networkError as Record<string, unknown> }
     );
   }
   
-  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-    return createErrorFromGraphQL(error.graphQLErrors[0]);
+  if (error.graphQLErrors && Array.isArray(error.graphQLErrors) && error.graphQLErrors.length > 0) {
+    return createErrorFromGraphQL(error.graphQLErrors[0] as Record<string, unknown>);
   }
   
   return new SystemError(
-    error.message || 'Unknown error occurred',
+    (error.message as string) || 'Unknown error occurred',
     ERROR_CODES.SYSTEM.SERVER_ERROR,
     { originalError: error }
   );
@@ -605,7 +613,7 @@ export function createErrorBoundary(
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
       const warehouseError = warehouseErrorHandler.handleError(error, {
         operation: 'component_render',
-        metadata: errorInfo,
+        metadata: errorInfo as Record<string, unknown>,
       });
       
       if (onError) {
