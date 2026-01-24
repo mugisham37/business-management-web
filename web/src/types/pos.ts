@@ -69,7 +69,7 @@ export interface Transaction {
   isOfflineTransaction: boolean;
   offlineTimestamp?: Date;
   syncedAt?: Date;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   items: TransactionItem[];
   payments: PaymentRecord[];
   createdAt: Date;
@@ -88,8 +88,8 @@ export interface TransactionItem {
   lineTotal: number;
   discountAmount: number;
   taxAmount: number;
-  variantInfo?: Record<string, any>;
-  metadata?: Record<string, any>;
+  variantInfo?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PaymentRecord {
@@ -103,7 +103,7 @@ export interface PaymentRecord {
   refundedAmount: number;
   refundedAt?: Date;
   failureReason?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Input Types
@@ -121,7 +121,7 @@ export interface CreateTransactionInput {
   notes?: string;
   isOfflineTransaction?: boolean;
   offlineTimestamp?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateTransactionItemInput {
@@ -133,14 +133,14 @@ export interface CreateTransactionItemInput {
   lineTotal: number;
   discountAmount: number;
   taxAmount: number;
-  variantInfo?: Record<string, any>;
-  metadata?: Record<string, any>;
+  variantInfo?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateTransactionInput {
   status?: TransactionStatus;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface VoidTransactionInput {
@@ -160,7 +160,7 @@ export interface PaymentRequest {
   paymentMethod: PaymentMethod;
   amount: number;
   paymentReference?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PaymentResult {
@@ -168,7 +168,7 @@ export interface PaymentResult {
   paymentId?: string;
   providerTransactionId?: string;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Receipt Types
@@ -176,7 +176,7 @@ export interface ReceiptOptions {
   template?: string;
   includeQR?: boolean;
   includeLogo?: boolean;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
 }
 
 export interface EmailReceiptOptions extends ReceiptOptions {
@@ -199,7 +199,7 @@ export interface PrintReceiptOptions extends ReceiptOptions {
 export interface OfflineQueueItem {
   id: string;
   operation: string;
-  data: any;
+  data: unknown
   timestamp: Date;
   retryCount: number;
   maxRetries: number;
@@ -210,8 +210,8 @@ export interface OfflineQueueItem {
 export interface SyncConflict {
   id: string;
   operation: string;
-  localData: any;
-  serverData: any;
+  localData: unknown
+  serverData: unknown
   conflictType: 'data_conflict' | 'version_conflict' | 'deleted_conflict';
   resolution?: 'server_wins' | 'client_wins' | 'merge' | 'manual';
   resolvedAt?: Date;
@@ -328,7 +328,7 @@ export interface POSError {
   code: string;
   message: string;
   field?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 // State Types

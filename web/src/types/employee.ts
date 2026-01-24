@@ -28,13 +28,13 @@ export interface Employee {
   baseSalary?: number;
   hourlyRate?: number;
   payFrequency?: PayFrequency;
-  benefits?: Record<string, any>;
-  settings?: Record<string, any>;
+  benefits?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
   managerId?: string;
   avatar?: string;
-  documents?: any[];
+  documents?: Record<string, unknown>[];
   notes?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   createdBy?: string;
@@ -47,7 +47,7 @@ export interface Employee {
   fullName?: string;
   manager?: Employee;
   directReports?: Employee[];
-  user?: any;
+  user?: unknown
 }
 
 export interface Address {
@@ -146,9 +146,9 @@ export interface PerformanceReview {
   reviewPeriodEnd: Date;
   reviewType?: string;
   overallRating?: PerformanceRating;
-  goals?: any[];
-  achievements?: any[];
-  areasForImprovement?: any[];
+  goals?: Record<string, unknown>[];
+  achievements?: Record<string, unknown>[];
+  areasForImprovement?: Record<string, unknown>[];
   ratings?: Record<string, string>;
   reviewerComments?: string;
   employeeComments?: string;
@@ -187,7 +187,7 @@ export interface TrainingRecord {
   passingScore?: number;
   cost?: number;
   approvedBy?: string;
-  documents?: any[];
+  documents?: Record<string, unknown>[];
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -217,14 +217,14 @@ export interface EmployeeGoal {
   completedDate?: Date;
   status: string;
   progress: number;
-  metrics?: Record<string, any>;
+  metrics?: Record<string, unknown>;
   targetValue?: number;
   currentValue?: number;
   approvedBy?: string;
   reviewedBy?: string;
   lastReviewDate?: Date;
   notes?: string;
-  updates?: any[];
+  updates?: Record<string, unknown>[];
   createdAt: Date;
   updatedAt: Date;
   createdBy?: string;
@@ -322,9 +322,9 @@ export interface CreateEmployeeInput {
   managerId?: string;
   userId?: string;
   notes?: string;
-  benefits?: Record<string, any>;
-  settings?: Record<string, any>;
-  customFields?: Record<string, any>;
+  benefits?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
+  customFields?: Record<string, unknown>;
 }
 
 export interface UpdateEmployeeInput {
@@ -389,9 +389,9 @@ export interface EmployeeAnalytics {
   performanceScore: number;
   goalsCompleted: number;
   trainingCompleted: number;
-  productivityMetrics: Record<string, any>;
+  productivityMetrics: Record<string, unknown>;
   timeDistribution: Record<string, number>;
-  departmentComparison: Record<string, any>;
+  departmentComparison: Record<string, unknown>;
 }
 
 // Real-time Event Types
@@ -399,8 +399,8 @@ export interface EmployeeActivityEvent {
   type: string;
   timestamp: Date;
   employeeId: string;
-  data: any;
-  metadata?: Record<string, any>;
+  data: unknown
+  metadata?: Record<string, unknown>;
 }
 
 export interface ManagerNotification {
@@ -410,7 +410,7 @@ export interface ManagerNotification {
   employeeId: string;
   message: string;
   actionRequired: boolean;
-  data?: any;
+  data?: unknown
 }
 
 // Dashboard Types

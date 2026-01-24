@@ -187,7 +187,7 @@ export interface Product {
   variants?: ProductVariant[];
   category?: Category;
   brand?: Brand;
-  supplier?: any; // Supplier type from supplier module
+  supplier?: unknown // Supplier type from supplier module
 }
 
 export interface Category {
@@ -246,7 +246,7 @@ export interface InventoryLevel {
   createdAt: Date;
   updatedAt: Date;
   product?: Product;
-  location?: any; // Location type from location module
+  location?: unknown // Location type from location module
 }
 
 export interface InventoryMovement {
@@ -278,7 +278,7 @@ export interface InventoryMovement {
   createdAt: Date;
   updatedAt: Date;
   product?: Product;
-  location?: any; // Location type from location module
+  location?: unknown // Location type from location module
 }
 
 export interface BatchTracking {
@@ -302,7 +302,7 @@ export interface BatchTracking {
   createdAt: Date;
   updatedAt: Date;
   product?: Product;
-  location?: any; // Location type from location module
+  location?: unknown // Location type from location module
 }
 
 export interface CycleCount {
@@ -321,7 +321,7 @@ export interface CycleCount {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  location?: any; // Location type from location module
+  location?: unknown // Location type from location module
   items?: CycleCountItem[];
 }
 
@@ -361,7 +361,7 @@ export interface ReorderSuggestion {
   createdAt: Date;
   updatedAt: Date;
   product?: Product;
-  location?: any; // Location type from location module
+  location?: unknown // Location type from location module
 }
 
 export interface InventoryValuation {
@@ -447,8 +447,8 @@ export interface CreateProductInput {
   allowBackorders?: boolean;
   launchedAt?: string;
   variants?: CreateProductVariantInput[];
-  attributes?: Record<string, any>;
-  customFields?: Record<string, any>;
+  attributes?: Record<string, unknown>;
+  customFields?: Record<string, unknown>;
 }
 
 export interface UpdateProductInput {
@@ -488,8 +488,8 @@ export interface UpdateProductInput {
   allowBackorders?: boolean;
   launchedAt?: string;
   variants?: CreateProductVariantInput[];
-  attributes?: Record<string, any>;
-  customFields?: Record<string, any>;
+  attributes?: Record<string, unknown>;
+  customFields?: Record<string, unknown>;
 }
 
 export interface ProductFilterInput {
@@ -567,7 +567,7 @@ export interface CreateInventoryLevelInput {
   averageCost?: number;
   binLocation?: string;
   zone?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 export interface UpdateInventoryLevelInput {
@@ -764,7 +764,7 @@ export interface InventoryAlert {
   productId: string;
   locationId: string;
   message: string;
-  data?: any;
+  data?: unknown
   createdAt: Date;
 }
 

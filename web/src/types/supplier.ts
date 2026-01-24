@@ -27,7 +27,7 @@ export interface Supplier {
   currency?: string;
   certifications?: string[];
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   notes?: string;
   preferredCommunicationMethod?: CommunicationType;
   isPreferredSupplier?: boolean;
@@ -62,7 +62,7 @@ export interface SupplierContact {
   isPrimary?: boolean;
   preferredContactMethod?: CommunicationType;
   notes?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   
@@ -86,9 +86,9 @@ export interface SupplierCommunication {
   followUpRequired?: boolean;
   followUpDate?: Date;
   followUpCompleted?: boolean;
-  attachments?: any[];
+  attachments?: Record<string, unknown>[];
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   
@@ -117,9 +117,9 @@ export interface SupplierEvaluation {
   strengths?: string;
   weaknesses?: string;
   recommendations?: string;
-  actionItems?: any[];
+  actionItems?: Record<string, unknown>[];
   customScores?: Record<string, number>;
-  attachments?: any[];
+  attachments?: Record<string, unknown>[];
   status?: EvaluationStatus;
   approvedBy?: string;
   approvedAt?: Date;
@@ -155,7 +155,7 @@ export interface PurchaseOrder {
   discountAmount?: number;
   totalAmount: number;
   trackingNumber?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -179,10 +179,10 @@ export interface PurchaseOrderItem {
   unitPrice: number;
   totalPrice: number;
   uom?: string;
-  specifications?: Record<string, any>;
+  specifications?: Record<string, unknown>;
   requestedDeliveryDate?: Date;
   notes?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -262,7 +262,7 @@ export interface EDIDocument {
   direction: EDIDirection;
   status: EDIStatus;
   rawContent: string;
-  processedData?: Record<string, any>;
+  processedData?: Record<string, unknown>;
   errorMessage?: string;
   processedAt?: Date;
   createdAt: Date;
@@ -418,7 +418,7 @@ export interface CreateSupplierInput {
   currency?: string;
   certifications?: string[];
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   notes?: string;
   preferredCommunicationMethod?: CommunicationType;
   isPreferredSupplier?: boolean;
@@ -450,7 +450,7 @@ export interface UpdateSupplierInput {
   currency?: string;
   certifications?: string[];
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   notes?: string;
   preferredCommunicationMethod?: CommunicationType;
   isPreferredSupplier?: boolean;

@@ -527,7 +527,7 @@ export interface LiveCRMData {
 export interface CustomerUpdateEvent {
   type: 'created' | 'updated' | 'deleted';
   customer_id: string;
-  customer_data?: any;
+  customer_data?: unknown
   changes?: string[];
   timestamp: Date;
 }
@@ -535,7 +535,7 @@ export interface CustomerUpdateEvent {
 export interface CampaignUpdateEvent {
   type: 'created' | 'updated' | 'activated' | 'paused' | 'completed';
   campaign_id: string;
-  campaign_data?: any;
+  campaign_data?: unknown
   timestamp: Date;
 }
 

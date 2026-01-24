@@ -144,7 +144,7 @@ export interface CompleteAuthEvent {
   userId: string;
   tenantId: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -256,6 +256,14 @@ export interface PermissionFilterInput {
   resource?: string;
   isInherited?: boolean;
   includeExpired?: boolean;
+}
+
+// Token Pair Interface (JWT tokens with expiration)
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
 }
 
 // Session Information

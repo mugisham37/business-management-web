@@ -62,7 +62,7 @@ export enum CommunicationEventType {
 export interface CommunicationChannel {
   type: CommunicationChannelType;
   enabled: boolean;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
   priority?: number;
   fallbackChannels?: string[];
 }
@@ -114,10 +114,10 @@ export interface MultiChannelNotification {
   type: string;
   channels: CommunicationChannelType[];
   recipients?: NotificationRecipients;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   actions?: NotificationAction[];
   templateName?: string;
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
   scheduledAt?: Date;
   options?: NotificationOptions;
 }
@@ -126,7 +126,7 @@ export interface Alert {
   title: string;
   message: string;
   severity: AlertSeverity;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   actionUrl?: string;
   actionLabel?: string;
   recipients?: NotificationRecipients;
@@ -138,9 +138,9 @@ export interface BusinessNotification {
   message: string;
   priority?: NotificationPriority;
   recipients?: NotificationRecipients;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   templateName?: string;
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
 }
 
 // Email Types
@@ -148,7 +148,7 @@ export interface EmailAttachment {
   filename: string;
   contentType?: string;
   cid?: string;
-  content?: any;
+  content?: string | Buffer | Uint8Array;
 }
 
 export interface EmailMessage {
@@ -175,7 +175,7 @@ export interface EmailTemplate {
 
 export interface EmailProvider {
   type: EmailProviderType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -187,7 +187,7 @@ export interface EmailNotification {
   htmlContent?: string;
   priority?: NotificationPriority;
   templateName?: string;
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
   attachments?: EmailAttachment[];
 }
 
@@ -225,7 +225,7 @@ export interface SMSTemplate {
 
 export interface SMSProvider {
   type: SMSProviderType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -235,7 +235,7 @@ export interface SMSNotification {
   message: string;
   priority?: NotificationPriority;
   templateName?: string;
-  templateVariables?: Record<string, any>;
+  templateVariables?: Record<string, unknown>;
   scheduledAt?: Date;
 }
 
@@ -294,7 +294,7 @@ export interface SlackNotification {
   priority: NotificationPriority;
   type: string;
   channel?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   actions?: NotificationAction[];
 }
 
@@ -305,7 +305,7 @@ export interface SlackAlert {
   channel?: string;
   mentionUsers?: string[];
   mentionChannel?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SlackIntegrationConfig {
@@ -348,7 +348,7 @@ export interface TeamsNotification {
   message: string;
   priority: NotificationPriority;
   type: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   actions?: NotificationAction[];
 }
 
@@ -356,7 +356,7 @@ export interface TeamsAlert {
   title: string;
   message: string;
   severity: AlertSeverity;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   actionUrl?: string;
   actionLabel?: string;
 }
@@ -423,7 +423,7 @@ export interface CommunicationEvent {
   channel: CommunicationChannelType;
   success: boolean;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   tenantId: string;
 }
@@ -434,7 +434,7 @@ export interface NotificationDeliveryStatus {
   status: string;
   deliveredAt?: Date;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Filter Types
@@ -456,19 +456,19 @@ export interface CommunicationEventFilter {
 export interface CommunicationChannelConfig {
   type: CommunicationChannelType;
   enabled: boolean;
-  configuration?: Record<string, any>;
+  configuration?: Record<string, unknown>;
   priority?: number;
   fallbackChannels?: CommunicationChannelType[];
 }
 
 export interface EmailProviderConfig {
   type: EmailProviderType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
 }
 
 export interface SMSProviderConfig {
   type: SMSProviderType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
 }
 
 // Provider-specific configurations
@@ -620,7 +620,7 @@ export interface UseSlackReturn {
   configureIntegration: (config: SlackIntegrationConfig) => Promise<void>;
   testIntegration: (config: SlackIntegrationConfig) => Promise<IntegrationTestResult>;
   disableIntegration: () => Promise<void>;
-  isConfigured: () => Promise<boolean>;
+  checkIfConfigured: () => Promise<boolean>;
   
   // State
   loading: boolean;
@@ -642,7 +642,7 @@ export interface UseTeamsReturn {
   configureIntegration: (config: TeamsIntegrationConfig) => Promise<void>;
   testIntegration: (config: TeamsIntegrationConfig) => Promise<IntegrationTestResult>;
   disableIntegration: () => Promise<void>;
-  isConfigured: () => Promise<boolean>;
+  checkIfConfigured: () => Promise<boolean>;
   
   // State
   loading: boolean;
@@ -682,7 +682,7 @@ export type CommunicationHookOptions = {
 export type CommunicationError = {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: Date;
 };
 

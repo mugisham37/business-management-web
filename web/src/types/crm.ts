@@ -125,9 +125,9 @@ export interface Customer extends BaseEntity {
   referralCode?: string;
   dateOfBirth?: Date;
   anniversary?: Date;
-  customFields?: Record<string, any>;
-  preferences?: Record<string, any>;
-  socialProfiles?: Record<string, any>;
+  customFields?: Record<string, unknown>;
+  preferences?: Record<string, unknown>;
+  socialProfiles?: Record<string, unknown>;
 }
 
 export interface CreateCustomerInput {
@@ -157,9 +157,9 @@ export interface CreateCustomerInput {
   dateOfBirth?: string;
   anniversary?: string;
   referredBy?: string;
-  customFields?: Record<string, any>;
-  preferences?: Record<string, any>;
-  socialProfiles?: Record<string, any>;
+  customFields?: Record<string, unknown>;
+  preferences?: Record<string, unknown>;
+  socialProfiles?: Record<string, unknown>;
 }
 
 export interface UpdateCustomerInput {
@@ -192,9 +192,9 @@ export interface UpdateCustomerInput {
   referralCode?: string;
   dateOfBirth?: string;
   anniversary?: string;
-  customFields?: Record<string, any>;
-  preferences?: Record<string, any>;
-  socialProfiles?: Record<string, any>;
+  customFields?: Record<string, unknown>;
+  preferences?: Record<string, unknown>;
+  socialProfiles?: Record<string, unknown>;
 }
 
 export interface CustomerFilterInput {
@@ -257,7 +257,7 @@ export interface B2BCustomer extends BaseEntity {
   secondaryContactName?: string;
   secondaryContactEmail?: string;
   secondaryContactPhone?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   pricingRules?: CustomerPricingRule[];
   creditHistory?: CustomerCreditHistory[];
 }
@@ -281,6 +281,90 @@ export interface CustomerCreditHistory extends BaseEntity {
   reason: string;
   changedBy: string;
   changedAt: Date;
+}
+
+export interface B2BCustomerFilterInput {
+  industry?: string;
+  companySize?: string;
+  creditStatus?: string;
+  salesRepId?: string;
+  accountManagerId?: string;
+  contractExpiringWithinDays?: number;
+  minAnnualRevenue?: number;
+  maxAnnualRevenue?: number;
+  minCreditLimit?: number;
+  maxCreditLimit?: number;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface CreateB2BCustomerInput {
+  companyName: string;
+  industry?: string;
+  companySize?: string;
+  annualRevenue?: number;
+  website?: string;
+  taxId?: string;
+  creditLimit: number;
+  paymentTerms: string;
+  salesRepId?: string;
+  accountManagerId?: string;
+  contractStartDate?: Date;
+  contractEndDate?: Date;
+  billingAddressLine1?: string;
+  billingAddressLine2?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
+  billingCountry?: string;
+  shippingAddressLine1?: string;
+  shippingAddressLine2?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingPostalCode?: string;
+  shippingCountry?: string;
+  primaryContactName?: string;
+  primaryContactEmail?: string;
+  primaryContactPhone?: string;
+  secondaryContactName?: string;
+  secondaryContactEmail?: string;
+  secondaryContactPhone?: string;
+  customFields?: Record<string, unknown>;
+}
+
+export interface UpdateB2BCustomerInput {
+  companyName?: string;
+  industry?: string;
+  companySize?: string;
+  annualRevenue?: number;
+  website?: string;
+  creditLimit?: number;
+  paymentTerms?: string;
+  salesRepId?: string;
+  accountManagerId?: string;
+  contractStartDate?: Date;
+  contractEndDate?: Date;
+  billingAddressLine1?: string;
+  billingAddressLine2?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
+  billingCountry?: string;
+  shippingAddressLine1?: string;
+  shippingAddressLine2?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingPostalCode?: string;
+  shippingCountry?: string;
+  primaryContactName?: string;
+  primaryContactEmail?: string;
+  primaryContactPhone?: string;
+  secondaryContactName?: string;
+  secondaryContactEmail?: string;
+  secondaryContactPhone?: string;
+  customFields?: Record<string, unknown>;
 }
 
 export interface B2BCustomerFilterInput {
@@ -330,7 +414,45 @@ export interface LoyaltyTransaction extends BaseEntity {
   expiresAt?: Date;
   campaignId?: string;
   promotionId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CreateRewardInput {
+  name: string;
+  description?: string;
+  type: RewardType;
+  pointsRequired: number;
+  value?: number;
+  productId?: string;
+  minimumOrderValue?: number;
+  maximumDiscountAmount?: number;
+  startDate?: Date;
+  endDate?: Date;
+  usageLimitPerCustomer?: number;
+  totalUsageLimit?: number;
+  requiredTiers?: string[];
+  termsAndConditions?: string;
+  isActive?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CreateCampaignInput {
+  name: string;
+  description?: string;
+  type: CampaignType;
+  status: CampaignStatus;
+  startDate: Date;
+  endDate: Date;
+  pointsMultiplier?: number;
+  minimumPurchaseAmount?: number;
+  targetSegments?: string[];
+  targetTiers?: string[];
+  applicableCategories?: string[];
+  applicableProducts?: string[];
+  maxPointsPerCustomer?: number;
+  totalPointsBudget?: number;
+  termsAndConditions?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LoyaltyReward extends BaseEntity {
@@ -350,7 +472,7 @@ export interface LoyaltyReward extends BaseEntity {
   requiredTiers?: string[];
   termsAndConditions?: string;
   isActive: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface LoyaltyTransactionFilterInput {
@@ -382,7 +504,7 @@ export interface Campaign extends BaseEntity {
   maxPointsPerCustomer?: number;
   totalPointsBudget?: number;
   termsAndConditions?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CampaignPerformance {
@@ -394,9 +516,9 @@ export interface CampaignPerformance {
   averagePointsPerParticipant: number;
   totalRevenue: number;
   roi: number;
-  engagementMetrics: Record<string, any>;
-  performanceBySegment: Record<string, any>;
-  performanceByTier: Record<string, any>;
+  engagementMetrics: Record<string, unknown>;
+  performanceBySegment: Record<string, unknown>;
+  performanceByTier: Record<string, unknown>;
   dailyMetrics: Array<{
     date: Date;
     participants: number;
@@ -433,7 +555,7 @@ export interface Communication extends BaseEntity {
   status: CommunicationStatus;
   scheduledAt?: Date;
   completedAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   customer?: Customer;
   employee?: {
     id: string;
@@ -448,7 +570,7 @@ export interface CreateCommunicationInput {
   subject?: string;
   content: string;
   scheduledAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ScheduleCommunicationInput {
@@ -457,7 +579,7 @@ export interface ScheduleCommunicationInput {
   subject?: string;
   content: string;
   scheduledAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Analytics Types
@@ -555,7 +677,7 @@ export interface CustomerMetrics {
 export interface Segment extends BaseEntity {
   name: string;
   description?: string;
-  criteria: Record<string, any>;
+  criteria: Record<string, unknown>;
   isActive: boolean;
   customerCount: number;
   lastCalculated?: Date;
@@ -571,14 +693,14 @@ export interface SegmentMember {
 export interface CreateSegmentInput {
   name: string;
   description?: string;
-  criteria: Record<string, any>;
+  criteria: Record<string, unknown>;
   isActive?: boolean;
 }
 
 export interface UpdateSegmentInput {
   name?: string;
   description?: string;
-  criteria?: Record<string, any>;
+  criteria?: Record<string, unknown>;
   isActive?: boolean;
 }
 
@@ -613,16 +735,16 @@ export interface UseLoyaltyResult {
   awardPoints: (customerId: string, points: number, reason: string, campaignId?: string) => Promise<LoyaltyTransaction>;
   redeemPoints: (customerId: string, points: number, reason: string) => Promise<LoyaltyTransaction>;
   adjustPoints: (customerId: string, pointsChange: number, reason: string) => Promise<LoyaltyTransaction>;
-  createReward: (input: any) => Promise<boolean>;
-  createCampaign: (input: any) => Promise<boolean>;
+  createReward: (input: CreateRewardInput) => Promise<LoyaltyReward>;
+  createCampaign: (input: CreateCampaignInput) => Promise<Campaign>;
 }
 
 export interface UseCampaignsResult {
   campaigns: Campaign[];
   loading: boolean;
   error?: Error;
-  createCampaign: (input: any) => Promise<Campaign>;
-  updateCampaign: (id: string, input: any) => Promise<Campaign>;
+  createCampaign: (input: CreateCampaignInput) => Promise<Campaign>;
+  updateCampaign: (id: string, input: CreateCampaignInput) => Promise<Campaign>;
   deleteCampaign: (id: string) => Promise<boolean>;
   activateCampaign: (id: string) => Promise<Campaign>;
   pauseCampaign: (id: string) => Promise<Campaign>;
@@ -645,8 +767,8 @@ export interface UseB2BCustomersResult {
   loading: boolean;
   error?: Error;
   metrics?: B2BCustomerMetrics;
-  createCustomer: (input: any) => Promise<B2BCustomer>;
-  updateCustomer: (id: string, input: any) => Promise<B2BCustomer>;
+  createCustomer: (input: CreateB2BCustomerInput) => Promise<B2BCustomer>;
+  updateCustomer: (id: string, input: UpdateB2BCustomerInput) => Promise<B2BCustomer>;
   updateCreditLimit: (id: string, creditLimit: number, reason: string) => Promise<boolean>;
   updateCreditStatus: (id: string, status: string, reason: string) => Promise<boolean>;
   getCustomersByIndustry: (industry: string) => Promise<B2BCustomer[]>;
@@ -733,7 +855,7 @@ export interface B2BOrder extends BaseEntity {
   shippingAddress?: Address;
   billingAddress?: Address;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   // Computed fields
   canBeApproved?: boolean;
   canBeRejected?: boolean;
@@ -807,7 +929,7 @@ export interface Quote extends BaseEntity {
   items: QuoteItem[];
   terms?: string;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface QuoteItem extends BaseEntity {
@@ -856,10 +978,10 @@ export interface Contract extends BaseEntity {
   approvedBy?: string;
   approvedAt?: Date;
   approvalNotes?: string;
-  pricingTerms?: Record<string, any>;
+  pricingTerms?: Record<string, unknown>;
   terms?: string;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   // Computed fields
   isExpired?: boolean;
   daysUntilExpiration?: number;
@@ -1014,7 +1136,7 @@ export interface Workflow extends BaseEntity {
   totalSteps: number;
   completedSteps: number;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   // Computed fields
   isExpired?: boolean;
   daysUntilExpiration?: number;
@@ -1104,7 +1226,7 @@ export interface CRMRealtimeEvent {
         'quote_created' | 'quote_sent' | 'quote_converted' |
         'contract_expiring' | 'contract_renewed' |
         'pricing_rule_updated' | 'workflow_step_approved';
-  data: any;
+  data: unknown
   timestamp: Date;
   tenantId: string;
 }

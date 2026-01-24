@@ -524,8 +524,8 @@ export interface UseAnalyticsResult {
   getMetrics: (filter?: MetricsFilter) => Promise<Metric[]>;
   getKPIs: (filter?: KPIFilter) => Promise<KPI[]>;
   getTrends: (filter?: TrendFilter) => Promise<Trend[]>;
-  trackEvent: (eventName: string, eventData: any) => Promise<void>;
-  initializeAnalytics: (config: any) => Promise<void>;
+  trackEvent: (eventName: string, eventData: Record<string, unknown>) => Promise<void>;
+  initializeAnalytics: (config: AnalyticsConfiguration) => Promise<void>;
   
   // Real-time subscriptions
   subscribeToMetrics: () => void;
@@ -617,9 +617,9 @@ export interface UsePredictiveAnalyticsResult {
   getForecast: (metricName: string, periods: number, productId?: string, locationId?: string) => Promise<Forecast[]>;
   detectAnomalies: (metricName: string, threshold?: number) => Promise<Anomaly[]>;
   generateDemandForecast: (productId: string, locationId: string, forecastHorizon: number) => Promise<Forecast>;
-  predictCustomerChurn: (customerId?: string) => Promise<any>;
-  optimizeProductPricing: (productId: string, locationId?: string) => Promise<any>;
-  optimizeInventoryLevels: (productId: string, locationId: string) => Promise<any>;
+  predictCustomerChurn: (customerId?: string) => Promise<ChurnPrediction | null>;
+  optimizeProductPricing: (productId: string, locationId?: string) => Promise<PriceOptimization | null>;
+  optimizeInventoryLevels: (productId: string, locationId: string) => Promise<InventoryOptimization | null>;
 }
 
 export interface UseComparativeAnalysisResult {
@@ -648,7 +648,7 @@ export interface UseDataWarehouseResult {
   // Data
   dataCubes: DataCube[];
   warehouseStats?: WarehouseStatistics;
-  queryResults: Record<string, any>;
+  queryResults: Record<string, Record<string, unknown>>;
   
   // Loading states
   cubesLoading: boolean;
@@ -663,8 +663,8 @@ export interface UseDataWarehouseResult {
   // Actions
   getDataCubes: () => Promise<DataCube[]>;
   getDataCube: (cubeName: string) => Promise<DataCube>;
-  queryWarehouse: (query: string) => Promise<any>;
-  getWarehouseStatistics: () => Promise<any>;
+  queryWarehouse: (query: string) => Promise<Record<string, unknown>>;
+  getWarehouseStatistics: () => Promise<WarehouseStatistics>;
   testWarehouseConnection: () => Promise<boolean>;
   createTenantSchema: (schemaConfig: string) => Promise<string>;
   optimizeWarehouse: (optimizationConfig?: string) => Promise<string>;
@@ -674,7 +674,7 @@ export interface UseDataWarehouseResult {
 export interface UseETLResult {
   // Data
   pipelines: ETLPipeline[];
-  pipelineStatus: Record<string, any>;
+  pipelineStatus: Record<string, Record<string, unknown>>;
   jobResults: ETLJobResult[];
   
   // Loading states
@@ -688,9 +688,9 @@ export interface UseETLResult {
   executionError?: Error;
   
   // Actions
-  getPipelines: () => Promise<any>;
-  getPipelineStatus: (pipelineId: string) => Promise<any>;
-  getPipelineLastRun: (pipelineId: string) => Promise<any>;
+  getPipelines: () => Promise<ETLPipeline[]>;
+  getPipelineStatus: (pipelineId: string) => Promise<Record<string, unknown>>;
+  getPipelineLastRun: (pipelineId: string) => Promise<ETLJobResult | null>;
   setupETLPipelines: (config: string) => Promise<string>;
   executePipeline: (pipelineId: string, parameters?: string) => Promise<string>;
   reconfigurePipelines: (config: string) => Promise<string>;

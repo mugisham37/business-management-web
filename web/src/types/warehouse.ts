@@ -156,12 +156,12 @@ export interface WarehouseZone {
   zoneType: WarehouseZoneType;
   capacity?: number;
   priority?: number;
-  coordinates?: Record<string, any>;
+  coordinates?: Record<string, unknown>;
   squareFootage?: number;
   maxBinLocations?: number;
   currentBinLocations?: number;
   temperatureControlled?: boolean;
-  temperatureRange?: Record<string, any>;
+  temperatureRange?: Record<string, unknown>;
   humidityControlled?: boolean;
   allowMixedProducts?: boolean;
   allowMixedBatches?: boolean;
@@ -207,7 +207,7 @@ export interface BinLocation {
   allowedProductTypes?: string[];
   restrictedProductTypes?: string[];
   temperatureControlled?: boolean;
-  temperatureRange?: Record<string, any>;
+  temperatureRange?: Record<string, unknown>;
   hazmatApproved?: boolean;
   pickingSequence?: number;
   assignedProductId?: string;
@@ -558,7 +558,7 @@ export interface QualityCheck {
   description?: string;
   checkType: string;
   required: boolean;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface WaveStatistics {
@@ -889,12 +889,12 @@ export interface WarehouseError {
   code: string;
   message: string;
   field?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface WarehouseValidationError extends WarehouseError {
   field: string;
-  value?: any;
+  value?: unknown
   constraints?: string[];
 }
 
