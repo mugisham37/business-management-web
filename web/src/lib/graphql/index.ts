@@ -32,17 +32,6 @@ export {
   type OperationMetadata,
 } from './utils';
 
-// Error handling components
-export {
-  GraphQLErrorDisplay,
-  GraphQLErrorBoundary,
-  useGraphQLErrorHandler,
-  withGraphQLErrorHandling,
-  defaultErrorStyles,
-  type GraphQLErrorDisplayProps,
-  type ErrorBoundaryState,
-} from './error-handler';
-
 // Re-export commonly used types from Apollo Client
 export type {
   ApolloError,

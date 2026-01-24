@@ -9,7 +9,7 @@ export {
   MODULE_REGISTRY,
   type ModuleConfig,
   type LoadedModule,
-} from './module-loader';
+} from '../../components/module-loader';
 
 // Route-based code splitting
 export {
@@ -55,7 +55,7 @@ export {
   useAssetOptimization,
   type ImageOptimizationConfig,
   type AssetMetrics,
-} from './asset-optimizer';
+} from '../../components/asset-optimizer';
 
 // Tree shaking and dead code elimination
 export {

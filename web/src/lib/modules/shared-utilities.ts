@@ -4,7 +4,7 @@
  * Requirements: 11.3, 11.6
  */
 
-import { ModuleConfig } from '@/lib/performance/module-loader';
+import { ModuleConfig } from '@/src/components/module-loader';
 
 /**
  * Module dependency resolver

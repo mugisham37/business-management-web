@@ -7,7 +7,7 @@
 
 import { Suspense, ComponentType, ReactNode, useState, useCallback } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { moduleLoader, ModuleConfig, LoadedModule } from '@/lib/performance/module-loader';
+import { moduleLoader, ModuleConfig, LoadedModule } from '@/src/components/module-loader';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ModuleErrorFallback } from './ModuleErrorFallback';
 
@@ -112,5 +112,5 @@ export function useLazyModule(moduleName: string) {
 }
 
 // Re-export for convenience
-export { moduleLoader } from '@/lib/performance/module-loader';
-export type { ModuleConfig, LoadedModule } from '@/lib/performance/module-loader';
+export { moduleLoader } from '@/src/components/module-loader';
+export type { ModuleConfig, LoadedModule } from '@/src/components/module-loader';

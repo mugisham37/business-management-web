@@ -32,18 +32,6 @@ export {
   useFeatureAndTierGate,
 } from './tenant-hooks';
 
-// React context provider and components
-export {
-  TenantProvider,
-  useTenantProvider,
-  withTenantContext,
-  FeatureGate,
-  TierGate,
-  TenantGate,
-  TenantLoading,
-  TenantError,
-} from './tenant-provider';
-
 // Tenant switching and validation
 export {
   TenantSwitchingService,
@@ -67,14 +55,6 @@ export type {
   ThemeConfig,
   ThemeVariables,
 } from './tenant-theming';
-
-// Theme provider components
-export {
-  ThemeProvider,
-  useTheme,
-  withTheme,
-  ThemeFeature,
-} from './theme-provider';
 
 // Re-export core types for convenience
 export type {

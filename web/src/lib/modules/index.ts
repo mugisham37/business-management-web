@@ -4,8 +4,8 @@
  */
 
 // Core module system
-export { moduleLoader, MODULE_REGISTRY } from '@/lib/performance/module-loader';
-export type { ModuleConfig, LoadedModule } from '@/lib/performance/module-loader';
+export { moduleLoader, MODULE_REGISTRY } from '@/src/components/module-loader';
+export type { ModuleConfig, LoadedModule } from '@/src/components/module-loader';
 
 // Enhanced module registry - Only export what exists
 export { ENHANCED_MODULE_REGISTRY } from './module-registry';
@@ -34,7 +34,7 @@ export { ModuleNavigation } from '@/components/layout/ModuleNavigation';
 
 // Import for internal use
 import { ENHANCED_MODULE_REGISTRY } from './module-registry';
-import { moduleLoader } from '@/lib/performance/module-loader';
+import { moduleLoader } from '@/src/components/module-loader';
 
 /**
  * Module System Configuration
