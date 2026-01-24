@@ -221,7 +221,71 @@ const cache = new InMemoryCache({
             };
           },
         },
-        // POS module caching
+        // Location module caching
+        locations: {
+          keyArgs: ['filter'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            
+            return {
+              ...incoming,
+              edges: [...(existing.edges || []), ...(incoming.edges || [])],
+            };
+          },
+        },
+        locationTree: {
+          keyArgs: ['rootLocationId'],
+          merge: false,
+        },
+        franchises: {
+          keyArgs: ['filter'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            return [...existing, ...incoming];
+          },
+        },
+        territories: {
+          keyArgs: ['filter'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            return [...existing, ...incoming];
+          },
+        },
+        locationPromotions: {
+          keyArgs: ['locationId'],
+          merge: false,
+        },
+        findNearbyLocations: {
+          keyArgs: ['latitude', 'longitude', 'radiusKm', 'locationTypes', 'statuses'],
+          merge: false,
+        },
+        findLocationsInBounds: {
+          keyArgs: ['northEastLat', 'northEastLng', 'southWestLat', 'southWestLng'],
+          merge: false,
+        },
+        getLocationAuditHistory: {
+          keyArgs: ['locationId', 'userId', 'actions'],
+          merge(existing, incoming) {
+            if (!existing) return incoming;
+            if (!incoming) return existing;
+            
+            return {
+              ...incoming,
+              entries: [...(existing.entries || []), ...(incoming.entries || [])],
+            };
+          },
+        },
+        getTenantBulkOperations: {
+          keyArgs: ['limit'],
+          merge: false,
+        },
+        getSyncHistory: {
+          keyArgs: ['locationId'],
+          merge: false,
+        },
         transactions: {
           keyArgs: ['query'],
           merge(existing, incoming) {
@@ -482,6 +546,94 @@ const cache = new InMemoryCache({
     PurchaseOrder: {
       fields: {
         lineItems: {
+          merge: false,
+        },
+      },
+    },
+    // Location module type policies
+    Location: {
+      fields: {
+        parentLocation: {
+          merge: false,
+        },
+        childLocations: {
+          merge: false,
+        },
+        employees: {
+          merge: false,
+        },
+        inventory: {
+          merge: false,
+        },
+        pricingRules: {
+          merge: false,
+        },
+        promotions: {
+          merge: false,
+        },
+        inventoryPolicies: {
+          merge: false,
+        },
+      },
+    },
+    Franchise: {
+      fields: {
+        primaryTerritory: {
+          merge: false,
+        },
+        parentFranchise: {
+          merge: false,
+        },
+        childFranchises: {
+          merge: false,
+        },
+        locations: {
+          merge: false,
+        },
+      },
+    },
+    Territory: {
+      fields: {
+        parentTerritory: {
+          merge: false,
+        },
+        childTerritories: {
+          merge: false,
+        },
+        assignedFranchise: {
+          merge: false,
+        },
+        locations: {
+          merge: false,
+        },
+      },
+    },
+    LocationPromotion: {
+      fields: {
+        conditions: {
+          merge: false,
+        },
+        actions: {
+          merge: false,
+        },
+      },
+    },
+    LocationInventoryPolicy: {
+      fields: {
+        rules: {
+          merge: false,
+        },
+      },
+    },
+    BulkOperationSummary: {
+      fields: {
+        errors: {
+          merge: false,
+        },
+        warnings: {
+          merge: false,
+        },
+        results: {
           merge: false,
         },
       },

@@ -193,3 +193,6 @@ export * from './pos-utils';
 
 // Re-export B2B utilities
 export * from './b2b-utils';
+
+// Re-export location utilities
+export * from './location-utils';

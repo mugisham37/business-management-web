@@ -268,3 +268,117 @@ export {
   useReconciliation,
   useReconciliationReport,
 } from './useReconciliation';
+
+// Location Management Hooks
+export {
+  useLocation,
+  useLocations,
+  useLocationTree,
+  useLocationMutations,
+  useLocationSubscriptions,
+  useLocationSearch,
+  useLocationValidation,
+  useLocationManagement,
+} from './useLocations';
+
+export {
+  useFranchise,
+  useFranchises,
+  useFranchisePerformance,
+  useFranchiseMutations,
+  useFranchiseValidation,
+  useFranchiseManagement,
+} from './useFranchises';
+
+export {
+  useTerritory,
+  useTerritories,
+  useTerritoryMutations,
+  useTerritoryValidation,
+  useTerritoryManagement,
+} from './useTerritories';
+
+export {
+  useLocationPricing,
+  usePricingRules,
+  useLocationPricingMutations,
+  usePricingCalculations,
+  usePricingValidation,
+  useLocationPricingManagement,
+} from './useLocationPricing';
+
+export {
+  useLocationPromotions,
+  useLocationPromotionMutations,
+  usePromotionSubscriptions,
+  usePromotionCalculations,
+  usePromotionValidation,
+  usePromotionStatus,
+  useLocationPromotionManagement,
+} from './useLocationPromotions';
+
+export {
+  useLocationInventoryPolicy,
+  useLocationReorderRules,
+  useLocationInventoryPolicyMutations,
+  useInventoryCalculations,
+  useInventoryPolicyValidation,
+  useInventoryRecommendations,
+  useLocationInventoryPolicyManagement,
+} from './useLocationInventoryPolicies';
+
+export {
+  useLocationSalesReport,
+  useLocationInventoryReport,
+  useLocationPerformanceReport,
+  useLocationComparison,
+  useReportAnalysis,
+  useReportFormatting,
+  useReportFilters,
+  useLocationReportingManagement,
+} from './useLocationReporting';
+
+export {
+  useNearbyLocations,
+  useClosestLocation,
+  useLocationsInBounds,
+  useCoverageArea,
+  useLocationClustering,
+  useOptimalLocationSuggestions,
+  useGeospatialCalculations,
+  useMapUtilities,
+  useGeospatialValidation,
+  useLocationGeospatialManagement,
+} from './useLocationGeospatial';
+
+export {
+  useLocationAuditHistory,
+  useLocationAuditSummary,
+  useTenantAuditHistory,
+  useComplianceReport,
+  useAuditAnalysis,
+  useAuditFiltering,
+  useAuditExport,
+  useLocationAuditManagement,
+} from './useLocationAudit';
+
+export {
+  useBulkOperationStatus,
+  useTenantBulkOperations,
+  useBulkOperationMutations,
+  useBulkOperationValidation,
+  useBulkOperationProgress,
+  useBulkOperationTemplates,
+  useLocationBulkOperationsManagement,
+} from './useLocationBulkOperations';
+
+export {
+  useLocationSyncStatus,
+  useLocationSyncHistory,
+  useLocationSyncMutations,
+  useLocationSyncSubscriptions,
+  useConflictResolution,
+  useSyncMonitoring,
+  useSyncScheduling,
+  useLocationSyncManagement,
+} from './useLocationSync';
