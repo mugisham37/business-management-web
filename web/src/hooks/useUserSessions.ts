@@ -50,7 +50,7 @@ export function useUserSessions() {
             isActive: true,
           },
         ]);
-      } catch (err) {
+      } catch {
         setError('Failed to fetch user sessions');
       } finally {
         setLoading(false);

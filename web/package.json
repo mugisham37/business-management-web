@@ -19,11 +19,9 @@
     "codegen:watch": "graphql-codegen --config codegen.ts --watch",
     "validate:graphql": "node scripts/validate-graphql.js",
     "validate:schema": "npm run codegen && npm run validate:graphql",
-    "prepare": "husky install",
     "build:analyze": "ANALYZE=true npm run build",
     "validate": "npm run type-check && npm run lint:check && npm run format:check && npm run validate:graphql && npm run test",
-    "clean": "rm -rf .next out dist",
-    "postinstall": "npm run codegen || true"
+    "clean": "rm -rf .next out dist"
   },
   "dependencies": {
     "@apollo/client": "^3.8.8",

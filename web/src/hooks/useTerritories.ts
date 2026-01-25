@@ -3,7 +3,7 @@
  * Complete hook implementation for territory operations
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { 
   useQuery, 
   useMutation,
@@ -28,8 +28,20 @@ export interface Territory {
   id: string;
   name: string;
   code: string;
-  locations?: any[];
-  manager?: any;
+  locations?: Location[];
+  manager?: Employee;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  address?: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  email?: string;
 }
 
 export interface CreateTerritoryInput {
@@ -54,7 +66,7 @@ export interface UpdateTerritoryInput {
 
 // Hook for single territory
 export function useTerritory(id: string, options?: QueryHookOptions) {
-  const { currentTenant } = useTenant();
+  const { tenant: currentTenant } = useTenant();
   
   const { data, loading, error, refetch } = useQuery(GET_TERRITORY, {
     variables: { id },
@@ -75,7 +87,7 @@ export function useTerritory(id: string, options?: QueryHookOptions) {
 
 // Hook for multiple territories
 export function useTerritories(options?: QueryHookOptions) {
-  const { currentTenant } = useTenant();
+  const { tenant: currentTenant } = useTenant();
 
   const { data, loading, error, refetch } = useQuery(GET_TERRITORIES, {
     skip: !currentTenant?.id,
@@ -96,7 +108,7 @@ export function useTerritories(options?: QueryHookOptions) {
 // Hook for territory mutations
 export function useTerritoryMutations() {
   const { user } = useAuth();
-  const { currentTenant } = useTenant();
+  const { tenant: currentTenant } = useTenant();
 
   const [createTerritoryMutation] = useMutation(CREATE_TERRITORY);
   const [updateTerritoryMutation] = useMutation(UPDATE_TERRITORY);
@@ -105,7 +117,7 @@ export function useTerritoryMutations() {
   const createTerritory = useCallback(async (
     input: CreateTerritoryInput,
     options?: MutationHookOptions
-  ): Promise<FetchResult<any>> => {
+  ): Promise<FetchResult<{ createTerritory: Territory }>> => {
     if (!currentTenant?.id || !user?.id) {
       throw new Error('User must be authenticated and have a current tenant');
     }
@@ -121,7 +133,7 @@ export function useTerritoryMutations() {
     id: string,
     input: UpdateTerritoryInput,
     options?: MutationHookOptions
-  ): Promise<FetchResult<any>> => {
+  ): Promise<FetchResult<{ updateTerritory: Territory }>> => {
     if (!currentTenant?.id || !user?.id) {
       throw new Error('User must be authenticated and have a current tenant');
     }
@@ -137,7 +149,7 @@ export function useTerritoryMutations() {
     territoryId: string,
     locationId: string,
     options?: MutationHookOptions
-  ): Promise<FetchResult<any>> => {
+  ): Promise<FetchResult<{ assignLocationToTerritory: Territory }>> => {
     if (!currentTenant?.id || !user?.id) {
       throw new Error('User must be authenticated and have a current tenant');
     }

@@ -29,6 +29,8 @@ import type {
   SupplierStats,
   SupplierPerformanceScore,
   DateRangeInput,
+  SupplierStatus,
+  SupplierType,
 } from '@/types/supplier';
 
 // Hook for fetching suppliers with pagination and filtering
@@ -198,12 +200,15 @@ export function useCreateSupplier() {
     CREATE_SUPPLIER,
     GET_SUPPLIERS,
     'suppliers',
-    (variables) => ({
-      id: `temp-${Date.now()}`,
-      ...variables.input,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
+    (variables) => {
+      const input = variables.input as CreateSupplierInput;
+      return {
+        id: `temp-${Date.now()}`,
+        ...input,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
   );
 
   const create = useCallback(
@@ -244,7 +249,7 @@ export function useDeleteSupplier() {
 
   const remove = useCallback(
     async (id: string) => {
-      return deleteSupplier({ id });
+      return deleteSupplier({ variables: { id } });
     },
     [deleteSupplier]
   );
@@ -298,21 +303,21 @@ export function useSupplierManagement() {
 export function useSupplierFilters() {
   const buildFilter = useCallback((params: {
     search?: string;
-    status?: string;
-    supplierType?: string;
+    status?: SupplierStatus;
+    supplierType?: SupplierType;
     preferredOnly?: boolean;
     tags?: string[];
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }): SupplierFilterInput => {
     return {
-      search: params.search || undefined,
-      status: params.status as any,
-      supplierType: params.supplierType as any,
-      preferredOnly: params.preferredOnly,
-      tags: params.tags?.length ? params.tags : undefined,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
+      ...(params.search !== undefined && { search: params.search }),
+      ...(params.status !== undefined && { status: params.status }),
+      ...(params.supplierType !== undefined && { supplierType: params.supplierType }),
+      ...(params.preferredOnly !== undefined && { preferredOnly: params.preferredOnly }),
+      ...(params.tags && params.tags.length > 0 && { tags: params.tags }),
+      ...(params.sortBy !== undefined && { sortBy: params.sortBy }),
+      ...(params.sortOrder !== undefined && { sortOrder: params.sortOrder }),
     };
   }, []);
 

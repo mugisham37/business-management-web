@@ -191,7 +191,7 @@ export const COMMUNICATION_CHANNEL_FRAGMENT = gql`
 `;
 
 export const COMMUNICATION_RESULT_FRAGMENT = gql`
-  fragment CommunicationResultFragment on CommunicationResult {
+  fragment CommunicationResultQueryFragment on CommunicationResult {
     channel
     success
     messageId
@@ -201,12 +201,12 @@ export const COMMUNICATION_RESULT_FRAGMENT = gql`
 `;
 
 export const BULK_COMMUNICATION_RESULT_FRAGMENT = gql`
-  fragment BulkCommunicationResultFragment on BulkCommunicationResult {
+  fragment BulkCommunicationResultQueryFragment on BulkCommunicationResult {
     totalChannels
     successfulChannels
     failedChannels
     results {
-      ...CommunicationResultFragment
+      ...CommunicationResultQueryFragment
     }
     overallSuccess
   }
@@ -288,7 +288,7 @@ export const CHANNEL_TEST_RESULT_FRAGMENT = gql`
 `;
 
 export const INTEGRATION_TEST_RESULT_FRAGMENT = gql`
-  fragment IntegrationTestResultFragment on IntegrationTestResult {
+  fragment IntegrationTestResultQueryFragment on IntegrationTestResult {
     success
     error
     messageId
@@ -325,7 +325,7 @@ export const TEAMS_CONFIGURATION_FRAGMENT = gql`
 
 // Bulk result fragments
 export const BULK_EMAIL_RESULT_FRAGMENT = gql`
-  fragment BulkEmailResultFragment on BulkEmailResult {
+  fragment BulkEmailResultQueryFragment on BulkEmailResult {
     totalSent
     totalFailed
     results {

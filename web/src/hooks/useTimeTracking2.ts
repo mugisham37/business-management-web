@@ -3,7 +3,7 @@
  * Comprehensive hook for employee time tracking and schedule management
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { useCreateMutation, useUpdateMutation } from '@/hooks/useGraphQLMutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
@@ -39,7 +39,6 @@ import {
   EmployeeSchedule,
   TimeEntryQueryInput,
   TimeEntryFormData,
-  TimeEntryType,
   ScheduleStatus,
 } from '@/types/employee';
 
@@ -104,8 +103,8 @@ interface UseTimeTrackingReturn {
   updateSchedule: (id: string, input: Partial<CreateScheduleInput>) => Promise<EmployeeSchedule>;
   
   // Data fetching
-  refetchTimeEntries: () => Promise<void>;
-  refetchSchedules: () => Promise<void>;
+  refetchTimeEntries: (variables?: Partial<TimeEntryQueryInput>) => Promise<{ data: { timeEntries: TimeEntry[] } }>;
+  refetchSchedules: (variables?: Partial<{ employeeId?: string; startDate?: Date; endDate?: Date }>) => Promise<{ data: { employeeSchedules: EmployeeSchedule[] } }>;
   
   // Filtering
   setTimeEntryFilters: (filters: TimeEntryQueryInput) => void;
@@ -154,7 +153,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
   
   const currentTenant = useTenantStore(state => state.currentTenant);
   const [timeEntryQuery, setTimeEntryQuery] = useState<TimeEntryQueryInput>({
-    employeeId,
+    ...(employeeId && { employeeId }),
     page: 1,
     limit: 50,
   });
@@ -273,12 +272,12 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
   }, [schedulesData]);
 
   const currentTimeEntry = useMemo(() => {
-    return timeEntries.find(entry => !entry.clockOutTime) || null;
+    return timeEntries.find((entry: TimeEntry) => !entry.clockOutTime) || null;
   }, [timeEntries]);
 
   const todaySchedule = useMemo(() => {
     const today = new Date().toDateString();
-    return schedules.find(schedule => 
+    return schedules.find((schedule: EmployeeSchedule) => 
       new Date(schedule.scheduleDate).toDateString() === today
     ) || null;
   }, [schedules]);
@@ -294,7 +293,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'clockIn',
+        operationId: 'clockIn',
       });
       throw error;
     } finally {
@@ -312,7 +311,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'clockOut',
+        operationId: 'clockOut',
       });
       throw error;
     } finally {
@@ -327,7 +326,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'createTimeEntry',
+        operationId: 'createTimeEntry',
       });
       throw error;
     }
@@ -343,7 +342,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'updateTimeEntry',
+        operationId: 'updateTimeEntry',
       });
       throw error;
     }
@@ -358,7 +357,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'approveTimeEntry',
+        operationId: 'approveTimeEntry',
       });
       throw error;
     }
@@ -372,7 +371,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'createSchedule',
+        operationId: 'createSchedule',
       });
       throw error;
     }
@@ -388,7 +387,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     } catch (error) {
       errorLogger.logError(error as Error, {
         component: 'useTimeTracking',
-        operation: 'updateSchedule',
+        operationId: 'updateSchedule',
       });
       throw error;
     }
@@ -408,12 +407,11 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     }));
   }, []);
 
-  // Utilities
   const isCurrentlyWorking = useCallback((empId?: string): boolean => {
     const targetEmployeeId = empId || employeeId;
     if (!targetEmployeeId) return false;
     
-    return timeEntries.some(entry => 
+    return timeEntries.some((entry: TimeEntry) => 
       entry.employeeId === targetEmployeeId && !entry.clockOutTime
     );
   }, [timeEntries, employeeId]);
@@ -426,13 +424,13 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     const targetEmployeeId = empId || employeeId;
     
     return timeEntries
-      .filter(entry => {
+      .filter((entry: TimeEntry) => {
         const entryDate = new Date(entry.clockInTime);
         const matchesEmployee = !targetEmployeeId || entry.employeeId === targetEmployeeId;
         const inDateRange = entryDate >= startDate && entryDate <= endDate;
         return matchesEmployee && inDateRange;
       })
-      .reduce((total, entry) => total + (entry.totalHours || 0), 0);
+      .reduce((total: number, entry: TimeEntry) => total + (entry.totalHours || 0), 0);
   }, [timeEntries, employeeId]);
 
   const getOvertimeHours = useCallback((
@@ -443,13 +441,13 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     const targetEmployeeId = empId || employeeId;
     
     return timeEntries
-      .filter(entry => {
+      .filter((entry: TimeEntry) => {
         const entryDate = new Date(entry.clockInTime);
         const matchesEmployee = !targetEmployeeId || entry.employeeId === targetEmployeeId;
         const inDateRange = entryDate >= startDate && entryDate <= endDate;
         return matchesEmployee && inDateRange;
       })
-      .reduce((total, entry) => total + (entry.overtimeHours || 0), 0);
+      .reduce((total: number, entry: TimeEntry) => total + (entry.overtimeHours || 0), 0);
   }, [timeEntries, employeeId]);
 
   const getAttendanceRate = useCallback((
@@ -460,14 +458,14 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     const targetEmployeeId = empId || employeeId;
     if (!targetEmployeeId) return 0;
     
-    const scheduledDays = schedules.filter(schedule => {
+    const scheduledDays = schedules.filter((schedule: EmployeeSchedule) => {
       const scheduleDate = new Date(schedule.scheduleDate);
       return schedule.employeeId === targetEmployeeId &&
              scheduleDate >= startDate &&
              scheduleDate <= endDate;
     }).length;
     
-    const workedDays = timeEntries.filter(entry => {
+    const workedDays = timeEntries.filter((entry: TimeEntry) => {
       const entryDate = new Date(entry.clockInTime);
       return entry.employeeId === targetEmployeeId &&
              entryDate >= startDate &&
@@ -481,7 +479,7 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     const targetEmployeeId = empId || employeeId;
     if (!targetEmployeeId) return 'unknown';
     
-    const currentEntry = timeEntries.find(entry => 
+    const currentEntry = timeEntries.find((entry: TimeEntry) => 
       entry.employeeId === targetEmployeeId && !entry.clockOutTime
     );
     
@@ -502,34 +500,34 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
   ): TimeAnalytics => {
     const targetEmployeeId = empId || employeeId;
     
-    const relevantEntries = timeEntries.filter(entry => {
+    const relevantEntries = timeEntries.filter((entry: TimeEntry) => {
       const entryDate = new Date(entry.clockInTime);
       const matchesEmployee = !targetEmployeeId || entry.employeeId === targetEmployeeId;
       const inDateRange = entryDate >= startDate && entryDate <= endDate;
       return matchesEmployee && inDateRange;
     });
     
-    const totalHours = relevantEntries.reduce((sum, entry) => sum + (entry.totalHours || 0), 0);
-    const regularHours = relevantEntries.reduce((sum, entry) => sum + (entry.regularHours || 0), 0);
-    const overtimeHours = relevantEntries.reduce((sum, entry) => sum + (entry.overtimeHours || 0), 0);
-    const breakTime = relevantEntries.reduce((sum, entry) => sum + (entry.totalBreakTime || 0), 0);
+    const totalHours = relevantEntries.reduce((sum: number, entry: TimeEntry) => sum + (entry.totalHours || 0), 0);
+    const regularHours = relevantEntries.reduce((sum: number, entry: TimeEntry) => sum + (entry.regularHours || 0), 0);
+    const overtimeHours = relevantEntries.reduce((sum: number, entry: TimeEntry) => sum + (entry.overtimeHours || 0), 0);
+    const breakTime = relevantEntries.reduce((sum: number, entry: TimeEntry) => sum + (entry.totalBreakTime || 0), 0);
     const daysWorked = relevantEntries.length;
     const averageHoursPerDay = daysWorked > 0 ? totalHours / daysWorked : 0;
     
     const attendanceRate = getAttendanceRate(startDate, endDate, empId);
     
     // Calculate punctuality rate (on-time arrivals)
-    const scheduledEntries = relevantEntries.filter(entry => {
+    const scheduledEntries = relevantEntries.filter((entry: TimeEntry) => {
       const entryDate = new Date(entry.clockInTime).toDateString();
-      return schedules.some(schedule => 
+      return schedules.some((schedule: EmployeeSchedule) => 
         new Date(schedule.scheduleDate).toDateString() === entryDate &&
         schedule.employeeId === entry.employeeId
       );
     });
     
-    const onTimeArrivals = scheduledEntries.filter(entry => {
+    const onTimeArrivals = scheduledEntries.filter((entry: TimeEntry) => {
       const entryDate = new Date(entry.clockInTime).toDateString();
-      const schedule = schedules.find(s => 
+      const schedule = schedules.find((s: EmployeeSchedule) => 
         new Date(s.scheduleDate).toDateString() === entryDate &&
         s.employeeId === entry.employeeId
       );
@@ -564,14 +562,14 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
   ): ScheduleCompliance => {
     const targetEmployeeId = empId || employeeId;
     
-    const relevantSchedules = schedules.filter(schedule => {
+    const relevantSchedules = schedules.filter((schedule: EmployeeSchedule) => {
       const scheduleDate = new Date(schedule.scheduleDate);
       const matchesEmployee = !targetEmployeeId || schedule.employeeId === targetEmployeeId;
       const inDateRange = scheduleDate >= startDate && scheduleDate <= endDate;
       return matchesEmployee && inDateRange;
     });
     
-    const scheduledHours = relevantSchedules.reduce((sum, schedule) => {
+    const scheduledHours = relevantSchedules.reduce((sum: number, schedule: EmployeeSchedule) => {
       const start = new Date(schedule.startTime);
       const end = new Date(schedule.endTime);
       const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
@@ -586,9 +584,9 @@ export function useTimeTracking(options: UseTimeTrackingOptions = {}): UseTimeTr
     let earlyDepartures = 0;
     let missedShifts = 0;
     
-    relevantSchedules.forEach(schedule => {
+    relevantSchedules.forEach((schedule: EmployeeSchedule) => {
       const scheduleDate = new Date(schedule.scheduleDate).toDateString();
-      const timeEntry = timeEntries.find(entry => 
+      const timeEntry = timeEntries.find((entry: TimeEntry) => 
         new Date(entry.clockInTime).toDateString() === scheduleDate &&
         entry.employeeId === schedule.employeeId
       );

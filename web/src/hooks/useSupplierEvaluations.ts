@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, Reference } from '@apollo/client';
 import { useCallback } from 'react';
 import {
   GET_SUPPLIER_EVALUATION,
@@ -257,7 +257,7 @@ export function useDeleteSupplierEvaluation() {
 
   const remove = useCallback(
     async (id: string) => {
-      return deleteEvaluation({ id });
+      return deleteEvaluation({ variables: { id } });
     },
     [deleteEvaluation]
   );
@@ -267,16 +267,20 @@ export function useDeleteSupplierEvaluation() {
 
 // Hook for approving supplier evaluations
 export function useApproveSupplierEvaluation() {
-  const [approveEvaluation, { loading, error }] = useMutation(APPROVE_SUPPLIER_EVALUATION, {
+  const [approveEvaluation, { loading, error }] = useMutation<
+    { approveSupplierEvaluation: boolean },
+    { id: string }
+  >(APPROVE_SUPPLIER_EVALUATION, {
     errorPolicy: 'all',
-    update: (cache, { data }, mutationResult) => {
+    update: (cache, result, options) => {
+      const { data } = result;
+      const id = options.variables?.id;
       if (!data?.approveSupplierEvaluation) return;
 
-      const variables = mutationResult.variables as Record<string, unknown> | undefined;
-      if (!variables?.id) return;
+      if (!id) return;
 
       // Update the evaluation status in cache
-      const evaluationId = variables.id as string;
+      const evaluationId = id as string;
       const cacheId = cache.identify({ __typename: 'SupplierEvaluation', id: evaluationId });
       
       if (cacheId) {
@@ -292,10 +296,11 @@ export function useApproveSupplierEvaluation() {
       // Remove from pending evaluations list
       cache.modify({
         fields: {
-          pendingEvaluations(existingEvaluations: unknown[] = [], { readField }) {
-            return (existingEvaluations as unknown[]).filter(
-              (evalRef: unknown) => readField('id', evalRef) !== evaluationId
-            );
+          pendingEvaluations(existingEvaluations: readonly Reference[] = [], { readField }) {
+            return existingEvaluations.filter((evalRef) => {
+              const refId = readField<string>('id', evalRef);
+              return refId !== evaluationId;
+            });
           },
         },
       });
@@ -314,16 +319,20 @@ export function useApproveSupplierEvaluation() {
 
 // Hook for rejecting supplier evaluations
 export function useRejectSupplierEvaluation() {
-  const [rejectEvaluation, { loading, error }] = useMutation(REJECT_SUPPLIER_EVALUATION, {
+  const [rejectEvaluation, { loading, error }] = useMutation<
+    { rejectSupplierEvaluation: boolean },
+    { id: string }
+  >(REJECT_SUPPLIER_EVALUATION, {
     errorPolicy: 'all',
-    update: (cache, { data }, mutationResult) => {
+    update: (cache, result, options) => {
+      const { data } = result;
+      const id = options.variables?.id;
       if (!data?.rejectSupplierEvaluation) return;
 
-      const variables = mutationResult.variables as Record<string, unknown> | undefined;
-      if (!variables?.id) return;
+      if (!id) return;
 
       // Update the evaluation status in cache
-      const evaluationId = variables.id as string;
+      const evaluationId = id as string;
       const cacheId = cache.identify({ __typename: 'SupplierEvaluation', id: evaluationId });
       
       if (cacheId) {
@@ -338,10 +347,11 @@ export function useRejectSupplierEvaluation() {
       // Remove from pending evaluations list
       cache.modify({
         fields: {
-          pendingEvaluations(existingEvaluations: unknown[] = [], { readField }) {
-            return (existingEvaluations as unknown[]).filter(
-              (evalRef: unknown) => readField('id', evalRef) !== evaluationId
-            );
+          pendingEvaluations(existingEvaluations: readonly Reference[] = [], { readField }) {
+            return existingEvaluations.filter((evalRef) => {
+              const refId = readField<string>('id', evalRef);
+              return refId !== evaluationId;
+            });
           },
         },
       });

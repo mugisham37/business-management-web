@@ -39,18 +39,15 @@ import {
 
 import {
   TEAMS_EVENTS,
-  TEAMS_NOTIFICATION_EVENTS,
-  TEAMS_ALERT_EVENTS,
-  TEAMS_RICH_CARD_EVENTS,
 } from '@/graphql/subscriptions/communication';
 
 export const useTeams = (options: CommunicationHookOptions = {}): UseTeamsReturn => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const apolloClient = useApolloClient();
   
   const {
-    tenantId = currentUser?.tenantId,
-    userId = currentUser?.id,
+    tenantId = user?.tenantId,
+    userId = user?.id,
     autoRefresh = true,
     refreshInterval = 60000,
     enableRealtime = true,
@@ -64,7 +61,6 @@ export const useTeams = (options: CommunicationHookOptions = {}): UseTeamsReturn
 
   // Queries
   const { 
-    data: configData, 
     loading: configLoading, 
     error: configError,
     refetch: refetchConfig 
@@ -84,7 +80,6 @@ export const useTeams = (options: CommunicationHookOptions = {}): UseTeamsReturn
   });
 
   const { 
-    data: isConfiguredData, 
     loading: isConfiguredLoading,
     refetch: refetchIsConfigured 
   } = useQuery(IS_TEAMS_CONFIGURED, {
@@ -618,7 +613,9 @@ export const useTeams = (options: CommunicationHookOptions = {}): UseTeamsReturn
     configureIntegration,
     testIntegration,
     disableIntegration,
-    isConfigured: isConfiguredCheck,
+    isConfiguredCheck,
+    validateConfiguration,
+    createRichCard,
     
     // State
     loading,
@@ -627,8 +624,6 @@ export const useTeams = (options: CommunicationHookOptions = {}): UseTeamsReturn
     isConfigured,
     
     // Utility methods
-    validateConfiguration,
-    createRichCard,
     clearError,
   };
 };

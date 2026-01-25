@@ -642,13 +642,25 @@ export interface UseTeamsReturn {
   configureIntegration: (config: TeamsIntegrationConfig) => Promise<void>;
   testIntegration: (config: TeamsIntegrationConfig) => Promise<IntegrationTestResult>;
   disableIntegration: () => Promise<void>;
-  checkIfConfigured: () => Promise<boolean>;
+  isConfiguredCheck: () => Promise<boolean>;
+  validateConfiguration: (config: TeamsIntegrationConfig) => string[];
+  createRichCard: (params: {
+    title: string;
+    subtitle?: string;
+    summary?: string;
+    themeColor?: string;
+    facts?: Array<{ name: string; value: string }>;
+    actions?: Array<{ id: string; label: string; url?: string }>;
+  }) => TeamsRichCard;
   
   // State
   loading: boolean;
   error: string | null;
   configuration: TeamsIntegrationConfig | null;
   isConfigured: boolean;
+  
+  // Utilities
+  clearError: () => void;
 }
 
 export interface UseNotificationsReturn {

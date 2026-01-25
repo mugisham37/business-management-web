@@ -3,8 +3,8 @@
  * Complete hooks for time tracking and scheduling
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useSubscription } from '@apollo/client';
+import { useCallback, useMemo } from 'react';
+import { useQuery, useSubscription } from '@apollo/client';
 import { 
   GET_EMPLOYEE_SCHEDULES, 
   GET_TIME_ENTRIES 
@@ -12,25 +12,17 @@ import {
 import { 
   CREATE_EMPLOYEE_SCHEDULE, 
   UPDATE_EMPLOYEE_SCHEDULE,
-  CLOCK_IN, 
-  CLOCK_OUT, 
-  APPROVE_TIME_ENTRY 
 } from '@/graphql/mutations/employee';
 import { 
-  EMPLOYEE_CLOCKED_IN, 
-  EMPLOYEE_CLOCKED_OUT, 
-  TIME_ENTRY_APPROVED,
-  EMPLOYEE_SCHEDULE_CREATED,
-  EMPLOYEE_SCHEDULE_UPDATED
+  EMPLOYEE_SCHEDULE_CREATED_SUBSCRIPTION,
+  EMPLOYEE_SCHEDULE_UPDATED_SUBSCRIPTION
 } from '@/graphql/subscriptions/employee';
 import { useCreateMutation, useUpdateMutation } from './useGraphQLMutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
 import { 
   EmployeeSchedule, 
-  TimeEntry, 
-  TimeEntryQueryInput,
-  ClockInInput,
-  ClockOutInput
+  TimeEntry,
+  TimeEntryFormData,
 } from '@/types/employee';
 
 /**
@@ -67,7 +59,7 @@ export function useEmployeeSchedules(employeeId?: string, startDate?: Date, endD
   );
 
   // Real-time subscriptions
-  useSubscription(EMPLOYEE_SCHEDULE_CREATED, {
+  useSubscription(EMPLOYEE_SCHEDULE_CREATED_SUBSCRIPTION, {
     onData: ({ data: subscriptionData }) => {
       if (subscriptionData?.data?.employeeScheduleCreated) {
         console.log('Schedule created:', subscriptionData.data.employeeScheduleCreated);
@@ -75,7 +67,7 @@ export function useEmployeeSchedules(employeeId?: string, startDate?: Date, endD
     },
   });
 
-  useSubscription(EMPLOYEE_SCHEDULE_UPDATED, {
+  useSubscription(EMPLOYEE_SCHEDULE_UPDATED_SUBSCRIPTION, {
     onData: ({ data: subscriptionData }) => {
       if (subscriptionData?.data?.employeeScheduleUpdated) {
         console.log('Schedule updated:', subscriptionData.data.employeeScheduleUpdated);
@@ -84,7 +76,7 @@ export function useEmployeeSchedules(employeeId?: string, startDate?: Date, endD
   });
 
   // Actions
-  const createSchedule = useCallback(async (input: any) => {
+  const createSchedule = useCallback(async (input: TimeEntryFormData) => {
     try {
       const result = await createScheduleMutation({ variables: { input } });
       return result.data?.createEmployeeSchedule;
@@ -94,7 +86,7 @@ export function useEmployeeSchedules(employeeId?: string, startDate?: Date, endD
     }
   }, [createScheduleMutation]);
 
-  const updateSchedule = useCallback(async (id: string, input: any) => {
+  const updateSchedule = useCallback(async (id: string, input: Partial<TimeEntryFormData>) => {
     try {
       const result = await updateScheduleMutation({ variables: { id, input } });
       return result.data?.updateEmployeeSchedule;
@@ -129,4 +121,23 @@ export function useEmployeeSchedules(employeeId?: string, startDate?: Date, endD
 /**
  * Hook for managing time entries
  */
-export function us
+export function useTimeEntries(employeeId?: string) {
+  const currentTenant = useTenantStore(state => state.currentTenant);
+
+  const { data, loading, error, refetch } = useQuery<{
+    timeEntries: TimeEntry[];
+  }>(GET_TIME_ENTRIES, {
+    variables: { 
+      employeeId: employeeId!, 
+    },
+    skip: !employeeId || !currentTenant,
+    errorPolicy: 'all',
+  });
+
+  return {
+    timeEntries: data?.timeEntries || [],
+    loading,
+    error,
+    refetch,
+  };
+}

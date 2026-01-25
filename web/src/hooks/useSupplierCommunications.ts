@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, Reference } from '@apollo/client';
 import { useCallback } from 'react';
 import {
   GET_SUPPLIER_COMMUNICATION,
@@ -237,7 +237,7 @@ export function useDeleteSupplierCommunication() {
 
   const remove = useCallback(
     async (id: string) => {
-      return deleteCommunication({ id });
+      return deleteCommunication({ variables: { id } });
     },
     [deleteCommunication]
   );
@@ -247,13 +247,19 @@ export function useDeleteSupplierCommunication() {
 
 // Hook for marking follow-up as complete
 export function useMarkFollowUpComplete() {
-  const [markComplete, { loading, error }] = useMutation(MARK_FOLLOW_UP_COMPLETE, {
+  const [markComplete, { loading, error }] = useMutation<
+    { markFollowUpComplete: boolean },
+    { id: string }
+  >(MARK_FOLLOW_UP_COMPLETE, {
     errorPolicy: 'all',
-    update: (cache, { data }, { variables }) => {
-      if (!data?.markFollowUpComplete || !variables?.id) return;
+    update: (cache, result, options) => {
+      const { data } = result;
+      const id = options.variables?.id;
+      
+      if (!data?.markFollowUpComplete || !id) return;
 
       // Update the communication in cache
-      const communicationId = variables.id as string;
+      const communicationId = id as string;
       const cacheId = cache.identify({ __typename: 'SupplierCommunication', id: communicationId });
       
       if (cacheId) {
@@ -269,10 +275,11 @@ export function useMarkFollowUpComplete() {
       // Remove from pending follow-ups list
       cache.modify({
         fields: {
-          pendingFollowUps(existingFollowUps: unknown[] = [], { readField }) {
-            return (existingFollowUps as unknown[]).filter(
-              (followUpRef: unknown) => readField('id', followUpRef) !== communicationId
-            );
+          pendingFollowUps(existingFollowUps: readonly Reference[] = [], { readField }) {
+            return existingFollowUps.filter((followUpRef) => {
+              const refId = readField<string>('id', followUpRef);
+              return refId !== communicationId;
+            });
           },
         },
       });

@@ -9,10 +9,25 @@ import { useTenantStore } from '@/lib/stores/tenant-store';
 import {
   WarehouseZone,
   WarehouseZoneType,
-  CreateWarehouseZoneInput,
-  UpdateWarehouseZoneInput,
-  WarehouseZoneConnection,
 } from '@/types/warehouse';
+
+// Define UpdateWarehouseZoneInput since it's not in the types
+export interface UpdateWarehouseZoneInput {
+  name?: string;
+  description?: string;
+  zoneType?: WarehouseZoneType;
+  priority?: number;
+  capacity?: number;
+  squareFootage?: number;
+  maxBinLocations?: number;
+  temperatureControlled?: boolean;
+  humidityControlled?: boolean;
+  allowMixedProducts?: boolean;
+  allowMixedBatches?: boolean;
+  fifoEnforced?: boolean;
+  requiresAuthorization?: boolean;
+  accessLevel?: string;
+}
 
 // GraphQL Operations
 import {
@@ -74,11 +89,15 @@ export function useWarehouseZone(zoneId: string) {
     if (!zone?.id) return false;
     
     try {
+      const zoneId: string = zone.id;
       await deleteZone({
-        variables: { id: zone.id },
+        variables: { id: zoneId },
         update: (cache) => {
-          cache.evict({ id: cache.identify(zone) });
-          cache.gc();
+          const identifier = cache.identify({ __typename: 'WarehouseZone', id: zoneId });
+          if (identifier) {
+            cache.evict({ id: identifier });
+            cache.gc();
+          }
         },
       });
       return true;
@@ -114,7 +133,8 @@ export function useWarehouseZones(warehouseId: string) {
 
   const [createZone] = useMutation(CREATE_WAREHOUSE_ZONE);
 
-  const zones = data?.warehouseZones || [];
+  // Group zones by type for easier management
+  const zones = useMemo(() => data?.warehouseZones?.edges?.map((edge: { node: WarehouseZone }) => edge.node) || [], [data]);
 
   const create = useCallback(async (name: string, zoneType: WarehouseZoneType) => {
     try {
@@ -127,13 +147,14 @@ export function useWarehouseZones(warehouseId: string) {
               variables: { warehouseId },
             });
 
-            if (existingZones) {
+            if (existingZones && (existingZones as { warehouseZones: WarehouseZone[] }).warehouseZones) {
+              const existingData = (existingZones as { warehouseZones: WarehouseZone[] }).warehouseZones;
               cache.writeQuery({
                 query: GET_WAREHOUSE_ZONES,
                 variables: { warehouseId },
                 data: {
                   warehouseZones: [
-                    ...existingZones.warehouseZones,
+                    ...existingData,
                     mutationData.createWarehouseZone,
                   ],
                 },
@@ -148,8 +169,7 @@ export function useWarehouseZones(warehouseId: string) {
       throw error;
     }
   }, [createZone, warehouseId]);
-
-  // Group zones by type for easier management
+  
   const zonesByType = useMemo(() => {
     const grouped: Record<WarehouseZoneType, WarehouseZone[]> = {
       [WarehouseZoneType.RECEIVING]: [],
@@ -164,7 +184,7 @@ export function useWarehouseZones(warehouseId: string) {
       [WarehouseZoneType.HAZMAT]: [],
     };
 
-    zones.forEach(zone => {
+    zones.forEach((zone: WarehouseZone) => {
       if (zone.zoneType && grouped[zone.zoneType]) {
         grouped[zone.zoneType].push(zone);
       }
@@ -174,8 +194,8 @@ export function useWarehouseZones(warehouseId: string) {
   }, [zones]);
 
   // Get zones by status
-  const activeZones = useMemo(() => zones.filter(zone => zone.status === 'active'), [zones]);
-  const inactiveZones = useMemo(() => zones.filter(zone => zone.status === 'inactive'), [zones]);
+  const activeZones = useMemo(() => zones.filter((zone: WarehouseZone) => zone.status === 'active'), [zones]);
+  const inactiveZones = useMemo(() => zones.filter((zone: WarehouseZone) => zone.status === 'inactive'), [zones]);
 
   // Zone statistics
   const zoneStats = useMemo(() => {
@@ -183,9 +203,9 @@ export function useWarehouseZones(warehouseId: string) {
     const activeCount = activeZones.length;
     const inactiveCount = inactiveZones.length;
     
-    const totalCapacity = zones.reduce((sum, zone) => sum + (zone.capacity || 0), 0);
-    const totalBinLocations = zones.reduce((sum, zone) => sum + (zone.currentBinLocations || 0), 0);
-    const maxBinLocations = zones.reduce((sum, zone) => sum + (zone.maxBinLocations || 0), 0);
+    const totalCapacity = zones.reduce((sum: number, zone: WarehouseZone) => sum + (zone.capacity || 0), 0);
+    const totalBinLocations = zones.reduce((sum: number, zone: WarehouseZone) => sum + (zone.currentBinLocations || 0), 0);
+    const maxBinLocations = zones.reduce((sum: number, zone: WarehouseZone) => sum + (zone.maxBinLocations || 0), 0);
     
     const utilizationPercentage = maxBinLocations > 0 ? (totalBinLocations / maxBinLocations) * 100 : 0;
 
@@ -254,15 +274,15 @@ export function useZoneManagement(warehouseId: string) {
 
   // Get zones by specific criteria
   const getZonesByType = useCallback((zoneType: WarehouseZoneType) => {
-    return zones.filter(zone => zone.zoneType === zoneType);
+    return zones.filter((zone: WarehouseZone) => zone.zoneType === zoneType);
   }, [zones]);
 
   const getZonesByStatus = useCallback((status: 'active' | 'inactive') => {
-    return zones.filter(zone => zone.status === status);
+    return zones.filter((zone: WarehouseZone) => zone.status === status);
   }, [zones]);
 
   const getZoneByCode = useCallback((zoneCode: string) => {
-    return zones.find(zone => zone.zoneCode === zoneCode);
+    return zones.find((zone: WarehouseZone) => zone.zoneCode === zoneCode);
   }, [zones]);
 
   // Zone validation
@@ -288,7 +308,7 @@ export function useZoneManagement(warehouseId: string) {
 
   // Check if zone type is already used
   const isZoneTypeUsed = useCallback((zoneType: WarehouseZoneType) => {
-    return zones.some(zone => zone.zoneType === zoneType && zone.id !== selectedZoneId);
+    return zones.some((zone: WarehouseZone) => zone.zoneType === zoneType && zone.id !== selectedZoneId);
   }, [zones, selectedZoneId]);
 
   // Get recommended zone types that are missing

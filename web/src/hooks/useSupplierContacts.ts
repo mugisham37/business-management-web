@@ -80,10 +80,8 @@ export function useCreateSupplierContact() {
     'supplierContacts',
     (variables: Record<string, unknown>) => {
       const input = variables.input as CreateSupplierContactInput;
-      const supplierId = variables.supplierId as string;
       return {
         id: `temp-${Date.now()}`,
-        supplierId,
         ...input,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -129,7 +127,7 @@ export function useDeleteSupplierContact() {
 
   const remove = useCallback(
     async (id: string) => {
-      return deleteContact({ id });
+      return deleteContact({ variables: { id } });
     },
     [deleteContact]
   );
@@ -139,26 +137,31 @@ export function useDeleteSupplierContact() {
 
 // Hook for setting primary contact
 export function useSetPrimaryContact() {
-  const [setPrimary, { loading, error }] = useMutation(SET_PRIMARY_CONTACT, {
+  const [setPrimary, { loading, error }] = useMutation<
+    { setPrimaryContact: boolean },
+    { id: string }
+  >(SET_PRIMARY_CONTACT, {
     errorPolicy: 'all',
-    update: (cache, { data }, mutationResult) => {
+    update: (cache, result, options) => {
+      const { data } = result;
+      const id = options.variables?.id;
       if (!data?.setPrimaryContact) return;
       
-      const variables = mutationResult.variables as Record<string, unknown> | undefined;
-      if (!variables?.id) return;
+      if (!id) return;
 
       // Update all contacts for this supplier to set isPrimary correctly
       cache.modify({
         fields: {
-          supplierContacts(existingContacts: unknown[] = [], { readField }) {
-            return (existingContacts as unknown[]).map((contactRef: unknown) => {
-              const id = readField('id', contactRef);
-              const contactId = variables.id as string;
-              const cacheId = cache.identify(contactRef as Record<string, unknown>);
+          supplierContacts(existingContacts, { readField }) {
+            if (!Array.isArray(existingContacts)) return existingContacts;
+            return existingContacts.map((contactRef) => {
+              const refId = readField<string>('id', contactRef);
+              const contactId = id as string;
+              const cacheId = cache.identify({ __typename: 'SupplierContact', id: refId });
               
-              if (id === contactId && cacheId) {
+              if (refId === contactId && cacheId) {
                 // This is the new primary contact
-                return cache.writeFragment({
+                cache.writeFragment({
                   id: cacheId,
                   fragment: gql`
                     fragment UpdatedContact on SupplierContact {
@@ -169,7 +172,7 @@ export function useSetPrimaryContact() {
                 });
               } else if (cacheId) {
                 // All other contacts should not be primary
-                return cache.writeFragment({
+                cache.writeFragment({
                   id: cacheId,
                   fragment: gql`
                     fragment UpdatedContact on SupplierContact {

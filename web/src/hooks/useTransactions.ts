@@ -5,14 +5,11 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { useAuth } from './useAuth';
-import { useTenant } from '@/lib/tenant';
+import { useTenant } from '@/hooks/useTenant';
 import { useUnifiedCache } from '@/lib/cache';
 import {
   GET_TRANSACTION,
   GET_TRANSACTIONS,
-  GET_TRANSACTION_HISTORY,
-  GET_TRANSACTION_SUMMARY,
 } from '@/graphql/queries/pos-queries';
 import {
   CREATE_TRANSACTION,
@@ -29,14 +26,13 @@ import {
 } from '@/graphql/subscriptions/pos-subscriptions';
 import type {
   Transaction,
-  TransactionConnection,
   CreateTransactionInput,
   UpdateTransactionInput,
   VoidTransactionInput,
   RefundTransactionInput,
   TransactionFilter,
-  TransactionStatus,
 } from '@/types/pos';
+import { TransactionStatus } from '@/types/pos';
 
 interface UseTransactionsOptions {
   locationId?: string;
@@ -101,8 +97,7 @@ export function useTransactions(options: UseTransactionsOptions = {}): UseTransa
     pageSize = 20 
   } = options;
   
-  const { user } = useAuth();
-  const { currentTenant } = useTenant();
+  const { tenant: currentTenant } = useTenant();
   const cache = useUnifiedCache();
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -125,7 +120,7 @@ export function useTransactions(options: UseTransactionsOptions = {}): UseTransa
     errorPolicy: 'all',
     onCompleted: (data) => {
       if (data.transactions) {
-        setTransactions(data.transactions.edges.map(edge => edge.node));
+        setTransactions(data.transactions.edges.map((edge: { node: Transaction }) => edge.node));
         setCursor(data.transactions.pageInfo.endCursor);
       }
     },
@@ -241,6 +236,7 @@ export function useTransactions(options: UseTransactionsOptions = {}): UseTransa
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [autoRefresh, refetchTransactions]);
 
   // Handlers

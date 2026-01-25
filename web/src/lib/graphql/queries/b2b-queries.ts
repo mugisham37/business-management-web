@@ -424,7 +424,7 @@ export const GET_APPLICABLE_PRICING_RULES = gql`
 // ===== TERRITORY QUERIES =====
 
 export const TERRITORY_FRAGMENT = gql`
-  fragment TerritoryFragment on TerritoryGraphQLType {
+  fragment B2BTerritoryFragment on TerritoryGraphQLType {
     id
     territoryCode
     name
@@ -453,7 +453,7 @@ export const GET_TERRITORIES = gql`
   query GetTerritories($query: TerritoryQueryInput!) {
     getTerritories(query: $query) {
       territories {
-        ...TerritoryFragment
+        ...B2BTerritoryFragment
       }
       total
     }
@@ -464,7 +464,7 @@ export const GET_TERRITORY = gql`
   ${TERRITORY_FRAGMENT}
   query GetTerritory($id: ID!) {
     getTerritory(id: $id) {
-      ...TerritoryFragment
+      ...B2BTerritoryFragment
     }
   }
 `;

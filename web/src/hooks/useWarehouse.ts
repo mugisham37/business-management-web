@@ -8,7 +8,7 @@ import { useQuery, useMutation, useSubscription, useApolloClient } from '@apollo
 import { useTenantStore } from '@/lib/stores/tenant-store';
 import {
   Warehouse,
-  WarehouseCapacity,
+  WarehouseStatus,
   CreateWarehouseInput,
   UpdateWarehouseInput,
   WarehouseFilterInput,
@@ -16,8 +16,6 @@ import {
   UpdateWarehouseCapacityInput,
   WarehouseConfigurationInput,
   OffsetPaginationArgs,
-  WarehouseConnection,
-  WarehouseError,
 } from '@/types/warehouse';
 
 // GraphQL Operations
@@ -35,9 +33,6 @@ import {
   INITIALIZE_WAREHOUSE,
   UPDATE_WAREHOUSE_CAPACITY,
   UPDATE_WAREHOUSE_CONFIGURATION,
-  UPDATE_WAREHOUSE_OPERATING_HOURS,
-  OPTIMIZE_WAREHOUSE_LAYOUT,
-  UPDATE_WAREHOUSE_PERFORMANCE_METRICS,
 } from '@/graphql/mutations/warehouse-mutations';
 
 import {
@@ -92,11 +87,15 @@ export function useWarehouse(warehouseId: string) {
     if (!warehouse?.id) return false;
     
     try {
+      const warehouseId: string = warehouse.id;
       await deleteWarehouse({
-        variables: { id: warehouse.id },
+        variables: { id: warehouseId },
         update: (cache) => {
-          cache.evict({ id: cache.identify(warehouse) });
-          cache.gc();
+          const identifier = cache.identify({ __typename: 'Warehouse', id: warehouseId });
+          if (identifier) {
+            cache.evict({ id: identifier });
+            cache.gc();
+          }
         },
       });
       return true;
@@ -206,7 +205,7 @@ export function useWarehouses(
 
   const [createWarehouse] = useMutation(CREATE_WAREHOUSE);
 
-  const warehouses = data?.warehouses?.edges?.map(edge => edge.node) || [];
+  const warehouses = data?.warehouses?.edges?.map((edge: { node: Warehouse }) => edge.node) || [];
   const pageInfo = data?.warehouses?.pageInfo;
   const totalCount = data?.warehouses?.totalCount || 0;
 
@@ -221,22 +220,23 @@ export function useWarehouses(
               variables: { first: 20, filter },
             });
 
-            if (existingWarehouses) {
+            if (existingWarehouses && (existingWarehouses as { warehouses: { edges: { node: Warehouse; cursor: string }[]; totalCount: number } }).warehouses) {
+              const existingData = (existingWarehouses as { warehouses: { edges: { node: Warehouse; cursor: string }[]; totalCount: number } }).warehouses;
               cache.writeQuery({
                 query: GET_WAREHOUSES,
                 variables: { first: 20, filter },
                 data: {
                   warehouses: {
-                    ...existingWarehouses.warehouses,
+                    ...existingData,
                     edges: [
                       {
                         node: mutationData.createWarehouse,
                         cursor: `warehouse-${Date.now()}`,
                         __typename: 'WarehouseEdge',
                       },
-                      ...existingWarehouses.warehouses.edges,
+                      ...existingData.edges,
                     ],
-                    totalCount: existingWarehouses.warehouses.totalCount + 1,
+                    totalCount: existingData.totalCount + 1,
                   },
                 },
               });
@@ -420,12 +420,12 @@ export function useWarehouseManagement() {
   // Get warehouse statistics
   const warehouseStats = useMemo(() => {
     const totalWarehouses = warehouses.length;
-    const activeWarehouses = warehouses.filter(w => w.status === 'ACTIVE').length;
-    const inactiveWarehouses = warehouses.filter(w => w.status === 'INACTIVE').length;
-    const maintenanceWarehouses = warehouses.filter(w => w.status === 'MAINTENANCE').length;
+    const activeWarehouses = warehouses.filter((w: Warehouse) => w.status === WarehouseStatus.ACTIVE).length;
+    const inactiveWarehouses = warehouses.filter((w: Warehouse) => w.status === WarehouseStatus.INACTIVE).length;
+    const maintenanceWarehouses = warehouses.filter((w: Warehouse) => w.status === WarehouseStatus.MAINTENANCE).length;
 
-    const totalCapacity = warehouses.reduce((sum, w) => sum + (w.maxCapacityUnits || 0), 0);
-    const usedCapacity = warehouses.reduce((sum, w) => sum + (w.currentCapacityUnits || 0), 0);
+    const totalCapacity = warehouses.reduce((sum: number, w: Warehouse) => sum + (w.maxCapacityUnits || 0), 0);
+    const usedCapacity = warehouses.reduce((sum: number, w: Warehouse) => sum + (w.currentCapacityUnits || 0), 0);
     const overallUtilization = totalCapacity > 0 ? (usedCapacity / totalCapacity) * 100 : 0;
 
     return {
@@ -501,7 +501,7 @@ export function useWarehouseSearch() {
   });
 
   const filter: WarehouseFilterInput = useMemo(() => ({
-    search: debouncedSearchTerm || undefined,
+    ...(debouncedSearchTerm ? { search: debouncedSearchTerm } : {}),
   }), [debouncedSearchTerm]);
 
   const {
