@@ -1530,7 +1530,7 @@ export interface UseQuotesResult {
   createQuote: (input: CreateQuoteInput) => Promise<Quote>;
   updateQuote: (id: string, input: UpdateQuoteInput) => Promise<Quote>;
   deleteQuote: (id: string) => Promise<boolean>;
-  convertToOrder: (quoteId: string) => Promise<Order>;
+  convertToOrder: (quoteId: string) => Promise<B2BOrder>;
   sendQuote: (quoteId: string, email: string) => Promise<boolean>;
   exportQuote: (quoteId: string, format: string) => Promise<string>;
 }

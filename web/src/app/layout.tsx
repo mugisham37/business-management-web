@@ -1,21 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import React from "react";
 import "./globals.css";
 import "@/lib/error-handling/error-boundary.css";
 import { Providers } from "./providers";
 import { PerformanceMetrics } from "@/components/performance/PerformanceMetrics";
-import { initializeErrorHandling } from "@/lib/error-handling";
-
-type Environment = 'development' | 'production' | 'staging';
-
-const getEnvironment = (): Environment => {
-  const env = process.env.NODE_ENV;
-  if (env === 'production' || env === 'development') {
-    return env;
-  }
-  return 'staging';
-};
+import { ErrorInitializer } from "./error-initializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,26 +42,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Initialize error handling system
-  React.useEffect(() => {
-    initializeErrorHandling({
-      errorReporting: {
-        enabled: process.env.NODE_ENV === 'production',
-        environment: getEnvironment(),
-        sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      },
-      networkRetry: {
-        maxRetries: 3,
-        baseDelay: 1000,
-        maxDelay: 30000,
-      },
-      circuitBreaker: {
-        failureThreshold: 5,
-        resetTimeout: 60000,
-      },
-    });
-  }, []);
-
   const performanceMetrics = [
     { label: 'Response Time', value: '245ms', unit: 'ms' },
     { label: 'Memory', value: '45', unit: 'MB' },
@@ -83,6 +52,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ErrorInitializer />
         <Providers>
           {children}
           <PerformanceMetrics items={performanceMetrics} />

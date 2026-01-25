@@ -10,12 +10,14 @@ import {
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+const Toaster = ({ theme: propTheme, ...props }: ToasterProps) => {
+  const { theme: activeTheme = "system" } = useTheme()
+  const resolvedTheme: ToasterProps["theme"] =
+    propTheme ?? (activeTheme === "dark" || activeTheme === "light" ? activeTheme : "system")
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={resolvedTheme}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
