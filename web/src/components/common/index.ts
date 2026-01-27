@@ -3,8 +3,8 @@
  * Shared UI components for modules
  */
 
-export { LazyModule, useLazyModule } from './LazyModule';
-export type { LazyModuleProps } from './LazyModule';
+// Note: LazyModule is excluded due to dynamic import incompatibility with Turbopack
+// Use direct imports from './LazyModule' if needed
 
 export { LoadingSpinner } from './LoadingSpinner';
 export type { LoadingSpinnerProps } from './LoadingSpinner';
