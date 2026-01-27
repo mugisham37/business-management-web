@@ -1,2 +1,2 @@
-export { AuthProvider } from './auth-provider';
-export type { AuthProviderProps } from './auth-provider';
+export { AuthProvider } from '../providers/auth-provider';
+export type { AuthProviderProps } from '../providers/auth-provider';

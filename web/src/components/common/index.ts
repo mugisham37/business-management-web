@@ -18,3 +18,18 @@ export type {
   ModuleSectionProps,
   ModuleGridProps,
 } from './ModuleWrapper';
+
+// Dashboard Components
+export { MetricCard } from "./metric-card";
+export { CommandMenu } from "./command-menu";
+
+// Chart Components
+export { ChartWrapper } from "./charts/chart-wrapper";
+export { BarChartComponent } from "./charts/bar-chart";
+export { AreaChartComponent } from "./charts/area-chart";
+export { LineChartComponent } from "./charts/line-chart";
+export { PieChartComponent } from "./charts/pie-chart";
+
+// Data Table Components
+export { DataTable } from "./data-table/data-table";
+export { DataTableColumnHeader } from "./data-table/data-table-column-header";
