@@ -1,59 +1,120 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+/**
+ * Tab Layout
+ *
+ * Main navigation with role-based tabs using a floating blur tab bar.
+ */
+import React from "react";
+import { View, Platform } from "react-native";
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+// Tab configuration
+interface TabConfig {
+  name: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconFocused: keyof typeof Ionicons.glyphMap;
 }
 
+const TABS: TabConfig[] = [
+  {
+    name: "index",
+    title: "Dashboard",
+    icon: "grid-outline",
+    iconFocused: "grid",
+  },
+  {
+    name: "inventory",
+    title: "Inventory",
+    icon: "cube-outline",
+    iconFocused: "cube",
+  },
+  {
+    name: "pos",
+    title: "POS",
+    icon: "cart-outline",
+    iconFocused: "cart",
+  },
+  {
+    name: "profile",
+    title: "Profile",
+    icon: "person-outline",
+    iconFocused: "person",
+  },
+];
+
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      />
+        headerShown: false,
+        tabBarActiveTintColor: "#3B82F6",
+        tabBarInactiveTintColor: "#737373",
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "500",
+          marginTop: -2,
+        },
+        tabBarStyle: {
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 70 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 8,
+          borderTopWidth: 0,
+          backgroundColor: Platform.OS === "ios" ? "transparent" : "#1F1F1F",
+          elevation: 0,
+        },
+        tabBarBackground: () =>
+          Platform.OS === "ios" ? (
+            <BlurView
+              intensity={80}
+              tint="dark"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+          ) : null,
+      }}
+      screenListeners={{
+        tabPress: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        },
+      }}
+    >
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, focused }) => (
+              <View
+                className={`items-center justify-center ${focused ? "bg-primary/10 rounded-full w-12 h-8" : ""
+                  }`}
+              >
+                <Ionicons
+                  name={focused ? tab.iconFocused : tab.icon}
+                  size={22}
+                  color={color}
+                />
+              </View>
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
