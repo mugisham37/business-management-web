@@ -85,9 +85,19 @@ function RootLayoutNav() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(crm)" options={{ headerShown: false }} />
+              <Stack.Screen name="(employee)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="modal"
                 options={{ presentation: "modal", headerShown: false }}
+              />
+              <Stack.Screen
+                name="scanner"
+                options={{
+                  presentation: "fullScreenModal",
+                  headerShown: false,
+                  animation: "slide_from_bottom",
+                }}
               />
             </Stack>
           </ThemeProvider>

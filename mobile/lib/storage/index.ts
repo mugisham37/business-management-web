@@ -198,7 +198,7 @@ export const appStorage = {
  */
 export const preferences = {
     getTheme(): "light" | "dark" | "system" {
-        return (appStorage.getString(STORAGE_KEYS.THEME) as any) || "dark";
+        return (appStorage.getString(STORAGE_KEYS.THEME) as "light" | "dark" | "system") || "dark";
     },
 
     setTheme(theme: "light" | "dark" | "system"): void {

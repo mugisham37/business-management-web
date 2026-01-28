@@ -5,9 +5,8 @@
  * Shows branding and login options.
  */
 import React from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeScreen } from "@/components/layout";
 import { Button } from "@/components/core";
 import { useBiometric } from "@/hooks/auth";

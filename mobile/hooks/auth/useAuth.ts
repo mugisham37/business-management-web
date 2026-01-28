@@ -5,7 +5,8 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSegments } from "expo-router";
-import { useMutation, useQuery, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
     secureStorage,
     appStorage,

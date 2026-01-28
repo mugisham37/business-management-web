@@ -12,7 +12,6 @@ import {
     InMemoryCache,
     createHttpLink,
     from,
-    NormalizedCacheObject,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
@@ -59,7 +58,7 @@ const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link - Handles GraphQL and network errors
  */
-const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+const errorLink = onError(({ graphQLErrors, networkError }) => {
     if (graphQLErrors) {
         graphQLErrors.forEach(({ message, locations, path, extensions }) => {
             console.error(
@@ -100,9 +99,9 @@ const retryLink = new RetryLink({
     },
     attempts: {
         max: 3,
-        retryIf: (error, _operation) => {
+        retryIf: (error: any) => {
             // Retry on network errors, not on GraphQL errors
-            return !!error && !error.result;
+            return !!error;
         },
     },
 });
@@ -194,7 +193,7 @@ const cache = new InMemoryCache({
 /**
  * Create Apollo Client instance
  */
-export const createApolloClient = (): ApolloClient<NormalizedCacheObject> => {
+export const createApolloClient = () => {
     return new ApolloClient({
         link: from([authLink, errorLink, retryLink, httpLink]),
         cache,
@@ -212,7 +211,6 @@ export const createApolloClient = (): ApolloClient<NormalizedCacheObject> => {
                 errorPolicy: "all",
             },
         },
-        connectToDevTools: __DEV__,
     });
 };
 
