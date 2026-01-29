@@ -10,7 +10,7 @@ import { permissionValidationService } from './PermissionValidationService';
 import { GraphQLError } from 'graphql';
 
 interface OperationContext {
-  operationName?: string;
+  operationName: string;
   operationType?: 'query' | 'mutation' | 'subscription';
   variables?: Record<string, unknown>;
   userId?: string;

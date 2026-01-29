@@ -133,16 +133,18 @@ export class DeviceFingerprintService {
 
     // Add hardware information if available
     if ('hardwareConcurrency' in navigator) {
-      components.hardwareConcurrency = navigator.hardwareConcurrency;
+      components.hardwareConcurrency = navigator.hardwareConcurrency || 0;
     }
 
     if ('deviceMemory' in navigator) {
-      components.deviceMemory = (navigator as Record<string, unknown>).deviceMemory;
+      components.deviceMemory = (navigator as { deviceMemory?: number }).deviceMemory || 0;
     }
 
     if ('connection' in navigator) {
-      const connection = (navigator as Record<string, unknown>).connection;
-      components.connection = `${connection.effectiveType}-${connection.downlink}`;
+      const connection = (navigator as { connection?: { effectiveType?: string; downlink?: number } }).connection;
+      if (connection) {
+        components.connection = `${connection.effectiveType || 'unknown'}-${connection.downlink || 0}`;
+      }
     }
 
     // Add canvas fingerprint
@@ -243,8 +245,8 @@ export class DeviceFingerprintService {
     }
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    const vendor = debugInfo ? gl.getParameter((debugInfo as unknown as Record<string, number>).UNMASKED_VENDOR_WEBGL) : 'unknown';
-    const renderer = debugInfo ? gl.getParameter((debugInfo as unknown as Record<string, number>).UNMASKED_RENDERER_WEBGL) : 'unknown';
+    const vendor = debugInfo ? gl.getParameter((debugInfo as { UNMASKED_VENDOR_WEBGL: number }).UNMASKED_VENDOR_WEBGL) : 'unknown';
+    const renderer = debugInfo ? gl.getParameter((debugInfo as { UNMASKED_RENDERER_WEBGL: number }).UNMASKED_RENDERER_WEBGL) : 'unknown';
     
     const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
@@ -313,7 +315,9 @@ export class DeviceFingerprintService {
     if (navigator.plugins) {
       for (let i = 0; i < navigator.plugins.length; i++) {
         const plugin = navigator.plugins[i];
-        plugins.push(`${plugin.name}|${plugin.version || 'unknown'}`);
+        if (plugin) {
+          plugins.push(`${plugin.name}|${(plugin as { version?: string }).version || 'unknown'}`);
+        }
       }
     }
 

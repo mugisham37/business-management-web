@@ -29,6 +29,15 @@ import {
     BULK_GRANT_PERMISSIONS_MUTATION,
     BULK_REVOKE_PERMISSIONS_MUTATION,
     GENERATE_MFA_SETUP_MUTATION,
+    UPDATE_TIER_MUTATION,
+    TERMINATE_SESSION_MUTATION,
+    TRUST_DEVICE_MUTATION,
+    UNTRUST_DEVICE_MUTATION,
+    START_ONBOARDING_MUTATION,
+    SUBMIT_ONBOARDING_STEP_MUTATION,
+    COMPLETE_ONBOARDING_MUTATION,
+    PROCESS_PAYMENT_MUTATION,
+    UPDATE_SECURITY_SETTINGS_MUTATION,
 } from '@/graphql/mutations/auth-complete';
 
 import {
@@ -38,6 +47,22 @@ import {
     GET_AVAILABLE_PERMISSIONS_QUERY,
     GET_ROLES_QUERY,
     GET_ROLE_PERMISSIONS_QUERY,
+    GET_USER_PERMISSIONS_QUERY,
+    GET_MY_TIER_QUERY,
+    GET_USER_FEATURES_QUERY,
+    GET_UPGRADE_RECOMMENDATIONS_QUERY,
+    BASIC_FEATURE_QUERY,
+    SMALL_TIER_FEATURE_QUERY,
+    MEDIUM_TIER_FEATURE_QUERY,
+    ENTERPRISE_FEATURE_QUERY,
+    ADVANCED_REPORTS_QUERY,
+    MULTI_LOCATION_DATA_QUERY,
+    GET_ACTIVE_SESSIONS_QUERY,
+    GET_DEVICE_SESSIONS_QUERY,
+    GET_ONBOARDING_STATUS_QUERY,
+    GET_SUBSCRIPTION_STATUS_QUERY,
+    GET_SECURITY_SETTINGS_QUERY,
+    GET_AUDIT_LOGS_QUERY,
 } from '@/graphql/queries/auth-complete';
 
 export interface GraphQLOperationResult<T = Record<string, unknown>> {
@@ -782,7 +807,7 @@ export class GraphQLIntegrationService {
         }
     }
 
-    async submitOnboardingStep(sessionId: string, step: number, stepData: any): Promise<GraphQLOperationResult> {
+    async submitOnboardingStep(sessionId: string, step: number, stepData: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: SUBMIT_ONBOARDING_STEP_MUTATION,
@@ -854,7 +879,7 @@ export class GraphQLIntegrationService {
     /**
      * Payment Operations
      */
-    async processPayment(paymentData: any): Promise<GraphQLOperationResult> {
+    async processPayment(paymentData: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: PROCESS_PAYMENT_MUTATION,
@@ -913,7 +938,7 @@ export class GraphQLIntegrationService {
         }
     }
 
-    async updateSecuritySettings(settings: any): Promise<GraphQLOperationResult> {
+    async updateSecuritySettings(settings: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: UPDATE_SECURITY_SETTINGS_MUTATION,
@@ -933,7 +958,7 @@ export class GraphQLIntegrationService {
         }
     }
 
-    async getAuditLogs(filter?: any, pagination?: any): Promise<GraphQLOperationResult> {
+    async getAuditLogs(filter?: Record<string, unknown>, pagination?: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.query({
                 query: GET_AUDIT_LOGS_QUERY,

@@ -7,6 +7,12 @@ import { ApolloClient } from '@apollo/client';
 import {
     TENANT_AUTH_EVENTS_SUBSCRIPTION,
     SECURITY_ALERTS_SUBSCRIPTION,
+    USER_PERMISSION_EVENTS_SUBSCRIPTION,
+    USER_MFA_EVENTS_SUBSCRIPTION,
+    USER_SESSION_EVENTS_SUBSCRIPTION,
+    TENANT_ROLE_EVENTS_SUBSCRIPTION,
+    USER_EVENTS_SUBSCRIPTION,
+    USER_AUTH_EVENTS_SUBSCRIPTION,
 } from '@/graphql/subscriptions/auth-subscriptions';
 
 export interface AuthEvent {
@@ -71,6 +77,7 @@ export interface EventHandler<T = Record<string, unknown>> {
 export class AuthEventSubscriptionService {
     private apolloClient: ApolloClient<Record<string, unknown>>;
     private subscriptions: Map<string, unknown> = new Map();
+    private eventHandlers: Map<string, EventHandler[]> = new Map();
     private authEventHandlers: EventHandler<AuthEvent>[] = [];
     private permissionChangeHandlers: EventHandler<PermissionChange>[] = [];
     private securityAlertHandlers: EventHandler<SecurityAlert>[] = [];
@@ -88,7 +95,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: AUTH_EVENTS_SUBSCRIPTION
+                query: TENANT_AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.authEvents) {
@@ -121,7 +128,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: PERMISSION_CHANGES_SUBSCRIPTION
+                query: USER_PERMISSION_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.permissionChanges) {
@@ -187,7 +194,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: MFA_EVENTS_SUBSCRIPTION
+                query: USER_MFA_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.mfaEvents) {
@@ -220,7 +227,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: SESSION_EVENTS_SUBSCRIPTION
+                query: USER_SESSION_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.sessionEvents) {
@@ -253,7 +260,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: TIER_CHANGES_SUBSCRIPTION
+                query: USER_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.tierChanges) {
@@ -286,7 +293,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: PAYMENT_EVENTS_SUBSCRIPTION
+                query: USER_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.paymentEvents) {
@@ -319,7 +326,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: DEVICE_TRUST_EVENTS_SUBSCRIPTION
+                query: USER_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.deviceTrustEvents) {
@@ -352,7 +359,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: ONBOARDING_PROGRESS_SUBSCRIPTION
+                query: USER_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.onboardingProgress) {
@@ -418,7 +425,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: ROLE_ASSIGNMENT_EVENTS_SUBSCRIPTION
+                query: TENANT_ROLE_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.roleAssignmentEvents) {
@@ -485,7 +492,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: IP_RESTRICTION_EVENTS_SUBSCRIPTION
+                query: TENANT_AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.ipRestrictionEvents) {
@@ -518,7 +525,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: SESSION_LIMIT_EVENTS_SUBSCRIPTION
+                query: TENANT_AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.sessionLimitEvents) {
@@ -551,7 +558,7 @@ export class AuthEventSubscriptionService {
         
         if (!this.subscriptions.has(subscriptionKey)) {
             const subscription = this.apolloClient.subscribe({
-                query: PASSWORD_POLICY_EVENTS_SUBSCRIPTION
+                query: TENANT_AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.passwordPolicyEvents) {
@@ -596,14 +603,14 @@ export class AuthEventSubscriptionService {
      * Private helper methods
      */
     private addEventHandler(eventType: string, handler: EventHandler): void {
-        // Simplified event handler registration - types are verified at call site
-        const handlers = (this.subscriptions.get(eventType) as EventHandler[]) || [];
+        // Add to event handler map
+        const handlers = this.eventHandlers.get(eventType) || [];
         handlers.push(handler);
-        this.subscriptions.set(eventType, handlers);
+        this.eventHandlers.set(eventType, handlers);
     }
 
     private removeEventHandler(eventType: string, handler: EventHandler): void {
-        const handlers = (this.subscriptions.get(eventType) as EventHandler[]) || [];
+        const handlers = this.eventHandlers.get(eventType) || [];
         const index = handlers.indexOf(handler);
         if (index > -1) {
             handlers.splice(index, 1);
@@ -611,12 +618,12 @@ export class AuthEventSubscriptionService {
     }
 
     private getHandlerCount(eventType: string): number {
-        const handlers = this.subscriptions.get(eventType) as EventHandler[] | undefined;
+        const handlers = this.eventHandlers.get(eventType);
         return handlers?.length || 0;
     }
 
     private notifyHandlers(eventType: string, event: Record<string, unknown>): void {
-        const handlers = this.eventHandlers.get(eventType);
+        const handlers = this.subscriptions.get(eventType) as EventHandler[] | undefined;
         if (handlers) {
             handlers.forEach(handler => {
                 try {
