@@ -147,6 +147,7 @@ export function RealtimeDashboardWrapper({
       }, 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isConnected, showConnectionStatus]);
 
   return (
@@ -214,7 +215,10 @@ export function RealtimeDashboardWrapper({
                   </p>
                 </div>
                 <Badge className={`${TIER_CONFIG[lastTierChange.to].bgColor} text-green-800`}>
-                  <TIER_CONFIG[lastTierChange.to].icon className="h-3 w-3 mr-1" />
+                  {(() => {
+                    const TierIcon = TIER_CONFIG[lastTierChange.to].icon;
+                    return <TierIcon className="h-3 w-3 mr-1" />;
+                  })()}
                   {TIER_CONFIG[lastTierChange.to].name}
                 </Badge>
               </CardContent>
@@ -250,7 +254,10 @@ export function RealtimeDashboardWrapper({
                 }}
                 className={`flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r ${TIER_CONFIG[currentTier].color}`}
               >
-                <TIER_CONFIG[currentTier].icon className="h-8 w-8 text-white" />
+                {(() => {
+                  const TierIcon = TIER_CONFIG[currentTier].icon;
+                  return <TierIcon className="h-8 w-8 text-white" />;
+                })()}
               </motion.div>
               
               <div className="text-center">

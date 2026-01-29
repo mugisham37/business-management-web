@@ -396,7 +396,10 @@ export function TierAwareSidebar({
         {/* Current Tier Display */}
         <div className="px-2 py-2">
           <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${TIER_CONFIG[currentTier].color}`}>
-            <TIER_CONFIG[currentTier].icon className="h-4 w-4" />
+            {(() => {
+              const TierIcon = TIER_CONFIG[currentTier].icon;
+              return <TierIcon className="h-4 w-4" />;
+            })()}
             <span className="font-medium">{TIER_CONFIG[currentTier].name} Plan</span>
           </div>
         </div>

@@ -16,8 +16,8 @@ jest.mock('@/hooks/useAuth', () => ({
 
 jest.mock('@/hooks/useTierAccess', () => ({
   useTierAccess: () => ({
-    tierMeetsRequirement: jest.fn((currentTier, requiredTier) => {
-      const tierLevels = {
+    tierMeetsRequirement: jest.fn((currentTier: BusinessTier, requiredTier: BusinessTier) => {
+      const tierLevels: Record<BusinessTier, number> = {
         [BusinessTier.MICRO]: 0,
         [BusinessTier.SMALL]: 1,
         [BusinessTier.MEDIUM]: 2,
@@ -103,7 +103,7 @@ describe('TierAwareSidebar', () => {
 
     // Find and click a locked feature (Analytics requires SMALL tier)
     const lockedFeatures = screen.getAllByText('Growth');
-    if (lockedFeatures.length > 0) {
+    if (lockedFeatures.length > 0 && lockedFeatures[0]) {
       fireEvent.click(lockedFeatures[0]);
       expect(mockOnUpgradeClick).toHaveBeenCalledWith(BusinessTier.SMALL);
     }

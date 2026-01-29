@@ -4,9 +4,9 @@ import '@testing-library/jest-dom';
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+    div: 'div',
+    button: 'button',
+    span: 'span',
   },
   AnimatePresence: ({ children }: any) => children,
 }));

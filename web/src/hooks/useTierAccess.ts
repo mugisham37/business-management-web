@@ -117,7 +117,7 @@ export function useTierAccess() {
             if (!grouped[module.category]) {
                 grouped[module.category] = [];
             }
-            grouped[module.category].push(module);
+            grouped[module.category]!.push(module);
         });
         return grouped;
     }, [modules]);

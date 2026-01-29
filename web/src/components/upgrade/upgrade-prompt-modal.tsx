@@ -200,7 +200,10 @@ export function UpgradePromptModal({
             <Card className="relative">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <currentConfig.icon className="h-4 w-4" />
+                  {(() => {
+                    const CurrentIcon = currentConfig.icon;
+                    return <CurrentIcon className="h-4 w-4" />;
+                  })()}
                   <CardTitle className="text-sm">Current Plan</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
@@ -238,7 +241,10 @@ export function UpgradePromptModal({
               </div>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <targetConfig.icon className="h-4 w-4" />
+                  {(() => {
+                    const TargetIcon = targetConfig.icon;
+                    return <TargetIcon className="h-4 w-4" />;
+                  })()}
                   <CardTitle className="text-sm">Upgrade To</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">

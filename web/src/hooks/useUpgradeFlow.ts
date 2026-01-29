@@ -7,8 +7,8 @@ import { useAuth } from "./useAuth";
 interface UpgradeFlowState {
   isModalOpen: boolean;
   targetTier: BusinessTier;
-  featureName?: string;
-  source?: string; // Track where the upgrade was initiated from
+  featureName?: string | undefined;
+  source?: string | undefined; // Track where the upgrade was initiated from
 }
 
 interface UpgradeFlowOptions {
@@ -43,8 +43,8 @@ export function useUpgradeFlow(options: UpgradeFlowOptions = {}) {
     setUpgradeState({
       isModalOpen: true,
       targetTier,
-      featureName,
-      source,
+      featureName: featureName || undefined,
+      source: source || undefined,
     });
 
     // Track analytics if enabled
@@ -154,7 +154,8 @@ export function useUpgradeFlow(options: UpgradeFlowOptions = {}) {
 
   // Get upgrade benefits for a target tier
   const getUpgradeBenefits = useCallback((targetTier: BusinessTier) => {
-    const benefits = {
+    const benefits: Record<BusinessTier, string[]> = {
+      [BusinessTier.MICRO]: [],
       [BusinessTier.SMALL]: [
         "Advanced analytics and reporting",
         "CRM functionality",

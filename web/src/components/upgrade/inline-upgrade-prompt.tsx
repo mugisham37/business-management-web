@@ -43,7 +43,7 @@ const TIER_CONFIG = {
 interface InlineUpgradePromptProps {
   requiredTier: BusinessTier;
   featureName: string;
-  description?: string;
+  description?: string | undefined;
   onUpgradeClick: (tier: BusinessTier) => void;
   onDismiss?: () => void;
   variant?: "card" | "banner" | "compact";
@@ -227,7 +227,7 @@ interface LockedFeatureWrapperProps {
   requiredTier: BusinessTier;
   currentTier: BusinessTier;
   featureName: string;
-  description?: string;
+  description?: string | undefined;
   onUpgradeClick: (tier: BusinessTier) => void;
   fallbackVariant?: "card" | "banner" | "compact";
 }
@@ -261,7 +261,7 @@ export function LockedFeatureWrapper({
     <InlineUpgradePrompt
       requiredTier={requiredTier}
       featureName={featureName}
-      description={description}
+      description={description || undefined}
       onUpgradeClick={onUpgradeClick}
       variant={fallbackVariant}
     />
