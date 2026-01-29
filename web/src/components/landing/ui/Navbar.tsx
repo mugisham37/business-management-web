@@ -6,8 +6,8 @@ import { cx } from "@/lib/utils"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
 import React from "react"
-import { DatabaseLogo } from "../../../public/DatabaseLogo"
-import { Button } from "../Button"
+import { DatabaseLogo } from "../../../../public/DatabaseLogo"
+import { Button } from "@/components/landing/Button"
 
 export function Navigation() {
   const scrolled = useScroll(15)
