@@ -37,6 +37,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: payload.role,
       permissions: payload.permissions || [],
       sessionId: payload.sessionId,
+      // Enhanced tier-based fields
+      businessTier: payload.businessTier || 'micro',
+      featureFlags: payload.featureFlags || [],
+      trialExpiresAt: payload.trialExpiresAt ? new Date(payload.trialExpiresAt * 1000) : undefined,
     };
   }
 }

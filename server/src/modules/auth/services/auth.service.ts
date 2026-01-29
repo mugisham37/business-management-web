@@ -7,7 +7,7 @@ import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 import { DrizzleService } from '../../database/drizzle.service';
-import { users, userSessions } from '../../database/schema/user.schema';
+import { users, userSessions, tenants } from '../../database/schema';
 import { AuthEventsService } from './auth-events.service';
 import {
   LoginInput,
@@ -608,13 +608,24 @@ export class AuthService {
     return sessionInfo;
   }
 
-  private async createUserSession(
+  public async createUserSession(
     user: any,
     ipAddress?: string,
     userAgent?: string,
     rememberMe: boolean = false
   ): Promise<LoginResponse> {
     const db = this.drizzleService.getDb();
+
+    // Get tenant information for enhanced user object
+    const tenantInfo = await this.getTenantInfo(user.tenantId);
+    
+    // Enhance user object with tenant information
+    const enhancedUser = {
+      ...user,
+      businessTier: tenantInfo.businessTier,
+      featureFlags: tenantInfo.featureFlags,
+      trialExpiresAt: tenantInfo.trialExpiresAt,
+    };
 
     // Create session
     const sessionId = uuidv4();
@@ -624,8 +635,8 @@ export class AuthService {
     const refreshExpiresIn = rememberMe ? '30d' : this.authConfig.jwtRefreshExpiresIn;
     const expiresAt = new Date(Date.now() + this.getTokenExpirationTime(refreshExpiresIn));
 
-    const accessToken = await this.generateAccessToken(user, sessionId);
-    const refreshToken = await this.generateRefreshToken(user, sessionId, rememberMe);
+    const accessToken = await this.generateAccessToken(enhancedUser, sessionId);
+    const refreshToken = await this.generateRefreshToken(enhancedUser, sessionId, rememberMe);
 
     // Store session in database
     await db
@@ -645,7 +656,7 @@ export class AuthService {
         updatedBy: user.id,
       });
 
-    const authenticatedUser = this.mapUserToAuthenticatedUser(user, sessionId);
+    const authenticatedUser = this.mapUserToAuthenticatedUser(enhancedUser, sessionId);
 
     return {
       user: authenticatedUser,
@@ -657,6 +668,9 @@ export class AuthService {
   }
 
   private async generateAccessToken(user: any, sessionId: string): Promise<string> {
+    // Get tenant information for business tier and feature flags
+    const tenantInfo = await this.getTenantInfo(user.tenantId);
+    
     const payload = {
       sub: user.id,
       email: user.email,
@@ -664,12 +678,19 @@ export class AuthService {
       role: user.role,
       permissions: user.permissions || [],
       sessionId,
+      // Enhanced tier-based fields
+      businessTier: tenantInfo.businessTier,
+      featureFlags: tenantInfo.featureFlags,
+      ...(tenantInfo.trialExpiresAt && { trialExpiresAt: Math.floor(tenantInfo.trialExpiresAt.getTime() / 1000) }),
     };
 
     return this.jwtService.sign(payload);
   }
 
   private async generateRefreshToken(user: any, sessionId: string, rememberMe: boolean = false): Promise<string> {
+    // Get tenant information for business tier and feature flags
+    const tenantInfo = await this.getTenantInfo(user.tenantId);
+    
     const payload = {
       sub: user.id,
       email: user.email,
@@ -678,6 +699,10 @@ export class AuthService {
       permissions: user.permissions || [],
       sessionId,
       rememberMe,
+      // Enhanced tier-based fields
+      businessTier: tenantInfo.businessTier,
+      featureFlags: tenantInfo.featureFlags,
+      ...(tenantInfo.trialExpiresAt && { trialExpiresAt: Math.floor(tenantInfo.trialExpiresAt.getTime() / 1000) }),
     };
 
     // For refresh tokens, we need to use a different secret
@@ -753,6 +778,10 @@ export class AuthService {
       avatar: user.avatar,
       sessionId: sessionId || '',
       lastLoginAt: user.lastLoginAt,
+      // Enhanced tier-based fields - will be populated by createUserSession
+      businessTier: user.businessTier || 'micro',
+      featureFlags: user.featureFlags || [],
+      trialExpiresAt: user.trialExpiresAt,
     };
   }
 
@@ -768,5 +797,68 @@ export class AuthService {
       case 'd': return value * 24 * 60 * 60;
       default: return 900; // 15 minutes default
     }
+  }
+
+  /**
+   * Get tenant information including business tier and feature flags
+   */
+  private async getTenantInfo(tenantId: string): Promise<{
+    businessTier: string;
+    featureFlags: string[];
+    trialExpiresAt?: Date;
+  }> {
+    const db = this.drizzleService.getDb();
+
+    try {
+      const [tenant] = await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.id, tenantId))
+        .limit(1);
+
+      if (!tenant) {
+        // Return default values if tenant not found
+        return {
+          businessTier: 'micro',
+          featureFlags: [],
+        };
+      }
+
+      // Extract feature flags from tenant settings
+      const featureFlags = this.extractFeatureFlags(tenant.businessTier, tenant.featureFlags);
+
+      return {
+        businessTier: tenant.businessTier,
+        featureFlags,
+        trialExpiresAt: tenant.trialEndDate,
+      };
+    } catch (error) {
+      // Return default values on error
+      return {
+        businessTier: 'micro',
+        featureFlags: [],
+      };
+    }
+  }
+
+  /**
+   * Extract feature flags based on business tier and tenant-specific flags
+   */
+  private extractFeatureFlags(businessTier: string, tenantFeatureFlags: any): string[] {
+    const baseFeatures: Record<string, string[]> = {
+      micro: ['basic_pos', 'basic_inventory', 'basic_reporting'],
+      small: ['basic_pos', 'basic_inventory', 'basic_reporting', 'advanced_inventory', 'employee_management', 'customer_management'],
+      medium: ['basic_pos', 'basic_inventory', 'basic_reporting', 'advanced_inventory', 'employee_management', 'customer_management', 'advanced_reporting', 'multi_location', 'integrations'],
+      enterprise: ['basic_pos', 'basic_inventory', 'basic_reporting', 'advanced_inventory', 'employee_management', 'customer_management', 'advanced_reporting', 'multi_location', 'integrations', 'api_access', 'custom_fields', 'advanced_analytics'],
+    };
+
+    const tierFeatures = baseFeatures[businessTier] || baseFeatures.micro;
+    
+    // Add tenant-specific feature flags
+    const customFeatures = tenantFeatureFlags && typeof tenantFeatureFlags === 'object' 
+      ? Object.keys(tenantFeatureFlags).filter(key => tenantFeatureFlags[key] === true)
+      : [];
+
+    return [...tierFeatures, ...customFeatures];
   }
 }

@@ -97,6 +97,27 @@ export const userSessions = pgTable('user_sessions', {
   expiresAtIdx: index('user_sessions_expires_at_idx').on(table.expiresAt),
 }));
 
+// User social providers table for OAuth connections
+export const userSocialProviders = pgTable('user_social_providers', {
+  ...baseSchema,
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  provider: varchar('provider', { length: 50 }).notNull(), // 'google', 'facebook', etc.
+  providerId: varchar('provider_id', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  
+  // Provider-specific data
+  providerData: jsonb('provider_data').default({}),
+  
+  // Connection metadata
+  connectedAt: timestamp('connected_at', { withTimezone: true }).defaultNow(),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+}, (table) => ({
+  userProviderIdx: unique('user_social_providers_unique').on(table.userId, table.provider),
+  providerIdIdx: unique('provider_id_unique').on(table.provider, table.providerId),
+  userIdIdx: index('user_social_providers_user_id_idx').on(table.userId),
+  providerIdx: index('user_social_providers_provider_idx').on(table.provider),
+}));
+
 // User permissions table for granular permission management
 export const userPermissions = pgTable('user_permissions', {
   ...baseSchema,

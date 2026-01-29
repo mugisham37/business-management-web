@@ -27,6 +27,10 @@ export interface AuthenticatedUser {
   avatar?: string;
   sessionId: string;
   lastLoginAt?: Date;
+  // Enhanced tier-based fields
+  businessTier: typeof businessTierEnum.enumValues[number];
+  featureFlags: string[];
+  trialExpiresAt?: Date;
 }
 
 export interface LoginResponse {

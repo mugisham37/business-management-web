@@ -25,21 +25,28 @@ export { AuthModule } from './auth.module';
 
 // Services
 export { AuthService } from './services/auth.service';
+export { SocialAuthService } from './services/social-auth.service';
+export { TierAuthorizationService } from './services/tier-authorization.service';
 export { PermissionsService } from './services/permissions.service';
 export { MfaService } from './services/mfa.service';
 export { AuthEventsService } from './services/auth-events.service';
 
 // Resolvers
 export { AuthResolver } from './resolvers/auth.resolver';
+export { SocialAuthResolver } from './resolvers/social-auth.resolver';
 export { MfaResolver } from './resolvers/mfa.resolver';
 export { PermissionsResolver } from './resolvers/permissions.resolver';
 export { AuthSubscriptionsResolver } from './resolvers/auth-subscriptions.resolver';
+
+// Controllers
+export { SocialAuthController } from './controllers/social-auth.controller';
 
 // Guards
 export {
   JwtAuthGuard,
   GraphQLJwtAuthGuard,
   LocalAuthGuard,
+  TierAuthGuard,
   PermissionsGuard,
   RolesGuard,
   AdvancedAuthGuard,
@@ -68,9 +75,27 @@ export {
   HierarchicalAuth,
 } from './decorators';
 
+// Tier-based Authorization Decorators
+export {
+  RequireTier,
+  RequireFeature,
+  RequireTierAndFeatures,
+  RequireSmallTier,
+  RequireMediumTier,
+  RequireEnterpriseTier,
+  RequireAdvancedReporting,
+  RequireMultiLocation,
+  RequireAPIAccess,
+  RequireCustomFields,
+  RequireAdvancedAnalytics,
+  RequireIntegrations,
+} from './decorators/tier-auth.decorator';
+
 // Strategies
 export { JwtStrategy } from './strategies/jwt.strategy';
 export { LocalStrategy } from './strategies/local.strategy';
+export { GoogleStrategy } from './strategies/google.strategy';
+export { FacebookStrategy } from './strategies/facebook.strategy';
 
 // Types & Interfaces
 export {
@@ -113,6 +138,12 @@ export {
   ForgotPasswordInput,
   ResetPasswordInput,
 } from './inputs/auth.input';
+
+export {
+  SocialAuthInput,
+  LinkSocialProviderInput,
+  UnlinkSocialProviderInput,
+} from './inputs/social-auth.input';
 
 export {
   EnableMfaInput,

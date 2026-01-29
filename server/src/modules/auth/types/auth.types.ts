@@ -1,11 +1,16 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { userRoleEnum } from '../../database/schema/enums';
+import { userRoleEnum, businessTierEnum } from '../../database/schema/enums';
 
-// Register enum for GraphQL
+// Register enums for GraphQL
 registerEnumType(userRoleEnum.enumValues, {
   name: 'UserRole',
   description: 'User role in the system',
+});
+
+registerEnumType(businessTierEnum.enumValues, {
+  name: 'BusinessTier',
+  description: 'Business subscription tier',
 });
 
 /**
@@ -52,6 +57,19 @@ export class AuthUser {
   @Field({ nullable: true })
   @ApiProperty({ description: 'Last login timestamp', required: false })
   lastLoginAt?: Date;
+
+  // Enhanced tier-based fields
+  @Field(() => String)
+  @ApiProperty({ description: 'Business subscription tier', enum: businessTierEnum.enumValues })
+  businessTier!: string;
+
+  @Field(() => [String])
+  @ApiProperty({ description: 'Available feature flags', type: [String] })
+  featureFlags!: string[];
+
+  @Field({ nullable: true })
+  @ApiProperty({ description: 'Trial expiration date', required: false })
+  trialExpiresAt?: Date;
 }
 
 /**
