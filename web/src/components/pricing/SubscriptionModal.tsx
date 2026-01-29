@@ -6,7 +6,6 @@ import {
   RiCloseLine, 
   RiCheckLine, 
   RiTimeLine, 
-  RiCreditCardLine,
   RiShieldCheckLine,
   RiArrowRightLine
 } from '@remixicon/react';
@@ -49,17 +48,25 @@ export function SubscriptionModal({
     const plan: SubscriptionPlan = {
       tier,
       billingCycle,
-      trialDays: hasFreeTrial ? tierConfig.trialDays : undefined,
     };
+
+    if (hasFreeTrial && tierConfig.trialDays) {
+      plan.trialDays = tierConfig.trialDays;
+    }
 
     try {
       const result = await SubscriptionService.initializeSubscription(plan);
       
       if (result.success && result.subscriptionId) {
-        setSubscriptionResult({
+        const subscriptionResult: { subscriptionId: string; trialEndsAt?: Date } = {
           subscriptionId: result.subscriptionId,
-          trialEndsAt: result.trialEndsAt,
-        });
+        };
+
+        if (result.trialEndsAt) {
+          subscriptionResult.trialEndsAt = result.trialEndsAt;
+        }
+
+        setSubscriptionResult(subscriptionResult);
         setStep('success');
         onSubscriptionComplete?.(result.subscriptionId);
       } else {

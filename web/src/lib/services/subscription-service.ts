@@ -38,11 +38,16 @@ export class SubscriptionService {
         new Date(Date.now() + plan.trialDays * 24 * 60 * 60 * 1000) : 
         undefined;
       
-      return {
+      const result: SubscriptionResult = {
         success: true,
         subscriptionId,
-        trialEndsAt,
       };
+
+      if (trialEndsAt) {
+        result.trialEndsAt = trialEndsAt;
+      }
+      
+      return result;
     } catch (error) {
       console.error('Subscription initialization failed:', error);
       return {

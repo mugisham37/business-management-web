@@ -29,6 +29,14 @@ import { useSubscription } from "@/hooks/useSubscription"
 export default function Pricing() {
   const [billingFrequency, setBillingFrequency] = useState<"monthly" | "annually">("monthly")
   const { recommendation, hasPersonalizedRecommendation, isLoading } = usePricingRecommendations()
+  const {
+    isModalOpen,
+    selectedPlan,
+    openSubscriptionModal,
+    closeSubscriptionModal,
+    handleSubscriptionComplete,
+    hasSubscription,
+  } = useSubscription()
   
   // Handle plan selection from recommendation
   const handlePlanSelect = useCallback((tier: BusinessTier) => {
@@ -43,6 +51,17 @@ export default function Pricing() {
       }, 2000)
     }
   }, [])
+
+  // Handle subscription button click
+  const handleSubscribeClick = useCallback((tier: BusinessTier) => {
+    if (tier === BusinessTier.MICRO) {
+      // Free tier - redirect to registration
+      window.location.href = '/auth/register'
+    } else {
+      // Paid tier - open subscription modal
+      openSubscriptionModal(tier, billingFrequency)
+    }
+  }, [billingFrequency, openSubscriptionModal])
   
   // Transform tier configs to match the existing plan structure
   const plans = useMemo(() => {
@@ -261,17 +280,15 @@ export default function Pricing() {
 
                 <div className="mt-8">
                   <Button 
+                    onClick={() => handleSubscribeClick(plan.tier)}
                     variant={plan.isStarter ? "secondary" : "primary"} 
-                    asChild 
                     className={cx(
                       "w-full group",
                       plan.isRecommended && "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                     )}
                   >
-                    <Link href={plan.buttonLink}>
-                      {plan.buttonText}
-                      <ArrowAnimated />
-                    </Link>
+                    {plan.buttonText}
+                    <ArrowAnimated />
                   </Button>
                 </div>
 
@@ -470,17 +487,15 @@ export default function Pricing() {
                   {plans.map((plan) => (
                     <td key={plan.name} className="px-6 pt-6 lg:px-8">
                       <Button
-                        variant={plan.isStarter ? "light" : "light"}
-                        asChild
+                        onClick={() => handleSubscribeClick(plan.tier)}
+                        variant="light"
                         className={cx(
                           "group bg-transparent px-0 text-base hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent",
                           plan.isStarter ? "" : "text-indigo-600 dark:text-indigo-400"
                         )}
                       >
-                        <Link href={plan.buttonLink}>
-                          {plan.buttonText}
-                          <ArrowAnimated />
-                        </Link>
+                        {plan.buttonText}
+                        <ArrowAnimated />
                       </Button>
                     </td>
                   ))}
@@ -490,6 +505,18 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
+      {/* Subscription Modal */}
+      {selectedPlan && (
+        <SubscriptionModal
+          isOpen={isModalOpen}
+          onClose={closeSubscriptionModal}
+          tier={selectedPlan.tier}
+          billingCycle={selectedPlan.billingCycle}
+          onSubscriptionComplete={handleSubscriptionComplete}
+        />
+      )}
+
       <Faqs />
     </div>
   )
