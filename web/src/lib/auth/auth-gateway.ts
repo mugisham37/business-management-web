@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useTierAccess } from '@/hooks/useTierAccess';
+import { PostAuthRedirectManager } from './post-auth-redirect';
 
 export interface AuthCredentials {
   email: string;
@@ -162,6 +163,15 @@ export class AuthGateway {
    * Implements Requirements 7.2, 7.3 for appropriate routing
    */
   private determinePostAuthRouting(routing: PostAuthRouting): { redirectTo: string } {
+    const redirectManager = PostAuthRedirectManager.getInstance();
+    
+    // Check for intended destination first
+    const intendedDestination = redirectManager.getIntendedDestination();
+    if (intendedDestination && this.isValidRedirectPath(intendedDestination)) {
+      redirectManager.clearIntendedDestination();
+      return { redirectTo: intendedDestination };
+    }
+
     // New users or users who haven't completed onboarding
     if (routing.isNewUser || !routing.hasCompletedOnboarding) {
       return { redirectTo: '/onboarding' };
@@ -179,6 +189,29 @@ export class AuthGateway {
     const dashboardRoute = tierDashboardRoutes[routing.userTier as keyof typeof tierDashboardRoutes] || '/dashboard';
 
     return { redirectTo: dashboardRoute };
+  }
+
+  /**
+   * Validate that a redirect path is safe
+   */
+  private isValidRedirectPath(path: string): boolean {
+    // Prevent open redirects by ensuring path is relative
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return false;
+    }
+
+    // Ensure path starts with /
+    if (!path.startsWith('/')) {
+      return false;
+    }
+
+    // Block certain sensitive paths
+    const blockedPaths = ['/auth', '/login', '/register'];
+    if (blockedPaths.some(blocked => path.startsWith(blocked))) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
