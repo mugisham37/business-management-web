@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Args, Subscription, ResolveField, Parent, ObjectType, Field, Int } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { FeatureFlagService } from '../services/feature-flag.service';
+import { RealTimePermissionService } from '../services/real-time-permission.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../guards/tenant.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
@@ -11,6 +12,7 @@ import { RequirePermissions } from '../../auth/decorators/permission.decorator';
 import { AuthenticatedUser } from '../guards/tenant.guard';
 import { FeatureFlag, FeatureDefinition, FeatureFlagStatus, FeatureRule, FEATURE_DEFINITIONS } from '../entities/feature-flag.entity';
 import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from '../dto/feature-flag.dto';
+import { BusinessTier } from '../entities/tenant.entity';
 
 @ObjectType()
 class FeatureDefinitionType {
@@ -31,6 +33,24 @@ class FeatureDefinitionType {
 
   @Field(() => [String], { nullable: true })
   dependencies?: string[];
+
+  @Field({ nullable: true })
+  isProgressive?: boolean;
+
+  @Field(() => UpgradePromptType, { nullable: true })
+  upgradePrompt?: UpgradePromptType;
+}
+
+@ObjectType()
+class UpgradePromptType {
+  @Field()
+  title!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  ctaText!: string;
 }
 
 @ObjectType()
@@ -55,6 +75,24 @@ class FeatureAccessResponse {
 
   @Field({ nullable: true })
   reason?: string;
+
+  @Field({ nullable: true })
+  requiredTier?: string;
+
+  @Field(() => UpgradePromptType, { nullable: true })
+  upgradePrompt?: UpgradePromptType;
+
+  @Field(() => [FeatureDependencyStatus], { nullable: true })
+  dependencies?: FeatureDependencyStatus[];
+}
+
+@ObjectType()
+class FeatureDependencyStatus {
+  @Field()
+  name!: string;
+
+  @Field()
+  hasAccess!: boolean;
 }
 
 @ObjectType()
@@ -82,6 +120,39 @@ class FeatureCategoriesResponse {
 }
 
 @ObjectType()
+class TierUpgradePreviewResponse {
+  @Field(() => [FeatureDefinitionType])
+  newFeatures!: FeatureDefinition[];
+
+  @Field(() => [FeatureDefinitionType])
+  enhancedFeatures!: FeatureDefinition[];
+
+  @Field(() => Int)
+  totalCount!: number;
+
+  @Field()
+  targetTier!: string;
+}
+
+@ObjectType()
+class PermissionEvaluationResponse {
+  @Field()
+  tenantId!: string;
+
+  @Field({ nullable: true })
+  userId?: string;
+
+  @Field(() => [FeatureAccessResponse])
+  permissions!: FeatureAccessResponse[];
+
+  @Field()
+  tier!: string;
+
+  @Field()
+  evaluatedAt!: Date;
+}
+
+@ObjectType()
 class FeatureDependenciesResponse {
   @Field()
   featureName!: string;
@@ -99,6 +170,7 @@ class FeatureDependenciesResponse {
 export class FeatureFlagResolver {
   constructor(
     private readonly featureFlagService: FeatureFlagService,
+    private readonly realTimePermissionService: RealTimePermissionService,
   ) {}
 
   /**
@@ -164,7 +236,7 @@ export class FeatureFlagResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<FeatureAccessResponse> {
-    const hasAccess = await this.featureFlagService.hasFeature(
+    const details = await this.featureFlagService.getFeatureAccessDetails(
       tenantId,
       featureName,
       {
@@ -175,8 +247,11 @@ export class FeatureFlagResolver {
 
     return {
       featureName,
-      hasAccess,
-      reason: hasAccess ? 'Feature is available' : 'Feature is not available for your tier',
+      hasAccess: details.hasAccess,
+      reason: details.reason,
+      requiredTier: details.requiredTier,
+      upgradePrompt: details.upgradePrompt,
+      dependencies: details.dependencies,
     };
   }
 
@@ -189,7 +264,7 @@ export class FeatureFlagResolver {
     const results: FeatureAccessResponse[] = [];
 
     for (const featureName of featureNames) {
-      const hasAccess = await this.featureFlagService.hasFeature(
+      const details = await this.featureFlagService.getFeatureAccessDetails(
         tenantId,
         featureName,
         {
@@ -200,8 +275,11 @@ export class FeatureFlagResolver {
 
       results.push({
         featureName,
-        hasAccess,
-        reason: hasAccess ? 'Feature is available' : 'Feature is not available for your tier',
+        hasAccess: details.hasAccess,
+        reason: details.reason,
+        requiredTier: details.requiredTier,
+        upgradePrompt: details.upgradePrompt,
+        dependencies: details.dependencies,
       });
     }
 
@@ -246,6 +324,52 @@ export class FeatureFlagResolver {
     };
   }
 
+  @Query(() => TierUpgradePreviewResponse, { name: 'tierUpgradePreview' })
+  async getTierUpgradePreview(
+    @Args('targetTier') targetTier: string,
+    @CurrentTenant() tenantId: string,
+  ): Promise<TierUpgradePreviewResponse> {
+    const result = await this.featureFlagService.getUnlockedFeaturesByTierUpgrade(
+      tenantId,
+      targetTier as BusinessTier,
+    );
+
+    return {
+      ...result,
+      targetTier,
+    };
+  }
+
+  @Query(() => PermissionEvaluationResponse, { name: 'realTimePermissions' })
+  async getRealTimePermissions(
+    @Args('featureNames', { type: () => [String], nullable: true }) featureNames: string[] | undefined,
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<PermissionEvaluationResponse> {
+    const result = await this.realTimePermissionService.getPermissions(
+      tenantId,
+      user.id,
+      featureNames,
+    );
+
+    // Convert permissions object to array format
+    const permissions: FeatureAccessResponse[] = Object.entries(result.permissions).map(
+      ([featureName, hasAccess]) => ({
+        featureName,
+        hasAccess,
+        reason: hasAccess ? 'Available' : 'Not available',
+      })
+    );
+
+    return {
+      tenantId: result.tenantId,
+      userId: result.userId,
+      permissions,
+      tier: result.tier,
+      evaluatedAt: result.evaluatedAt,
+    };
+  }
+
   @Query(() => FeatureDependenciesResponse, { name: 'featureDependencies' })
   async getFeatureDependencies(
     @Args('featureName') featureName: string,
@@ -263,7 +387,7 @@ export class FeatureFlagResolver {
     const dependenciesStatus: FeatureAccessResponse[] = [];
 
     for (const depFeature of dependencies) {
-      const hasAccess = await this.featureFlagService.hasFeature(
+      const details = await this.featureFlagService.getFeatureAccessDetails(
         tenantId,
         depFeature,
         {
@@ -274,8 +398,11 @@ export class FeatureFlagResolver {
 
       dependenciesStatus.push({
         featureName: depFeature,
-        hasAccess,
-        reason: hasAccess ? 'Available' : 'Not available',
+        hasAccess: details.hasAccess,
+        reason: details.reason,
+        requiredTier: details.requiredTier,
+        upgradePrompt: details.upgradePrompt,
+        dependencies: details.dependencies,
       });
     }
 
@@ -284,6 +411,26 @@ export class FeatureFlagResolver {
       dependencies,
       dependenciesStatus,
     };
+  }
+
+  @Mutation(() => Boolean, { name: 'preloadPermissions' })
+  async preloadPermissions(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<boolean> {
+    await this.realTimePermissionService.preloadPermissions(tenantId, user.id);
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'invalidatePermissionsCache' })
+  @UseGuards(PermissionsGuard)
+  @RequirePermissions('features:update')
+  async invalidatePermissionsCache(
+    @CurrentTenant() tenantId: string,
+    @Args('userId', { nullable: true }) userId?: string,
+  ): Promise<boolean> {
+    await this.realTimePermissionService.invalidatePermissions(tenantId, userId);
+    return true;
   }
 
   @Mutation(() => FeatureFlag, { name: 'createFeatureFlag' })

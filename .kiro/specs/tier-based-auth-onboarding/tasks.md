@@ -56,7 +56,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - Implement real-time progress updates via subscriptions
     - _Requirements: 2.1, 2.7, 2.8_
 
-- [-] 3. Build AI-powered pricing engine and tier calculator
+- [ ] 3. Build AI-powered pricing engine and tier calculator
   - [x] 3.1 Implement tier recommendation algorithm
     - Create rule-based recommendation engine using business profile data
     - Add confidence scoring and alternative suggestions
@@ -77,7 +77,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 5: Tier Calculation Accuracy**
     - **Validates: Requirements 5.1, 5.2, 5.3**
 
-  - [-] 3.5 Implement subscription management with trial support
+  - [x] 3.5 Implement subscription management with trial support
     - Add trial subscription creation and management
     - Implement upgrade/downgrade processing with prorated pricing
     - Create notification system for trial expiration reminders
@@ -97,14 +97,14 @@ This implementation plan breaks down the tier-based authentication and onboardin
   - Test tier calculation and onboarding flow end-to-end
   - Ask the user if questions arise
 
-- [ ] 5. Create enhanced feature flag system
-  - [ ] 5.1 Extend existing feature flag system with tier-based rules
+- [x] 5. Create enhanced feature flag system
+  - [x] 5.1 Extend existing feature flag system with tier-based rules
     - Add tier-based feature flag configurations
     - Implement progressive disclosure logic (higher tiers inherit lower tier features)
     - Create real-time permission evaluation service
     - _Requirements: 4.1, 4.2, 4.3, 4.5_
 
-  - [ ] 5.2 Implement dashboard controller with tier-aware rendering
+  - [x] 5.2 Implement dashboard controller with tier-aware rendering
     - Create module filtering based on current business tier
     - Add upgrade prompt integration for locked features
     - Implement performance optimization for large module sets
@@ -114,7 +114,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 6: Dashboard Tier Consistency**
     - **Validates: Requirements 6.1, 6.2, 6.3**
 
-  - [ ] 5.4 Implement real-time tier change propagation
+  - [x] 5.4 Implement real-time tier change propagation
     - Add WebSocket subscriptions for tier change notifications
     - Create immediate interface update mechanisms
     - Ensure consistent state across all system components

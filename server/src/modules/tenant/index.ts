@@ -17,11 +17,16 @@ export { TenantModule } from './tenant.module';
 export { TenantService } from './services/tenant.service';
 export { BusinessMetricsService } from './services/business-metrics.service';
 export { FeatureFlagService } from './services/feature-flag.service';
+export { RealTimePermissionService } from './services/real-time-permission.service';
+export { DashboardControllerService } from './services/dashboard-controller.service';
+export { TierChangePropagationService } from './services/tier-change-propagation.service';
 export { TenantMetricsTrackingService } from './services/tenant-metrics-tracking.service';
 
 // Resolvers
 export { TenantResolver } from './resolvers/tenant.resolver';
 export { FeatureFlagResolver } from './resolvers/feature-flag.resolver';
+export { DashboardControllerResolver } from './resolvers/dashboard-controller.resolver';
+export { TierSubscriptionsResolver } from './resolvers/tier-subscriptions.resolver';
 export { TenantMetricsResolver } from './resolvers/tenant-metrics.resolver';
 export { TenantSubscriptionsResolver } from './resolvers/tenant-subscriptions.resolver';
 

@@ -7,6 +7,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TenantService } from './services/tenant.service';
 import { BusinessMetricsService } from './services/business-metrics.service';
 import { FeatureFlagService } from './services/feature-flag.service';
+import { RealTimePermissionService } from './services/real-time-permission.service';
+import { DashboardControllerService } from './services/dashboard-controller.service';
+import { TierChangePropagationService } from './services/tier-change-propagation.service';
 import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking.service';
 import { OnboardingService } from './services/onboarding.service';
 import { BusinessProfileService } from './services/business-profile.service';
@@ -17,6 +20,8 @@ import { SubscriptionManagementService } from './services/subscription-managemen
 // Resolvers
 import { TenantResolver } from './resolvers/tenant.resolver';
 import { FeatureFlagResolver } from './resolvers/feature-flag.resolver';
+import { DashboardControllerResolver } from './resolvers/dashboard-controller.resolver';
+import { TierSubscriptionsResolver } from './resolvers/tier-subscriptions.resolver';
 import { TenantMetricsResolver } from './resolvers/tenant-metrics.resolver';
 import { TenantSubscriptionsResolver } from './resolvers/tenant-subscriptions.resolver';
 import { OnboardingResolver } from './resolvers/onboarding.resolver';
@@ -64,6 +69,9 @@ import { LoggerModule } from '../logger/logger.module';
     TenantService,
     BusinessMetricsService,
     FeatureFlagService,
+    RealTimePermissionService,
+    DashboardControllerService,
+    TierChangePropagationService,
     TenantMetricsTrackingService,
     OnboardingService,
     BusinessProfileService,
@@ -74,6 +82,8 @@ import { LoggerModule } from '../logger/logger.module';
     // Resolvers
     TenantResolver,
     FeatureFlagResolver,
+    DashboardControllerResolver,
+    TierSubscriptionsResolver,
     TenantMetricsResolver,
     TenantSubscriptionsResolver,
     OnboardingResolver,
@@ -108,11 +118,15 @@ import { LoggerModule } from '../logger/logger.module';
     TenantService,
     BusinessMetricsService,
     FeatureFlagService,
+    RealTimePermissionService,
+    DashboardControllerService,
+    TierChangePropagationService,
     TenantMetricsTrackingService,
     OnboardingService,
     BusinessProfileService,
     PricingEngineService,
     TierCalculatorService,
+    SubscriptionManagementService,
 
     // Export guards and interceptors for manual use
     TenantGuard,

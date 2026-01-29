@@ -102,8 +102,14 @@ export class FeatureFlagService {
       return false;
     }
 
-    // Check if tenant meets the required business tier
-    if (!this.meetsTierRequirement(context.businessTier, featureDefinition.requiredTier)) {
+    // Check tier overrides first
+    if (featureDefinition.tierOverrides && featureDefinition.tierOverrides[context.businessTier] !== undefined) {
+      return featureDefinition.tierOverrides[context.businessTier]!;
+    }
+
+    // Check if tenant meets the required business tier with progressive disclosure
+    const isProgressive = featureDefinition.isProgressive ?? true; // Default to progressive
+    if (!this.meetsTierRequirement(context.businessTier, featureDefinition.requiredTier, isProgressive)) {
       return false;
     }
 
@@ -128,14 +134,20 @@ export class FeatureFlagService {
   }
 
   /**
-   * Check if current tier meets required tier
+   * Check if current tier meets required tier with progressive disclosure
    */
-  private meetsTierRequirement(currentTier: BusinessTier, requiredTier: BusinessTier): boolean {
+  private meetsTierRequirement(currentTier: BusinessTier, requiredTier: BusinessTier, isProgressive: boolean = true): boolean {
     const tierOrder = [BusinessTier.MICRO, BusinessTier.SMALL, BusinessTier.MEDIUM, BusinessTier.ENTERPRISE];
     const currentIndex = tierOrder.indexOf(currentTier);
     const requiredIndex = tierOrder.indexOf(requiredTier);
     
-    return currentIndex >= requiredIndex;
+    if (isProgressive) {
+      // Progressive disclosure: higher tiers inherit lower tier features
+      return currentIndex >= requiredIndex;
+    } else {
+      // Exact tier match required
+      return currentIndex === requiredIndex;
+    }
   }
 
   /**
@@ -287,7 +299,7 @@ export class FeatureFlagService {
   }
 
   /**
-   * Get all available features for a tenant
+   * Get all available features for a tenant with enhanced categorization
    */
   async getAvailableFeatures(tenantId: string): Promise<{
     available: FeatureDefinition[];
@@ -318,10 +330,17 @@ export class FeatureFlagService {
       
       if (hasAccess) {
         available.push(definition);
-      } else if (this.meetsTierRequirement(context.businessTier, definition.requiredTier)) {
-        unavailable.push(definition);
       } else {
-        upgradeRequired.push(definition);
+        const isProgressive = definition.isProgressive ?? true;
+        const meetsTier = this.meetsTierRequirement(context.businessTier, definition.requiredTier, isProgressive);
+        
+        if (meetsTier) {
+          // Has tier access but feature is disabled for other reasons
+          unavailable.push(definition);
+        } else {
+          // Needs tier upgrade
+          upgradeRequired.push(definition);
+        }
       }
     }
 
@@ -447,12 +466,202 @@ export class FeatureFlagService {
   }
 
   /**
-   * Get features by tier
+   * Get features by tier with progressive disclosure
    */
   getFeaturesByTier(tier: BusinessTier): FeatureDefinition[] {
     return Object.values(FEATURE_DEFINITIONS).filter(
-      (definition) => definition.requiredTier === tier,
+      (definition) => {
+        const isProgressive = definition.isProgressive ?? true;
+        if (isProgressive) {
+          // Include all features that this tier can access (progressive disclosure)
+          return this.meetsTierRequirement(tier, definition.requiredTier, true);
+        } else {
+          // Only exact tier matches
+          return definition.requiredTier === tier;
+        }
+      }
     );
+  }
+
+  /**
+   * Get upgrade prompt information for a feature
+   */
+  getUpgradePrompt(featureName: string): {
+    title: string;
+    description: string;
+    ctaText: string;
+    requiredTier: BusinessTier;
+  } | null {
+    const definition = FEATURE_DEFINITIONS[featureName];
+    if (!definition || !definition.upgradePrompt) {
+      return null;
+    }
+
+    return {
+      ...definition.upgradePrompt,
+      requiredTier: definition.requiredTier,
+    };
+  }
+
+  /**
+   * Evaluate multiple features at once for performance
+   */
+  async evaluateMultipleFeatures(
+    tenantId: string,
+    featureNames: string[],
+    context?: Partial<FeatureEvaluationContext>,
+  ): Promise<Record<string, boolean>> {
+    const results: Record<string, boolean> = {};
+    
+    // Get tenant information once
+    const [tenant] = await this.drizzle.getDb()
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, tenantId));
+
+    if (!tenant) {
+      throw new NotFoundException(`Tenant ${tenantId} not found`);
+    }
+
+    const evaluationContext: FeatureEvaluationContext = {
+      tenantId,
+      businessTier: tenant!.businessTier as BusinessTier,
+      businessMetrics: tenant!.metrics as BusinessMetrics,
+      ...context,
+    };
+
+    // Evaluate all features
+    for (const featureName of featureNames) {
+      results[featureName] = await this.evaluateFeatureAccess(featureName, evaluationContext);
+    }
+
+    return results;
+  }
+
+  /**
+   * Get feature access with detailed reasoning
+   */
+  async getFeatureAccessDetails(
+    tenantId: string,
+    featureName: string,
+    context?: Partial<FeatureEvaluationContext>,
+  ): Promise<{
+    hasAccess: boolean;
+    reason: string;
+    requiredTier?: BusinessTier;
+    upgradePrompt?: {
+      title: string;
+      description: string;
+      ctaText: string;
+    };
+    dependencies?: {
+      name: string;
+      hasAccess: boolean;
+    }[];
+  }> {
+    const definition = FEATURE_DEFINITIONS[featureName];
+    if (!definition) {
+      return {
+        hasAccess: false,
+        reason: `Feature '${featureName}' not found`,
+      };
+    }
+
+    const hasAccess = await this.hasFeature(tenantId, featureName, context);
+    
+    if (hasAccess) {
+      return {
+        hasAccess: true,
+        reason: 'Feature is available for your current tier',
+      };
+    }
+
+    // Get tenant information for detailed analysis
+    const [tenant] = await this.drizzle.getDb()
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, tenantId));
+
+    if (!tenant) {
+      throw new NotFoundException(`Tenant ${tenantId} not found`);
+    }
+
+    const currentTier = tenant!.businessTier as BusinessTier;
+    const isProgressive = definition.isProgressive ?? true;
+    const meetsTier = this.meetsTierRequirement(currentTier, definition.requiredTier, isProgressive);
+
+    const result: any = {
+      hasAccess: false,
+    };
+
+    if (!meetsTier) {
+      result.reason = `Feature requires ${definition.requiredTier} tier or higher`;
+      result.requiredTier = definition.requiredTier;
+      result.upgradePrompt = definition.upgradePrompt;
+    } else {
+      // Check dependencies
+      if (definition.dependencies) {
+        const dependencyResults = [];
+        for (const dep of definition.dependencies) {
+          const depHasAccess = await this.hasFeature(tenantId, dep, context);
+          dependencyResults.push({
+            name: dep,
+            hasAccess: depHasAccess,
+          });
+        }
+        
+        const failedDeps = dependencyResults.filter(d => !d.hasAccess);
+        if (failedDeps.length > 0) {
+          result.reason = `Missing required dependencies: ${failedDeps.map(d => d.name).join(', ')}`;
+          result.dependencies = dependencyResults;
+        } else {
+          result.reason = 'Feature is disabled by tenant-specific configuration';
+        }
+      } else {
+        result.reason = 'Feature is disabled by tenant-specific configuration';
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get all features that would be unlocked by upgrading to a specific tier
+   */
+  async getUnlockedFeaturesByTierUpgrade(
+    tenantId: string,
+    targetTier: BusinessTier,
+  ): Promise<{
+    newFeatures: FeatureDefinition[];
+    enhancedFeatures: FeatureDefinition[];
+    totalCount: number;
+  }> {
+    const [tenant] = await this.drizzle.getDb()
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, tenantId));
+
+    if (!tenant) {
+      throw new NotFoundException(`Tenant ${tenantId} not found`);
+    }
+
+    const currentTier = tenant!.businessTier as BusinessTier;
+    const currentFeatures = this.getFeaturesByTier(currentTier);
+    const targetFeatures = this.getFeaturesByTier(targetTier);
+
+    const currentFeatureNames = new Set(currentFeatures.map(f => f.name));
+    const newFeatures = targetFeatures.filter(f => !currentFeatureNames.has(f.name));
+    
+    // Enhanced features are those that exist in both but might have tier-specific enhancements
+    const enhancedFeatures = targetFeatures.filter(f => 
+      currentFeatureNames.has(f.name) && f.tierOverrides && f.tierOverrides[targetTier]
+    );
+
+    return {
+      newFeatures,
+      enhancedFeatures,
+      totalCount: newFeatures.length + enhancedFeatures.length,
+    };
   }
 
   /**
