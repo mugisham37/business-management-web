@@ -1,4 +1,4 @@
-import { userRoleEnum } from '../../database/schema/enums';
+import { userRoleEnum, businessTierEnum } from '../../database/schema/enums';
 
 export interface JwtPayload {
   sub: string; // User ID
@@ -7,6 +7,10 @@ export interface JwtPayload {
   role: typeof userRoleEnum.enumValues[number];
   permissions: string[];
   sessionId: string;
+  // Enhanced tier-based fields
+  businessTier: typeof businessTierEnum.enumValues[number];
+  featureFlags: string[];
+  trialExpiresAt?: number; // Unix timestamp
   iat: number;
   exp: number;
 }
