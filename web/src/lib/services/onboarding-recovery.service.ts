@@ -2,8 +2,112 @@
  * OnboardingRecoveryService - Onboarding failure recovery and resume functionality
  */
 
-import { gql } from '@apollo/client';
+import { ApolloClient, gql } from '@apollo/client';
 import { OnboardingStep, OnboardingData, BusinessTier } from '@/hooks/useOnboarding';
+
+// GraphQL operations
+const CREATE_RECOVERY_SESSION = gql`
+  mutation CreateRecoverySession($input: CreateRecoverySessionInput!) {
+    createRecoverySession(input: $input) {
+      sessionId
+      success
+    }
+  }
+`;
+
+const RESUME_FROM_FAILURE = gql`
+  mutation ResumeOnboardingFromFailure($input: ResumeFromFailureInput!) {
+    resumeOnboardingFromFailure(input: $input) {
+      success
+      resumedStep
+      sessionId
+      onboardingData {
+        businessName
+        businessIndustry
+        businessSize
+        businessType
+        expectedEmployees
+        expectedLocations
+        expectedMonthlyTransactions
+        expectedMonthlyRevenue
+        selectedPlan
+        recommendedPlan
+      }
+    }
+  }
+`;
+
+const GET_RECOVERY_SESSION = gql`
+  query GetRecoverySession($sessionId: String!) {
+    recoverySession(sessionId: $sessionId) {
+      sessionId
+      userId
+      failurePoint
+      failureReason
+      failureTimestamp
+      recoveryAttempts
+      lastRecoveryAttempt
+      preservedData {
+        businessName
+        businessIndustry
+        businessSize
+        businessType
+        expectedEmployees
+        expectedLocations
+        expectedMonthlyTransactions
+        expectedMonthlyRevenue
+        selectedPlan
+        recommendedPlan
+      }
+      canRecover
+      expiresAt
+    }
+  }
+`;
+
+const UPDATE_RECOVERY_SESSION = gql`
+  mutation UpdateRecoverySession($input: UpdateRecoverySessionInput!) {
+    updateRecoverySession(input: $input) {
+      success
+    }
+  }
+`;
+
+const CLEAR_RECOVERY_SESSION = gql`
+  mutation ClearRecoverySession($sessionId: String!) {
+    clearRecoverySession(sessionId: $sessionId) {
+      success
+    }
+  }
+`;
+
+const GET_ACTIVE_RECOVERY_SESSIONS = gql`
+  query GetActiveRecoverySessions($userId: String!) {
+    activeRecoverySessions(userId: $userId) {
+      sessionId
+      userId
+      failurePoint
+      failureReason
+      failureTimestamp
+      recoveryAttempts
+      lastRecoveryAttempt
+      preservedData {
+        businessName
+        businessIndustry
+        businessSize
+        businessType
+        expectedEmployees
+        expectedLocations
+        expectedMonthlyTransactions
+        expectedMonthlyRevenue
+        selectedPlan
+        recommendedPlan
+      }
+      canRecover
+      expiresAt
+    }
+  }
+`;
 
 /**
  * Recovery session data
@@ -91,14 +195,7 @@ export class OnboardingRecoveryService {
     try {
       // Save recovery session to backend
       await this.apolloClient.mutate({
-        mutation: `
-          mutation CreateRecoverySession($input: CreateRecoverySessionInput!) {
-            createRecoverySession(input: $input) {
-              sessionId
-              success
-            }
-          }
-        `,
+        mutation: CREATE_RECOVERY_SESSION,
         variables: {
           input: {
             sessionId,
@@ -210,27 +307,7 @@ export class OnboardingRecoveryService {
 
       // Resume onboarding via backend
       const { data } = await this.apolloClient.mutate({
-        mutation: `
-          mutation ResumeOnboardingFromFailure($input: ResumeFromFailureInput!) {
-            resumeOnboardingFromFailure(input: $input) {
-              success
-              resumedStep
-              sessionId
-              onboardingData {
-                businessName
-                businessIndustry
-                businessSize
-                businessType
-                expectedEmployees
-                expectedLocations
-                expectedMonthlyTransactions
-                expectedMonthlyRevenue
-                selectedPlan
-                recommendedPlan
-              }
-            }
-          }
-        `,
+        mutation: RESUME_FROM_FAILURE,
         variables: {
           input: {
             recoverySessionId: sessionId,
@@ -280,33 +357,7 @@ export class OnboardingRecoveryService {
     try {
       // Try to get from backend first
       const { data } = await this.apolloClient.query({
-        query: `
-          query GetRecoverySession($sessionId: String!) {
-            recoverySession(sessionId: $sessionId) {
-              sessionId
-              userId
-              failurePoint
-              failureReason
-              failureTimestamp
-              recoveryAttempts
-              lastRecoveryAttempt
-              preservedData {
-                businessName
-                businessIndustry
-                businessSize
-                businessType
-                expectedEmployees
-                expectedLocations
-                expectedMonthlyTransactions
-                expectedMonthlyRevenue
-                selectedPlan
-                recommendedPlan
-              }
-              canRecover
-              expiresAt
-            }
-          }
-        `,
+        query: GET_RECOVERY_SESSION,
         variables: { sessionId },
         fetchPolicy: 'network-only',
       });
@@ -513,7 +564,7 @@ export class OnboardingRecoveryService {
    */
   private async executeResetStrategy(session: RecoverySession): Promise<RecoveryResult> {
     // Reset to the beginning but preserve some data
-    const preservedData: OnboardingData = {
+    const preservedData: Partial<OnboardingData> = {
       businessName: session.preservedData.businessName,
       businessIndustry: session.preservedData.businessIndustry,
       // Reset other fields
@@ -522,7 +573,7 @@ export class OnboardingRecoveryService {
     return {
       success: true,
       resumedStep: OnboardingStep.BUSINESS_PROFILE,
-      preservedData,
+      preservedData: preservedData as OnboardingData,
       sessionId: session.sessionId,
     };
   }
@@ -624,13 +675,7 @@ export class OnboardingRecoveryService {
   ): Promise<void> {
     try {
       await this.apolloClient.mutate({
-        mutation: `
-          mutation UpdateRecoverySession($input: UpdateRecoverySessionInput!) {
-            updateRecoverySession(input: $input) {
-              success
-            }
-          }
-        `,
+        mutation: UPDATE_RECOVERY_SESSION,
         variables: {
           input: {
             sessionId,
@@ -650,13 +695,7 @@ export class OnboardingRecoveryService {
     try {
       // Clear from backend
       await this.apolloClient.mutate({
-        mutation: `
-          mutation ClearRecoverySession($sessionId: String!) {
-            clearRecoverySession(sessionId: $sessionId) {
-              success
-            }
-          }
-        `,
+        mutation: CLEAR_RECOVERY_SESSION,
         variables: { sessionId },
       });
     } catch (error) {
@@ -685,33 +724,7 @@ export class OnboardingRecoveryService {
   async getActiveRecoverySessions(userId: string): Promise<RecoverySession[]> {
     try {
       const { data } = await this.apolloClient.query({
-        query: `
-          query GetActiveRecoverySessions($userId: String!) {
-            activeRecoverySessions(userId: $userId) {
-              sessionId
-              userId
-              failurePoint
-              failureReason
-              failureTimestamp
-              recoveryAttempts
-              lastRecoveryAttempt
-              preservedData {
-                businessName
-                businessIndustry
-                businessSize
-                businessType
-                expectedEmployees
-                expectedLocations
-                expectedMonthlyTransactions
-                expectedMonthlyRevenue
-                selectedPlan
-                recommendedPlan
-              }
-              canRecover
-              expiresAt
-            }
-          }
-        `,
+        query: GET_ACTIVE_RECOVERY_SESSIONS,
         variables: { userId },
       });
 

@@ -3,7 +3,7 @@
  * Implements 5-step onboarding process with backend persistence
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, gql } from '@apollo/client';
 import { 
   GET_ONBOARDING_STATUS,
   GET_AVAILABLE_PLANS,
@@ -22,6 +22,68 @@ import {
 } from '@/hooks/useOnboarding';
 import { getTierAssignmentService, TierAssignmentResult } from './tier-assignment.service';
 import { getOnboardingRecoveryService, RecoverySession, RecoveryResult } from './onboarding-recovery.service';
+
+// Additional GraphQL operations
+const ANALYZE_BUSINESS_PROFILE = gql`
+  query AnalyzeBusinessProfile {
+    analyzeBusinessProfile {
+      recommendedTier
+      confidence
+      reasoning
+      alternatives {
+        tier
+        reason
+      }
+    }
+  }
+`;
+
+const RESUME_ONBOARDING = gql`
+  mutation ResumeOnboarding {
+    resumeOnboarding {
+      tenantId
+      completionPercentage
+      currentStep
+      completedSteps
+      pendingSteps
+      isComplete
+      onboardingData {
+        businessName
+        businessIndustry
+        businessSize
+        businessType
+        expectedEmployees
+        expectedLocations
+        expectedMonthlyTransactions
+        expectedMonthlyRevenue
+        selectedPlan
+        recommendedPlan
+      }
+      recommendedPlan
+      completedAt
+      workflowState {
+        currentStep
+        completedSteps
+        availableSteps
+        canProceed
+        validationErrors
+        lastUpdated
+        sessionId
+      }
+      canResume
+      sessionId
+    }
+  }
+`;
+
+const VALIDATE_STEP_DATA = gql`
+  query ValidateStepData($input: ValidateStepDataInput!) {
+    validateOnboardingStepData(input: $input) {
+      isValid
+      errors
+    }
+  }
+`;
 
 /**
  * Onboarding session for tracking progress
@@ -43,8 +105,8 @@ export interface OnboardingSession {
 export interface StepResult {
   success: boolean;
   errors?: Record<string, string[]>;
-  nextStep?: OnboardingStep;
-  recommendedTier?: BusinessTier;
+  nextStep?: OnboardingStep | undefined;
+  recommendedTier?: BusinessTier | undefined;
 }
 
 /**
@@ -194,7 +256,7 @@ export class OnboardingService {
       return {
         success: true,
         nextStep,
-        recommendedTier: updatedStatus.recommendedPlan,
+        recommendedTier: updatedStatus.recommendedPlan || undefined,
       };
     } catch (error: any) {
       console.error('Failed to submit step:', error);
@@ -233,19 +295,7 @@ export class OnboardingService {
     try {
       // Use the backend's business profile analysis
       const { data } = await this.apolloClient.query({
-        query: `
-          query AnalyzeBusinessProfile {
-            analyzeBusinessProfile {
-              recommendedTier
-              confidence
-              reasoning
-              alternatives {
-                tier
-                reason
-              }
-            }
-          }
-        `,
+        query: ANALYZE_BUSINESS_PROFILE,
       });
 
       return data.analyzeBusinessProfile;
@@ -338,43 +388,7 @@ export class OnboardingService {
     try {
       // Resume via backend
       const { data } = await this.apolloClient.mutate({
-        mutation: `
-          mutation ResumeOnboarding {
-            resumeOnboarding {
-              tenantId
-              completionPercentage
-              currentStep
-              completedSteps
-              pendingSteps
-              isComplete
-              onboardingData {
-                businessName
-                businessIndustry
-                businessSize
-                businessType
-                expectedEmployees
-                expectedLocations
-                expectedMonthlyTransactions
-                expectedMonthlyRevenue
-                selectedPlan
-                recommendedPlan
-              }
-              recommendedPlan
-              completedAt
-              workflowState {
-                currentStep
-                completedSteps
-                availableSteps
-                canProceed
-                validationErrors
-                lastUpdated
-                sessionId
-              }
-              canResume
-              sessionId
-            }
-          }
-        `,
+        mutation: RESUME_ONBOARDING,
       });
 
       const status: OnboardingStatus = data.resumeOnboarding;
@@ -439,14 +453,7 @@ export class OnboardingService {
   async validateStepData(step: OnboardingStep, data: Partial<OnboardingData>): Promise<StepResult> {
     try {
       const { data: result } = await this.apolloClient.query({
-        query: `
-          query ValidateStepData($input: ValidateStepDataInput!) {
-            validateOnboardingStepData(input: $input) {
-              isValid
-              errors
-            }
-          }
-        `,
+        query: VALIDATE_STEP_DATA,
         variables: {
           input: {
             step,

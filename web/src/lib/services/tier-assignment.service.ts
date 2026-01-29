@@ -3,7 +3,32 @@
  */
 
 import { BusinessTier } from '@/hooks/useOnboarding';
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, gql } from '@apollo/client';
+
+// GraphQL operations
+const ASSIGN_TIER = gql`
+  mutation AssignTier($input: AssignTierInput!) {
+    assignTier(input: $input) {
+      success
+      assignedTier
+      permissions
+      features
+      activatedAt
+      expiresAt
+    }
+  }
+`;
+
+const UPDATE_USER_PERMISSIONS = gql`
+  mutation UpdateUserPermissions($input: UpdateUserPermissionsInput!) {
+    updateUserPermissions(input: $input) {
+      success
+      updatedPermissions
+      addedPermissions
+      removedPermissions
+    }
+  }
+`;
 
 /**
  * Permission mapping for each tier
@@ -31,7 +56,7 @@ export interface TierAssignmentResult {
   permissions: string[];
   features: string[];
   activatedAt: Date;
-  expiresAt?: Date;
+  expiresAt?: Date | undefined;
   error?: string;
 }
 
@@ -423,18 +448,7 @@ export class TierAssignmentService {
       
       // Execute tier assignment mutation
       const { data } = await this.apolloClient.mutate({
-        mutation: `
-          mutation AssignTier($input: AssignTierInput!) {
-            assignTier(input: $input) {
-              success
-              assignedTier
-              permissions
-              features
-              activatedAt
-              expiresAt
-            }
-          }
-        `,
+        mutation: ASSIGN_TIER,
         variables: {
           input: {
             userId,
@@ -501,16 +515,7 @@ export class TierAssignmentService {
 
       // Execute permission update mutation
       const { data } = await this.apolloClient.mutate({
-        mutation: `
-          mutation UpdateUserPermissions($input: UpdateUserPermissionsInput!) {
-            updateUserPermissions(input: $input) {
-              success
-              updatedPermissions
-              addedPermissions
-              removedPermissions
-            }
-          }
-        `,
+        mutation: UPDATE_USER_PERMISSIONS,
         variables: {
           input: {
             userId,
