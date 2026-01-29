@@ -334,6 +334,159 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   /**
+   * Subscribe to authentication security events
+   */
+  @SubscribeMessage('subscribe_auth_events')
+  async handleAuthEventsSubscription(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { eventTypes?: string[]; includeOtherUsers?: boolean },
+  ) {
+    const connectedClient = this.connectedClients.get(client.id);
+    if (!connectedClient) {
+      client.emit('error', { message: 'Client not authenticated' });
+      return;
+    }
+
+    try {
+      const { tenantId, user } = connectedClient;
+      const { eventTypes, includeOtherUsers } = data;
+
+      // Subscribe to user-specific auth events
+      const userAuthRoom = `auth:user:${user.id}`;
+      client.join(userAuthRoom);
+      connectedClient.rooms.add(userAuthRoom);
+
+      // Subscribe to tenant-level auth events if user has admin permissions
+      if (includeOtherUsers && this.hasAdminPermissions(user)) {
+        const tenantAuthRoom = `auth:tenant:${tenantId}`;
+        const adminAuthRoom = `auth:tenant:${tenantId}:admins`;
+        
+        client.join(tenantAuthRoom);
+        client.join(adminAuthRoom);
+        connectedClient.rooms.add(tenantAuthRoom);
+        connectedClient.rooms.add(adminAuthRoom);
+      }
+
+      this.updateLastActivity(client.id);
+
+      client.emit('subscription_success', {
+        type: 'auth_events',
+        rooms: Array.from(connectedClient.rooms).filter(room => room.startsWith('auth:')),
+        eventTypes,
+        includeOtherUsers,
+        subscribedAt: new Date(),
+      });
+
+      this.logger.log(`Client ${client.id} subscribed to auth events`);
+    } catch (error: any) {
+      this.logger.error(`Auth events subscription error: ${error.message}`, error.stack);
+      client.emit('subscription_error', {
+        type: 'auth_events',
+        message: 'Failed to subscribe to authentication events',
+      });
+    }
+  }
+
+  /**
+   * Subscribe to session management events
+   */
+  @SubscribeMessage('subscribe_session_events')
+  async handleSessionEventsSubscription(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { includeOtherSessions?: boolean },
+  ) {
+    const connectedClient = this.connectedClients.get(client.id);
+    if (!connectedClient) {
+      client.emit('error', { message: 'Client not authenticated' });
+      return;
+    }
+
+    try {
+      const { tenantId, user } = connectedClient;
+      const { includeOtherSessions } = data;
+
+      // Subscribe to user's session events
+      const userSessionRoom = `sessions:user:${user.id}`;
+      client.join(userSessionRoom);
+      connectedClient.rooms.add(userSessionRoom);
+
+      // Subscribe to all tenant sessions if user has admin permissions
+      if (includeOtherSessions && this.hasAdminPermissions(user)) {
+        const tenantSessionRoom = `sessions:tenant:${tenantId}`;
+        client.join(tenantSessionRoom);
+        connectedClient.rooms.add(tenantSessionRoom);
+      }
+
+      this.updateLastActivity(client.id);
+
+      client.emit('subscription_success', {
+        type: 'session_events',
+        rooms: Array.from(connectedClient.rooms).filter(room => room.startsWith('sessions:')),
+        includeOtherSessions,
+        subscribedAt: new Date(),
+      });
+
+      this.logger.log(`Client ${client.id} subscribed to session events`);
+    } catch (error: any) {
+      this.logger.error(`Session events subscription error: ${error.message}`, error.stack);
+      client.emit('subscription_error', {
+        type: 'session_events',
+        message: 'Failed to subscribe to session events',
+      });
+    }
+  }
+
+  /**
+   * Subscribe to security alerts
+   */
+  @SubscribeMessage('subscribe_security_alerts')
+  async handleSecurityAlertsSubscription(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { severity?: string[]; includeAllUsers?: boolean },
+  ) {
+    const connectedClient = this.connectedClients.get(client.id);
+    if (!connectedClient) {
+      client.emit('error', { message: 'Client not authenticated' });
+      return;
+    }
+
+    try {
+      const { tenantId, user } = connectedClient;
+      const { severity, includeAllUsers } = data;
+
+      // Subscribe to user-specific security alerts
+      const userSecurityRoom = `security:user:${user.id}`;
+      client.join(userSecurityRoom);
+      connectedClient.rooms.add(userSecurityRoom);
+
+      // Subscribe to tenant-wide security alerts if user has admin permissions
+      if (includeAllUsers && this.hasAdminPermissions(user)) {
+        const tenantSecurityRoom = `security:tenant:${tenantId}`;
+        client.join(tenantSecurityRoom);
+        connectedClient.rooms.add(tenantSecurityRoom);
+      }
+
+      this.updateLastActivity(client.id);
+
+      client.emit('subscription_success', {
+        type: 'security_alerts',
+        rooms: Array.from(connectedClient.rooms).filter(room => room.startsWith('security:')),
+        severity,
+        includeAllUsers,
+        subscribedAt: new Date(),
+      });
+
+      this.logger.log(`Client ${client.id} subscribed to security alerts`);
+    } catch (error: any) {
+      this.logger.error(`Security alerts subscription error: ${error.message}`, error.stack);
+      client.emit('subscription_error', {
+        type: 'security_alerts',
+        message: 'Failed to subscribe to security alerts',
+      });
+    }
+  }
+
+  /**
    * Unsubscribe from a specific room
    */
   @SubscribeMessage('unsubscribe')
@@ -458,6 +611,64 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     const room = `tenant:${tenantId}`;
     this.server.to(room).emit('notification', {
       ...notification,
+      timestamp: new Date(),
+    });
+  }
+
+  /**
+   * Emit authentication event to user sessions
+   */
+  emitAuthEvent(userId: string, tenantId: string, event: any) {
+    const userRoom = `auth:user:${userId}`;
+    const tenantRoom = `auth:tenant:${tenantId}`;
+    
+    this.server.to(userRoom).emit('auth_event', {
+      ...event,
+      timestamp: new Date(),
+    });
+
+    // Also emit to tenant admins
+    this.server.to(tenantRoom).emit('auth_event', {
+      ...event,
+      targetUserId: userId,
+      timestamp: new Date(),
+    });
+  }
+
+  /**
+   * Emit session event
+   */
+  emitSessionEvent(userId: string, tenantId: string, event: any) {
+    const userSessionRoom = `sessions:user:${userId}`;
+    const tenantSessionRoom = `sessions:tenant:${tenantId}`;
+    
+    this.server.to(userSessionRoom).emit('session_event', {
+      ...event,
+      timestamp: new Date(),
+    });
+
+    this.server.to(tenantSessionRoom).emit('session_event', {
+      ...event,
+      targetUserId: userId,
+      timestamp: new Date(),
+    });
+  }
+
+  /**
+   * Emit security alert
+   */
+  emitSecurityAlert(userId: string, tenantId: string, alert: any) {
+    const userSecurityRoom = `security:user:${userId}`;
+    const tenantSecurityRoom = `security:tenant:${tenantId}`;
+    
+    this.server.to(userSecurityRoom).emit('security_alert', {
+      ...alert,
+      timestamp: new Date(),
+    });
+
+    this.server.to(tenantSecurityRoom).emit('security_alert', {
+      ...alert,
+      targetUserId: userId,
       timestamp: new Date(),
     });
   }
@@ -595,5 +806,12 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
         }
       }
     }
+  }
+
+  private hasAdminPermissions(user: AuthenticatedUser): boolean {
+    // Check if user has admin role or specific permissions
+    return user.role === 'admin' || 
+           user.role === 'owner' || 
+           (user.permissions && user.permissions.includes('manage_users'));
   }
 }

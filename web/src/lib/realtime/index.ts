@@ -12,6 +12,23 @@ export {
   type WebSocketConnectionState,
 } from './websocket-manager';
 
+// Auth Event Manager
+export {
+  AuthEventManager,
+  authEventManager,
+  type AuthEvent,
+  type DeviceInfo,
+  type SessionEvent,
+  type SecurityAlert,
+  type CrossDeviceNotification,
+  type AuthEventSubscriptionOptions,
+  type SessionEventSubscriptionOptions,
+  type SecurityAlertSubscriptionOptions,
+  AuthEventType,
+  SessionEventType,
+  SecurityAlertType,
+} from './auth-event-manager';
+
 // Re-export subscription utilities for convenience
 export {
   subscriptionManager,

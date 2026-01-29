@@ -10,6 +10,9 @@ export { LiveInventoryService } from './services/live-inventory.service';
 export { LiveSalesDashboardService } from './services/live-sales-dashboard.service';
 export { LiveCustomerActivityService } from './services/live-customer-activity.service';
 export { LiveAnalyticsService } from './services/live-analytics.service';
+export { AuthRealtimeEventService } from './services/auth-realtime-event.service';
+export { CrossDeviceNotificationService } from './services/cross-device-notification.service';
+export { SuspiciousActivityDetectorService } from './services/suspicious-activity-detector.service';
 
 // Gateways
 export { RealtimeGateway } from './gateways/realtime.gateway';

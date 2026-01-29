@@ -10,6 +10,9 @@ import { LiveInventoryService } from './services/live-inventory.service';
 import { LiveSalesDashboardService } from './services/live-sales-dashboard.service';
 import { LiveCustomerActivityService } from './services/live-customer-activity.service';
 import { LiveAnalyticsService } from './services/live-analytics.service';
+import { AuthRealtimeEventService } from './services/auth-realtime-event.service';
+import { CrossDeviceNotificationService } from './services/cross-device-notification.service';
+import { SuspiciousActivityDetectorService } from './services/suspicious-activity-detector.service';
 import { CommunicationIntegrationService } from '../communication/services/communication-integration.service';
 import { SlackIntegrationService } from '../communication/services/slack-integration.service';
 import { TeamsIntegrationService } from '../communication/services/teams-integration.service';
@@ -60,6 +63,9 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     LiveSalesDashboardService,
     LiveCustomerActivityService,
     LiveAnalyticsService,
+    AuthRealtimeEventService,
+    CrossDeviceNotificationService,
+    SuspiciousActivityDetectorService,
     LiveDataResolver,
     RealtimeResolver,
     NotificationResolver,
@@ -75,6 +81,9 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     LiveSalesDashboardService,
     LiveCustomerActivityService,
     LiveAnalyticsService,
+    AuthRealtimeEventService,
+    CrossDeviceNotificationService,
+    SuspiciousActivityDetectorService,
   ],
 })
 export class RealtimeModule {}
