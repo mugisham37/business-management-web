@@ -258,7 +258,7 @@ export class SocialAuthManager {
   /**
    * Get user profile from social provider
    */
-  async getUserProfile(providerId: string, accessToken: string): Promise<any> {
+  async getUserProfile(providerId: string, accessToken: string): Promise<Record<string, unknown>> {
     try {
       let profileUrl: string;
       

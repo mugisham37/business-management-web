@@ -137,11 +137,11 @@ export class DeviceFingerprintService {
     }
 
     if ('deviceMemory' in navigator) {
-      components.deviceMemory = (navigator as any).deviceMemory;
+      components.deviceMemory = (navigator as Record<string, unknown>).deviceMemory;
     }
 
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Record<string, unknown>).connection;
       components.connection = `${connection.effectiveType}-${connection.downlink}`;
     }
 
@@ -236,15 +236,15 @@ export class DeviceFingerprintService {
    */
   private getWebGLFingerprint(): string {
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | WebGL2RenderingContext | null;
     
     if (!gl) {
       throw new Error('WebGL not available');
     }
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unknown';
-    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'unknown';
+    const vendor = debugInfo ? gl.getParameter((debugInfo as unknown as Record<string, number>).UNMASKED_VENDOR_WEBGL) : 'unknown';
+    const renderer = debugInfo ? gl.getParameter((debugInfo as unknown as Record<string, number>).UNMASKED_RENDERER_WEBGL) : 'unknown';
     
     const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);

@@ -12,7 +12,7 @@ import { GraphQLError } from 'graphql';
 interface OperationContext {
   operationName?: string;
   operationType?: 'query' | 'mutation' | 'subscription';
-  variables?: any;
+  variables?: Record<string, unknown>;
   userId?: string;
   skipPermissionCheck?: boolean;
 }
@@ -127,13 +127,13 @@ export class GraphQLPermissionInterceptor extends ApolloLink {
     let operationType: 'query' | 'mutation' | 'subscription' | undefined;
     if (query.definitions.length > 0) {
       const definition = query.definitions[0];
-      if (definition.kind === 'OperationDefinition') {
+      if (definition && definition.kind === 'OperationDefinition') {
         operationType = definition.operation;
       }
     }
 
     return {
-      operationName: operationName || undefined,
+      operationName: operationName || '',
       operationType,
       variables,
       userId: context.userId,
@@ -199,7 +199,7 @@ export function withUserId(userId: string) {
 /**
  * Higher-order function to wrap GraphQL operations with permission context
  */
-export function withPermissionContext<T extends Record<string, any>>(
+export function withPermissionContext<T extends Record<string, unknown>>(
   context: T
 ): T & { skipPermissionCheck?: boolean; userId?: string } {
   return context;
@@ -218,11 +218,11 @@ export class PermissionAwareGraphQLExecutor {
   /**
    * Execute operation with permission validation
    */
-  async executeWithPermissionCheck<T = any>(
+  async executeWithPermissionCheck<T = Record<string, unknown>>(
     operation: {
       operationName: string;
       operationType: 'query' | 'mutation' | 'subscription';
-      variables?: any;
+      variables?: Record<string, unknown>;
     },
     userId?: string
   ): Promise<{ canExecute: boolean; reason?: string }> {
@@ -235,7 +235,7 @@ export class PermissionAwareGraphQLExecutor {
 
       return {
         canExecute: validationResult.hasAccess,
-        reason: validationResult.reason,
+        reason: validationResult.reason || undefined,
       };
     } catch (error) {
       console.error('Permission check failed:', error);
@@ -253,7 +253,7 @@ export class PermissionAwareGraphQLExecutor {
     operations: Array<{
       operationName: string;
       operationType: 'query' | 'mutation' | 'subscription';
-      variables?: any;
+      variables?: Record<string, unknown>;
     }>,
     userId?: string
   ): Promise<Record<string, { canExecute: boolean; reason?: string }>> {
@@ -270,7 +270,7 @@ export class PermissionAwareGraphQLExecutor {
 
           results[operation.operationName] = {
             canExecute: validationResult.hasAccess,
-            reason: validationResult.reason,
+            reason: validationResult.reason || undefined,
           };
         } catch (error) {
           console.error(`Permission check failed for ${operation.operationName}:`, error);

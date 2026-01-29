@@ -11,6 +11,9 @@ export interface LocationData {
   timezone?: string;
 }
 
+// Export as Location for compatibility
+export type Location = LocationData;
+
 export interface LocationState {
   locations: LocationData[];
   currentLocation?: LocationData;

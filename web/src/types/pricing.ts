@@ -48,6 +48,6 @@ export interface TierRecommendation {
 
 export interface PricingPageProps {
   showRecommendations?: boolean;
-  onboardingData?: any;
+  onboardingData?: Record<string, unknown>;
   onPlanSelect?: (tier: BusinessTier) => void;
 }

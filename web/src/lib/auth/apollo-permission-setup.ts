@@ -118,7 +118,7 @@ export function createPermissionAwareQuery<TData = Record<string, unknown>, TVar
   client: ApolloClient<Record<string, unknown>>
 ) {
   return async (options: {
-    query: unknown;
+    query: import('@apollo/client').DocumentNode | import('@apollo/client').TypedDocumentNode<TData, TVariables>;
     variables?: TVariables;
     skipPermissionCheck?: boolean;
     userId?: string;
@@ -163,7 +163,7 @@ export function createPermissionAwareMutation<TData = Record<string, unknown>, T
   client: ApolloClient<Record<string, unknown>>
 ) {
   return async (options: {
-    mutation: unknown;
+    mutation: import('@apollo/client').DocumentNode | import('@apollo/client').TypedDocumentNode<TData, TVariables>;
     variables?: TVariables;
     skipPermissionCheck?: boolean;
     userId?: string;

@@ -3,23 +3,10 @@
  * Manages real-time authentication events using GraphQL subscriptions
  */
 
-import { ApolloClient, Observable } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
-    AUTH_EVENTS_SUBSCRIPTION,
-    PERMISSION_CHANGES_SUBSCRIPTION,
     TENANT_AUTH_EVENTS_SUBSCRIPTION,
     SECURITY_ALERTS_SUBSCRIPTION,
-    MFA_EVENTS_SUBSCRIPTION,
-    SESSION_EVENTS_SUBSCRIPTION,
-    ROLE_ASSIGNMENT_EVENTS_SUBSCRIPTION,
-    USER_EVENTS_SUBSCRIPTION,
-    TIER_CHANGES_SUBSCRIPTION,
-    PAYMENT_EVENTS_SUBSCRIPTION,
-    DEVICE_TRUST_EVENTS_SUBSCRIPTION,
-    ONBOARDING_PROGRESS_SUBSCRIPTION,
-    IP_RESTRICTION_EVENTS_SUBSCRIPTION,
-    SESSION_LIMIT_EVENTS_SUBSCRIPTION,
-    PASSWORD_POLICY_EVENTS_SUBSCRIPTION
 } from '@/graphql/subscriptions/auth-subscriptions';
 
 export interface AuthEvent {
@@ -34,7 +21,7 @@ export interface AuthEvent {
     };
     ipAddress?: string;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -44,11 +31,11 @@ export interface SecurityAlert {
     severity: 'low' | 'medium' | 'high' | 'critical';
     userId: string;
     sessionId?: string;
-    deviceInfo?: any;
+    deviceInfo?: Record<string, unknown>;
     ipAddress?: string;
     timestamp: string;
     description: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     resolved: boolean;
     resolvedAt?: string;
     resolvedBy?: string;
@@ -62,7 +49,7 @@ export interface PermissionChange {
     resourceId?: string;
     grantedBy: string;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 export interface TierChange {
@@ -74,19 +61,22 @@ export interface TierChange {
     reason: string;
     activatedFeatures: string[];
     deactivatedFeatures: string[];
-    subscription?: any;
+    subscription?: Record<string, unknown>;
 }
 
-export interface EventHandler<T> {
+export interface EventHandler<T = Record<string, unknown>> {
     (event: T): void;
 }
 
 export class AuthEventSubscriptionService {
-    private apolloClient: ApolloClient<any>;
-    private subscriptions: Map<string, any> = new Map();
-    private eventHandlers: Map<string, EventHandler<any>[]> = new Map();
+    private apolloClient: ApolloClient<Record<string, unknown>>;
+    private subscriptions: Map<string, unknown> = new Map();
+    private authEventHandlers: EventHandler<AuthEvent>[] = [];
+    private permissionChangeHandlers: EventHandler<PermissionChange>[] = [];
+    private securityAlertHandlers: EventHandler<SecurityAlert>[] = [];
+    private tierChangeHandlers: EventHandler<TierChange>[] = [];
 
-    constructor(apolloClient: ApolloClient<any>) {
+    constructor(apolloClient: ApolloClient<Record<string, unknown>>) {
         this.apolloClient = apolloClient;
     }
 
@@ -291,7 +281,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to payment events for current user
      */
-    subscribeToPaymentEvents(handler: EventHandler<any>): () => void {
+    subscribeToPaymentEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'payment_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -324,7 +314,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to device trust events
      */
-    subscribeToDeviceTrustEvents(handler: EventHandler<any>): () => void {
+    subscribeToDeviceTrustEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'device_trust_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -357,7 +347,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to onboarding progress updates
      */
-    subscribeToOnboardingProgress(handler: EventHandler<any>): () => void {
+    subscribeToOnboardingProgress(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'onboarding_progress';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -423,7 +413,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to role assignment events (admin only)
      */
-    subscribeToRoleAssignmentEvents(handler: EventHandler<any>): () => void {
+    subscribeToRoleAssignmentEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'role_assignment_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -490,7 +480,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to IP restriction events
      */
-    subscribeToIpRestrictionEvents(handler: EventHandler<any>): () => void {
+    subscribeToIpRestrictionEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'ip_restriction_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -523,7 +513,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to session limit events
      */
-    subscribeToSessionLimitEvents(handler: EventHandler<any>): () => void {
+    subscribeToSessionLimitEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'session_limit_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -556,7 +546,7 @@ export class AuthEventSubscriptionService {
     /**
      * Subscribe to password policy events
      */
-    subscribeToPasswordPolicyEvents(handler: EventHandler<any>): () => void {
+    subscribeToPasswordPolicyEvents(handler: EventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'password_policy_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
@@ -590,38 +580,42 @@ export class AuthEventSubscriptionService {
      * Unsubscribe from all events and clean up
      */
     unsubscribeAll(): void {
-        this.subscriptions.forEach((subscription, key) => {
-            subscription.unsubscribe();
+        this.subscriptions.forEach((subscription) => {
+            if (subscription && typeof subscription === 'object' && 'unsubscribe' in subscription) {
+                (subscription as { unsubscribe: () => void }).unsubscribe();
+            }
         });
         this.subscriptions.clear();
-        this.eventHandlers.clear();
+        this.authEventHandlers = [];
+        this.permissionChangeHandlers = [];
+        this.securityAlertHandlers = [];
+        this.tierChangeHandlers = [];
     }
 
     /**
      * Private helper methods
      */
-    private addEventHandler(eventType: string, handler: EventHandler<any>): void {
-        if (!this.eventHandlers.has(eventType)) {
-            this.eventHandlers.set(eventType, []);
-        }
-        this.eventHandlers.get(eventType)!.push(handler);
+    private addEventHandler(eventType: string, handler: EventHandler): void {
+        // Simplified event handler registration - types are verified at call site
+        const handlers = (this.subscriptions.get(eventType) as EventHandler[]) || [];
+        handlers.push(handler);
+        this.subscriptions.set(eventType, handlers);
     }
 
-    private removeEventHandler(eventType: string, handler: EventHandler<any>): void {
-        const handlers = this.eventHandlers.get(eventType);
-        if (handlers) {
-            const index = handlers.indexOf(handler);
-            if (index > -1) {
-                handlers.splice(index, 1);
-            }
+    private removeEventHandler(eventType: string, handler: EventHandler): void {
+        const handlers = (this.subscriptions.get(eventType) as EventHandler[]) || [];
+        const index = handlers.indexOf(handler);
+        if (index > -1) {
+            handlers.splice(index, 1);
         }
     }
 
     private getHandlerCount(eventType: string): number {
-        return this.eventHandlers.get(eventType)?.length || 0;
+        const handlers = this.subscriptions.get(eventType) as EventHandler[] | undefined;
+        return handlers?.length || 0;
     }
 
-    private notifyHandlers(eventType: string, event: any): void {
+    private notifyHandlers(eventType: string, event: Record<string, unknown>): void {
         const handlers = this.eventHandlers.get(eventType);
         if (handlers) {
             handlers.forEach(handler => {
@@ -635,9 +629,9 @@ export class AuthEventSubscriptionService {
     }
 
     private unsubscribe(subscriptionKey: string): void {
-        const subscription = this.subscriptions.get(subscriptionKey);
-        if (subscription) {
-            subscription.unsubscribe();
+        const subscription = this.subscriptions.get(subscriptionKey) as unknown;
+        if (subscription && typeof subscription === 'object' && 'unsubscribe' in subscription) {
+            (subscription as { unsubscribe: () => void }).unsubscribe();
             this.subscriptions.delete(subscriptionKey);
         }
     }

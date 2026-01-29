@@ -3,7 +3,7 @@
  * Handles real-time authentication events and security notifications
  */
 
-import { webSocketManager, WebSocketMessage } from './websocket-manager';
+import { webSocketManager } from './websocket-manager';
 import { EventEmitter } from 'events';
 
 export interface AuthEvent {
@@ -12,7 +12,7 @@ export interface AuthEvent {
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   ipAddress?: string;
   deviceInfo?: DeviceInfo;
@@ -76,7 +76,7 @@ export interface SecurityAlert {
   actionRequired?: boolean;
   actionUrl?: string;
   actionLabel?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   targetUserId?: string;
 }
@@ -97,7 +97,7 @@ export interface CrossDeviceNotification {
   message: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   sourceDevice?: DeviceInfo;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   excludeDevices?: string[];
 }
@@ -295,46 +295,79 @@ export class AuthEventManager extends EventEmitter {
 
   private setupWebSocketListeners(): void {
     // Listen for authentication events
-    webSocketManager.on('message:auth_event', (data: any) => {
+    webSocketManager.on('message:auth_event', (data: Record<string, unknown>) => {
       const authEvent: AuthEvent = {
-        ...data,
-        timestamp: new Date(data.timestamp),
+        id: String(data.id || ''),
+        type: (data.type as AuthEventType) || AuthEventType.LOGIN_SUCCESS,
+        severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
+        title: String(data.title || ''),
+        message: String(data.message || ''),
+        metadata: (data.metadata as Record<string, unknown>) || undefined,
+        timestamp: new Date(String(data.timestamp || new Date())),
+        ...((data.ipAddress) && { ipAddress: String(data.ipAddress) }),
+        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
+        targetUserId: data.targetUserId as string | undefined,
       };
       this.handleAuthEvent(authEvent);
     });
 
     // Listen for session events
-    webSocketManager.on('message:session_event', (data: any) => {
+    webSocketManager.on('message:session_event', (data: Record<string, unknown>) => {
       const sessionEvent: SessionEvent = {
-        ...data,
-        timestamp: new Date(data.timestamp),
+        id: String(data.id || ''),
+        type: (data.type as string) || 'session_event',
+        sessionId: String(data.sessionId || ''),
+        timestamp: new Date(String(data.timestamp || new Date())),
+        userId: String(data.userId || ''),
+        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
+        metadata: (data.metadata as Record<string, unknown>) || undefined,
       };
       this.handleSessionEvent(sessionEvent);
     });
 
     // Listen for security alerts
-    webSocketManager.on('message:security_alert', (data: any) => {
+    webSocketManager.on('message:security_alert', (data: Record<string, unknown>) => {
       const securityAlert: SecurityAlert = {
-        ...data,
-        timestamp: new Date(data.timestamp),
+        id: String(data.id || ''),
+        type: (data.type as string) || 'security_alert',
+        severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
+        title: String(data.title || ''),
+        message: String(data.message || ''),
+        timestamp: new Date(String(data.timestamp || new Date())),
+        metadata: (data.metadata as Record<string, unknown>) || undefined,
       };
       this.handleSecurityAlert(securityAlert);
     });
 
     // Listen for cross-device notifications
-    webSocketManager.on('message:cross_device_notification', (data: any) => {
+    webSocketManager.on('message:cross_device_notification', (data: Record<string, unknown>) => {
       const notification: CrossDeviceNotification = {
-        ...data,
-        timestamp: new Date(data.timestamp),
+        id: String(data.id || ''),
+        type: (data.type as string) || 'notification',
+        title: String(data.title || ''),
+        message: String(data.message || ''),
+        severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
+        sourceDevice: data.sourceDevice as DeviceInfo | undefined,
+        metadata: (data.metadata as Record<string, unknown>) || undefined,
+        timestamp: new Date(String(data.timestamp || new Date())),
+        excludeDevices: (data.excludeDevices as string[]) || undefined,
       };
       this.handleCrossDeviceNotification(notification);
     });
 
     // Listen for security events (from auth realtime service)
-    webSocketManager.on('message:security_event', (data: any) => {
+    webSocketManager.on('message:security_event', (data: Record<string, unknown>) => {
       const securityEvent: AuthEvent = {
-        ...data,
-        timestamp: new Date(data.timestamp),
+        id: String(data.id || ''),
+        type: (data.type as AuthEventType) || AuthEventType.LOGIN_SUCCESS,
+        severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
+        title: String(data.title || ''),
+        message: String(data.message || ''),
+        metadata: (data.metadata as Record<string, unknown>) || undefined,
+        timestamp: new Date(String(data.timestamp || new Date())),
+        ...((data.ipAddress) && { ipAddress: String(data.ipAddress) }),
+        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
+        targetUserId: data.targetUserId as string | undefined,
       };
       this.handleAuthEvent(securityEvent);
     });

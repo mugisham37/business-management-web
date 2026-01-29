@@ -151,7 +151,7 @@ export class SessionRenewalManager {
   private async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string } | null> {
     try {
       // TODO: Replace with actual GraphQL refresh mutation
-      console.log('Refreshing tokens...');
+      console.log('Refreshing tokens with refresh token:', refreshToken);
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));

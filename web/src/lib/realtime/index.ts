@@ -17,7 +17,7 @@ export {
   AuthEventManager,
   authEventManager,
   type AuthEvent,
-  type DeviceInfo,
+  type DeviceInfo as RealtimeDeviceInfo,
   type SessionEvent,
   type SecurityAlert,
   type CrossDeviceNotification,

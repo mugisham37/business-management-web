@@ -156,9 +156,11 @@ export function useGraphQLErrorHandler() {
 export function withGraphQLErrorHandling<P extends object>(
   Component: React.ComponentType<P>
 ): React.FC<P> {
-  return (props: P) => (
+  const Wrapper = (props: P) => (
     <GraphQLErrorBoundary>
       <Component {...props} />
     </GraphQLErrorBoundary>
   );
+  Wrapper.displayName = `withGraphQLErrorHandling(${Component.displayName || Component.name || 'Component'})`;
+  return Wrapper;
 }

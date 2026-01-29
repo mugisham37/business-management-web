@@ -153,14 +153,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.logoutAllSessions?.success || false,
+                success: (data?.logoutAllSessions as Record<string, unknown>)?.success as boolean || false,
                 data: data?.logoutAllSessions,
-                message: data?.logoutAllSessions?.message
+                message: (data?.logoutAllSessions as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to logout all sessions';
             return {
                 success: false,
-                error: error.message || 'Failed to logout all sessions'
+                error: errorMessage
             };
         }
     }
@@ -173,14 +174,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.refreshToken?.success || false,
+                success: (data?.refreshToken as Record<string, unknown>)?.success as boolean || false,
                 data: data?.refreshToken,
-                message: data?.refreshToken?.message
+                message: (data?.refreshToken as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Token refresh failed';
             return {
                 success: false,
-                error: error.message || 'Token refresh failed'
+                error: errorMessage
             };
         }
     }
@@ -199,10 +201,11 @@ export class GraphQLIntegrationService {
                 success: !!data?.me,
                 data: data?.me
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to get current user';
             return {
                 success: false,
-                error: error.message || 'Failed to get current user'
+                error: errorMessage
             };
         }
     }
@@ -218,10 +221,11 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.requiresMfa
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to check MFA requirement';
             return {
                 success: false,
-                error: error.message || 'Failed to check MFA requirement'
+                error: errorMessage
             };
         }
     }
@@ -232,19 +236,20 @@ export class GraphQLIntegrationService {
     async setupMfa(): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
-                mutation: SETUP_MFA_MUTATION,
+                mutation: GENERATE_MFA_SETUP_MUTATION,
                 variables: { input: {} }
             });
 
             return {
-                success: data?.setupMfa?.success || false,
-                data: data?.setupMfa,
-                message: data?.setupMfa?.message
+                success: (data?.generateMfaSetup as Record<string, unknown>)?.success as boolean || false,
+                data: data?.generateMfaSetup,
+                message: (data?.generateMfaSetup as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'MFA setup failed';
             return {
                 success: false,
-                error: error.message || 'MFA setup failed'
+                error: errorMessage
             };
         }
     }
@@ -257,14 +262,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.enableMfa?.success || false,
+                success: (data?.enableMfa as Record<string, unknown>)?.success as boolean || false,
                 data: data?.enableMfa,
-                message: data?.enableMfa?.message
+                message: (data?.enableMfa as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to enable MFA';
             return {
                 success: false,
-                error: error.message || 'Failed to enable MFA'
+                error: errorMessage
             };
         }
     }
@@ -277,14 +283,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.disableMfa?.success || false,
+                success: (data?.disableMfa as Record<string, unknown>)?.success as boolean || false,
                 data: data?.disableMfa,
-                message: data?.disableMfa?.message
+                message: (data?.disableMfa as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to disable MFA';
             return {
                 success: false,
-                error: error.message || 'Failed to disable MFA'
+                error: errorMessage
             };
         }
     }
@@ -292,19 +299,20 @@ export class GraphQLIntegrationService {
     async verifyMfa(token: string): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
-                mutation: VERIFY_MFA_MUTATION,
+                mutation: VERIFY_MFA_TOKEN_MUTATION,
                 variables: { input: { token } }
             });
 
             return {
-                success: data?.verifyMfa?.success || false,
-                data: data?.verifyMfa,
-                message: data?.verifyMfa?.message
+                success: (data?.verifyMfaToken as Record<string, unknown>)?.success as boolean || false,
+                data: data?.verifyMfaToken,
+                message: (data?.verifyMfaToken as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'MFA verification failed';
             return {
                 success: false,
-                error: error.message || 'MFA verification failed'
+                error: errorMessage
             };
         }
     }
@@ -317,32 +325,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.generateBackupCodes?.success || false,
+                success: (data?.generateBackupCodes as Record<string, unknown>)?.success as boolean || false,
                 data: data?.generateBackupCodes,
-                message: data?.generateBackupCodes?.message
+                message: (data?.generateBackupCodes as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to generate backup codes';
             return {
                 success: false,
-                error: error.message || 'Failed to generate backup codes'
-            };
-        }
-    }
-
-    async getMfaStatus(): Promise<GraphQLOperationResult> {
-        try {
-            const { data } = await this.apolloClient.query({
-                query: GET_MFA_STATUS_QUERY
-            });
-
-            return {
-                success: true,
-                data: data?.getMfaStatus
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.message || 'Failed to get MFA status'
+                error: errorMessage
             };
         }
     }
@@ -350,25 +341,6 @@ export class GraphQLIntegrationService {
     /**
      * Social Authentication Operations
      */
-    async getSocialAuthUrl(provider: string, redirectUri?: string): Promise<GraphQLOperationResult> {
-        try {
-            const { data } = await this.apolloClient.query({
-                query: GET_SOCIAL_AUTH_URL_QUERY,
-                variables: { provider, redirectUri }
-            });
-
-            return {
-                success: true,
-                data: data?.getSocialAuthUrl
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.message || 'Failed to get social auth URL'
-            };
-        }
-    }
-
     async linkSocialProvider(provider: string, code: string): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
@@ -377,14 +349,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.linkSocialProvider?.success || false,
+                success: (data?.linkSocialProvider as Record<string, unknown>)?.success as boolean || false,
                 data: data?.linkSocialProvider,
-                message: data?.linkSocialProvider?.message
+                message: (data?.linkSocialProvider as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to link social provider';
             return {
                 success: false,
-                error: error.message || 'Failed to link social provider'
+                error: errorMessage
             };
         }
     }
@@ -397,32 +370,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.unlinkSocialProvider?.success || false,
+                success: (data?.unlinkSocialProvider as Record<string, unknown>)?.success as boolean || false,
                 data: data?.unlinkSocialProvider,
-                message: data?.unlinkSocialProvider?.message
+                message: (data?.unlinkSocialProvider as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to unlink social provider';
             return {
                 success: false,
-                error: error.message || 'Failed to unlink social provider'
-            };
-        }
-    }
-
-    async getConnectedSocialProviders(): Promise<GraphQLOperationResult> {
-        try {
-            const { data } = await this.apolloClient.query({
-                query: GET_CONNECTED_SOCIAL_PROVIDERS_QUERY
-            });
-
-            return {
-                success: true,
-                data: data?.getConnectedSocialProviders || []
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.message || 'Failed to get connected social providers'
+                error: errorMessage
             };
         }
     }
@@ -433,17 +389,18 @@ export class GraphQLIntegrationService {
     async getMyPermissions(): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.query({
-                query: GET_MY_PERMISSIONS_QUERY
+                query: GET_USER_PERMISSIONS_QUERY
             });
 
             return {
                 success: true,
-                data: data?.getMyPermissions
+                data: data?.getUserPermissions
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to get permissions';
             return {
                 success: false,
-                error: error.message || 'Failed to get permissions'
+                error: errorMessage
             };
         }
     }
@@ -459,10 +416,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.checkPermission
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to check permission'
+                error: error instanceof Error ? error.message : 'Failed to check permission'
             };
         }
     }
@@ -479,10 +436,10 @@ export class GraphQLIntegrationService {
                 data: data?.grantPermission,
                 message: data?.grantPermission?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to grant permission'
+                error: error instanceof Error ? error.message : 'Failed to grant permission'
             };
         }
     }
@@ -499,10 +456,10 @@ export class GraphQLIntegrationService {
                 data: data?.revokePermission,
                 message: data?.revokePermission?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to revoke permission'
+                error: error instanceof Error ? error.message : 'Failed to revoke permission'
             };
         }
     }
@@ -520,10 +477,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getMyTier
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get tier information'
+                error: error instanceof Error ? error.message : 'Failed to get tier information'
             };
         }
     }
@@ -538,10 +495,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getUserFeatures ? JSON.parse(data.getUserFeatures) : []
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get user features'
+                error: error instanceof Error ? error.message : 'Failed to get user features'
             };
         }
     }
@@ -556,10 +513,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getUpgradeRecommendations ? JSON.parse(data.getUpgradeRecommendations) : {}
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get upgrade recommendations'
+                error: error instanceof Error ? error.message : 'Failed to get upgrade recommendations'
             };
         }
     }
@@ -576,10 +533,10 @@ export class GraphQLIntegrationService {
                 data: data?.updateTier,
                 message: data?.updateTier?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to update tier'
+                error: error instanceof Error ? error.message : 'Failed to update tier'
             };
         }
     }
@@ -597,7 +554,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.basicFeature }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -616,7 +573,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.smallTierFeature }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -635,7 +592,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.mediumTierFeature }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -654,7 +611,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.enterpriseFeature }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -673,7 +630,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.advancedReports }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -692,7 +649,7 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: { hasAccess: !!data?.multiLocationData }
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
                 data: { hasAccess: false },
@@ -715,10 +672,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getActiveSessions || []
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get active sessions'
+                error: error instanceof Error ? error.message : 'Failed to get active sessions'
             };
         }
     }
@@ -735,10 +692,10 @@ export class GraphQLIntegrationService {
                 data: data?.terminateSession,
                 message: data?.terminateSession?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to terminate session'
+                error: error instanceof Error ? error.message : 'Failed to terminate session'
             };
         }
     }
@@ -754,10 +711,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getDeviceSessions || []
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get device sessions'
+                error: error instanceof Error ? error.message : 'Failed to get device sessions'
             };
         }
     }
@@ -774,10 +731,10 @@ export class GraphQLIntegrationService {
                 data: data?.trustDevice,
                 message: data?.trustDevice?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to trust device'
+                error: error instanceof Error ? error.message : 'Failed to trust device'
             };
         }
     }
@@ -794,10 +751,10 @@ export class GraphQLIntegrationService {
                 data: data?.untrustDevice,
                 message: data?.untrustDevice?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to untrust device'
+                error: error instanceof Error ? error.message : 'Failed to untrust device'
             };
         }
     }
@@ -817,10 +774,10 @@ export class GraphQLIntegrationService {
                 data: data?.startOnboarding,
                 message: data?.startOnboarding?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to start onboarding'
+                error: error instanceof Error ? error.message : 'Failed to start onboarding'
             };
         }
     }
@@ -843,10 +800,10 @@ export class GraphQLIntegrationService {
                 data: data?.submitOnboardingStep,
                 message: data?.submitOnboardingStep?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to submit onboarding step'
+                error: error instanceof Error ? error.message : 'Failed to submit onboarding step'
             };
         }
     }
@@ -868,10 +825,10 @@ export class GraphQLIntegrationService {
                 data: data?.completeOnboarding,
                 message: data?.completeOnboarding?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to complete onboarding'
+                error: error instanceof Error ? error.message : 'Failed to complete onboarding'
             };
         }
     }
@@ -886,10 +843,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getOnboardingStatus
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get onboarding status'
+                error: error instanceof Error ? error.message : 'Failed to get onboarding status'
             };
         }
     }
@@ -909,10 +866,10 @@ export class GraphQLIntegrationService {
                 data: data?.processPayment,
                 message: data?.processPayment?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Payment processing failed'
+                error: error instanceof Error ? error.message : 'Payment processing failed'
             };
         }
     }
@@ -927,10 +884,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getSubscriptionStatus
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get subscription status'
+                error: error instanceof Error ? error.message : 'Failed to get subscription status'
             };
         }
     }
@@ -948,10 +905,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getSecuritySettings
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get security settings'
+                error: error instanceof Error ? error.message : 'Failed to get security settings'
             };
         }
     }
@@ -968,10 +925,10 @@ export class GraphQLIntegrationService {
                 data: data?.updateSecuritySettings,
                 message: data?.updateSecuritySettings?.message
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to update security settings'
+                error: error instanceof Error ? error.message : 'Failed to update security settings'
             };
         }
     }
@@ -987,10 +944,10 @@ export class GraphQLIntegrationService {
                 success: true,
                 data: data?.getAuditLogs
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 success: false,
-                error: error.message || 'Failed to get audit logs'
+                error: error instanceof Error ? error.message : 'Failed to get audit logs'
             };
         }
     }

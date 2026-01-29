@@ -43,7 +43,7 @@ export enum AuthErrorCode {
 export interface AuthError {
   code: AuthErrorCode;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   retryable: boolean;
   retryAfter?: number; // seconds
   userMessage: string;
@@ -90,8 +90,11 @@ export class AuthErrorHandler {
    * Classify and enhance error with user-friendly information
    */
   classifyError(error: unknown, context?: string): AuthError {
+    // Type guard for error objects
+    const err = error as { name?: string; message?: string; status?: number; headers?: Record<string, string>; extensions?: Record<string, unknown> };
+    
     // Network errors
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    if (err.name === 'TypeError' && err.message?.includes('fetch')) {
       return {
         code: AuthErrorCode.NETWORK_ERROR,
         message: 'Network request failed',
@@ -101,7 +104,7 @@ export class AuthErrorHandler {
       };
     }
 
-    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+    if (err.name === 'AbortError' || err.message?.includes('timeout')) {
       return {
         code: AuthErrorCode.TIMEOUT_ERROR,
         message: 'Request timed out',
@@ -112,12 +115,12 @@ export class AuthErrorHandler {
     }
 
     // HTTP status-based errors
-    if (error.status) {
-      switch (error.status) {
+    if (err.status) {
+      switch (err.status) {
         case 401:
-          return this.handleUnauthorizedError(error);
+          return this.handleUnauthorizedError(err);
         case 403:
-          return this.handleForbiddenError(error);
+          return this.handleForbiddenError(err);
         case 429:
           return this.handleRateLimitError(error);
         case 500:
@@ -126,7 +129,7 @@ export class AuthErrorHandler {
         case 504:
           return {
             code: AuthErrorCode.SERVER_ERROR,
-            message: `Server error: ${error.status}`,
+            message: `Server error: ${err.status}`,
             retryable: true,
             retryAfter: 5,
             userMessage: 'Our servers are experiencing issues. Please try again in a few moments.',
@@ -141,14 +144,15 @@ export class AuthErrorHandler {
     }
 
     // GraphQL errors
-    if (error.graphQLErrors?.length > 0) {
-      return this.handleGraphQLError(error.graphQLErrors[0]);
+    const graphQLErr = err as { graphQLErrors?: unknown[] };
+    if (graphQLErr.graphQLErrors && graphQLErr.graphQLErrors.length > 0) {
+      return this.handleGraphQLError(graphQLErr.graphQLErrors[0]);
     }
 
     // Default unknown error
     return {
       code: AuthErrorCode.UNKNOWN_ERROR,
-      message: error.message || 'Unknown error occurred',
+      message: err.message || 'Unknown error occurred',
       retryable: false,
       userMessage: 'An unexpected error occurred. Please try again or contact support if the problem persists.',
       actionRequired: 'CONTACT_SUPPORT',
@@ -159,7 +163,8 @@ export class AuthErrorHandler {
    * Handle 401 Unauthorized errors
    */
   private handleUnauthorizedError(error: unknown): AuthError {
-    const errorCode = error.body?.code || error.code;
+    const err = error as { body?: { code?: string }; code?: string };
+    const errorCode = err.body?.code || err.code;
     
     switch (errorCode) {
       case 'INVALID_CREDENTIALS':
@@ -215,7 +220,8 @@ export class AuthErrorHandler {
    * Handle 429 Rate Limit errors
    */
   private handleRateLimitError(error: unknown): AuthError {
-    const retryAfter = parseInt(error.headers?.['retry-after']) || 60;
+    const err = error as { headers?: Record<string, string> };
+    const retryAfter = parseInt(err.headers?.['retry-after'] || '60') || 60;
     
     return {
       code: AuthErrorCode.TOO_MANY_ATTEMPTS,
@@ -231,7 +237,9 @@ export class AuthErrorHandler {
    * Handle social authentication errors
    */
   private handleSocialAuthError(error: unknown): AuthError {
-    if (error.message?.includes('popup')) {
+    const err = error as { message?: string };
+    
+    if (err.message?.includes('popup')) {
       return {
         code: AuthErrorCode.POPUP_BLOCKED,
         message: 'Popup blocked',
@@ -241,7 +249,7 @@ export class AuthErrorHandler {
       };
     }
 
-    if (error.message?.includes('cancelled')) {
+    if (err.message?.includes('cancelled')) {
       return {
         code: AuthErrorCode.OAUTH_CANCELLED,
         message: 'OAuth cancelled',
@@ -253,7 +261,7 @@ export class AuthErrorHandler {
 
     return {
       code: AuthErrorCode.OAUTH_FAILED,
-      message: error.message || 'Social authentication failed',
+      message: err.message || 'Social authentication failed',
       retryable: true,
       userMessage: 'Social sign-in failed. Please try again or use email/password instead.',
       actionRequired: 'RETRY',
@@ -264,7 +272,8 @@ export class AuthErrorHandler {
    * Handle GraphQL errors
    */
   private handleGraphQLError(error: unknown): AuthError {
-    const code = error.extensions?.code;
+    const err = error as { extensions?: { code?: string }; message?: string };
+    const code = err.extensions?.code;
     
     switch (code) {
       case 'UNAUTHENTICATED':
@@ -286,7 +295,7 @@ export class AuthErrorHandler {
       default:
         return {
           code: AuthErrorCode.SERVER_ERROR,
-          message: error.message,
+          message: err.message || 'Unknown error',
           retryable: true,
           userMessage: 'A server error occurred. Please try again.',
           actionRequired: 'RETRY',

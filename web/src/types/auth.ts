@@ -6,6 +6,16 @@
 // Re-export existing types
 export * from './core';
 
+// Error Payload Interface
+export interface ErrorPayload {
+  type: string;
+  message: string;
+  operationName?: string;
+  extensions?: Record<string, unknown>;
+  code?: string;
+  statusCode?: number;
+}
+
 // User Role Enum (matching backend)
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',

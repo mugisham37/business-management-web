@@ -229,16 +229,10 @@ export const completeAuthSystem = new CompleteAuthSystem();
 // Authentication Gateway
 export {
   AuthGateway,
-  authGateway,
-  configureAuthGateway,
+  useAuthGateway,
   type AuthCredentials,
   type AuthResult,
-  type TierInfo,
-  type DeviceInfo,
-  type DeviceSession,
-  type SecurityEvent,
-  type AuthGatewayConfig,
-  SecurityEventType,
+  type PostAuthRouting,
 } from './auth-gateway';
 
 // Device Fingerprinting

@@ -22,7 +22,7 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
     "plugins": [
       {
         "name": "next"
