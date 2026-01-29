@@ -9,6 +9,7 @@ import { BusinessMetricsService } from './services/business-metrics.service';
 import { FeatureFlagService } from './services/feature-flag.service';
 import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking.service';
 import { OnboardingService } from './services/onboarding.service';
+import { BusinessProfileService } from './services/business-profile.service';
 
 // Resolvers
 import { TenantResolver } from './resolvers/tenant.resolver';
@@ -59,6 +60,7 @@ import { LoggerModule } from '../logger/logger.module';
     FeatureFlagService,
     TenantMetricsTrackingService,
     OnboardingService,
+    BusinessProfileService,
 
     // Resolvers
     TenantResolver,
@@ -96,6 +98,7 @@ import { LoggerModule } from '../logger/logger.module';
     FeatureFlagService,
     TenantMetricsTrackingService,
     OnboardingService,
+    BusinessProfileService,
 
     // Export guards and interceptors for manual use
     TenantGuard,

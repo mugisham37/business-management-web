@@ -40,7 +40,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - Add progress saving and resumption capabilities
     - _Requirements: 2.1, 2.7, 2.8_
 
-  - [-] 2.2 Implement business profile collection and validation
+  - [x] 2.2 Implement business profile collection and validation
     - Create data models for business profile information
     - Add validation schemas for each onboarding step
     - Implement industry classification and business type logic
@@ -50,7 +50,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 2: Onboarding Workflow Consistency**
     - **Validates: Requirements 2.1, 2.7, 2.8**
 
-  - [ ] 2.4 Create GraphQL mutations and queries for onboarding flow
+  - [-] 2.4 Create GraphQL mutations and queries for onboarding flow
     - Add mutations for saving onboarding step data
     - Create queries for retrieving onboarding progress
     - Implement real-time progress updates via subscriptions

@@ -5,6 +5,7 @@ import { DrizzleService } from '../../database/drizzle.service';
 import { tenants } from '../../database/schema';
 import { CustomLoggerService } from '../../logger/logger.service';
 import { BusinessTier, BusinessMetrics } from '../entities/tenant.entity';
+import { BusinessProfileService } from './business-profile.service';
 
 /**
  * Onboarding step identifiers
@@ -183,6 +184,7 @@ export class OnboardingService {
         private readonly drizzle: DrizzleService,
         private readonly logger: CustomLoggerService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly businessProfileService: BusinessProfileService,
     ) {
         this.logger.setContext('OnboardingService');
     }
@@ -215,12 +217,20 @@ export class OnboardingService {
     /**
      * Validate step data against configured rules
      */
-    validateStepData(step: OnboardingStep, data: Partial<OnboardingData>): Record<string, string[]> {
+    async validateStepData(step: OnboardingStep, data: Partial<OnboardingData>): Promise<Record<string, string[]>> {
         const stepConfig = this.workflowConfig.get(step);
         if (!stepConfig) {
             throw new BadRequestException(`Invalid step: ${step}`);
         }
 
+        // Use business profile service for comprehensive validation
+        const validation = await this.businessProfileService.validateStepData(step, data);
+        
+        if (!validation.isValid) {
+            return validation.errors;
+        }
+
+        // Additional workflow-specific validation
         const errors: Record<string, string[]> = {};
 
         for (const rule of stepConfig.validationRules) {
@@ -498,7 +508,7 @@ export class OnboardingService {
         }
 
         // Validate step data
-        const validationErrors = this.validateStepData(step, data);
+        const validationErrors = await this.validateStepData(step, data);
         if (Object.keys(validationErrors).length > 0) {
             throw new BadRequestException({
                 message: 'Validation failed',
