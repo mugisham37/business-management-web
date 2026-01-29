@@ -57,13 +57,13 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - _Requirements: 2.1, 2.7, 2.8_
 
 - [-] 3. Build AI-powered pricing engine and tier calculator
-  - [-] 3.1 Implement tier recommendation algorithm
+  - [x] 3.1 Implement tier recommendation algorithm
     - Create rule-based recommendation engine using business profile data
     - Add confidence scoring and alternative suggestions
     - Integrate with existing tier calculation logic
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 3.2 Enhance tier calculator with dynamic evaluation
+  - [x] 3.2 Enhance tier calculator with dynamic evaluation
     - Extend existing tier calculator with real-time metric evaluation
     - Add automatic upgrade recommendations when thresholds are exceeded
     - Implement comprehensive audit logging for tier changes
@@ -77,7 +77,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 5: Tier Calculation Accuracy**
     - **Validates: Requirements 5.1, 5.2, 5.3**
 
-  - [ ] 3.5 Implement subscription management with trial support
+  - [-] 3.5 Implement subscription management with trial support
     - Add trial subscription creation and management
     - Implement upgrade/downgrade processing with prorated pricing
     - Create notification system for trial expiration reminders

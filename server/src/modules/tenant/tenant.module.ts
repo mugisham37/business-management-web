@@ -11,6 +11,8 @@ import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking
 import { OnboardingService } from './services/onboarding.service';
 import { BusinessProfileService } from './services/business-profile.service';
 import { PricingEngineService } from './services/pricing-engine.service';
+import { TierCalculatorService } from './services/tier-calculator.service';
+import { SubscriptionManagementService } from './services/subscription-management.service';
 
 // Resolvers
 import { TenantResolver } from './resolvers/tenant.resolver';
@@ -20,6 +22,8 @@ import { TenantSubscriptionsResolver } from './resolvers/tenant-subscriptions.re
 import { OnboardingResolver } from './resolvers/onboarding.resolver';
 import { TierAccessResolver } from './resolvers/tier-access.resolver';
 import { PricingEngineResolver } from './resolvers/pricing-engine.resolver';
+import { TierCalculatorResolver } from './resolvers/tier-calculator.resolver';
+import { SubscriptionManagementResolver } from './resolvers/subscription-management.resolver';
 
 // Guards
 import { TenantGuard } from './guards/tenant.guard';
@@ -64,6 +68,8 @@ import { LoggerModule } from '../logger/logger.module';
     OnboardingService,
     BusinessProfileService,
     PricingEngineService,
+    TierCalculatorService,
+    SubscriptionManagementService,
 
     // Resolvers
     TenantResolver,
@@ -73,6 +79,8 @@ import { LoggerModule } from '../logger/logger.module';
     OnboardingResolver,
     TierAccessResolver,
     PricingEngineResolver,
+    TierCalculatorResolver,
+    SubscriptionManagementResolver,
 
     // Guards - Global application
     {
@@ -104,6 +112,7 @@ import { LoggerModule } from '../logger/logger.module';
     OnboardingService,
     BusinessProfileService,
     PricingEngineService,
+    TierCalculatorService,
 
     // Export guards and interceptors for manual use
     TenantGuard,
