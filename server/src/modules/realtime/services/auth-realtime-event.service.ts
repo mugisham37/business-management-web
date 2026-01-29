@@ -150,10 +150,10 @@ export class AuthRealtimeEventService {
         platform: deviceInfo.platform,
         trusted: deviceInfo.trusted,
       },
-      ipAddress,
-      userAgent,
-      deviceInfo,
       timestamp: new Date(),
+      deviceInfo,
+      ...(ipAddress ? { ipAddress } : {}),
+      ...(userAgent ? { userAgent } : {}),
     };
 
     await this.broadcastSecurityEvent(event);
@@ -185,9 +185,9 @@ export class AuthRealtimeEventService {
         details,
         ...metadata,
       },
-      ipAddress,
-      userAgent,
       timestamp: new Date(),
+      ...(ipAddress ? { ipAddress } : {}),
+      ...(userAgent ? { userAgent } : {}),
     };
 
     await this.broadcastSecurityEvent(event);
@@ -263,10 +263,10 @@ export class AuthRealtimeEventService {
         platform: deviceInfo?.platform,
         deviceName: deviceInfo?.deviceName,
       },
-      ipAddress,
-      userAgent,
-      deviceInfo,
       timestamp: new Date(),
+      ...(deviceInfo ? { deviceInfo } : {}),
+      ...(ipAddress ? { ipAddress } : {}),
+      ...(userAgent ? { userAgent } : {}),
     };
 
     await this.broadcastSecurityEvent(event);
@@ -295,9 +295,9 @@ export class AuthRealtimeEventService {
         email,
         reason,
       },
-      ipAddress,
-      userAgent,
       timestamp: new Date(),
+      ...(ipAddress ? { ipAddress } : {}),
+      ...(userAgent ? { userAgent } : {}),
     };
 
     // Broadcast to tenant administrators

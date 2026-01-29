@@ -810,8 +810,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private hasAdminPermissions(user: AuthenticatedUser): boolean {
     // Check if user has admin role or specific permissions
-    return user.role === 'admin' || 
-           user.role === 'owner' || 
+    return user.role === 'super_admin' || 
+           user.role === 'tenant_admin' || 
            (user.permissions && user.permissions.includes('manage_users'));
   }
 }

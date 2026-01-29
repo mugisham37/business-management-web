@@ -3,7 +3,7 @@ import { InjectDrizzle, DrizzleDB } from '../../database/drizzle.service';
 import { RealtimeGateway } from '../gateways/realtime.gateway';
 import { NotificationService } from './notification.service';
 import { AuthRealtimeEventService, SecurityEventType, DeviceInfo } from './auth-realtime-event.service';
-import { deviceTokens, userSessions } from '../../database/schema/notification.schema';
+import { deviceTokens } from '../../database/schema/notification.schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
@@ -222,13 +222,13 @@ export class CrossDeviceNotificationService {
         title: titleMap[feedback.eventType],
         message: messageMap[feedback.eventType],
         severity: severityMap[feedback.eventType],
-        sourceDevice: feedback.deviceInfo,
         metadata: {
           mfaMethod: feedback.method,
           eventType: feedback.eventType,
           ...feedback.metadata,
         },
         timestamp: feedback.timestamp,
+        ...(feedback.deviceInfo ? { sourceDevice: feedback.deviceInfo } : {}),
       };
 
       await this.sendCrossDeviceNotification(notification);
@@ -346,8 +346,8 @@ export class CrossDeviceNotificationService {
         deviceId: device.deviceId || device.id,
         platform: device.platform as 'web' | 'ios' | 'android',
         deviceName: device.deviceId || `${device.platform} device`,
-        appVersion: device.appVersion,
         trusted: true, // Assume registered devices are trusted
+        ...(device.appVersion != null ? { appVersion: device.appVersion } : {}),
       }));
 
     } catch (error) {
@@ -382,7 +382,7 @@ export class CrossDeviceNotificationService {
           title: notification.title,
           message: notification.message,
           priority: this.mapSeverityToPriority(notification.severity),
-          metadata: notification.metadata,
+          ...(notification.metadata ? { metadata: notification.metadata } : {}),
         },
       );
 

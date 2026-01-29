@@ -4,7 +4,7 @@ import { CrossDeviceNotificationService } from './cross-device-notification.serv
 import { AuthRealtimeEventService } from './auth-realtime-event.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { eq, and, gte, count, desc, sql } from 'drizzle-orm';
-import { userSessions } from '../../database/schema/notification.schema';
+import { userSessions } from '../../database/schema/user.schema';
 
 export interface SuspiciousActivityRule {
   id: string;
@@ -315,6 +315,10 @@ export class SuspiciousActivityDetectorService {
 
       // If more than 5 concurrent sessions, it's suspicious
       if (activeSessions.length > 5) {
+        const ipAddresses = activeSessions
+          .map(session => session.ipAddress)
+          .filter((ip): ip is string => typeof ip === 'string' && ip.length > 0);
+
         const suspiciousEvent: SuspiciousActivityEvent = {
           id: this.generateEventId(),
           userId,
@@ -340,7 +344,7 @@ export class SuspiciousActivityDetectorService {
           }],
           metadata: {
             sessionCount: activeSessions.length,
-            ipAddresses: [...new Set(activeSessions.map(s => s.ipAddress).filter(Boolean))],
+            ipAddresses: [...new Set(ipAddresses)],
           },
           timestamp: new Date(),
           resolved: false,
@@ -380,7 +384,9 @@ export class SuspiciousActivityDetectorService {
           event.resolved = true;
           event.resolvedBy = resolvedBy;
           event.resolvedAt = new Date();
-          event.resolutionNotes = resolutionNotes;
+          if (resolutionNotes !== undefined) {
+            event.resolutionNotes = resolutionNotes;
+          }
 
           this.logger.log(`Suspicious activity event resolved: ${eventId} by ${resolvedBy}`);
           break;
