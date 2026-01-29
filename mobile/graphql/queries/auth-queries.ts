@@ -1,6 +1,6 @@
 /**
- * Complete Authentication GraphQL Queries
- * All authentication-related queries for the AuthGateway
+ * Mobile Authentication GraphQL Queries
+ * Complete authentication queries for mobile app parity
  */
 
 import { gql } from '@apollo/client';
@@ -68,6 +68,15 @@ export const GET_MFA_STATUS_QUERY = gql`
       backupCodesCount
       lastUsedAt
     }
+  }
+`;
+
+/**
+ * Check if MFA is enabled for current user
+ */
+export const IS_MFA_ENABLED_QUERY = gql`
+  query IsMfaEnabled {
+    isMfaEnabled
   }
 `;
 
@@ -163,30 +172,30 @@ export const GET_ROLES_QUERY = gql`
 `;
 
 /**
- * Get role permissions
+ * Get social auth URL for OAuth providers
  */
-export const GET_ROLE_PERMISSIONS_QUERY = gql`
-  query GetRolePermissions($role: String!) {
-    getRolePermissions(role: $role)
+export const GET_SOCIAL_AUTH_URL_QUERY = gql`
+  query GetSocialAuthUrl($provider: String!, $redirectUri: String) {
+    getSocialAuthUrl(provider: $provider, redirectUri: $redirectUri) {
+      url
+      state
+      provider
+    }
   }
 `;
 
 /**
- * Get active sessions
+ * Get connected social providers
  */
-export const GET_ACTIVE_SESSIONS_QUERY = gql`
-  query GetActiveSessions($sessionId: String) {
-    getActiveSessions(sessionId: $sessionId) {
-      id
-      userId
-      deviceInfo
-      ipAddress
-      userAgent
-      createdAt
-      lastActivity
-      expiresAt
-      isActive
-      isCurrentSession
+export const GET_CONNECTED_SOCIAL_PROVIDERS_QUERY = gql`
+  query GetConnectedSocialProviders {
+    getConnectedSocialProviders {
+      provider
+      providerId
+      email
+      displayName
+      connectedAt
+      lastUsed
     }
   }
 `;
@@ -292,6 +301,60 @@ export const GET_MY_TIER_QUERY = gql`
 `;
 
 /**
+ * Basic tier feature access check
+ */
+export const BASIC_FEATURE_QUERY = gql`
+  query BasicFeature {
+    basicFeature
+  }
+`;
+
+/**
+ * Small tier feature access check
+ */
+export const SMALL_TIER_FEATURE_QUERY = gql`
+  query SmallTierFeature {
+    smallTierFeature
+  }
+`;
+
+/**
+ * Medium tier feature access check
+ */
+export const MEDIUM_TIER_FEATURE_QUERY = gql`
+  query MediumTierFeature {
+    mediumTierFeature
+  }
+`;
+
+/**
+ * Enterprise tier feature access check
+ */
+export const ENTERPRISE_FEATURE_QUERY = gql`
+  query EnterpriseFeature {
+    enterpriseFeature
+  }
+`;
+
+/**
+ * Get user's available features based on tier
+ */
+export const GET_USER_FEATURES_QUERY = gql`
+  query GetUserFeatures {
+    getUserFeatures
+  }
+`;
+
+/**
+ * Get upgrade recommendations for user
+ */
+export const GET_UPGRADE_RECOMMENDATIONS_QUERY = gql`
+  query GetUpgradeRecommendations {
+    getUpgradeRecommendations
+  }
+`;
+
+/**
  * Get device sessions
  */
 export const GET_DEVICE_SESSIONS_QUERY = gql`
@@ -333,35 +396,6 @@ export const GET_TRUSTED_DEVICES_QUERY = gql`
       trustedAt
       lastUsed
       isActive
-    }
-  }
-`;
-
-/**
- * Get security events
- */
-export const GET_SECURITY_EVENTS_QUERY = gql`
-  query GetSecurityEvents($filter: SecurityEventFilterInput, $pagination: PaginationInput) {
-    getSecurityEvents(filter: $filter, pagination: $pagination) {
-      events {
-        id
-        type
-        userId
-        sessionId
-        deviceInfo {
-          deviceId
-          platform
-          deviceName
-          fingerprint
-        }
-        ipAddress
-        timestamp
-        metadata
-        severity
-      }
-      totalCount
-      hasNextPage
-      hasPreviousPage
     }
   }
 `;
@@ -431,222 +465,6 @@ export const VALIDATE_SESSION_QUERY = gql`
         role
         permissions
       }
-    }
-  }
-`;
-
-/**
- * Get IP restrictions
- */
-export const GET_IP_RESTRICTIONS_QUERY = gql`
-  query GetIpRestrictions {
-    getIpRestrictions {
-      allowedIps
-      blockedIps
-      isEnabled
-      lastUpdated
-    }
-  }
-`;
-
-/**
- * Get time-based access settings
- */
-export const GET_TIME_BASED_ACCESS_QUERY = gql`
-  query GetTimeBasedAccess {
-    getTimeBasedAccess {
-      isEnabled
-      allowedHours
-      timezone
-      exceptions {
-        date
-        allowedHours
-        reason
-      }
-    }
-  }
-`;
-
-/**
- * Get social auth URL for OAuth providers
- */
-export const GET_SOCIAL_AUTH_URL_QUERY = gql`
-  query GetSocialAuthUrl($provider: String!, $redirectUri: String) {
-    getSocialAuthUrl(provider: $provider, redirectUri: $redirectUri) {
-      url
-      state
-      provider
-    }
-  }
-`;
-
-/**
- * Get connected social providers
- */
-export const GET_CONNECTED_SOCIAL_PROVIDERS_QUERY = gql`
-  query GetConnectedSocialProviders {
-    getConnectedSocialProviders {
-      provider
-      providerId
-      email
-      displayName
-      connectedAt
-      lastUsed
-    }
-  }
-`;
-
-/**
- * Basic tier feature access check
- */
-export const BASIC_FEATURE_QUERY = gql`
-  query BasicFeature {
-    basicFeature
-  }
-`;
-
-/**
- * Small tier feature access check
- */
-export const SMALL_TIER_FEATURE_QUERY = gql`
-  query SmallTierFeature {
-    smallTierFeature
-  }
-`;
-
-/**
- * Medium tier feature access check
- */
-export const MEDIUM_TIER_FEATURE_QUERY = gql`
-  query MediumTierFeature {
-    mediumTierFeature
-  }
-`;
-
-/**
- * Enterprise tier feature access check
- */
-export const ENTERPRISE_FEATURE_QUERY = gql`
-  query EnterpriseFeature {
-    enterpriseFeature
-  }
-`;
-
-/**
- * Advanced reports feature access check
- */
-export const ADVANCED_REPORTS_QUERY = gql`
-  query AdvancedReports {
-    advancedReports
-  }
-`;
-
-/**
- * Multi-location data feature access check
- */
-export const MULTI_LOCATION_DATA_QUERY = gql`
-  query MultiLocationData {
-    multiLocationData
-  }
-`;
-
-/**
- * Get user's available features based on tier
- */
-export const GET_USER_FEATURES_QUERY = gql`
-  query GetUserFeatures {
-    getUserFeatures
-  }
-`;
-
-/**
- * Get upgrade recommendations for user
- */
-export const GET_UPGRADE_RECOMMENDATIONS_QUERY = gql`
-  query GetUpgradeRecommendations {
-    getUpgradeRecommendations
-  }
-`;
-
-/**
- * Check if MFA is enabled for current user
- */
-export const IS_MFA_ENABLED_QUERY = gql`
-  query IsMfaEnabled {
-    isMfaEnabled
-  }
-`;
-
-/**
- * Get detailed permission check with metadata
- */
-export const CHECK_PERMISSION_WITH_DETAILS_QUERY = gql`
-  query CheckPermissionWithDetails($input: CheckPermissionInput!) {
-    checkPermissionWithDetails(input: $input) {
-      hasPermission
-      source
-      grantedAt
-      expiresAt
-      grantedBy
-      isInherited
-      roleSource
-      metadata
-    }
-  }
-`;
-
-/**
- * Get user permissions with detailed metadata
- */
-export const GET_USER_PERMISSIONS_WITH_METADATA_QUERY = gql`
-  query GetUserPermissionsWithMetadata($userId: String!) {
-    getUserPermissionsWithMetadata(userId: $userId) {
-      permissions
-      role
-      detailedPermissions {
-        id
-        userId
-        permission
-        resource
-        resourceId
-        grantedBy
-        grantedAt
-        expiresAt
-        isInherited
-        roleSource
-        metadata
-      }
-      includesInherited
-      lastUpdated
-    }
-  }
-`;
-
-/**
- * Get available permissions with detailed information
- */
-export const GET_AVAILABLE_PERMISSIONS_DETAILED_QUERY = gql`
-  query GetAvailablePermissionsDetailed {
-    getAvailablePermissionsDetailed {
-      permissions {
-        name
-        resource
-        action
-        description
-        category
-      }
-      resources {
-        name
-        description
-        actions
-      }
-      roles {
-        name
-        permissions
-        description
-        isDefault
-      }
-      categories
     }
   }
 `;

@@ -149,8 +149,8 @@ This implementation plan converts the authentication integration design into dis
     - Create device trust management and suspicious device handling
     - _Requirements: 5.5, 9.3, 9.4_
 
-- [ ] 9. Ensure complete GraphQL API utilization
-  - [ ] 9.1 Audit and implement missing GraphQL operations
+- [-] 9. Ensure complete GraphQL API utilization
+  - [x] 9.1 Audit and implement missing GraphQL operations
     - Map all 25+ mutations and 23+ queries to frontend usage
     - Implement any missing GraphQL integrations
     - Ensure mobile app uses same GraphQL endpoints as web
@@ -160,7 +160,7 @@ This implementation plan converts the authentication integration design into dis
     - **Property 12: GraphQL API Consistency**
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5**
 
-  - [ ] 9.3 Implement GraphQL subscription usage for real-time features
+  - [-] 9.3 Implement GraphQL subscription usage for real-time features
     - Connect all real-time features to GraphQL subscriptions
     - Ensure complete utilization of available GraphQL operations
     - _Requirements: 8.4, 8.5_

@@ -1,13 +1,35 @@
 /**
- * Complete Authentication GraphQL Subscriptions
- * Real-time authentication event subscriptions for the AuthGateway
+ * Mobile Authentication GraphQL Subscriptions
+ * Real-time authentication event subscriptions for mobile app
  */
 
 import { gql } from '@apollo/client';
 
 /**
+ * Subscribe to security events for current user (mobile-specific)
+ */
+export const SECURITY_EVENTS_SUBSCRIPTION = gql`
+  subscription SecurityEvents($userId: ID!) {
+    securityEvents(userId: $userId) {
+      type
+      userId
+      sessionId
+      deviceInfo {
+        deviceId
+        platform
+        deviceName
+        fingerprint
+      }
+      ipAddress
+      timestamp
+      metadata
+      severity
+    }
+  }
+`;
+
+/**
  * Subscribe to authentication events for current user
- * Receives login, logout, and session events
  */
 export const AUTH_EVENTS_SUBSCRIPTION = gql`
   subscription AuthEvents {
@@ -31,7 +53,6 @@ export const AUTH_EVENTS_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to permission changes for current user
- * Receives permission grants, revokes, and role changes
  */
 export const PERMISSION_CHANGES_SUBSCRIPTION = gql`
   subscription PermissionChanges {
@@ -49,37 +70,7 @@ export const PERMISSION_CHANGES_SUBSCRIPTION = gql`
 `;
 
 /**
- * Subscribe to tenant-wide authentication events (admin only)
- * Requires admin permissions to monitor tenant security events
- */
-export const TENANT_AUTH_EVENTS_SUBSCRIPTION = gql`
-  subscription TenantAuthEvents {
-    tenantAuthEvents {
-      type
-      userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
-      timestamp
-      metadata
-      severity
-      user {
-        id
-        email
-        displayName
-      }
-    }
-  }
-`;
-
-/**
- * Subscribe to security alerts for tenant
- * Receives failed login attempts, account lockouts, and suspicious activities
+ * Subscribe to security alerts
  */
 export const SECURITY_ALERTS_SUBSCRIPTION = gql`
   subscription SecurityAlerts {
@@ -108,7 +99,6 @@ export const SECURITY_ALERTS_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to MFA events for current user
- * Receives MFA setup, enable, disable, and verification events
  */
 export const MFA_EVENTS_SUBSCRIPTION = gql`
   subscription MfaEvents {
@@ -130,7 +120,6 @@ export const MFA_EVENTS_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to session events for current user
- * Receives session creation, expiration, and revocation events
  */
 export const SESSION_EVENTS_SUBSCRIPTION = gql`
   subscription SessionEvents {
@@ -153,54 +142,7 @@ export const SESSION_EVENTS_SUBSCRIPTION = gql`
 `;
 
 /**
- * Subscribe to role assignment events in tenant (admin only)
- * Requires admin permissions to monitor role assignments
- */
-export const ROLE_ASSIGNMENT_EVENTS_SUBSCRIPTION = gql`
-  subscription RoleAssignmentEvents {
-    roleAssignmentEvents {
-      type
-      userId
-      role
-      assignedBy
-      timestamp
-      metadata
-      user {
-        id
-        email
-        displayName
-      }
-    }
-  }
-`;
-
-/**
- * Subscribe to events for a specific user (admin only)
- * Requires admin permissions to monitor other users
- */
-export const USER_EVENTS_SUBSCRIPTION = gql`
-  subscription UserEvents($userId: String!) {
-    userEvents(userId: $userId) {
-      type
-      userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
-      timestamp
-      metadata
-      severity
-    }
-  }
-`;
-
-/**
  * Subscribe to tier changes for current user
- * Receives tier upgrade/downgrade notifications
  */
 export const TIER_CHANGES_SUBSCRIPTION = gql`
   subscription TierChanges {
@@ -225,7 +167,6 @@ export const TIER_CHANGES_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to payment events for current user
- * Receives payment success, failure, and subscription updates
  */
 export const PAYMENT_EVENTS_SUBSCRIPTION = gql`
   subscription PaymentEvents {
@@ -245,7 +186,6 @@ export const PAYMENT_EVENTS_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to device trust changes
- * Receives device trust/untrust notifications
  */
 export const DEVICE_TRUST_EVENTS_SUBSCRIPTION = gql`
   subscription DeviceTrustEvents {
@@ -268,7 +208,6 @@ export const DEVICE_TRUST_EVENTS_SUBSCRIPTION = gql`
 
 /**
  * Subscribe to onboarding progress updates
- * Receives step completion and recommendation updates
  */
 export const ONBOARDING_PROGRESS_SUBSCRIPTION = gql`
   subscription OnboardingProgress {
@@ -286,26 +225,7 @@ export const ONBOARDING_PROGRESS_SUBSCRIPTION = gql`
 `;
 
 /**
- * Subscribe to IP restriction events
- * Receives IP block/unblock notifications
- */
-export const IP_RESTRICTION_EVENTS_SUBSCRIPTION = gql`
-  subscription IpRestrictionEvents {
-    ipRestrictionEvents {
-      type
-      ipAddress
-      reason
-      timestamp
-      expiresAt
-      blockedBy
-      metadata
-    }
-  }
-`;
-
-/**
  * Subscribe to session limit events
- * Receives notifications when session limits are reached
  */
 export const SESSION_LIMIT_EVENTS_SUBSCRIPTION = gql`
   subscription SessionLimitEvents {
@@ -322,17 +242,51 @@ export const SESSION_LIMIT_EVENTS_SUBSCRIPTION = gql`
 `;
 
 /**
- * Subscribe to password policy events
- * Receives password expiration and policy violation notifications
+ * Subscribe to push notification events (mobile-specific)
  */
-export const PASSWORD_POLICY_EVENTS_SUBSCRIPTION = gql`
-  subscription PasswordPolicyEvents {
-    passwordPolicyEvents {
+export const PUSH_NOTIFICATION_EVENTS_SUBSCRIPTION = gql`
+  subscription PushNotificationEvents {
+    pushNotificationEvents {
       type
       userId
+      title
+      body
+      data
       timestamp
-      daysUntilExpiry
-      policyViolations
+      priority
+      category
+    }
+  }
+`;
+
+/**
+ * Subscribe to biometric authentication events (mobile-specific)
+ */
+export const BIOMETRIC_AUTH_EVENTS_SUBSCRIPTION = gql`
+  subscription BiometricAuthEvents {
+    biometricAuthEvents {
+      type
+      userId
+      deviceId
+      biometricType
+      success
+      timestamp
+      metadata
+    }
+  }
+`;
+
+/**
+ * Subscribe to deep link events (mobile-specific)
+ */
+export const DEEP_LINK_EVENTS_SUBSCRIPTION = gql`
+  subscription DeepLinkEvents {
+    deepLinkEvents {
+      type
+      userId
+      url
+      handled
+      timestamp
       metadata
     }
   }

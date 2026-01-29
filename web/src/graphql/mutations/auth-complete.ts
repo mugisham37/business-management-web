@@ -396,3 +396,296 @@ export const UNTRUST_DEVICE_MUTATION = gql`
     }
   }
 `;
+
+/**
+ * Setup MFA mutation - generates QR code and backup codes
+ */
+export const SETUP_MFA_MUTATION = gql`
+  mutation SetupMfa($input: SetupMfaInput!) {
+    setupMfa(input: $input) {
+      success
+      message
+      secret
+      qrCodeUrl
+      backupCodes
+      manualEntryKey
+    }
+  }
+`;
+
+/**
+ * Verify MFA token mutation
+ */
+export const VERIFY_MFA_MUTATION = gql`
+  mutation VerifyMfa($input: VerifyMfaInput!) {
+    verifyMfa(input: $input) {
+      success
+      message
+      isValid
+      remainingAttempts
+    }
+  }
+`;
+
+/**
+ * Link social provider mutation
+ */
+export const LINK_SOCIAL_PROVIDER_MUTATION = gql`
+  mutation LinkSocialProvider($input: LinkSocialProviderInput!) {
+    linkSocialProvider(input: $input) {
+      success
+      message
+      provider {
+        provider
+        providerId
+        email
+        displayName
+        connectedAt
+      }
+    }
+  }
+`;
+
+/**
+ * Unlink social provider mutation
+ */
+export const UNLINK_SOCIAL_PROVIDER_MUTATION = gql`
+  mutation UnlinkSocialProvider($input: UnlinkSocialProviderInput!) {
+    unlinkSocialProvider(input: $input) {
+      success
+      message
+    }
+  }
+`;
+
+/**
+ * Start onboarding mutation
+ */
+export const START_ONBOARDING_MUTATION = gql`
+  mutation StartOnboarding($input: StartOnboardingInput!) {
+    startOnboarding(input: $input) {
+      success
+      message
+      sessionId
+      currentStep
+      totalSteps
+    }
+  }
+`;
+
+/**
+ * Submit onboarding step mutation
+ */
+export const SUBMIT_ONBOARDING_STEP_MUTATION = gql`
+  mutation SubmitOnboardingStep($input: SubmitOnboardingStepInput!) {
+    submitOnboardingStep(input: $input) {
+      success
+      message
+      nextStep
+      isCompleted
+      recommendedTier
+    }
+  }
+`;
+
+/**
+ * Complete onboarding mutation
+ */
+export const COMPLETE_ONBOARDING_MUTATION = gql`
+  mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
+    completeOnboarding(input: $input) {
+      success
+      message
+      selectedTier
+      activatedFeatures
+      redirectUrl
+    }
+  }
+`;
+
+/**
+ * Update tier mutation
+ */
+export const UPDATE_TIER_MUTATION = gql`
+  mutation UpdateTier($input: UpdateTierInput!) {
+    updateTier(input: $input) {
+      success
+      message
+      newTier
+      activatedFeatures
+      deactivatedFeatures
+    }
+  }
+`;
+
+/**
+ * Process payment mutation
+ */
+export const PROCESS_PAYMENT_MUTATION = gql`
+  mutation ProcessPayment($input: ProcessPaymentInput!) {
+    processPayment(input: $input) {
+      success
+      message
+      paymentId
+      subscriptionId
+      status
+      nextBillingDate
+    }
+  }
+`;
+
+/**
+ * Update payment method mutation
+ */
+export const UPDATE_PAYMENT_METHOD_MUTATION = gql`
+  mutation UpdatePaymentMethod($input: UpdatePaymentMethodInput!) {
+    updatePaymentMethod(input: $input) {
+      success
+      message
+      paymentMethod {
+        id
+        type
+        last4
+        expiryMonth
+        expiryYear
+      }
+    }
+  }
+`;
+
+/**
+ * Cancel subscription mutation
+ */
+export const CANCEL_SUBSCRIPTION_MUTATION = gql`
+  mutation CancelSubscription($input: CancelSubscriptionInput!) {
+    cancelSubscription(input: $input) {
+      success
+      message
+      canceledAt
+      accessUntil
+    }
+  }
+`;
+
+/**
+ * Update IP restrictions mutation
+ */
+export const UPDATE_IP_RESTRICTIONS_MUTATION = gql`
+  mutation UpdateIpRestrictions($input: UpdateIpRestrictionsInput!) {
+    updateIpRestrictions(input: $input) {
+      success
+      message
+      restrictions {
+        allowedIps
+        blockedIps
+        isEnabled
+      }
+    }
+  }
+`;
+
+/**
+ * Update time-based access mutation
+ */
+export const UPDATE_TIME_BASED_ACCESS_MUTATION = gql`
+  mutation UpdateTimeBasedAccess($input: UpdateTimeBasedAccessInput!) {
+    updateTimeBasedAccess(input: $input) {
+      success
+      message
+      settings {
+        isEnabled
+        allowedHours
+        timezone
+        exceptions {
+          date
+          allowedHours
+          reason
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * Register device mutation
+ */
+export const REGISTER_DEVICE_MUTATION = gql`
+  mutation RegisterDevice($input: RegisterDeviceInput!) {
+    registerDevice(input: $input) {
+      success
+      message
+      deviceId
+      fingerprint
+      trusted
+    }
+  }
+`;
+
+/**
+ * Update session mutation
+ */
+export const UPDATE_SESSION_MUTATION = gql`
+  mutation UpdateSession($input: UpdateSessionInput!) {
+    updateSession(input: $input) {
+      success
+      message
+      session {
+        id
+        expiresAt
+        lastActivity
+      }
+    }
+  }
+`;
+
+/**
+ * Terminate all sessions for user mutation
+ */
+export const TERMINATE_ALL_USER_SESSIONS_MUTATION = gql`
+  mutation TerminateAllUserSessions($userId: String!) {
+    terminateAllUserSessions(userId: $userId) {
+      success
+      message
+      terminatedCount
+    }
+  }
+`;
+
+/**
+ * Send security alert mutation
+ */
+export const SEND_SECURITY_ALERT_MUTATION = gql`
+  mutation SendSecurityAlert($input: SendSecurityAlertInput!) {
+    sendSecurityAlert(input: $input) {
+      success
+      message
+      alertId
+    }
+  }
+`;
+
+/**
+ * Block IP address mutation
+ */
+export const BLOCK_IP_ADDRESS_MUTATION = gql`
+  mutation BlockIpAddress($input: BlockIpAddressInput!) {
+    blockIpAddress(input: $input) {
+      success
+      message
+      blockedIp
+      expiresAt
+    }
+  }
+`;
+
+/**
+ * Unblock IP address mutation
+ */
+export const UNBLOCK_IP_ADDRESS_MUTATION = gql`
+  mutation UnblockIpAddress($ipAddress: String!) {
+    unblockIpAddress(ipAddress: $ipAddress) {
+      success
+      message
+    }
+  }
+`;
