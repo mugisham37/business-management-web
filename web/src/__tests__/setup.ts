@@ -1,27 +1,32 @@
-// Jest setup file for additional test configuration
-import '@testing-library/jest-dom';
-
-// Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: 'div',
-    button: 'button',
-    span: 'span',
-  },
-  AnimatePresence: ({ children }: any) => children,
-}));
+/**
+ * Test Setup
+ * Global test configuration and mocks
+ */
 
 // Mock Next.js router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    pathname: '/',
+    query: {},
+    asPath: '/',
+  }),
+}));
+
+// Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
     replace: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-    refresh: jest.fn(),
     prefetch: jest.fn(),
+    back: jest.fn(),
+    pathname: '/',
+    searchParams: new URLSearchParams(),
   }),
-  usePathname: () => '/dashboard',
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -36,33 +41,18 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock WebSocket
-global.WebSocket = jest.fn(() => ({
-  close: jest.fn(),
-  send: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  readyState: 1,
-  CONNECTING: 0,
-  OPEN: 1,
-  CLOSING: 2,
-  CLOSED: 3,
-})) as any;
+// Mock console methods to reduce noise in tests
+global.console = {
+  ...console,
+  warn: jest.fn(),
+  error: jest.fn(),
+};
 
-// Suppress console warnings in tests
-const originalWarn = console.warn;
-beforeAll(() => {
-  console.warn = (...args: any[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('React does not recognize')
-    ) {
-      return;
-    }
-    originalWarn.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.warn = originalWarn;
+// Setup test environment
+beforeEach(() => {
+  jest.clearAllMocks();
+  localStorageMock.getItem.mockClear();
+  localStorageMock.setItem.mockClear();
+  localStorageMock.removeItem.mockClear();
+  localStorageMock.clear.mockClear();
 });
