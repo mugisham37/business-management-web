@@ -1,299 +1,390 @@
 /**
  * Push Notifications Hook
- *
- * Manages push notification permissions, registration, and handling.
+ * 
+ * Provides push notification functionality for security events,
+ * authentication requests, and session management.
+ * 
+ * Requirements: 3.5
  */
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import Constants from "expo-constants";
-import { useRouter } from "expo-router";
-import { appStorage, STORAGE_KEYS } from "@/lib/storage";
+import { useState, useEffect, useCallback } from 'react';
+import { Alert, Linking } from 'react-native';
+import { 
+  pushNotificationService, 
+  NotificationPermissions, 
+  SecurityNotification 
+} from '@/lib/notifications/PushNotificationService';
+import { useAuth } from '@/hooks/auth/useAuth';
 
-// Configure notification behavior
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-    }),
-});
-
-export interface PushNotificationState {
-    token: string | null;
-    isEnabled: boolean;
-    isLoading: boolean;
-    error: string | null;
+interface PushNotificationState {
+  isInitialized: boolean;
+  permissions: NotificationPermissions | null;
+  pushToken: string | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
-export interface NotificationData {
-    type: string;
-    id?: string;
-    route?: string;
-    [key: string]: any;
+interface NotificationEvent {
+  type: 'security_alert' | 'auth_request' | 'session_sync' | 'device_verification';
+  notification: any;
+  data: Record<string, any>;
+  action?: string;
 }
 
-/**
- * Hook for managing push notifications
- */
 export function usePushNotifications() {
-    const router = useRouter();
-    const [state, setState] = useState<PushNotificationState>({
-        token: null,
-        isEnabled: false,
-        isLoading: true,
-        error: null,
-    });
+  const { user } = useAuth();
+  
+  const [state, setState] = useState<PushNotificationState>({
+    isInitialized: false,
+    permissions: null,
+    pushToken: null,
+    isLoading: false,
+    error: null,
+  });
 
-    const notificationListener = useRef<Notifications.Subscription>();
-    const responseListener = useRef<Notifications.Subscription>();
+  const [recentNotifications, setRecentNotifications] = useState<NotificationEvent[]>([]);
 
-    /**
-     * Register for push notifications
-     */
-    const registerForPushNotifications = useCallback(async () => {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
+  /**
+   * Initialize push notifications when user is authenticated
+   */
+  useEffect(() => {
+    if (user?.id) {
+      initializePushNotifications();
+    } else {
+      cleanupPushNotifications();
+    }
 
-        try {
-            // Check if physical device
-            if (!Device.isDevice) {
-                setState((prev) => ({
-                    ...prev,
-                    isLoading: false,
-                    error: "Push notifications require a physical device",
-                }));
-                return null;
-            }
-
-            // Get existing permission status
-            const { status: existingStatus } =
-                await Notifications.getPermissionsAsync();
-            let finalStatus = existingStatus;
-
-            // Request permission if not already granted
-            if (existingStatus !== "granted") {
-                const { status } = await Notifications.requestPermissionsAsync();
-                finalStatus = status;
-            }
-
-            if (finalStatus !== "granted") {
-                setState((prev) => ({
-                    ...prev,
-                    isLoading: false,
-                    isEnabled: false,
-                    error: "Push notification permission denied",
-                }));
-                return null;
-            }
-
-            // Get push token
-            const projectId =
-                Constants.expoConfig?.extra?.eas?.projectId ??
-                Constants.easConfig?.projectId;
-
-            if (!projectId) {
-                console.warn("No EAS project ID found");
-            }
-
-            const tokenData = await Notifications.getExpoPushTokenAsync({
-                projectId,
-            });
-
-            const token = tokenData.data;
-
-            // Store token
-            appStorage.setString("pushToken", token);
-
-            // Android-specific notification channel
-            if (Platform.OS === "android") {
-                await Notifications.setNotificationChannelAsync("default", {
-                    name: "Default",
-                    importance: Notifications.AndroidImportance.MAX,
-                    vibrationPattern: [0, 250, 250, 250],
-                    lightColor: "#3B82F6",
-                });
-
-                await Notifications.setNotificationChannelAsync("orders", {
-                    name: "Orders",
-                    description: "New order notifications",
-                    importance: Notifications.AndroidImportance.HIGH,
-                    vibrationPattern: [0, 250, 250, 250],
-                    lightColor: "#22C55E",
-                });
-
-                await Notifications.setNotificationChannelAsync("inventory", {
-                    name: "Inventory",
-                    description: "Stock alerts and inventory updates",
-                    importance: Notifications.AndroidImportance.DEFAULT,
-                    lightColor: "#F59E0B",
-                });
-            }
-
-            setState({
-                token,
-                isEnabled: true,
-                isLoading: false,
-                error: null,
-            });
-
-            return token;
-        } catch (error: any) {
-            console.error("Push notification registration error:", error);
-            setState((prev) => ({
-                ...prev,
-                isLoading: false,
-                error: error.message || "Failed to register for push notifications",
-            }));
-            return null;
-        }
-    }, []);
-
-    /**
-     * Handle notification received while app is in foreground
-     */
-    const handleNotificationReceived = useCallback(
-        (notification: Notifications.Notification) => {
-            const data = notification.request.content.data as NotificationData;
-            console.log("Notification received:", data);
-
-            // You can show in-app notification UI here
-        },
-        []
-    );
-
-    /**
-     * Handle notification tap (user interaction)
-     */
-    const handleNotificationResponse = useCallback(
-        (response: Notifications.NotificationResponse) => {
-            const data = response.notification.request.content
-                .data as NotificationData;
-            console.log("Notification tapped:", data);
-
-            // Navigate based on notification type
-            if (data.route) {
-                router.push(data.route as any);
-            } else if (data.type) {
-                switch (data.type) {
-                    case "order":
-                        if (data.id) router.push(`/(tabs)/pos?orderId=${data.id}`);
-                        break;
-                    case "inventory":
-                        router.push("/(tabs)/inventory");
-                        break;
-                    case "customer":
-                        if (data.id) router.push(`/(crm)/${data.id}`);
-                        break;
-                    case "employee":
-                        if (data.id) router.push(`/(employee)/${data.id}`);
-                        break;
-                    default:
-                        router.push("/(tabs)");
-                }
-            }
-        },
-        [router]
-    );
-
-    /**
-     * Schedule a local notification
-     */
-    const scheduleNotification = useCallback(
-        async (options: {
-            title: string;
-            body: string;
-            data?: NotificationData;
-            trigger?: Notifications.NotificationTriggerInput;
-            channelId?: string;
-        }) => {
-            try {
-                const id = await Notifications.scheduleNotificationAsync({
-                    content: {
-                        title: options.title,
-                        body: options.body,
-                        data: options.data || {},
-                        sound: true,
-                    },
-                    trigger: options.trigger || null, // null = immediate
-                });
-                return id;
-            } catch (error) {
-                console.error("Failed to schedule notification:", error);
-                return null;
-            }
-        },
-        []
-    );
-
-    /**
-     * Cancel a scheduled notification
-     */
-    const cancelNotification = useCallback(async (notificationId: string) => {
-        await Notifications.cancelScheduledNotificationAsync(notificationId);
-    }, []);
-
-    /**
-     * Cancel all notifications
-     */
-    const cancelAllNotifications = useCallback(async () => {
-        await Notifications.cancelAllScheduledNotificationsAsync();
-    }, []);
-
-    /**
-     * Get badge count
-     */
-    const getBadgeCount = useCallback(async () => {
-        return await Notifications.getBadgeCountAsync();
-    }, []);
-
-    /**
-     * Set badge count
-     */
-    const setBadgeCount = useCallback(async (count: number) => {
-        await Notifications.setBadgeCountAsync(count);
-    }, []);
-
-    // Setup listeners on mount
-    useEffect(() => {
-        // Register for notifications
-        registerForPushNotifications();
-
-        // Listen for notifications received while app is foregrounded
-        notificationListener.current =
-            Notifications.addNotificationReceivedListener(handleNotificationReceived);
-
-        // Listen for notification taps
-        responseListener.current =
-            Notifications.addNotificationResponseReceivedListener(
-                handleNotificationResponse
-            );
-
-        return () => {
-            if (notificationListener.current) {
-                Notifications.removeNotificationSubscription(
-                    notificationListener.current
-                );
-            }
-            if (responseListener.current) {
-                Notifications.removeNotificationSubscription(responseListener.current);
-            }
-        };
-    }, [
-        registerForPushNotifications,
-        handleNotificationReceived,
-        handleNotificationResponse,
-    ]);
-
-    return {
-        ...state,
-        registerForPushNotifications,
-        scheduleNotification,
-        cancelNotification,
-        cancelAllNotifications,
-        getBadgeCount,
-        setBadgeCount,
+    return () => {
+      cleanupPushNotifications();
     };
-}
+  }, [user?.id]);
 
-export default usePushNotifications;
+  /**
+   * Initialize push notification service
+   */
+  const initializePushNotifications = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      
+      await pushNotificationService.initialize();
+      
+      setState(prev => ({
+        ...prev,
+        isInitialized: pushNotificationService.isServiceInitialized(),
+        permissions: pushNotificationService.getPermissions(),
+        pushToken: pushNotificationService.getPushToken(),
+        isLoading: false,
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to initialize push notifications',
+      }));
+    }
+  }, []);
+
+  /**
+   * Cleanup push notifications
+   */
+  const cleanupPushNotifications = useCallback(() => {
+    pushNotificationService.cleanup();
+    setState({
+      isInitialized: false,
+      permissions: null,
+      pushToken: null,
+      isLoading: false,
+      error: null,
+    });
+    setRecentNotifications([]);
+  }, []);
+
+  /**
+   * Request notification permissions
+   */
+  const requestPermissions = useCallback(async (): Promise<NotificationPermissions> => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      
+      const permissions = await pushNotificationService.requestPermissions();
+      
+      setState(prev => ({
+        ...prev,
+        permissions,
+        isLoading: false,
+      }));
+      
+      return permissions;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to request permissions';
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+      }));
+      
+      return {
+        granted: false,
+        canAskAgain: false,
+        status: 'denied',
+      };
+    }
+  }, []);
+
+  /**
+   * Send test notification
+   */
+  const sendTestNotification = useCallback(async (type: SecurityNotification['type'] = 'security_alert') => {
+    try {
+      const testNotification: SecurityNotification = {
+        id: `test_${Date.now()}`,
+        type,
+        title: 'Test Security Alert',
+        body: 'This is a test notification to verify push notification functionality.',
+        data: {
+          test: true,
+          timestamp: new Date().toISOString(),
+        },
+        priority: 'default',
+      };
+
+      await pushNotificationService.sendLocalNotification(testNotification);
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to send test notification',
+      }));
+    }
+  }, []);
+
+  /**
+   * Handle permission request with user guidance
+   */
+  const handlePermissionRequest = useCallback(async () => {
+    const permissions = await requestPermissions();
+    
+    if (!permissions.granted) {
+      if (permissions.canAskAgain) {
+        Alert.alert(
+          'Enable Notifications',
+          'Push notifications help keep your account secure by alerting you to important security events.',
+          [
+            {
+              text: 'Not Now',
+              style: 'cancel',
+            },
+            {
+              text: 'Enable',
+              onPress: () => requestPermissions(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Notifications Disabled',
+          'To receive security alerts, please enable notifications in your device settings.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Open Settings',
+              onPress: () => Linking.openSettings(),
+            },
+          ]
+        );
+      }
+    }
+  }, [requestPermissions]);
+
+  /**
+   * Clear error
+   */
+  const clearError = useCallback(() => {
+    setState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  /**
+   * Clear recent notifications
+   */
+  const clearRecentNotifications = useCallback(() => {
+    setRecentNotifications([]);
+  }, []);
+
+  /**
+   * Setup event listeners
+   */
+  useEffect(() => {
+    const handleNotificationReceived = (event: NotificationEvent) => {
+      setRecentNotifications(prev => [event, ...prev.slice(0, 19)]); // Keep last 20
+    };
+
+    const handleSecurityAlert = ({ notification, data }: { notification: any; data: any }) => {
+      // Handle security alerts with immediate user attention
+      Alert.alert(
+        'Security Alert',
+        notification.request.content.body,
+        [
+          {
+            text: 'Dismiss',
+            style: 'cancel',
+          },
+          {
+            text: 'View Details',
+            onPress: () => {
+              // Navigate to security details
+            },
+          },
+        ]
+      );
+    };
+
+    const handleAuthRequest = ({ notification, data }: { notification: any; data: any }) => {
+      // Handle authentication requests
+      Alert.alert(
+        'Authentication Request',
+        notification.request.content.body,
+        [
+          {
+            text: 'Deny',
+            style: 'destructive',
+            onPress: () => {
+              // Handle deny action
+            },
+          },
+          {
+            text: 'Approve',
+            onPress: () => {
+              // Handle approve action
+            },
+          },
+        ]
+      );
+    };
+
+    const handleDeviceVerification = ({ notification, data }: { notification: any; data: any }) => {
+      // Handle device verification requests
+      Alert.alert(
+        'Device Verification',
+        notification.request.content.body,
+        [
+          {
+            text: 'Block Device',
+            style: 'destructive',
+            onPress: () => {
+              // Handle block device action
+            },
+          },
+          {
+            text: 'Trust Device',
+            onPress: () => {
+              // Handle trust device action
+            },
+          },
+        ]
+      );
+    };
+
+    const handleActionApprove = ({ type, data }: { type: string; data: any }) => {
+      console.log('Notification approved:', type, data);
+      // Handle approve actions based on type
+    };
+
+    const handleActionDeny = ({ type, data }: { type: string; data: any }) => {
+      console.log('Notification denied:', type, data);
+      // Handle deny actions based on type
+    };
+
+    const handleActionViewDetails = ({ type, data }: { type: string; data: any }) => {
+      console.log('View details requested:', type, data);
+      // Navigate to appropriate details screen
+    };
+
+    const handleActionSecureAccount = ({ type, data }: { type: string; data: any }) => {
+      console.log('Secure account requested:', type, data);
+      // Navigate to security settings
+    };
+
+    const handleError = ({ error, context }: { error: Error; context: string }) => {
+      console.error(`Push notification error (${context}):`, error);
+      setState(prev => ({
+        ...prev,
+        error: `${context}: ${error.message}`,
+      }));
+    };
+
+    // Add event listeners
+    pushNotificationService.on('notificationReceived', handleNotificationReceived);
+    pushNotificationService.on('securityAlert', handleSecurityAlert);
+    pushNotificationService.on('authRequest', handleAuthRequest);
+    pushNotificationService.on('deviceVerification', handleDeviceVerification);
+    pushNotificationService.on('actionApprove', handleActionApprove);
+    pushNotificationService.on('actionDeny', handleActionDeny);
+    pushNotificationService.on('actionViewDetails', handleActionViewDetails);
+    pushNotificationService.on('actionSecureAccount', handleActionSecureAccount);
+    pushNotificationService.on('error', handleError);
+
+    return () => {
+      // Remove event listeners
+      pushNotificationService.off('notificationReceived', handleNotificationReceived);
+      pushNotificationService.off('securityAlert', handleSecurityAlert);
+      pushNotificationService.off('authRequest', handleAuthRequest);
+      pushNotificationService.off('deviceVerification', handleDeviceVerification);
+      pushNotificationService.off('actionApprove', handleActionApprove);
+      pushNotificationService.off('actionDeny', handleActionDeny);
+      pushNotificationService.off('actionViewDetails', handleActionViewDetails);
+      pushNotificationService.off('actionSecureAccount', handleActionSecureAccount);
+      pushNotificationService.off('error', handleError);
+    };
+  }, []);
+
+  /**
+   * Check if notifications are properly configured
+   */
+  const isProperlyConfigured = useCallback((): boolean => {
+    return !!(
+      state.isInitialized &&
+      state.permissions?.granted &&
+      state.pushToken
+    );
+  }, [state.isInitialized, state.permissions?.granted, state.pushToken]);
+
+  /**
+   * Get notification status summary
+   */
+  const getNotificationStatus = useCallback(() => {
+    if (!state.isInitialized) {
+      return { status: 'not_initialized', message: 'Push notifications not initialized' };
+    }
+    
+    if (!state.permissions?.granted) {
+      return { status: 'permission_denied', message: 'Notification permissions not granted' };
+    }
+    
+    if (!state.pushToken) {
+      return { status: 'no_token', message: 'Push token not available' };
+    }
+    
+    return { status: 'ready', message: 'Push notifications ready' };
+  }, [state.isInitialized, state.permissions?.granted, state.pushToken]);
+
+  return {
+    // State
+    ...state,
+    recentNotifications,
+    
+    // Actions
+    requestPermissions,
+    sendTestNotification,
+    handlePermissionRequest,
+    clearError,
+    clearRecentNotifications,
+    
+    // Utilities
+    isProperlyConfigured,
+    getNotificationStatus,
+    
+    // Service reference
+    service: pushNotificationService,
+  };
+}

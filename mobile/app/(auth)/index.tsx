@@ -11,12 +11,14 @@ import { SafeScreen } from "@/components/layout";
 import { Button } from "@/components/core";
 import { useBiometric } from "@/hooks/auth";
 import { useSocialAuth } from "@/hooks/useSocialAuth";
+import { useMobileAuth } from "@/hooks/auth/useMobileAuth";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function WelcomeScreen() {
     const router = useRouter();
     const { isEnabled, biometricLogin, getBiometricName, biometricType } = useBiometric();
-    const { googleLogin, facebookLogin, isLoading, error } = useSocialAuth();
+    const { googleLogin, facebookLogin, githubLogin, isLoading, error } = useSocialAuth();
+    const { showAuthOptions, availableProviders } = useMobileAuth();
     const [retryCount, setRetryCount] = useState(0);
 
     const handleBiometricLogin = async () => {
@@ -27,17 +29,31 @@ export default function WelcomeScreen() {
         }
     };
 
-    const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    const handleSocialLogin = async (provider: 'google' | 'facebook' | 'github') => {
         try {
             let result;
-            if (provider === 'google') {
-                result = await googleLogin();
-            } else {
-                result = await facebookLogin();
+            switch (provider) {
+                case 'google':
+                    result = await googleLogin();
+                    break;
+                case 'facebook':
+                    result = await facebookLogin();
+                    break;
+                case 'github':
+                    result = await githubLogin();
+                    break;
+                default:
+                    throw new Error('Unsupported provider');
             }
 
             if (result.success) {
-                router.push("/(tabs)");
+                if (result.requiresOnboarding) {
+                    // Navigate to onboarding flow
+                    router.push("/(onboarding)");
+                } else {
+                    // Navigate to main app
+                    router.push("/(tabs)");
+                }
             } else {
                 throw new Error(result.error || 'Authentication failed');
             }
@@ -169,6 +185,18 @@ export default function WelcomeScreen() {
                         {isLoading ? 'Signing in...' : 'Continue with Facebook'}
                     </Button>
 
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        fullWidth
+                        leftIcon="logo-github"
+                        onPress={() => handleSocialLogin('github')}
+                        className="mb-3"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Signing in...' : 'Continue with GitHub'}
+                    </Button>
+
                     {/* Email Login */}
                     <Button
                         variant="ghost"
@@ -180,6 +208,18 @@ export default function WelcomeScreen() {
                         disabled={isLoading}
                     >
                         Login with Email
+                    </Button>
+
+                    {/* Quick Auth Options */}
+                    <Button
+                        variant="ghost"
+                        size="md"
+                        fullWidth
+                        onPress={showAuthOptions}
+                        disabled={isLoading}
+                        className="mb-3"
+                    >
+                        More Sign-in Options
                     </Button>
 
                     {/* Help / Support */}

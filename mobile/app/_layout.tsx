@@ -6,6 +6,7 @@
  * - NativeWind styles
  * - Navigation theming
  * - Font loading
+ * - Deep link handling
  */
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
@@ -23,6 +24,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { apolloClient } from "@/lib/apollo";
+import { DeepLinkHandler } from "@/components/auth/DeepLinkHandler";
 import "../global.css";
 
 export {
@@ -82,24 +84,26 @@ function RootLayoutNav() {
       <ApolloProvider client={apolloClient}>
         <SafeAreaProvider>
           <ThemeProvider value={EnterpriseDarkTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(crm)" options={{ headerShown: false }} />
-              <Stack.Screen name="(employee)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", headerShown: false }}
-              />
-              <Stack.Screen
-                name="scanner"
-                options={{
-                  presentation: "fullScreenModal",
-                  headerShown: false,
-                  animation: "slide_from_bottom",
-                }}
-              />
-            </Stack>
+            <DeepLinkHandler>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(crm)" options={{ headerShown: false }} />
+                <Stack.Screen name="(employee)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", headerShown: false }}
+                />
+                <Stack.Screen
+                  name="scanner"
+                  options={{
+                    presentation: "fullScreenModal",
+                    headerShown: false,
+                    animation: "slide_from_bottom",
+                  }}
+                />
+              </Stack>
+            </DeepLinkHandler>
           </ThemeProvider>
         </SafeAreaProvider>
       </ApolloProvider>
