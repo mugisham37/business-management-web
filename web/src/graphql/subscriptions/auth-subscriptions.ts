@@ -1,85 +1,74 @@
 /**
- * Complete Authentication GraphQL Subscriptions
- * Real-time authentication event subscriptions for the AuthGateway
+ * Authentication GraphQL Subscriptions
+ * Real-time authentication and security event subscriptions
  */
 
 import { gql } from '@apollo/client';
 
 /**
- * Subscribe to authentication events for current user
- * Receives login, logout, and session events
+ * User authentication events subscription
  */
-export const AUTH_EVENTS_SUBSCRIPTION = gql`
-  subscription AuthEvents {
-    authEvents {
+export const USER_AUTH_EVENTS_SUBSCRIPTION = gql`
+  subscription UserAuthEvents {
+    userAuthEvents {
+      id
       type
       userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
+      tenantId
       timestamp
       metadata
-      severity
+      ipAddress
+      userAgent
+      deviceInfo {
+        platform
+        deviceId
+        appVersion
+      }
     }
   }
 `;
 
 /**
- * Subscribe to permission changes for current user
- * Receives permission grants, revokes, and role changes
+ * User permission events subscription
  */
-export const PERMISSION_CHANGES_SUBSCRIPTION = gql`
-  subscription PermissionChanges {
-    permissionChanges {
+export const USER_PERMISSION_EVENTS_SUBSCRIPTION = gql`
+  subscription UserPermissionEvents {
+    userPermissionEvents {
+      id
       type
       userId
+      tenantId
+      timestamp
+      metadata
       permission
       resource
       resourceId
       grantedBy
-      timestamp
-      metadata
     }
   }
 `;
 
 /**
- * Subscribe to tenant-wide authentication events (admin only)
- * Requires admin permissions to monitor tenant security events
+ * Tenant authentication events subscription (admin only)
  */
 export const TENANT_AUTH_EVENTS_SUBSCRIPTION = gql`
   subscription TenantAuthEvents {
     tenantAuthEvents {
+      id
       type
       userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
+      tenantId
       timestamp
       metadata
+      ipAddress
+      userAgent
       severity
-      user {
-        id
-        email
-        displayName
-      }
     }
   }
 `;
 
 /**
- * Subscribe to security alerts for tenant
- * Receives failed login attempts, account lockouts, and suspicious activities
+ * Security alerts subscription
  */
 export const SECURITY_ALERTS_SUBSCRIPTION = gql`
   subscription SecurityAlerts {
@@ -87,253 +76,163 @@ export const SECURITY_ALERTS_SUBSCRIPTION = gql`
       id
       type
       severity
-      userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
+      title
+      message
       timestamp
-      description
+      acknowledged
+      actionRequired
       metadata
-      resolved
-      resolvedAt
-      resolvedBy
+      userId
+      tenantId
     }
   }
 `;
 
 /**
- * Subscribe to MFA events for current user
- * Receives MFA setup, enable, disable, and verification events
+ * User MFA events subscription
  */
-export const MFA_EVENTS_SUBSCRIPTION = gql`
-  subscription MfaEvents {
-    mfaEvents {
+export const USER_MFA_EVENTS_SUBSCRIPTION = gql`
+  subscription UserMfaEvents {
+    userMfaEvents {
+      id
       type
       userId
+      tenantId
       timestamp
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-      }
-      ipAddress
+      metadata
       success
-      metadata
+      method
     }
   }
 `;
 
 /**
- * Subscribe to session events for current user
- * Receives session creation, expiration, and revocation events
+ * User session events subscription
  */
-export const SESSION_EVENTS_SUBSCRIPTION = gql`
-  subscription SessionEvents {
-    sessionEvents {
+export const USER_SESSION_EVENTS_SUBSCRIPTION = gql`
+  subscription UserSessionEvents {
+    userSessionEvents {
+      id
       type
+      userId
+      tenantId
       sessionId
-      userId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
       timestamp
-      expiresAt
       metadata
+      ipAddress
+      userAgent
+      deviceInfo {
+        platform
+        deviceId
+        appVersion
+      }
     }
   }
 `;
 
 /**
- * Subscribe to role assignment events in tenant (admin only)
- * Requires admin permissions to monitor role assignments
+ * Tenant role events subscription (admin only)
  */
-export const ROLE_ASSIGNMENT_EVENTS_SUBSCRIPTION = gql`
-  subscription RoleAssignmentEvents {
-    roleAssignmentEvents {
+export const TENANT_ROLE_EVENTS_SUBSCRIPTION = gql`
+  subscription TenantRoleEvents {
+    tenantRoleEvents {
+      id
       type
       userId
+      tenantId
+      timestamp
+      metadata
       role
       assignedBy
-      timestamp
-      metadata
-      user {
-        id
-        email
-        displayName
-      }
     }
   }
 `;
 
 /**
- * Subscribe to events for a specific user (admin only)
- * Requires admin permissions to monitor other users
+ * User events subscription for specific user (admin only)
  */
 export const USER_EVENTS_SUBSCRIPTION = gql`
   subscription UserEvents($userId: String!) {
     userEvents(userId: $userId) {
+      id
       type
       userId
-      sessionId
-      deviceInfo {
-        deviceId
-        platform
-        deviceName
-        fingerprint
-      }
-      ipAddress
+      tenantId
       timestamp
       metadata
       severity
+      description
     }
   }
 `;
 
 /**
- * Subscribe to tier changes for current user
- * Receives tier upgrade/downgrade notifications
+ * Auth event types enum
  */
-export const TIER_CHANGES_SUBSCRIPTION = gql`
-  subscription TierChanges {
-    tierChanges {
-      type
-      userId
-      oldTier
-      newTier
-      timestamp
-      reason
-      activatedFeatures
-      deactivatedFeatures
-      subscription {
-        id
-        status
-        currentPeriodStart
-        currentPeriodEnd
-      }
-    }
-  }
-`;
+export enum AuthEventType {
+  USER_LOGIN = 'USER_LOGIN',
+  USER_LOGOUT = 'USER_LOGOUT',
+  USER_REGISTERED = 'USER_REGISTERED',
+  PASSWORD_CHANGED = 'PASSWORD_CHANGED',
+  MFA_ENABLED = 'MFA_ENABLED',
+  MFA_DISABLED = 'MFA_DISABLED',
+  PERMISSION_GRANTED = 'PERMISSION_GRANTED',
+  PERMISSION_REVOKED = 'PERMISSION_REVOKED',
+  ROLE_ASSIGNED = 'ROLE_ASSIGNED',
+  SESSION_EXPIRED = 'SESSION_EXPIRED',
+  FAILED_LOGIN_ATTEMPT = 'FAILED_LOGIN_ATTEMPT',
+  ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
+  ACCOUNT_UNLOCKED = 'ACCOUNT_UNLOCKED',
+  DEVICE_TRUSTED = 'DEVICE_TRUSTED',
+  DEVICE_UNTRUSTED = 'DEVICE_UNTRUSTED',
+  SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
+}
 
 /**
- * Subscribe to payment events for current user
- * Receives payment success, failure, and subscription updates
+ * Security alert types enum
  */
-export const PAYMENT_EVENTS_SUBSCRIPTION = gql`
-  subscription PaymentEvents {
-    paymentEvents {
-      type
-      userId
-      paymentId
-      subscriptionId
-      amount
-      currency
-      status
-      timestamp
-      metadata
-    }
-  }
-`;
+export enum SecurityAlertType {
+  NEW_DEVICE_LOGIN = 'NEW_DEVICE_LOGIN',
+  SUSPICIOUS_LOGIN = 'SUSPICIOUS_LOGIN',
+  MULTIPLE_FAILED_ATTEMPTS = 'MULTIPLE_FAILED_ATTEMPTS',
+  ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
+  PASSWORD_BREACH = 'PASSWORD_BREACH',
+  PERMISSION_ESCALATION = 'PERMISSION_ESCALATION',
+  UNUSUAL_ACTIVITY = 'UNUSUAL_ACTIVITY',
+}
 
 /**
- * Subscribe to device trust changes
- * Receives device trust/untrust notifications
+ * Auth event interface
  */
-export const DEVICE_TRUST_EVENTS_SUBSCRIPTION = gql`
-  subscription DeviceTrustEvents {
-    deviceTrustEvents {
-      type
-      userId
-      deviceId
-      deviceInfo {
-        platform
-        deviceName
-        fingerprint
-      }
-      trusted
-      timestamp
-      ipAddress
-      metadata
-    }
-  }
-`;
+export interface AuthEvent {
+  id: string;
+  type: AuthEventType;
+  userId: string;
+  tenantId: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  deviceInfo?: {
+    platform: string;
+    deviceId: string;
+    appVersion: string;
+  };
+}
 
 /**
- * Subscribe to onboarding progress updates
- * Receives step completion and recommendation updates
+ * Security alert interface
  */
-export const ONBOARDING_PROGRESS_SUBSCRIPTION = gql`
-  subscription OnboardingProgress {
-    onboardingProgress {
-      type
-      userId
-      sessionId
-      currentStep
-      completedSteps
-      recommendedTier
-      timestamp
-      metadata
-    }
-  }
-`;
-
-/**
- * Subscribe to IP restriction events
- * Receives IP block/unblock notifications
- */
-export const IP_RESTRICTION_EVENTS_SUBSCRIPTION = gql`
-  subscription IpRestrictionEvents {
-    ipRestrictionEvents {
-      type
-      ipAddress
-      reason
-      timestamp
-      expiresAt
-      blockedBy
-      metadata
-    }
-  }
-`;
-
-/**
- * Subscribe to session limit events
- * Receives notifications when session limits are reached
- */
-export const SESSION_LIMIT_EVENTS_SUBSCRIPTION = gql`
-  subscription SessionLimitEvents {
-    sessionLimitEvents {
-      type
-      userId
-      currentSessions
-      maxSessions
-      terminatedSessionId
-      timestamp
-      metadata
-    }
-  }
-`;
-
-/**
- * Subscribe to password policy events
- * Receives password expiration and policy violation notifications
- */
-export const PASSWORD_POLICY_EVENTS_SUBSCRIPTION = gql`
-  subscription PasswordPolicyEvents {
-    passwordPolicyEvents {
-      type
-      userId
-      timestamp
-      daysUntilExpiry
-      policyViolations
-      metadata
-    }
-  }
-`;
+export interface SecurityAlert {
+  id: string;
+  type: SecurityAlertType;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  message: string;
+  timestamp: Date;
+  acknowledged: boolean;
+  actionRequired?: boolean;
+  metadata?: Record<string, any>;
+  userId?: string;
+  tenantId: string;
+}

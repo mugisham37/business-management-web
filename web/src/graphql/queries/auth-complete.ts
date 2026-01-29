@@ -72,6 +72,15 @@ export const GET_MFA_STATUS_QUERY = gql`
 `;
 
 /**
+ * Check if MFA is enabled for current user
+ */
+export const IS_MFA_ENABLED_QUERY = gql`
+  query IsMfaEnabled {
+    isMfaEnabled
+  }
+`;
+
+/**
  * Get user permissions
  */
 export const GET_USER_PERMISSIONS_QUERY = gql`
@@ -98,6 +107,206 @@ export const GET_USER_PERMISSIONS_QUERY = gql`
 /**
  * Get my permissions
  */
+export const GET_MY_PERMISSIONS_QUERY = gql`
+  query GetMyPermissions {
+    getMyPermissions {
+      permissions
+      role
+      detailedPermissions {
+        id
+        userId
+        permission
+        resource
+        resourceId
+        grantedBy
+        grantedAt
+        expiresAt
+        isInherited
+      }
+      includesInherited
+    }
+  }
+`;
+
+/**
+ * Check specific permission
+ */
+export const CHECK_PERMISSION_QUERY = gql`
+  query CheckPermission($input: CheckPermissionInput!) {
+    checkPermission(input: $input) {
+      hasPermission
+      source
+      grantedAt
+      expiresAt
+    }
+  }
+`;
+
+/**
+ * Get all available permissions
+ */
+export const GET_AVAILABLE_PERMISSIONS_QUERY = gql`
+  query GetAvailablePermissions {
+    getAvailablePermissions {
+      permissions
+      resources
+      actions
+      roles {
+        name
+        permissions
+      }
+    }
+  }
+`;
+
+/**
+ * Get all roles
+ */
+export const GET_ROLES_QUERY = gql`
+  query GetRoles {
+    getRoles {
+      name
+      permissions
+    }
+  }
+`;
+
+/**
+ * Get role permissions
+ */
+export const GET_ROLE_PERMISSIONS_QUERY = gql`
+  query GetRolePermissions($role: String!) {
+    getRolePermissions(role: $role)
+  }
+`;
+
+/**
+ * Check if user has permission
+ */
+export const HAS_PERMISSION_QUERY = gql`
+  query HasPermission($userId: String!, $permission: String!, $resource: String, $resourceId: String) {
+    hasPermission(userId: $userId, permission: $permission, resource: $resource, resourceId: $resourceId)
+  }
+`;
+
+/**
+ * Get all permissions for system
+ */
+export const GET_ALL_PERMISSIONS_QUERY = gql`
+  query GetAllPermissions {
+    getAllPermissions
+  }
+`;
+
+/**
+ * Get detailed permissions for user
+ */
+export const GET_DETAILED_PERMISSIONS_QUERY = gql`
+  query GetDetailedPermissions($userId: String!) {
+    getDetailedPermissions(userId: $userId) {
+      id
+      userId
+      permission
+      resource
+      resourceId
+      grantedBy
+      grantedAt
+      expiresAt
+      isInherited
+    }
+  }
+`;
+
+/**
+ * Get social auth URL
+ */
+export const GET_SOCIAL_AUTH_URL_QUERY = gql`
+  query GetSocialAuthUrl($provider: String!, $tenantId: String!) {
+    getSocialAuthUrl(provider: $provider, tenantId: $tenantId)
+  }
+`;
+
+/**
+ * Get connected social providers
+ */
+export const GET_CONNECTED_SOCIAL_PROVIDERS_QUERY = gql`
+  query GetConnectedSocialProviders {
+    getConnectedSocialProviders {
+      provider
+      providerId
+      email
+      displayName
+      connectedAt
+    }
+  }
+`;
+
+/**
+ * Get security settings
+ */
+export const GET_SECURITY_SETTINGS_QUERY = gql`
+  query GetSecuritySettings {
+    getSecuritySettings {
+      maxFailedAttempts
+      lockoutDuration
+      sessionTimeout
+      requireMfaForAdmin
+      allowedIpRanges
+      blockedIpAddresses
+      passwordPolicy {
+        minLength
+        requireUppercase
+        requireLowercase
+        requireNumbers
+        requireSpecialChars
+        preventReuse
+        maxAge
+      }
+      deviceTrustPolicy {
+        trustNewDevices
+        requireApprovalForNewDevices
+        deviceTrustDuration
+      }
+      auditSettings {
+        logAllEvents
+        retentionPeriod
+        alertOnSuspiciousActivity
+        emailNotifications
+      }
+    }
+  }
+`;
+
+/**
+ * Get upgrade recommendations
+ */
+export const GET_UPGRADE_RECOMMENDATIONS_QUERY = gql`
+  query GetUpgradeRecommendations {
+    getUpgradeRecommendations {
+      tier
+      reason
+      features
+      savings
+      priority
+    }
+  }
+`;
+
+/**
+ * Get subscription status
+ */
+export const GET_SUBSCRIPTION_STATUS_QUERY = gql`
+  query GetSubscriptionStatus {
+    getSubscriptionStatus {
+      tier
+      billingCycle
+      status
+      nextBillingDate
+      cancelAtPeriodEnd
+      trialEndsAt
+    }
+  }
+`;
 export const GET_MY_PERMISSIONS_QUERY = gql`
   query GetMyPermissions {
     getMyPermissions {
