@@ -65,11 +65,16 @@ export function Navigation() {
               </Link>
             </div>
           </nav>
-          <Button asChild className="hidden h-10 font-semibold md:flex">
-            <Link href={siteConfig.baseLinks.dashboard}>Dashboard</Link>
-          </Button>
+          <div className="hidden md:flex items-center gap-2">
+            <Button variant="outline" asChild className="h-10 font-semibold">
+              <Link href="/auth">Sign In</Link>
+            </Button>
+            <Button asChild className="h-10 font-semibold">
+              <Link href="/auth">Get Started</Link>
+            </Button>
+          </div>
           <div className="flex gap-x-2 md:hidden">
-            <Button asChild><Link href={siteConfig.baseLinks.dashboard}>Dashboard</Link></Button>
+            <Button asChild><Link href="/auth">Sign In</Link></Button>
             <Button
               onClick={() => setOpen(!open)}
               variant="light"

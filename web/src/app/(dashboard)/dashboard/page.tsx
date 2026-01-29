@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,8 @@ import { ChartWrapper } from "@/components/common/charts/chart-wrapper";
 import { AreaChartComponent } from "@/components/common/charts/area-chart";
 import { BarChartComponent } from "@/components/common/charts/bar-chart";
 import { PieChartComponent } from "@/components/common/charts/pie-chart";
+import { TierGuidance } from "@/components/dashboard/TierGuidance";
+import { useAuthGateway } from "@/lib/auth/auth-gateway";
 import {
     TrendingUp,
     DollarSign,
@@ -61,10 +64,38 @@ const recentActivities = [
 ];
 
 export default function MainDashboardPage() {
+    const { getCurrentSession } = useAuthGateway();
+    const [userSession, setUserSession] = useState<any>(null);
+    const [isNewUser, setIsNewUser] = useState(false);
+    
     const totalRevenue = 198000;
     const totalOrders = 398;
     const avgOrderValue = totalRevenue / totalOrders;
     const activeCustomers = 1245;
+
+    useEffect(() => {
+        const loadUserSession = async () => {
+            try {
+                const session = await getCurrentSession();
+                setUserSession(session);
+                
+                // Check if user is new (created within last 24 hours)
+                // This would typically come from the user data
+                const isNew = session.user?.createdAt && 
+                    new Date().getTime() - new Date(session.user.createdAt).getTime() < 24 * 60 * 60 * 1000;
+                setIsNewUser(isNew || false);
+            } catch (error) {
+                console.error('Failed to load user session:', error);
+            }
+        };
+
+        loadUserSession();
+    }, [getCurrentSession]);
+
+    const handleUpgrade = () => {
+        // Navigate to pricing/upgrade page
+        window.location.href = '/pricing';
+    };
 
     return (
         <div className="space-y-6 p-6">
@@ -84,6 +115,15 @@ export default function MainDashboardPage() {
                     </div>
                 }
             />
+
+            {/* Tier Guidance for new users or tier-specific recommendations */}
+            {userSession?.user && (
+                <TierGuidance
+                    userTier={userSession.user.tier || 'micro'}
+                    isNewUser={isNewUser}
+                    onUpgrade={handleUpgrade}
+                />
+            )}
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

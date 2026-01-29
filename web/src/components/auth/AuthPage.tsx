@@ -8,6 +8,7 @@ import { Sparkles } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { SocialLoginButtons } from './SocialLoginButtons';
+import { useAuthGateway } from '@/lib/auth/auth-gateway';
 import { cn } from '@/lib/utils/cn';
 
 type AuthMode = 'login' | 'register';
@@ -26,6 +27,7 @@ export function AuthPage({
     redirectTo,
 }: AuthPageProps) {
     const router = useRouter();
+    const authGateway = useAuthGateway();
     const [mode, setMode] = useState<AuthMode>(defaultMode);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,21 +38,26 @@ export function AuthPage({
             setError(null);
 
             try {
-                // TODO: Integrate with auth service
-                console.log('Login attempt:', data);
+                const result = await authGateway.authenticateAndRedirect({
+                    email: data.email,
+                    password: data.password,
+                    rememberMe: data.rememberMe
+                });
 
-                // Simulate API call
-                await new Promise((resolve) => setTimeout(resolve, 1500));
+                if (!result.success) {
+                    setError(result.error || 'Login failed. Please try again.');
+                    return;
+                }
 
                 onLoginSuccess?.();
-                router.push(redirectTo || '/dashboard');
+                // Redirect is handled by authGateway.authenticateAndRedirect
             } catch (err: any) {
                 setError(err.message || 'Login failed. Please try again.');
             } finally {
                 setIsLoading(false);
             }
         },
-        [onLoginSuccess, redirectTo, router]
+        [onLoginSuccess]
     );
 
     const handleRegister = useCallback(
@@ -66,22 +73,22 @@ export function AuthPage({
             setError(null);
 
             try {
-                // TODO: Integrate with auth service
-                console.log('Register attempt:', data);
+                const result = await authGateway.registerAndRedirect(data);
 
-                // Simulate API call
-                await new Promise((resolve) => setTimeout(resolve, 1500));
+                if (!result.success) {
+                    setError(result.error || 'Registration failed. Please try again.');
+                    return;
+                }
 
                 onRegisterSuccess?.();
-                // After registration, redirect to onboarding
-                router.push('/onboarding');
+                // Redirect is handled by authGateway.registerAndRedirect
             } catch (err: any) {
                 setError(err.message || 'Registration failed. Please try again.');
             } finally {
                 setIsLoading(false);
             }
         },
-        [onRegisterSuccess, router]
+        [onRegisterSuccess]
     );
 
     const handleSocialLogin = useCallback(
@@ -152,9 +159,17 @@ export function AuthPage({
                         <SocialLoginButtons
                             usePopup={true}
                             redirectTo={redirectTo || '/dashboard'}
-                            onSuccess={(result) => {
+                            onSuccess={async (result) => {
                                 console.log('Social auth success:', result);
                                 // Handle successful social authentication
+                                // The AuthGateway will handle routing based on user state
+                                const authResult = await authGateway.handleSocialAuthAndRedirect(
+                                    result.provider || 'google', 
+                                    result.code || 'mock-code'
+                                );
+                                if (!authResult.success) {
+                                    setError(authResult.error || 'Social authentication failed');
+                                }
                             }}
                             onError={(error) => {
                                 console.error('Social auth error:', error);
