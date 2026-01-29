@@ -258,6 +258,7 @@ const tierBasedNavigationGroups: NavGroup[] = [
         requiredTier: BusinessTier.SMALL,
         subItems: [
           { title: "Authentication", url: "/security/auth", requiredTier: BusinessTier.SMALL },
+          { title: "Sessions", url: "/security/sessions", requiredTier: BusinessTier.SMALL },
           { title: "Roles & Permissions", url: "/security/roles", requiredTier: BusinessTier.MEDIUM },
           { title: "Audit Logs", url: "/security/audit", requiredTier: BusinessTier.MEDIUM },
         ],

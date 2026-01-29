@@ -235,6 +235,7 @@ const navigationGroups: NavGroup[] = [
         icon: Shield,
         subItems: [
           { title: "Authentication", url: "/security/auth" },
+          { title: "Sessions", url: "/security/sessions" },
           { title: "Roles & Permissions", url: "/security/roles" },
           { title: "Audit Logs", url: "/security/audit" },
         ],
