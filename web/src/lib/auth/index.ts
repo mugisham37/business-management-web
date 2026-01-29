@@ -225,3 +225,26 @@ export class CompleteAuthSystem {
 
 // Export singleton instance
 export const completeAuthSystem = new CompleteAuthSystem();
+
+// Authentication Gateway
+export {
+  AuthGateway,
+  authGateway,
+  configureAuthGateway,
+  type AuthCredentials,
+  type AuthResult,
+  type TierInfo,
+  type DeviceInfo,
+  type DeviceSession,
+  type SecurityEvent,
+  type AuthGatewayConfig,
+  SecurityEventType,
+} from './auth-gateway';
+
+// Device Fingerprinting
+export {
+  DeviceFingerprintService,
+  deviceFingerprintService,
+  DeviceFingerprintUtils,
+  type DeviceFingerprint,
+} from './device-fingerprint';
