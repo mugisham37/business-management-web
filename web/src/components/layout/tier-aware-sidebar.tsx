@@ -21,6 +21,8 @@ import {
   Lock,
   Crown,
   Zap,
+  Menu,
+  X,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -57,7 +60,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTierAccess, BusinessTier } from "@/hooks/useTierAccess";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { LucideIcon } from "lucide-react";
 
 // Type definitions for navigation with tier requirements
@@ -305,6 +308,135 @@ interface TierAwareSidebarProps {
   onUpgradeClick?: (requiredTier: BusinessTier) => void;
 }
 
+// Mobile Bottom Navigation Component
+function MobileBottomNav({ 
+  currentTier, 
+  onUpgradeClick 
+}: { 
+  currentTier: BusinessTier; 
+  onUpgradeClick?: (requiredTier: BusinessTier) => void; 
+}) {
+  const pathname = usePathname();
+  const { hasAccess } = useTierAccess();
+
+  // Core navigation items for mobile bottom nav
+  const mobileNavItems = [
+    { title: "Dashboard", url: "/", icon: Home, requiredTier: BusinessTier.MICRO },
+    { title: "Inventory", url: "/inventory", icon: Package, requiredTier: BusinessTier.MICRO },
+    { title: "POS", url: "/pos", icon: ShoppingCart, requiredTier: BusinessTier.MICRO },
+    { title: "Analytics", url: "/analytics", icon: BarChart3, requiredTier: BusinessTier.SMALL },
+  ];
+
+  const isActive = (url: string) => {
+    if (url === "/") return pathname === "/";
+    return pathname?.startsWith(url);
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
+      <div className="flex items-center justify-around py-2">
+        {mobileNavItems.map((item) => {
+          const hasItemAccess = hasAccess(currentTier, item.requiredTier);
+          const ItemIcon = item.icon;
+          
+          return (
+            <Button
+              key={item.title}
+              variant="ghost"
+              size="sm"
+              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
+                isActive(item.url) ? 'text-primary' : 'text-muted-foreground'
+              } ${!hasItemAccess ? 'opacity-50' : ''}`}
+              onClick={() => {
+                if (hasItemAccess) {
+                  window.location.href = item.url;
+                } else {
+                  onUpgradeClick?.(item.requiredTier);
+                }
+              }}
+              asChild={hasItemAccess}
+            >
+              {hasItemAccess ? (
+                <Link href={item.url}>
+                  <ItemIcon className="h-4 w-4" />
+                  <span className="text-xs">{item.title}</span>
+                </Link>
+              ) : (
+                <>
+                  <div className="relative">
+                    <ItemIcon className="h-4 w-4" />
+                    <Lock className="h-2 w-2 absolute -top-1 -right-1" />
+                  </div>
+                  <span className="text-xs">{item.title}</span>
+                </>
+              )}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Mobile Sidebar Sheet Component
+function MobileSidebarSheet({ 
+  children, 
+  currentTier 
+}: { 
+  children: React.ReactNode; 
+  currentTier: BusinessTier; 
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm border"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="p-0 w-80">
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <Boxes className="h-4 w-4" />
+              </div>
+              <span className="font-semibold">Business Manager</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Current Tier Display */}
+          <div className="p-4 border-b">
+            <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${TIER_CONFIG[currentTier].color}`}>
+              {(() => {
+                const TierIcon = TIER_CONFIG[currentTier].icon;
+                return <TierIcon className="h-4 w-4" />;
+              })()}
+              <span className="font-medium">{TIER_CONFIG[currentTier].name} Plan</span>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 export function TierAwareSidebar({ 
   currentTier = BusinessTier.MICRO, 
   onUpgradeClick 
@@ -313,6 +445,17 @@ export function TierAwareSidebar({
   const { tierMeetsRequirement, getTierInfo } = useTierAccess();
   const pathname = usePathname();
   const [showLockedItems, setShowLockedItems] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Helper to check if path is active
   const isActive = (url: string) => {
@@ -377,6 +520,207 @@ export function TierAwareSidebar({
     </SidebarMenuItem>
   );
 
+  // Mobile upgrade prompt component
+  const MobileUpgradePrompt = ({ requiredTier }: { requiredTier: BusinessTier }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-background rounded-lg p-6 max-w-sm w-full">
+        <div className="text-center">
+          <Crown className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Upgrade Required</h3>
+          <p className="text-muted-foreground mb-4">
+            This feature requires the {TIER_CONFIG[requiredTier].name} plan.
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => {}}>
+              Learn More
+            </Button>
+            <Button className="flex-1" onClick={() => onUpgradeClick?.(requiredTier)}>
+              Upgrade Now
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const sidebarContent = (
+    <>
+      {/* Toggle for showing locked items */}
+      <div className="px-2 py-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-xs"
+          onClick={() => setShowLockedItems(!showLockedItems)}
+        >
+          {showLockedItems ? "Hide" : "Show"} locked features
+        </Button>
+      </div>
+
+      {filteredNavigationGroups.map((group) => (
+        <Collapsible key={group.label} defaultOpen className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="w-full">
+                {group.label}
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {/* Accessible items */}
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      {item.subItems ? (
+                        <Collapsible
+                          defaultOpen={isActive(item.url)}
+                          className="group/subitem"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              tooltip={item.title}
+                              isActive={isActive(item.url)}
+                            >
+                              <item.icon />
+                              <span>{item.title}</span>
+                              {item.isCore && (
+                                <Badge variant="secondary" className="ml-auto text-xs">
+                                  Core
+                                </Badge>
+                              )}
+                              <ChevronDown className="ml-auto transition-transform group-data-[state=open]/subitem:rotate-180" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.subItems
+                                .filter((subItem) => 
+                                  !subItem.requiredTier || hasAccess(subItem.requiredTier)
+                                )
+                                .map((subItem) => (
+                                  <SidebarMenuSubItem key={subItem.url}>
+                                    <SidebarMenuSubButton
+                                      asChild
+                                      isActive={pathname === subItem.url}
+                                    >
+                                      <Link href={subItem.url}>
+                                        <span>{subItem.title}</span>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                ))}
+                              
+                              {/* Locked sub-items */}
+                              {showLockedItems && item.subItems
+                                .filter((subItem) => 
+                                  subItem.requiredTier && !hasAccess(subItem.requiredTier)
+                                )
+                                .map((subItem) => (
+                                  <SidebarMenuSubItem key={`locked-${subItem.url}`}>
+                                    <SidebarMenuSubButton
+                                      className="opacity-60 cursor-pointer hover:opacity-80"
+                                      onClick={() => onUpgradeClick?.(subItem.requiredTier!)}
+                                    >
+                                      <span className="opacity-75">{subItem.title}</span>
+                                      {renderUpgradeIndicator(subItem.requiredTier!)}
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                        <SidebarMenuButton
+                          asChild
+                          tooltip={item.title}
+                          isActive={isActive(item.url)}
+                        >
+                          <Link href={item.url}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                            {item.isCore && (
+                              <Badge variant="secondary" className="ml-auto text-xs">
+                                Core
+                              </Badge>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      )}
+                    </SidebarMenuItem>
+                  ))}
+
+                  {/* Locked items */}
+                  {showLockedItems && group.lockedItems.map(renderLockedItem)}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+      ))}
+    </>
+  );
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <>
+        <MobileSidebarSheet currentTier={currentTier}>
+          <SidebarContent>
+            {sidebarContent}
+          </SidebarContent>
+          
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback>
+                          {(user as any)?.firstName
+                            ?.charAt(0)
+                            ?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="truncate">
+                        {(user as any)?.firstName || "User"}
+                      </span>
+                      <ChevronUp className="ml-auto" />
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings/account">Account Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings">Preferences</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/security/audit">Activity Log</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onUpgradeClick?.(BusinessTier.SMALL)}>
+                      Upgrade Plan
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {/* Handle logout */ }}>
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </MobileSidebarSheet>
+        
+        <MobileBottomNav 
+          currentTier={currentTier} 
+          onUpgradeClick={onUpgradeClick} 
+        />
+      </>
+    );
+  }
+
+  // Desktop layout
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -408,119 +752,7 @@ export function TierAwareSidebar({
       <SidebarSeparator />
       
       <SidebarContent>
-        {/* Toggle for showing locked items */}
-        <div className="px-2 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-xs"
-            onClick={() => setShowLockedItems(!showLockedItems)}
-          >
-            {showLockedItems ? "Hide" : "Show"} locked features
-          </Button>
-        </div>
-
-        {filteredNavigationGroups.map((group) => (
-          <Collapsible key={group.label} defaultOpen className="group/collapsible">
-            <SidebarGroup>
-              <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="w-full">
-                  {group.label}
-                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {/* Accessible items */}
-                    {group.items.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        {item.subItems ? (
-                          <Collapsible
-                            defaultOpen={isActive(item.url)}
-                            className="group/subitem"
-                          >
-                            <CollapsibleTrigger asChild>
-                              <SidebarMenuButton
-                                tooltip={item.title}
-                                isActive={isActive(item.url)}
-                              >
-                                <item.icon />
-                                <span>{item.title}</span>
-                                {item.isCore && (
-                                  <Badge variant="secondary" className="ml-auto text-xs">
-                                    Core
-                                  </Badge>
-                                )}
-                                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/subitem:rotate-180" />
-                              </SidebarMenuButton>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                              <SidebarMenuSub>
-                                {item.subItems
-                                  .filter((subItem) => 
-                                    !subItem.requiredTier || hasAccess(subItem.requiredTier)
-                                  )
-                                  .map((subItem) => (
-                                    <SidebarMenuSubItem key={subItem.url}>
-                                      <SidebarMenuSubButton
-                                        asChild
-                                        isActive={pathname === subItem.url}
-                                      >
-                                        <Link href={subItem.url}>
-                                          <span>{subItem.title}</span>
-                                        </Link>
-                                      </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
-                                  ))}
-                                
-                                {/* Locked sub-items */}
-                                {showLockedItems && item.subItems
-                                  .filter((subItem) => 
-                                    subItem.requiredTier && !hasAccess(subItem.requiredTier)
-                                  )
-                                  .map((subItem) => (
-                                    <SidebarMenuSubItem key={`locked-${subItem.url}`}>
-                                      <SidebarMenuSubButton
-                                        className="opacity-60 cursor-pointer hover:opacity-80"
-                                        onClick={() => onUpgradeClick?.(subItem.requiredTier!)}
-                                      >
-                                        <span className="opacity-75">{subItem.title}</span>
-                                        {renderUpgradeIndicator(subItem.requiredTier!)}
-                                      </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
-                                  ))}
-                              </SidebarMenuSub>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        ) : (
-                          <SidebarMenuButton
-                            asChild
-                            tooltip={item.title}
-                            isActive={isActive(item.url)}
-                          >
-                            <Link href={item.url}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                              {item.isCore && (
-                                <Badge variant="secondary" className="ml-auto text-xs">
-                                  Core
-                                </Badge>
-                              )}
-                            </Link>
-                          </SidebarMenuButton>
-                        )}
-                      </SidebarMenuItem>
-                    ))}
-
-                    {/* Locked items */}
-                    {showLockedItems && group.lockedItems.map(renderLockedItem)}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        ))}
+        {sidebarContent}
       </SidebarContent>
       
       <SidebarFooter>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SecuritySetting {
     id: string;
@@ -16,26 +16,82 @@ export default function OnboardingModal() {
         strongPassword: true,
         loginNotifications: false,
     });
+    const [currentStep, setCurrentStep] = useState(2);
+    const [isMobile, setIsMobile] = useState(false);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const toggleSetting = (key: keyof typeof settings) => {
         setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
     };
 
+    // Swipe gesture handling for mobile
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe && currentStep < 4) {
+            setCurrentStep(prev => prev + 1);
+        }
+        if (isRightSwipe && currentStep > 1) {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
+
+    const nextStep = () => {
+        if (currentStep < 4) {
+            setCurrentStep(prev => prev + 1);
+        }
+    };
+
+    const prevStep = () => {
+        if (currentStep > 1) {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
+
     return (
-        <div className="bg-neutral-950 min-h-screen flex items-center justify-center p-4">
+        <div className="bg-neutral-950 min-h-screen flex items-center justify-center p-2 sm:p-4">
             {/* Modal Backdrop */}
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-10"></div>
 
             {/* Onboarding Modal */}
-            <div className="modal-card max-w-2xl w-full z-20">
+            <div 
+                className={`modal-card w-full z-20 ${isMobile ? 'max-w-sm mx-2' : 'max-w-2xl'}`}
+                onTouchStart={isMobile ? handleTouchStart : undefined}
+                onTouchMove={isMobile ? handleTouchMove : undefined}
+                onTouchEnd={isMobile ? handleTouchEnd : undefined}
+            >
                 <div className="modal-content shadow-xl">
                     {/* Modal Header */}
-                    <div className="p-6 border-b border-neutral-800">
+                    <div className="p-4 sm:p-6 border-b border-neutral-800">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-semibold text-white">
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">
                                 Complete Your Account Setup
                             </h2>
-                            <button className="text-neutral-400 hover:text-white transition">
+                            <button className="text-neutral-400 hover:text-white transition p-1">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-5 w-5"
@@ -50,17 +106,24 @@ export default function OnboardingModal() {
                                 </svg>
                             </button>
                         </div>
+                        
+                        {/* Mobile swipe hint */}
+                        {isMobile && (
+                            <p className="text-xs text-neutral-500 mt-2">
+                                Swipe left/right to navigate steps
+                            </p>
+                        )}
                     </div>
 
                     {/* Progress Indicator */}
-                    <div className="px-6 pt-6">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+                        <div className={`flex items-center justify-between mb-4 sm:mb-6 ${isMobile ? 'overflow-x-auto' : ''}`}>
                             {/* Step 1 - Completed */}
-                            <div className="flex flex-col items-center">
+                            <div className="flex flex-col items-center flex-shrink-0">
                                 <div className="step-indicator step-completed">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4"
+                                        className="h-3 w-3 sm:h-4 sm:w-4"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -71,54 +134,92 @@ export default function OnboardingModal() {
                                         />
                                     </svg>
                                 </div>
-                                <span className="text-xs text-neutral-400 mt-2">Account</span>
+                                <span className="text-xs text-neutral-400 mt-1 sm:mt-2">Account</span>
                             </div>
 
-                            <div className="w-full mx-2 h-0.5 bg-neutral-800">
-                                <div className="w-1/3 h-0.5 bg-blue-500"></div>
+                            <div className="w-full mx-1 sm:mx-2 h-0.5 bg-neutral-800 flex-shrink">
+                                <div className={`h-0.5 bg-blue-500 transition-all duration-300 ${currentStep >= 2 ? 'w-full' : 'w-1/3'}`}></div>
                             </div>
 
                             {/* Step 2 - Active */}
-                            <div className="flex flex-col items-center">
-                                <div className="step-indicator step-active">2</div>
-                                <span className="text-xs text-white mt-2">Security</span>
+                            <div className="flex flex-col items-center flex-shrink-0">
+                                <div className={`step-indicator ${currentStep === 2 ? 'step-active' : currentStep > 2 ? 'step-completed' : 'step-inactive'}`}>
+                                    {currentStep > 2 ? (
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-3 w-3 sm:h-4 sm:w-4"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                    ) : (
+                                        '2'
+                                    )}
+                                </div>
+                                <span className={`text-xs mt-1 sm:mt-2 ${currentStep === 2 ? 'text-white' : 'text-neutral-500'}`}>Security</span>
                             </div>
 
-                            <div className="w-full mx-2 h-0.5 bg-neutral-800"></div>
+                            <div className="w-full mx-1 sm:mx-2 h-0.5 bg-neutral-800 flex-shrink">
+                                <div className={`h-0.5 bg-blue-500 transition-all duration-300 ${currentStep >= 3 ? 'w-full' : 'w-0'}`}></div>
+                            </div>
 
                             {/* Step 3 - Inactive */}
-                            <div className="flex flex-col items-center">
-                                <div className="step-indicator step-inactive">3</div>
-                                <span className="text-xs text-neutral-500 mt-2">Preferences</span>
+                            <div className="flex flex-col items-center flex-shrink-0">
+                                <div className={`step-indicator ${currentStep === 3 ? 'step-active' : currentStep > 3 ? 'step-completed' : 'step-inactive'}`}>
+                                    {currentStep > 3 ? (
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-3 w-3 sm:h-4 sm:w-4"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                    ) : (
+                                        '3'
+                                    )}
+                                </div>
+                                <span className={`text-xs mt-1 sm:mt-2 ${currentStep === 3 ? 'text-white' : 'text-neutral-500'}`}>Preferences</span>
                             </div>
 
-                            <div className="w-full mx-2 h-0.5 bg-neutral-800"></div>
+                            <div className="w-full mx-1 sm:mx-2 h-0.5 bg-neutral-800 flex-shrink">
+                                <div className={`h-0.5 bg-blue-500 transition-all duration-300 ${currentStep >= 4 ? 'w-full' : 'w-0'}`}></div>
+                            </div>
 
                             {/* Step 4 - Inactive */}
-                            <div className="flex flex-col items-center">
-                                <div className="step-indicator step-inactive">4</div>
-                                <span className="text-xs text-neutral-500 mt-2">Complete</span>
+                            <div className="flex flex-col items-center flex-shrink-0">
+                                <div className={`step-indicator ${currentStep === 4 ? 'step-active' : 'step-inactive'}`}>4</div>
+                                <span className={`text-xs mt-1 sm:mt-2 ${currentStep === 4 ? 'text-white' : 'text-neutral-500'}`}>Complete</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Modal Content */}
-                    <div className="px-6 pb-6">
-                        <h3 className="text-lg font-medium text-white mb-4">
+                    <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+                        <h3 className="text-base sm:text-lg font-medium text-white mb-3 sm:mb-4">
                             Set Up Your Security Preferences
                         </h3>
-                        <p className="text-neutral-400 mb-6">
+                        <p className="text-neutral-400 mb-4 sm:mb-6 text-sm">
                             Enhance your account security by configuring these important
                             settings.
                         </p>
 
                         {/* Two-Factor Authentication */}
-                        <div className="bg-neutral-800/40 rounded-lg p-4 mb-5">
+                        <div className="bg-neutral-800/40 rounded-lg p-3 sm:p-4 mb-4 sm:mb-5">
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5 text-blue-500"
+                                        className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -131,16 +232,16 @@ export default function OnboardingModal() {
                                 </div>
                                 <div className="ml-3 flex-1">
                                     <div className="flex justify-between items-center">
-                                        <h4 className="text-white font-medium">
+                                        <h4 className="text-white font-medium text-sm sm:text-base">
                                             Two-Factor Authentication
                                         </h4>
                                         <button
                                             onClick={() => toggleSetting("twoFactor")}
-                                            className={`toggle-switch ${settings.twoFactor ? "active" : ""}`}
+                                            className={`toggle-switch ${settings.twoFactor ? "active" : ""} touch-manipulation`}
                                             aria-label="Toggle two-factor authentication"
                                         />
                                     </div>
-                                    <p className="text-neutral-400 text-sm mt-1">
+                                    <p className="text-neutral-400 text-xs sm:text-sm mt-1">
                                         Add an extra layer of security to your account by requiring
                                         a verification code in addition to your password.
                                     </p>
@@ -149,12 +250,12 @@ export default function OnboardingModal() {
                         </div>
 
                         {/* Strong Password Requirements */}
-                        <div className="bg-neutral-800/40 rounded-lg p-4 mb-5">
+                        <div className="bg-neutral-800/40 rounded-lg p-3 sm:p-4 mb-4 sm:mb-5">
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5 text-blue-500"
+                                        className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -167,16 +268,16 @@ export default function OnboardingModal() {
                                 </div>
                                 <div className="ml-3 flex-1">
                                     <div className="flex justify-between items-center">
-                                        <h4 className="text-white font-medium">
+                                        <h4 className="text-white font-medium text-sm sm:text-base">
                                             Strong Password Requirements
                                         </h4>
                                         <button
                                             onClick={() => toggleSetting("strongPassword")}
-                                            className={`toggle-switch ${settings.strongPassword ? "active" : ""}`}
+                                            className={`toggle-switch ${settings.strongPassword ? "active" : ""} touch-manipulation`}
                                             aria-label="Toggle strong password requirements"
                                         />
                                     </div>
-                                    <p className="text-neutral-400 text-sm mt-1">
+                                    <p className="text-neutral-400 text-xs sm:text-sm mt-1">
                                         Enforce strong password policies including minimum length,
                                         special characters, and regular password changes.
                                     </p>
@@ -185,12 +286,12 @@ export default function OnboardingModal() {
                         </div>
 
                         {/* Login Notifications */}
-                        <div className="bg-neutral-800/40 rounded-lg p-4 mb-6">
+                        <div className="bg-neutral-800/40 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 mt-1">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5 text-blue-500"
+                                        className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -199,16 +300,16 @@ export default function OnboardingModal() {
                                 </div>
                                 <div className="ml-3 flex-1">
                                     <div className="flex justify-between items-center">
-                                        <h4 className="text-white font-medium">
+                                        <h4 className="text-white font-medium text-sm sm:text-base">
                                             Login Notifications
                                         </h4>
                                         <button
                                             onClick={() => toggleSetting("loginNotifications")}
-                                            className={`toggle-switch ${settings.loginNotifications ? "active" : ""}`}
+                                            className={`toggle-switch ${settings.loginNotifications ? "active" : ""} touch-manipulation`}
                                             aria-label="Toggle login notifications"
                                         />
                                     </div>
-                                    <p className="text-neutral-400 text-sm mt-1">
+                                    <p className="text-neutral-400 text-xs sm:text-sm mt-1">
                                         Receive email notifications when there are new login
                                         attempts from unrecognized devices.
                                     </p>
@@ -217,11 +318,18 @@ export default function OnboardingModal() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex justify-between">
-                            <button className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg transition">
+                        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
+                            <button 
+                                onClick={prevStep}
+                                disabled={currentStep <= 1}
+                                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-300 rounded-lg transition touch-manipulation order-2 sm:order-1"
+                            >
                                 Back
                             </button>
-                            <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium">
+                            <button 
+                                onClick={nextStep}
+                                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium touch-manipulation order-1 sm:order-2"
+                            >
                                 Continue
                             </button>
                         </div>
