@@ -6,7 +6,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
 
 ## Tasks
 
-- [-] 1. Enhance backend authentication and authorization infrastructure
+- [x] 1. Enhance backend authentication and authorization infrastructure
   - [x] 1.1 Extend JWT payload structure with tier and feature flag information
     - Modify existing JWT service to include businessTier, permissions, and featureFlags
     - Update token validation middleware to handle enhanced payload
@@ -23,7 +23,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 1: Authentication Success Completeness**
     - **Validates: Requirements 1.3, 1.5**
 
-  - [-] 1.4 Enhance GraphQL authorization middleware for tier-based access control
+  - [x] 1.4 Enhance GraphQL authorization middleware for tier-based access control
     - Implement field-level authorization based on business tier
     - Add automatic error handling for unauthorized access attempts
     - Integrate with existing RBAC system for seamless permission checking
