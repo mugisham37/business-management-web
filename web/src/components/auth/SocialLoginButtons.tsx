@@ -39,9 +39,9 @@ export function SocialLoginButtons({
         isProviderAvailable,
     } = useSocialAuth({
         usePopup,
-        redirectTo,
-        onSuccess,
-        onError,
+        redirectTo: redirectTo || '/dashboard',
+        ...(onSuccess && { onSuccess }),
+        ...(onError && { onError }),
     });
 
     const isLoading = externalLoading || socialLoading;

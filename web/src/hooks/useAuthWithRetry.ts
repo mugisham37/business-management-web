@@ -57,7 +57,7 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
     const attempt: AuthAttempt = {
       timestamp: new Date(),
       success,
-      error,
+      ...(error && { error }),
     };
 
     setAttempts(prev => [attempt, ...prev.slice(0, 9)]); // Keep last 10 attempts
@@ -96,7 +96,7 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
       onSuccess?.();
 
     } catch (err) {
-      const authError = err instanceof Error && 'code' in err 
+      const authError = err instanceof Error && 'code' in err && 'retryable' in err && 'userMessage' in err
         ? err as AuthError 
         : authErrorHandler.classifyError(err, actionName);
 
