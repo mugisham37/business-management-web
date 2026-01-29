@@ -1,5 +1,5 @@
 "use client"
-import { cx, focusRing } from "@/lib/utils"
+import { cx, focusRing } from "@/lib/utils/cn"
 import * as RadioGroupPrimitives from "@radix-ui/react-radio-group"
 import { RiComputerLine, RiMoonLine, RiSunLine } from "@remixicon/react"
 import { useTheme } from "next-themes"

@@ -1,4 +1,4 @@
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 import type { BundledLanguage, BundledTheme } from "shiki"
 import { codeToHtml } from "shiki"
 import CopyToClipboard from "./CopyToClipboard"

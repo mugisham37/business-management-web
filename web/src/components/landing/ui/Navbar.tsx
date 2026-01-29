@@ -2,7 +2,7 @@
 
 import { siteConfig } from "@/app/siteConfig"
 import useScroll from "@/lib/use-scroll"
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
 import React from "react"
@@ -65,11 +65,11 @@ export function Navigation() {
               </Link>
             </div>
           </nav>
-          <Button className="hidden h-10 font-semibold md:flex">
-            Book a demo
+          <Button asChild className="hidden h-10 font-semibold md:flex">
+            <Link href={siteConfig.baseLinks.dashboard}>Dashboard</Link>
           </Button>
           <div className="flex gap-x-2 md:hidden">
-            <Button>Book demo</Button>
+            <Button asChild><Link href={siteConfig.baseLinks.dashboard}>Dashboard</Link></Button>
             <Button
               onClick={() => setOpen(!open)}
               variant="light"

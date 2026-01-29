@@ -7,7 +7,7 @@ import { Tooltip } from "@/components/landing/Tooltip"
 import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
 import { Faqs } from "@/components/landing/ui/Faqs"
 import Testimonial from "@/components/landing/ui/Testimonial"
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 import {
   RiCheckLine,
   RiCloudLine,

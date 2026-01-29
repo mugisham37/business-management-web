@@ -4,7 +4,7 @@ import * as AccordionPrimitives from "@radix-ui/react-accordion"
 import { RiAddLine } from "@remixicon/react"
 import React from "react"
 
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 
 const Accordion = AccordionPrimitives.Root
 

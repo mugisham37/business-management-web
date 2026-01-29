@@ -1,4 +1,4 @@
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 
 export function ArrowAnimated({
   className,

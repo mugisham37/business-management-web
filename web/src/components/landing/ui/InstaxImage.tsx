@@ -1,5 +1,5 @@
 "use client"
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 import Image from "next/image"
 
 export function InstaxImage({

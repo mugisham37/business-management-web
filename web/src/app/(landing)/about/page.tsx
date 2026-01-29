@@ -2,7 +2,7 @@ import { Badge } from "@/components/landing/Badge"
 import { Button } from "@/components/landing/Button"
 import Benefits from "@/components/landing/ui/Benefits"
 import TeamGallery from "@/components/landing/ui/TeamGallery"
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 import Balancer from "react-wrap-balancer"
 
 export default function About() {

@@ -7,6 +7,7 @@ export const siteConfig = {
     about: "/about",
     changelog: "/changelog",
     pricing: "/pricing",
+    dashboard: "/dashboard",
     imprint: "/imprint",
     privacy: "/privacy",
     terms: "/terms",

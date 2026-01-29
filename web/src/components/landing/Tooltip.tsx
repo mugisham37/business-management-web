@@ -5,7 +5,7 @@
 import * as TooltipPrimitives from "@radix-ui/react-tooltip"
 import React from "react"
 
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils/cn"
 
 interface TooltipProps
   extends Omit<TooltipPrimitives.TooltipContentProps, "content" | "onClick">,
