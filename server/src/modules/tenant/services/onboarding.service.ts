@@ -6,6 +6,7 @@ import { tenants } from '../../database/schema';
 import { CustomLoggerService } from '../../logger/logger.service';
 import { BusinessTier, BusinessMetrics } from '../entities/tenant.entity';
 import { BusinessProfileService } from './business-profile.service';
+import { IndustryType, BusinessSize, RevenueRange, TransactionVolumeRange } from '../entities/business-profile.entity';
 
 /**
  * Onboarding step identifiers
@@ -80,8 +81,8 @@ export enum BusinessType {
 export interface OnboardingData {
     // Business Profile
     businessName?: string;
-    businessIndustry?: string;
-    businessSize?: 'solo' | 'small' | 'medium' | 'large' | 'enterprise';
+    businessIndustry?: IndustryType;
+    businessSize?: BusinessSize;
 
     // Business Type
     businessType?: BusinessType;
@@ -89,12 +90,26 @@ export interface OnboardingData {
     // Usage Expectations
     expectedEmployees?: number;
     expectedLocations?: number;
+    expectedRevenueRange?: RevenueRange;
+    expectedTransactionVolumeRange?: TransactionVolumeRange;
     expectedMonthlyTransactions?: number;
     expectedMonthlyRevenue?: number;
 
     // Plan Selection
     selectedPlan?: BusinessTier;
     recommendedPlan?: BusinessTier;
+
+    // Additional fields
+    description?: string;
+    website?: string;
+    phoneNumber?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+    currentSoftware?: string[];
+    businessGoals?: string[];
 }
 
 /**

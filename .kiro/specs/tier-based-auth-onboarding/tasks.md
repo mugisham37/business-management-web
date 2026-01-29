@@ -33,7 +33,7 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 4: Tier-Based Access Control**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.5**
 
-- [-] 2. Implement progressive onboarding service
+- [x] 2. Implement progressive onboarding service
   - [x] 2.1 Create onboarding workflow engine with state management
     - Build multi-step workflow engine with persistent state tracking
     - Implement step validation and conditional logic
@@ -50,14 +50,14 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 2: Onboarding Workflow Consistency**
     - **Validates: Requirements 2.1, 2.7, 2.8**
 
-  - [-] 2.4 Create GraphQL mutations and queries for onboarding flow
+  - [x] 2.4 Create GraphQL mutations and queries for onboarding flow
     - Add mutations for saving onboarding step data
     - Create queries for retrieving onboarding progress
     - Implement real-time progress updates via subscriptions
     - _Requirements: 2.1, 2.7, 2.8_
 
-- [ ] 3. Build AI-powered pricing engine and tier calculator
-  - [ ] 3.1 Implement tier recommendation algorithm
+- [-] 3. Build AI-powered pricing engine and tier calculator
+  - [-] 3.1 Implement tier recommendation algorithm
     - Create rule-based recommendation engine using business profile data
     - Add confidence scoring and alternative suggestions
     - Integrate with existing tier calculation logic

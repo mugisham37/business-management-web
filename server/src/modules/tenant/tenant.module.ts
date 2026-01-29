@@ -10,6 +10,7 @@ import { FeatureFlagService } from './services/feature-flag.service';
 import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking.service';
 import { OnboardingService } from './services/onboarding.service';
 import { BusinessProfileService } from './services/business-profile.service';
+import { PricingEngineService } from './services/pricing-engine.service';
 
 // Resolvers
 import { TenantResolver } from './resolvers/tenant.resolver';
@@ -18,6 +19,7 @@ import { TenantMetricsResolver } from './resolvers/tenant-metrics.resolver';
 import { TenantSubscriptionsResolver } from './resolvers/tenant-subscriptions.resolver';
 import { OnboardingResolver } from './resolvers/onboarding.resolver';
 import { TierAccessResolver } from './resolvers/tier-access.resolver';
+import { PricingEngineResolver } from './resolvers/pricing-engine.resolver';
 
 // Guards
 import { TenantGuard } from './guards/tenant.guard';
@@ -61,6 +63,7 @@ import { LoggerModule } from '../logger/logger.module';
     TenantMetricsTrackingService,
     OnboardingService,
     BusinessProfileService,
+    PricingEngineService,
 
     // Resolvers
     TenantResolver,
@@ -69,6 +72,7 @@ import { LoggerModule } from '../logger/logger.module';
     TenantSubscriptionsResolver,
     OnboardingResolver,
     TierAccessResolver,
+    PricingEngineResolver,
 
     // Guards - Global application
     {
@@ -99,6 +103,7 @@ import { LoggerModule } from '../logger/logger.module';
     TenantMetricsTrackingService,
     OnboardingService,
     BusinessProfileService,
+    PricingEngineService,
 
     // Export guards and interceptors for manual use
     TenantGuard,
