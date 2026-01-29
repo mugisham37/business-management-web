@@ -8,12 +8,15 @@ import { TenantService } from './services/tenant.service';
 import { BusinessMetricsService } from './services/business-metrics.service';
 import { FeatureFlagService } from './services/feature-flag.service';
 import { TenantMetricsTrackingService } from './services/tenant-metrics-tracking.service';
+import { OnboardingService } from './services/onboarding.service';
 
 // Resolvers
 import { TenantResolver } from './resolvers/tenant.resolver';
 import { FeatureFlagResolver } from './resolvers/feature-flag.resolver';
 import { TenantMetricsResolver } from './resolvers/tenant-metrics.resolver';
 import { TenantSubscriptionsResolver } from './resolvers/tenant-subscriptions.resolver';
+import { OnboardingResolver } from './resolvers/onboarding.resolver';
+import { TierAccessResolver } from './resolvers/tier-access.resolver';
 
 // Guards
 import { TenantGuard } from './guards/tenant.guard';
@@ -55,12 +58,15 @@ import { LoggerModule } from '../logger/logger.module';
     BusinessMetricsService,
     FeatureFlagService,
     TenantMetricsTrackingService,
+    OnboardingService,
 
     // Resolvers
     TenantResolver,
     FeatureFlagResolver,
     TenantMetricsResolver,
     TenantSubscriptionsResolver,
+    OnboardingResolver,
+    TierAccessResolver,
 
     // Guards - Global application
     {
@@ -89,6 +95,7 @@ import { LoggerModule } from '../logger/logger.module';
     BusinessMetricsService,
     FeatureFlagService,
     TenantMetricsTrackingService,
+    OnboardingService,
 
     // Export guards and interceptors for manual use
     TenantGuard,
@@ -96,4 +103,4 @@ import { LoggerModule } from '../logger/logger.module';
     TenantInterceptor,
   ],
 })
-export class TenantModule {}
+export class TenantModule { }
