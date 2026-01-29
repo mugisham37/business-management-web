@@ -2,25 +2,30 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { AuthErrorDisplay } from './AuthErrorDisplay';
+import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { cn } from '@/lib/utils/cn';
 
 interface LoginFormProps {
-    onSubmit: (data: { email: string; password: string; rememberMe: boolean }) => Promise<void>;
+    onSubmit?: (data: { email: string; password: string; rememberMe: boolean }) => Promise<void>;
     onForgotPassword?: () => void;
     isLoading?: boolean;
     error?: string | null;
+    useRetryLogic?: boolean;
 }
 
 export function LoginForm({
     onSubmit,
     onForgotPassword,
-    isLoading = false,
-    error = null,
+    isLoading: externalLoading = false,
+    error: externalError = null,
+    useRetryLogic = true,
 }: LoginFormProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -30,6 +35,21 @@ export function LoginForm({
         email?: string;
         password?: string;
     }>({});
+
+    const networkStatus = useNetworkStatus();
+    const authWithRetry = useAuthWithRetry({
+        onError: (error) => {
+            console.error('Login error:', error);
+        },
+        onRetry: (attempt) => {
+            console.log('Retrying login, attempt:', attempt);
+        },
+    });
+
+    // Use retry logic if enabled, otherwise use external props
+    const isLoading = useRetryLogic ? authWithRetry.isLoading : externalLoading;
+    const error = useRetryLogic ? authWithRetry.error : 
+        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: 'UNKNOWN_ERROR' as any } : null);
 
     const validateForm = (): boolean => {
         const errors: { email?: string; password?: string } = {};
@@ -55,7 +75,41 @@ export function LoginForm({
 
         if (!validateForm()) return;
 
-        await onSubmit({ email, password, rememberMe });
+        try {
+            if (useRetryLogic) {
+                await authWithRetry.login(email, password);
+            } else if (onSubmit) {
+                await onSubmit({ email, password, rememberMe });
+            }
+        } catch (error) {
+            // Error is handled by the retry logic or parent component
+            console.error('Login submission error:', error);
+        }
+    };
+
+    const handleRetry = async () => {
+        if (useRetryLogic) {
+            await authWithRetry.retry();
+        }
+    };
+
+    const handleDismissError = () => {
+        if (useRetryLogic) {
+            authWithRetry.clearError();
+        }
+    };
+
+    const handleErrorAction = (action: string) => {
+        switch (action) {
+            case 'RESET_PASSWORD':
+                onForgotPassword?.();
+                break;
+            case 'RETRY':
+                handleRetry();
+                break;
+            default:
+                console.log('Unhandled error action:', action);
+        }
     };
 
     return (
@@ -66,17 +120,30 @@ export function LoginForm({
             onSubmit={handleSubmit}
             className="space-y-5"
         >
-            {/* Error Alert */}
-            {error && (
+            {/* Network Status Warning */}
+            {!networkStatus.isOnline && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900"
                 >
-                    <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-                    <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                    <WifiOff className="w-5 h-5 text-orange-500 shrink-0" />
+                    <p className="text-sm text-orange-700 dark:text-orange-400">
+                        You're currently offline. Please check your internet connection.
+                    </p>
                 </motion.div>
             )}
+
+            {/* Enhanced Error Display */}
+            <AuthErrorDisplay
+                error={error}
+                canRetry={useRetryLogic ? authWithRetry.canRetry : false}
+                isRetrying={isLoading}
+                retryCount={useRetryLogic ? authWithRetry.retryCount : 0}
+                onRetry={handleRetry}
+                onDismiss={handleDismissError}
+                onAction={handleErrorAction}
+            />
 
             {/* Email Field */}
             <div className="space-y-2">
@@ -92,7 +159,11 @@ export function LoginForm({
                         onChange={(e) => {
                             setEmail(e.target.value);
                             if (validationErrors.email) {
-                                setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                                setValidationErrors((prev) => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.email;
+                                    return newErrors;
+                                });
                             }
                         }}
                         placeholder="you@example.com"
@@ -134,7 +205,11 @@ export function LoginForm({
                         onChange={(e) => {
                             setPassword(e.target.value);
                             if (validationErrors.password) {
-                                setValidationErrors((prev) => ({ ...prev, password: undefined }));
+                                setValidationErrors((prev) => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.password;
+                                    return newErrors;
+                                });
                             }
                         }}
                         placeholder="••••••••"

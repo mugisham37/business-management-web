@@ -2,15 +2,18 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Building2, AlertCircle, Loader2, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Building2, Loader2, Check, X, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { AuthErrorDisplay } from './AuthErrorDisplay';
+import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { cn } from '@/lib/utils/cn';
 
 interface RegisterFormProps {
-    onSubmit: (data: {
+    onSubmit?: (data: {
         firstName: string;
         lastName: string;
         email: string;
@@ -20,6 +23,7 @@ interface RegisterFormProps {
     }) => Promise<void>;
     isLoading?: boolean;
     error?: string | null;
+    useRetryLogic?: boolean;
 }
 
 interface PasswordStrength {
@@ -59,8 +63,9 @@ function calculatePasswordStrength(password: string): PasswordStrength {
 
 export function RegisterForm({
     onSubmit,
-    isLoading = false,
-    error = null,
+    isLoading: externalLoading = false,
+    error: externalError = null,
+    useRetryLogic = true,
 }: RegisterFormProps) {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -70,6 +75,21 @@ export function RegisterForm({
     const [showPassword, setShowPassword] = useState(false);
     const [acceptTerms, setAcceptTerms] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+    const networkStatus = useNetworkStatus();
+    const authWithRetry = useAuthWithRetry({
+        onError: (error) => {
+            console.error('Registration error:', error);
+        },
+        onRetry: (attempt) => {
+            console.log('Retrying registration, attempt:', attempt);
+        },
+    });
+
+    // Use retry logic if enabled, otherwise use external props
+    const isLoading = useRetryLogic ? authWithRetry.isLoading : externalLoading;
+    const error = useRetryLogic ? authWithRetry.error : 
+        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: 'UNKNOWN_ERROR' as any } : null);
 
     const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
 
@@ -113,14 +133,47 @@ export function RegisterForm({
 
         if (!validateForm()) return;
 
-        await onSubmit({
+        const registrationData = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
             email,
             password,
             businessName: businessName.trim(),
             acceptTerms,
-        });
+        };
+
+        try {
+            if (useRetryLogic) {
+                await authWithRetry.register(registrationData);
+            } else if (onSubmit) {
+                await onSubmit(registrationData);
+            }
+        } catch (error) {
+            // Error is handled by the retry logic or parent component
+            console.error('Registration submission error:', error);
+        }
+    };
+
+    const handleRetry = async () => {
+        if (useRetryLogic) {
+            await authWithRetry.retry();
+        }
+    };
+
+    const handleDismissError = () => {
+        if (useRetryLogic) {
+            authWithRetry.clearError();
+        }
+    };
+
+    const handleErrorAction = (action: string) => {
+        switch (action) {
+            case 'RETRY':
+                handleRetry();
+                break;
+            default:
+                console.log('Unhandled error action:', action);
+        }
     };
 
     const clearError = (field: string) => {
@@ -141,17 +194,30 @@ export function RegisterForm({
             onSubmit={handleSubmit}
             className="space-y-5"
         >
-            {/* Error Alert */}
-            {error && (
+            {/* Network Status Warning */}
+            {!networkStatus.isOnline && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900"
                 >
-                    <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-                    <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                    <WifiOff className="w-5 h-5 text-orange-500 shrink-0" />
+                    <p className="text-sm text-orange-700 dark:text-orange-400">
+                        You're currently offline. Please check your internet connection.
+                    </p>
                 </motion.div>
             )}
+
+            {/* Enhanced Error Display */}
+            <AuthErrorDisplay
+                error={error}
+                canRetry={useRetryLogic ? authWithRetry.canRetry : false}
+                isRetrying={isLoading}
+                retryCount={useRetryLogic ? authWithRetry.retryCount : 0}
+                onRetry={handleRetry}
+                onDismiss={handleDismissError}
+                onAction={handleErrorAction}
+            />
 
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">

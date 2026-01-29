@@ -86,24 +86,11 @@ export function AuthPage({
 
     const handleSocialLogin = useCallback(
         async (provider: 'google' | 'facebook' | 'github') => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                // TODO: Integrate with social auth
-                console.log('Social login:', provider);
-
-                // Simulate API call
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-
-                router.push(redirectTo || '/dashboard');
-            } catch (err: any) {
-                setError(`Failed to sign in with ${provider}. Please try again.`);
-            } finally {
-                setIsLoading(false);
-            }
+            // The social login is now handled by the SocialLoginButtons component
+            // This callback is kept for backward compatibility
+            console.log('Social login initiated:', provider);
         },
-        [redirectTo, router]
+        []
     );
 
     const handleForgotPassword = useCallback(() => {
@@ -163,10 +150,16 @@ export function AuthPage({
 
                         {/* Social Login */}
                         <SocialLoginButtons
-                            onGoogleClick={() => handleSocialLogin('google')}
-                            onFacebookClick={() => handleSocialLogin('facebook')}
-                            onGithubClick={() => handleSocialLogin('github')}
-                            isLoading={isLoading}
+                            usePopup={true}
+                            redirectTo={redirectTo || '/dashboard'}
+                            onSuccess={(result) => {
+                                console.log('Social auth success:', result);
+                                // Handle successful social authentication
+                            }}
+                            onError={(error) => {
+                                console.error('Social auth error:', error);
+                                setError(error.message);
+                            }}
                         />
 
                         {/* Divider */}
