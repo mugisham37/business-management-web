@@ -1,7 +1,7 @@
 import Link from "next/link"
-import { siteConfig } from "./siteConfig"
+import { siteConfig } from "@/app/siteConfig"
 import { Button } from "@/components/landing/Button"
-import { DatabaseLogo } from "../../public/DatabaseLogo"
+import { DatabaseLogo } from "../../../public/DatabaseLogo"
 import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
 
 export default function NotFound() {

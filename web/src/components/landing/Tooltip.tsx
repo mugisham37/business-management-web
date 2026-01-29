@@ -45,10 +45,10 @@ const Tooltip = React.forwardRef<
     return (
       <TooltipPrimitives.Provider delayDuration={150}>
         <TooltipPrimitives.Root
-          open={open}
-          defaultOpen={defaultOpen}
-          onOpenChange={onOpenChange}
-          delayDuration={delayDuration}
+          {...(open !== undefined && { open })}
+          {...(defaultOpen !== undefined && { defaultOpen })}
+          {...(onOpenChange !== undefined && { onOpenChange })}
+          {...(delayDuration !== undefined && { delayDuration })}
           tremor-id="tremor-raw"
         >
           <TooltipPrimitives.Trigger onClick={onClick} asChild={triggerAsChild}>
@@ -57,7 +57,7 @@ const Tooltip = React.forwardRef<
           <TooltipPrimitives.Portal>
             <TooltipPrimitives.Content
               ref={forwardedRef}
-              side={side}
+              {...(side !== undefined && { side })}
               sideOffset={sideOffset}
               align="center"
               className={cx(

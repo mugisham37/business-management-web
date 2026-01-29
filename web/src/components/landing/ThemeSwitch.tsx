@@ -3,7 +3,7 @@ import { cx, focusRing } from "@/lib/utils/cn"
 import * as RadioGroupPrimitives from "@radix-ui/react-radio-group"
 import { RiComputerLine, RiMoonLine, RiSunLine } from "@remixicon/react"
 import { useTheme } from "next-themes"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 
 // Based on Tremor Raw RadioGroup [v0.0.0]
 
@@ -62,7 +62,7 @@ const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
 
-  useEffect(() => {
+  React.useEffect(() => {
     setMounted(true)
   }, [])
 
@@ -72,7 +72,7 @@ const ThemeSwitch = () => {
 
   return (
     <RadioGroup
-      value={theme}
+      value={theme ?? null}
       onValueChange={(value) => {
         setTheme(value)
       }}

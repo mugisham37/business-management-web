@@ -14,8 +14,12 @@ export default function slugify(str: string) {
     .replace(/\-\-+/g, "-") // Replace multiple - with single -
 }
 
-function CustomHeading(props: any) {
-  let slug = slugify(props.children)
+function CustomHeading(props: {
+  children: React.ReactNode
+  level: number
+  className?: string
+}) {
+  const slug = slugify(props.children as string)
   return React.createElement(
     `h${props.level}`,
     {
@@ -69,7 +73,7 @@ export const P = (props: React.HTMLProps<HTMLParagraphElement>) => (
 
 export const Ul = (props: React.HTMLAttributes<HTMLUListElement>) => (
   <ul
-    className="mb-10 ml-[30px] list-['–__'] space-y-1 leading-8 text-gray-600 dark:text-gray-400"
+    className="mb-10 ml-7.5 list-['–__'] space-y-1 leading-8 text-gray-600 dark:text-gray-400"
     {...props}
   />
 )
@@ -78,24 +82,30 @@ export const Bold = (props: React.HTMLAttributes<HTMLSpanElement>) => (
   <span className="font-semibold text-gray-900 dark:text-gray-50" {...props} />
 )
 
-export function CustomLink(props: any) {
-  let href = props.href
+export function CustomLink(props: {
+  href: string
+  children: React.ReactNode
+  className?: string
+  target?: string
+  rel?: string
+}) {
+  const { href, children, ...restProps } = props
   const style =
     "text-indigo-600 font-medium hover:text-indigo-500 dark:text-indigo-500 hover:dark:text-indigo-400"
   if (href.startsWith("/")) {
     return (
-      <Link className={style} href={href} {...props}>
-        {props.children}
+      <Link className={style} href={href} {...restProps}>
+        {children}
       </Link>
     )
   }
 
   if (href.startsWith("#")) {
-    return <a {...props} className={style} />
+    return <a href={href} {...restProps} className={style} />
   }
 
   return (
-    <a className={style} target="_blank" rel="noopener noreferrer" {...props} />
+    <a className={style} target="_blank" rel="noopener noreferrer" href={href} {...restProps} />
   )
 }
 
@@ -106,7 +116,7 @@ export const ChangelogEntry = ({
 }: {
   version: string
   date: string
-  children: any
+  children: React.ReactNode
 }) => (
   <div className="relative my-20 flex flex-col justify-center gap-x-14 border-b border-gray-200 md:flex-row dark:border-gray-800">
     <div className="mb-4 md:mb-10 md:w-1/3">
