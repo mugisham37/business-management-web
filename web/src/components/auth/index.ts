@@ -1,2 +1,5 @@
-export { AuthProvider } from '../providers/auth-provider';
-export type { AuthProviderProps } from '../providers/auth-provider';
+// Auth Components Index
+export { LoginForm } from './LoginForm';
+export { RegisterForm } from './RegisterForm';
+export { AuthPage } from './AuthPage';
+export { SocialLoginButtons } from './SocialLoginButtons';
