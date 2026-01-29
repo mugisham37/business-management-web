@@ -41,6 +41,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       businessTier: payload.businessTier || 'micro',
       featureFlags: payload.featureFlags || [],
       trialExpiresAt: payload.trialExpiresAt ? new Date(payload.trialExpiresAt * 1000) : undefined,
-    };
+    } as AuthenticatedUser;
   }
 }

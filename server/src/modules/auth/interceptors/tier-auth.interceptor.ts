@@ -90,17 +90,18 @@ export class TierAuthInterceptor implements NestInterceptor {
     
     // Extract required tier from error message
     const tierMatch = errorMessage.match(/Required tier: (\w+)/);
-    const requiredTier = tierMatch ? tierMatch[1] : this.getNextTier(currentTier);
+    const matchedTier = tierMatch ? tierMatch[1] : this.getNextTier(currentTier);
+    const requiredTier = matchedTier || 'small';
     
     // Extract missing features from error message
     const featureMatch = errorMessage.match(/Required feature: (\w+)/);
-    const missingFeatures = featureMatch ? [featureMatch[1]] : [];
+    const missingFeatures: string[] = featureMatch && featureMatch[1] ? [featureMatch[1]] : [];
     
     // Generate upgrade URL (would be configured based on your frontend routing)
     const upgradeUrl = `/upgrade?from=${currentTier}&to=${requiredTier}`;
     
     // Get pricing information (would come from your pricing service)
-    const pricingInfo = this.getPricingInfo(currentTier, requiredTier);
+    const pricingInfo = this.getPricingInfo(currentTier as string, requiredTier);
 
     return {
       currentTier,

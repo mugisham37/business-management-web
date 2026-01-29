@@ -57,7 +57,12 @@ export class TierAuthGuard implements CanActivate {
           feature,
           {
             businessTier: user.businessTier,
-            businessMetrics: {}, // This would be populated from tenant context
+            businessMetrics: {
+              employeeCount: 0,
+              locationCount: 0,
+              monthlyTransactionVolume: 0,
+              monthlyRevenue: 0,
+            },
             userId: user.id,
             userRoles: [user.role],
           }

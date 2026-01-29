@@ -174,6 +174,7 @@ export class SocialAuthService {
     await db
       .insert(userSocialProviders)
       .values({
+        tenantId: newUser.tenantId,
         userId: newUser.id,
         provider: profile.provider,
         providerId: profile.id,
@@ -264,6 +265,7 @@ export class SocialAuthService {
     await db
       .insert(userSocialProviders)
       .values({
+        tenantId: user.tenantId,
         userId,
         provider: linkInput.provider,
         providerId: linkInput.providerId,

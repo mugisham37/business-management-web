@@ -39,7 +39,7 @@ export abstract class BaseResolver {
     const selections = info.fieldNodes[0]?.selectionSet?.selections;
     if (!selections) return false;
 
-    return selections.some(selection => {
+    return selections.some((selection: any) => {
       if (selection.kind === 'Field') {
         return selection.name.value === fieldName;
       }
@@ -56,8 +56,8 @@ export abstract class BaseResolver {
     if (!selections) return [];
 
     return selections
-      .filter(selection => selection.kind === 'Field')
-      .map(selection => (selection as any).name.value);
+      .filter((selection: any) => selection.kind === 'Field')
+      .map((selection: any) => (selection as any).name.value);
   }
 
   /**

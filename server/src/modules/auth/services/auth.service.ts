@@ -827,11 +827,20 @@ export class AuthService {
       // Extract feature flags from tenant settings
       const featureFlags = this.extractFeatureFlags(tenant.businessTier, tenant.featureFlags);
 
-      return {
+      const result: {
+        businessTier: string;
+        featureFlags: string[];
+        trialExpiresAt?: Date;
+      } = {
         businessTier: tenant.businessTier,
         featureFlags,
-        trialExpiresAt: tenant.trialEndDate,
       };
+
+      if (tenant.trialEndDate) {
+        result.trialExpiresAt = tenant.trialEndDate;
+      }
+
+      return result;
     } catch (error) {
       // Return default values on error
       return {
@@ -852,10 +861,10 @@ export class AuthService {
       enterprise: ['basic_pos', 'basic_inventory', 'basic_reporting', 'advanced_inventory', 'employee_management', 'customer_management', 'advanced_reporting', 'multi_location', 'integrations', 'api_access', 'custom_fields', 'advanced_analytics'],
     };
 
-    const tierFeatures = baseFeatures[businessTier] || baseFeatures.micro;
+    const tierFeatures: string[] = (baseFeatures[businessTier] ?? baseFeatures.micro) as string[];
     
     // Add tenant-specific feature flags
-    const customFeatures = tenantFeatureFlags && typeof tenantFeatureFlags === 'object' 
+    const customFeatures: string[] = tenantFeatureFlags && typeof tenantFeatureFlags === 'object' 
       ? Object.keys(tenantFeatureFlags).filter(key => tenantFeatureFlags[key] === true)
       : [];
 

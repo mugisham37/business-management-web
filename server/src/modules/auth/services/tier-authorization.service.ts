@@ -62,8 +62,13 @@ export class TierAuthorizationService {
         user.tenantId,
         feature,
         {
-          businessTier: user.businessTier,
-          businessMetrics: {}, // Would be populated from tenant context
+          businessTier: user.businessTier as any,
+          businessMetrics: {
+            employeeCount: 0,
+            locationCount: 0,
+            monthlyTransactionVolume: 0,
+            monthlyRevenue: 0,
+          },
           userId: user.id,
           userRoles: [user.role],
         }
@@ -120,8 +125,13 @@ export class TierAuthorizationService {
       user.tenantId,
       featureName,
       {
-        businessTier: user.businessTier,
-        businessMetrics: {}, // Would be populated from tenant context
+        businessTier: user.businessTier as any,
+        businessMetrics: {
+          employeeCount: 0,
+          locationCount: 0,
+          monthlyTransactionVolume: 0,
+          monthlyRevenue: 0,
+        },
         userId: user.id,
         userRoles: [user.role],
       }

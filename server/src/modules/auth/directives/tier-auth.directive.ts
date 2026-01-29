@@ -1,45 +1,61 @@
-import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
-import { defaultFieldResolver, GraphQLField } from 'graphql';
+import { getDirectives } from '@graphql-tools/utils';
+import { defaultFieldResolver, GraphQLField, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { ForbiddenException } from '@nestjs/common';
+import { mapSchema, MapperKind } from '@graphql-tools/utils';
 
 /**
  * GraphQL Directive for field-level tier authorization
  * Usage: @tierAuth(tier: "medium", features: ["advanced_reporting"])
+ * Modern implementation using mapSchema instead of deprecated SchemaDirectiveVisitor
  */
-export class TierAuthDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field: GraphQLField<any, any>) {
-    const { resolve = defaultFieldResolver } = field;
-    const requiredTier = this.args.tier;
-    const requiredFeatures = this.args.features || [];
+export class TierAuthDirective {
+  static getDirectiveTransformer() {
+    return (schema: GraphQLSchema) => {
+      return mapSchema(schema, {
+        [MapperKind.FIELD]: (fieldConfig: any, fieldName: string, typeName: string) => {
+          const directives = getDirectives(schema, fieldConfig) as unknown as Record<string, any[]> | undefined;
+          const tierAuthDirective = directives ? directives['tierAuth'] : undefined;
 
-    field.resolve = async function (source, args, context, info) {
-      const user = context.req?.user;
+          if (tierAuthDirective && tierAuthDirective.length > 0) {
+            const directive = tierAuthDirective[0];
+            const requiredTier = directive?.tier;
+            const requiredFeatures = directive?.features || [];
+            const originalResolve = fieldConfig.resolve || defaultFieldResolver;
 
-      if (!user) {
-        throw new ForbiddenException('Authentication required');
-      }
+            fieldConfig.resolve = async function (source: any, args: any, context: any, info: any) {
+              const user = context.req?.user;
 
-      // Check tier requirement
-      if (requiredTier && !checkTierAccess(user.businessTier, requiredTier)) {
-        throw new ForbiddenException(
-          `Access denied. Required tier: ${requiredTier}, current tier: ${user.businessTier}`
-        );
-      }
+              if (!user) {
+                throw new ForbiddenException('Authentication required');
+              }
 
-      // Check feature requirements
-      if (requiredFeatures.length > 0) {
-        const missingFeatures = requiredFeatures.filter(
-          feature => !user.featureFlags.includes(feature)
-        );
+              // Check tier requirement
+              if (requiredTier && !checkTierAccess(user.businessTier, requiredTier)) {
+                throw new ForbiddenException(
+                  `Access denied. Required tier: ${requiredTier}, current tier: ${user.businessTier}`
+                );
+              }
 
-        if (missingFeatures.length > 0) {
-          throw new ForbiddenException(
-            `Access denied. Missing features: ${missingFeatures.join(', ')}`
-          );
-        }
-      }
+              // Check feature requirements
+              if (requiredFeatures && requiredFeatures.length > 0) {
+                const missingFeatures = requiredFeatures.filter(
+                  (feature: any) => !user.featureFlags.includes(feature)
+                );
 
-      return resolve.call(this, source, args, context, info);
+                if (missingFeatures.length > 0) {
+                  throw new ForbiddenException(
+                    `Access denied. Missing features: ${missingFeatures.join(', ')}`
+                  );
+                }
+              }
+
+              return originalResolve.call(this, source, args, context, info);
+            };
+          }
+
+          return fieldConfig;
+        },
+      });
     };
   }
 }
