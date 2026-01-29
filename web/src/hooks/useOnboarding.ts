@@ -1,13 +1,14 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { useQuery, useMutation, ApolloError } from '@apollo/client';
+import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useQuery, useMutation, ApolloError, useApolloClient } from '@apollo/client';
 import {
     GET_ONBOARDING_STATUS,
     GET_AVAILABLE_PLANS,
     UPDATE_ONBOARDING_STEP,
     COMPLETE_ONBOARDING,
 } from '@/lib/graphql/mutations/onboarding';
+import { getOnboardingService, OnboardingSession, StepResult, OnboardingResult, TierRecommendation } from '@/lib/services/onboarding.service';
 
 /**
  * Business tier enum
@@ -70,6 +71,22 @@ export interface OnboardingStatus {
     onboardingData: OnboardingData;
     recommendedPlan: BusinessTier | null;
     completedAt: Date | null;
+    workflowState: WorkflowState;
+    canResume: boolean;
+    sessionId: string;
+}
+
+/**
+ * Workflow state for tracking progress
+ */
+export interface WorkflowState {
+    currentStep: OnboardingStep;
+    completedSteps: OnboardingStep[];
+    availableSteps: OnboardingStep[];
+    canProceed: boolean;
+    validationErrors: Record<string, string[]>;
+    lastUpdated: Date;
+    sessionId: string;
 }
 
 /**
@@ -138,9 +155,14 @@ const STEP_METADATA = {
 };
 
 /**
- * Hook for managing onboarding flow
+ * Hook for managing onboarding flow with complete backend integration
  */
 export function useOnboarding() {
+    const apolloClient = useApolloClient();
+    const [onboardingService] = useState(() => getOnboardingService(apolloClient));
+    const [currentSession, setCurrentSession] = useState<OnboardingSession | null>(null);
+    const [isInitializing, setIsInitializing] = useState(false);
+
     // Query onboarding status
     const {
         data: statusData,
@@ -172,6 +194,23 @@ export function useOnboarding() {
         }
     );
 
+    // Initialize onboarding session when status is loaded
+    useEffect(() => {
+        if (statusData?.myOnboardingStatus && !currentSession && !isInitializing) {
+            setIsInitializing(true);
+            onboardingService.startOnboarding('current-user') // In real app, get from auth context
+                .then(session => {
+                    setCurrentSession(session);
+                })
+                .catch(error => {
+                    console.error('Failed to initialize onboarding session:', error);
+                })
+                .finally(() => {
+                    setIsInitializing(false);
+                });
+        }
+    }, [statusData, currentSession, isInitializing, onboardingService]);
+
     // Current onboarding status
     const status: OnboardingStatus | null = useMemo(() => {
         if (!statusData?.myOnboardingStatus) return null;
@@ -186,8 +225,8 @@ export function useOnboarding() {
 
     // Current step index (0-based)
     const currentStepIndex = useMemo(() => {
-        return status?.currentStep ?? 0;
-    }, [status]);
+        return currentSession?.currentStep ?? status?.currentStep ?? 0;
+    }, [currentSession, status]);
 
     // Current step
     const currentStep = useMemo(() => {
@@ -201,8 +240,10 @@ export function useOnboarding() {
 
     // Progress percentage
     const progress = useMemo(() => {
-        return status?.completionPercentage ?? 0;
-    }, [status]);
+        return currentSession?.completedSteps.length 
+            ? Math.round((currentSession.completedSteps.length / ALL_STEPS.length) * 100)
+            : status?.completionPercentage ?? 0;
+    }, [currentSession, status]);
 
     // Is last step
     const isLastStep = useMemo(() => {
@@ -214,25 +255,40 @@ export function useOnboarding() {
         return currentStepIndex === 0;
     }, [currentStepIndex]);
 
-    // Update step with data
+    // Update step with data using the service
     const updateStep = useCallback(
         async (step: OnboardingStep, data: Partial<OnboardingData>) => {
+            if (!currentSession) {
+                throw new Error('No active onboarding session');
+            }
+
             try {
-                await updateStepMutation({
-                    variables: {
-                        input: {
-                            step,
-                            ...data,
-                        },
-                    },
-                });
+                const result: StepResult = await onboardingService.submitStep(
+                    currentSession.sessionId,
+                    step,
+                    data
+                );
+
+                if (!result.success) {
+                    throw new Error('Step validation failed');
+                }
+
+                // Update session state
+                const updatedSession = onboardingService.getCurrentSession();
+                if (updatedSession) {
+                    setCurrentSession(updatedSession);
+                }
+
+                // Refetch to ensure UI is in sync
+                await refetchStatus();
+
                 return true;
             } catch (error) {
                 console.error('Failed to update onboarding step:', error);
                 throw error;
             }
         },
-        [updateStepMutation]
+        [currentSession, onboardingService, refetchStatus]
     );
 
     // Go to next step
@@ -253,22 +309,77 @@ export function useOnboarding() {
         refetchStatus();
     }, [refetchStatus]);
 
-    // Complete onboarding
+    // Complete onboarding using the service
     const complete = useCallback(
         async (selectedPlan?: BusinessTier) => {
+            if (!currentSession) {
+                throw new Error('No active onboarding session');
+            }
+
             try {
-                await completeOnboardingMutation({
-                    variables: {
-                        input: selectedPlan ? { selectedPlan } : null,
-                    },
-                });
-                return true;
+                const result: OnboardingResult = await onboardingService.completeOnboarding(
+                    currentSession.sessionId,
+                    selectedPlan || BusinessTier.MICRO
+                );
+
+                if (result.success) {
+                    setCurrentSession(null);
+                    await refetchStatus();
+                }
+
+                return result.success;
             } catch (error) {
                 console.error('Failed to complete onboarding:', error);
                 throw error;
             }
         },
-        [completeOnboardingMutation]
+        [currentSession, onboardingService, refetchStatus]
+    );
+
+    // Resume onboarding
+    const resumeOnboarding = useCallback(
+        async () => {
+            try {
+                setIsInitializing(true);
+                const session = await onboardingService.resumeOnboarding('current-user');
+                setCurrentSession(session);
+                await refetchStatus();
+                return session;
+            } catch (error) {
+                console.error('Failed to resume onboarding:', error);
+                throw error;
+            } finally {
+                setIsInitializing(false);
+            }
+        },
+        [onboardingService, refetchStatus]
+    );
+
+    // Calculate tier recommendation
+    const calculateTierRecommendation = useCallback(
+        async (businessData: Partial<OnboardingData>) => {
+            try {
+                const businessProfile = {
+                    businessName: businessData.businessName || '',
+                    businessIndustry: businessData.businessIndustry || '',
+                    businessSize: businessData.businessSize || 'small',
+                    businessType: businessData.businessType || BusinessType.RETAIL,
+                    expectedEmployees: businessData.expectedEmployees || 1,
+                    expectedLocations: businessData.expectedLocations || 1,
+                    expectedMonthlyTransactions: businessData.expectedMonthlyTransactions || 0,
+                    expectedMonthlyRevenue: businessData.expectedMonthlyRevenue || 0,
+                    description: businessData.description,
+                    website: businessData.website,
+                };
+
+                const recommendation: TierRecommendation = await onboardingService.calculateTierRecommendation(businessProfile);
+                return recommendation;
+            } catch (error) {
+                console.error('Failed to calculate tier recommendation:', error);
+                throw error;
+            }
+        },
+        [onboardingService]
     );
 
     // Get step by index
@@ -282,7 +393,7 @@ export function useOnboarding() {
     }, []);
 
     // Loading state
-    const isLoading = statusLoading || plansLoading || updateLoading || completeLoading;
+    const isLoading = statusLoading || plansLoading || updateLoading || completeLoading || isInitializing;
 
     // Error state
     const error: ApolloError | undefined = statusError || plansError;
@@ -298,8 +409,9 @@ export function useOnboarding() {
         isLoading,
         error,
         isComplete: status?.isComplete ?? false,
-        recommendedPlan: status?.recommendedPlan ?? null,
-        onboardingData: status?.onboardingData ?? {},
+        recommendedPlan: currentSession?.recommendedTier ?? status?.recommendedPlan ?? null,
+        onboardingData: currentSession?.onboardingData ?? status?.onboardingData ?? {},
+        currentSession,
 
         // Navigation
         isFirstStep,
@@ -312,9 +424,14 @@ export function useOnboarding() {
         // Actions
         updateStep,
         complete,
+        resumeOnboarding,
+        calculateTierRecommendation,
         refetch: refetchStatus,
         getStep,
         getStepMeta,
+
+        // Service access
+        onboardingService,
     };
 }
 

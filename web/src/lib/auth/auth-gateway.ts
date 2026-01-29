@@ -212,7 +212,7 @@ export class AuthGateway {
         accessToken: loginData.accessToken,
         refreshToken: loginData.refreshToken,
         expiresIn: loginData.expiresIn,
-        tokenType: loginData.tokenType,
+        tokenType: 'Bearer' as const,
       };
 
       const user: CompleteUser = loginData.user;
@@ -221,7 +221,13 @@ export class AuthGateway {
       const sessionInfo = await this.createSessionInfo(loginData.sessionId);
 
       // Store tokens
-      this.tokenManager.setTokens(tokens);
+      const coreTokens: CoreTokenPair = {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresAt: new Date(Date.now() + tokens.expiresIn * 1000),
+        tokenType: 'Bearer' as const,
+      };
+      this.tokenManager.setTokens(coreTokens);
 
       // Update auth state
       this.updateAuthState({
@@ -238,7 +244,7 @@ export class AuthGateway {
         type: SecurityEventType.LOGIN_SUCCESS,
         userId: user.id,
         sessionId: sessionInfo.id,
-        deviceInfo: this.deviceInfo || undefined,
+        ...(this.deviceInfo && { deviceInfo: this.deviceInfo }),
         timestamp: new Date(),
         severity: 'low',
       });
@@ -261,7 +267,7 @@ export class AuthGateway {
       this.broadcastSecurityEvent({
         type: SecurityEventType.LOGIN_FAILED,
         userId: credentials.email, // Use email as identifier for failed attempts
-        deviceInfo: this.deviceInfo || undefined,
+        ...(this.deviceInfo && { deviceInfo: this.deviceInfo }),
         timestamp: new Date(),
         severity: 'medium',
         metadata: { error: error instanceof Error ? error.message : 'Unknown error' },
@@ -293,7 +299,7 @@ export class AuthGateway {
         accessToken: refreshData.accessToken,
         refreshToken: refreshData.refreshToken,
         expiresAt: new Date(Date.now() + refreshData.expiresIn * 1000),
-        tokenType: refreshData.tokenType,
+        tokenType: 'Bearer' as const,
       };
 
       // Broadcast security event
@@ -413,8 +419,17 @@ export class AuthGateway {
   /**
    * Get valid tokens, refreshing if necessary
    */
-  async getValidTokens(): Promise<CoreTokenPair | null> {
-    return this.tokenManager.getValidTokens();
+  async getValidTokens(): Promise<TokenPair | null> {
+    const coreTokens = await this.tokenManager.getValidTokens();
+    if (!coreTokens) return null;
+    
+    // Convert CoreTokenPair to TokenPair
+    return {
+      accessToken: coreTokens.accessToken,
+      refreshToken: coreTokens.refreshToken,
+      expiresIn: Math.floor((coreTokens.expiresAt.getTime() - Date.now()) / 1000),
+      tokenType: coreTokens.tokenType,
+    };
   }
 
   /**
@@ -666,10 +681,10 @@ export class AuthGateway {
   private async createSessionInfo(sessionId: string): Promise<CompleteSessionInfo> {
     return {
       id: sessionId,
-      userId: this.authState.user?.id || '',
-      deviceInfo: this.deviceInfo?.deviceName || 'Unknown',
+      userId: this.authState.user?.id ?? '',
+      deviceInfo: this.deviceInfo?.deviceName ?? 'Unknown',
       ipAddress: await this.getClientIP(),
-      userAgent: navigator.userAgent,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
       createdAt: new Date(),
       lastActivity: new Date(),
       expiresAt: new Date(Date.now() + this.config.sessionTimeout * 60 * 1000),
@@ -718,7 +733,6 @@ export class AuthGateway {
       mfaRequired: false,
       isAuthenticated: false,
       isLoading: false,
-      sessionInfo: undefined,
     });
   }
 
@@ -787,7 +801,7 @@ export class AuthGateway {
   }
 
   private getBrowserName(): string {
-    const userAgent = navigator.userAgent;
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
     if (userAgent.includes('Chrome')) return 'Chrome';
     if (userAgent.includes('Firefox')) return 'Firefox';
     if (userAgent.includes('Safari')) return 'Safari';
@@ -796,7 +810,7 @@ export class AuthGateway {
   }
 
   private getBrowserVersion(): string {
-    const userAgent = navigator.userAgent;
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
     const match = userAgent.match(/(?:Chrome|Firefox|Safari|Edge)\/(\d+)/);
     return match ? match[1] : 'Unknown';
   }
@@ -830,13 +844,6 @@ export class AuthGateway {
 
   private generateSessionId(): string {
     return 'session_' + Math.random().toString(36).substr(2, 16);
-  }
-
-  /**
-   * Refresh tokens implementation for TokenManager
-   */
-  private async refreshTokens(refreshToken: string): Promise<TokenPair> {
-    return this.refreshToken(refreshToken);
   }
 }
 
