@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useOnboarding, OnboardingStep, BusinessType, BusinessTier } from '@/hooks/useOnboarding';
@@ -15,7 +15,14 @@ import { PlanSelectionStep } from './steps/PlanSelectionStep';
 import { WelcomeStep } from './steps/WelcomeStep';
 
 /**
- * Multi-step onboarding flow component
+ * Form validation errors
+ */
+interface ValidationErrors {
+    [key: string]: string;
+}
+
+/**
+ * Multi-step onboarding flow component with enhanced animations and validation
  */
 export function OnboardingFlow() {
     const router = useRouter();
@@ -33,73 +40,173 @@ export function OnboardingFlow() {
         onboardingData,
         recommendedPlan,
         plans,
+        error,
     } = useOnboarding();
 
     const [stepData, setStepData] = useState<Record<string, any>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+    const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+    // Reset validation errors when step changes
+    useEffect(() => {
+        setValidationErrors({});
+        setHasAttemptedSubmit(false);
+    }, [currentStep]);
 
     // Handle step data updates
     const handleStepDataChange = useCallback((data: Record<string, any>) => {
         setStepData((prev) => ({ ...prev, ...data }));
-    }, []);
+        
+        // Clear validation errors for updated fields
+        if (hasAttemptedSubmit) {
+            const updatedErrors = { ...validationErrors };
+            Object.keys(data).forEach(key => {
+                if (updatedErrors[key]) {
+                    delete updatedErrors[key];
+                }
+            });
+            setValidationErrors(updatedErrors);
+        }
+    }, [hasAttemptedSubmit, validationErrors]);
 
-    // Handle next step
+    // Validate current step data
+    const validateCurrentStep = useCallback(() => {
+        const errors: ValidationErrors = {};
+        const currentData = { ...onboardingData, ...stepData };
+
+        switch (currentStep) {
+            case OnboardingStep.BUSINESS_PROFILE:
+                if (!currentData.businessName?.trim()) {
+                    errors.businessName = 'Business name is required';
+                }
+                if (!currentData.businessIndustry) {
+                    errors.businessIndustry = 'Please select your industry';
+                }
+                if (!currentData.businessSize) {
+                    errors.businessSize = 'Please select your team size';
+                }
+                break;
+
+            case OnboardingStep.BUSINESS_TYPE:
+                if (!currentData.businessType) {
+                    errors.businessType = 'Please select your business type';
+                }
+                break;
+
+            case OnboardingStep.USAGE_EXPECTATIONS:
+                if (!currentData.expectedEmployees || currentData.expectedEmployees < 1) {
+                    errors.expectedEmployees = 'Please enter expected number of employees';
+                }
+                if (!currentData.expectedLocations || currentData.expectedLocations < 1) {
+                    errors.expectedLocations = 'Please enter expected number of locations';
+                }
+                if (!currentData.expectedMonthlyTransactions || currentData.expectedMonthlyTransactions < 0) {
+                    errors.expectedMonthlyTransactions = 'Please enter expected monthly transactions';
+                }
+                if (!currentData.expectedMonthlyRevenue || currentData.expectedMonthlyRevenue < 0) {
+                    errors.expectedMonthlyRevenue = 'Please enter expected monthly revenue';
+                }
+                break;
+
+            case OnboardingStep.PLAN_SELECTION:
+                if (!stepData.selectedPlan && !recommendedPlan) {
+                    errors.selectedPlan = 'Please select a plan';
+                }
+                break;
+        }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    }, [currentStep, onboardingData, stepData, recommendedPlan]);
+
+    // Handle next step with validation
     const handleNext = useCallback(async () => {
+        setHasAttemptedSubmit(true);
+        
+        if (!validateCurrentStep()) {
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await updateStep(currentStep, stepData);
             setStepData({});
+            setHasAttemptedSubmit(false);
         } catch (error) {
             console.error('Failed to update step:', error);
+            // Handle specific error cases
+            if (error instanceof Error) {
+                setValidationErrors({ general: error.message });
+            }
         } finally {
             setIsSubmitting(false);
         }
-    }, [currentStep, stepData, updateStep]);
+    }, [currentStep, stepData, updateStep, validateCurrentStep]);
 
     // Handle completing onboarding
     const handleComplete = useCallback(async () => {
+        setHasAttemptedSubmit(true);
+        
+        if (!validateCurrentStep()) {
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await complete(stepData.selectedPlan as BusinessTier | undefined);
             router.push('/dashboard');
         } catch (error) {
             console.error('Failed to complete onboarding:', error);
+            if (error instanceof Error) {
+                setValidationErrors({ general: error.message });
+            }
         } finally {
             setIsSubmitting(false);
         }
-    }, [complete, stepData.selectedPlan, router]);
+    }, [complete, stepData.selectedPlan, router, validateCurrentStep]);
+
+    // Handle going back
+    const handleBack = useCallback(() => {
+        // For now, just go back in browser history
+        // In a real implementation, you might want to handle step navigation differently
+        router.back();
+    }, [router]);
 
     // Render current step content
     const renderStepContent = () => {
+        const commonProps = {
+            data: { ...onboardingData, ...stepData },
+            onChange: handleStepDataChange,
+            errors: validationErrors,
+            hasAttemptedSubmit,
+        };
+
         switch (currentStep) {
             case OnboardingStep.BUSINESS_PROFILE:
                 return (
                     <BusinessProfileStep
-                        data={onboardingData}
-                        onChange={handleStepDataChange}
+                        {...commonProps}
                     />
                 );
             case OnboardingStep.BUSINESS_TYPE:
                 return (
                     <BusinessTypeStep
-                        data={onboardingData}
-                        onChange={handleStepDataChange}
+                        {...commonProps}
                     />
                 );
             case OnboardingStep.USAGE_EXPECTATIONS:
                 return (
                     <UsageExpectationsStep
-                        data={onboardingData}
-                        onChange={handleStepDataChange}
+                        {...commonProps}
                     />
                 );
             case OnboardingStep.PLAN_SELECTION:
                 return (
                     <PlanSelectionStep
-                        data={onboardingData}
+                        {...commonProps}
                         plans={plans}
                         recommendedPlan={recommendedPlan}
-                        onChange={handleStepDataChange}
                     />
                 );
             case OnboardingStep.WELCOME:
@@ -164,14 +271,20 @@ export function OnboardingFlow() {
                     <div className="flex justify-center mb-8">
                         <div className="flex items-center gap-2">
                             {Array.from({ length: totalSteps }).map((_, index) => (
-                                <div
+                                <motion.div
                                     key={index}
+                                    initial={{ scale: 0.8, opacity: 0.5 }}
+                                    animate={{ 
+                                        scale: index === currentStepIndex ? 1.2 : 1,
+                                        opacity: 1 
+                                    }}
+                                    transition={{ duration: 0.3 }}
                                     className={cn(
-                                        'w-3 h-3 rounded-full transition-colors',
+                                        'w-3 h-3 rounded-full transition-all duration-300',
                                         index < currentStepIndex
-                                            ? 'bg-green-500'
+                                            ? 'bg-green-500 shadow-lg shadow-green-200'
                                             : index === currentStepIndex
-                                                ? 'bg-indigo-600'
+                                                ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
                                                 : 'bg-gray-200 dark:bg-gray-700'
                                     )}
                                 />
@@ -179,19 +292,41 @@ export function OnboardingFlow() {
                         </div>
                     </div>
 
+                    {/* Error Display */}
+                    {validationErrors.general && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg"
+                        >
+                            <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                                <AlertCircle className="w-5 h-5" />
+                                <span className="text-sm font-medium">{validationErrors.general}</span>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Step Content */}
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentStep}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
+                            initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                            transition={{ 
+                                duration: 0.4,
+                                ease: [0.4, 0, 0.2, 1]
+                            }}
                             className="bg-white dark:bg-gray-900 rounded-2xl border shadow-lg p-8"
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-12">
-                                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    >
+                                        <Loader2 className="w-8 h-8 text-indigo-600" />
+                                    </motion.div>
                                 </div>
                             ) : (
                                 renderStepContent()
@@ -203,50 +338,73 @@ export function OnboardingFlow() {
                     <div className="flex justify-between mt-8">
                         <Button
                             variant="outline"
-                            onClick={() => router.back()}
+                            onClick={handleBack}
                             disabled={isSubmitting}
-                            className={cn(!isFirstStep && 'invisible')}
+                            className={cn(
+                                'transition-all duration-200',
+                                isFirstStep && 'invisible'
+                            )}
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back
                         </Button>
 
                         {isLastStep ? (
-                            <Button
-                                onClick={handleComplete}
-                                disabled={isSubmitting}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Finishing...
-                                    </>
-                                ) : (
-                                    <>
-                                        Get Started
-                                        <Check className="w-4 h-4 ml-2" />
-                                    </>
-                                )}
-                            </Button>
+                                <Button
+                                    onClick={handleComplete}
+                                    disabled={isSubmitting}
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            >
+                                                <Loader2 className="w-4 h-4 mr-2" />
+                                            </motion.div>
+                                            Finishing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Get Started
+                                            <Check className="w-4 h-4 ml-2" />
+                                        </>
+                                    )}
+                                </Button>
+                            </motion.div>
                         ) : (
-                            <Button
-                                onClick={handleNext}
-                                disabled={isSubmitting}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>
-                                        Continue
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </>
-                                )}
-                            </Button>
+                                <Button
+                                    onClick={handleNext}
+                                    disabled={isSubmitting}
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            >
+                                                <Loader2 className="w-4 h-4 mr-2" />
+                                            </motion.div>
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Continue
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </>
+                                    )}
+                                </Button>
+                            </motion.div>
                         )}
                     </div>
                 </div>
