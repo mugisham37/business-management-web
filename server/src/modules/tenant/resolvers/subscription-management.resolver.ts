@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { GraphqlJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { AuthUser } from '../../auth/types/auth.types';
 import { SubscriptionManagementService } from '../services/subscription-management.service';
@@ -15,13 +15,87 @@ import {
   DowngradeSubscriptionInput,
   CancelSubscriptionInput,
   GetSubscriptionInput,
+  BillingCycle,
+  TrialNotificationType,
 } from '../types/subscription.types';
+import {
+  Subscription,
+  SubscriptionChangeResult,
+  TrialExpirationNotification,
+} from '../services/subscription-management.service';
+
+const mapBillingCycle = (billingCycle: Subscription['billingCycle']): BillingCycle =>
+  billingCycle === 'yearly' ? BillingCycle.YEARLY : BillingCycle.MONTHLY;
+
+const mapSubscription = (subscription: Subscription): SubscriptionType => {
+  const mapped: SubscriptionType = {
+    id: subscription.id,
+    tenantId: subscription.tenantId,
+    tier: subscription.tier,
+    status: subscription.status,
+    billingCycle: mapBillingCycle(subscription.billingCycle),
+    currentPeriodStart: subscription.currentPeriodStart,
+    currentPeriodEnd: subscription.currentPeriodEnd,
+    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    createdAt: subscription.createdAt,
+    updatedAt: subscription.updatedAt,
+  };
+
+  if (subscription.trialStart !== undefined) {
+    mapped.trialStart = subscription.trialStart;
+  }
+
+  if (subscription.trialEnd !== undefined) {
+    mapped.trialEnd = subscription.trialEnd;
+  }
+
+  if (subscription.priceOverrides !== undefined) {
+    mapped.priceOverrides = subscription.priceOverrides.map(override => ({
+      reason: override.reason,
+      originalPrice: override.originalPrice,
+      overridePrice: override.overridePrice,
+      ...(override.expiresAt ? { expiresAt: override.expiresAt } : {}),
+    }));
+  }
+
+  return mapped;
+};
+
+const mapSubscriptionChangeResult = (result: SubscriptionChangeResult): SubscriptionChangeResultType => ({
+  success: result.success,
+  subscription: mapSubscription(result.subscription),
+  message: result.message,
+});
+
+const mapTrialNotificationType = (
+  notificationType: TrialExpirationNotification['notificationType']
+): TrialNotificationType => {
+  switch (notificationType) {
+    case 'final':
+      return TrialNotificationType.FINAL;
+    case 'expired':
+      return TrialNotificationType.EXPIRED;
+    case 'warning':
+    default:
+      return TrialNotificationType.WARNING;
+  }
+};
+
+const mapTrialExpirationNotification = (
+  notification: TrialExpirationNotification
+): TrialExpirationNotificationType => ({
+  tenantId: notification.tenantId,
+  tier: notification.tier,
+  daysRemaining: notification.daysRemaining,
+  trialEnd: notification.trialEnd,
+  notificationType: mapTrialNotificationType(notification.notificationType),
+});
 
 /**
  * GraphQL resolver for subscription management operations
  */
 @Resolver()
-@UseGuards(GraphqlJwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 export class SubscriptionManagementResolver {
   constructor(
     private readonly subscriptionManagementService: SubscriptionManagementService,
@@ -43,7 +117,8 @@ export class SubscriptionManagementResolver {
       throw new BadRequestException('Access denied to tenant');
     }
 
-    return await this.subscriptionManagementService.getSubscription(input.tenantId);
+    const subscription = await this.subscriptionManagementService.getSubscription(input.tenantId);
+    return subscription ? mapSubscription(subscription) : null;
   }
 
   /**
@@ -80,11 +155,13 @@ export class SubscriptionManagementResolver {
       throw new BadRequestException('Access denied to tenant');
     }
 
-    return await this.subscriptionManagementService.createTrialSubscription(
+    const result = await this.subscriptionManagementService.createTrialSubscription(
       input.tenantId,
       input.tier,
       user.id,
     );
+
+    return mapSubscriptionChangeResult(result);
   }
 
   /**
@@ -102,12 +179,14 @@ export class SubscriptionManagementResolver {
       throw new BadRequestException('Access denied to tenant');
     }
 
-    return await this.subscriptionManagementService.upgradeSubscription(
+    const result = await this.subscriptionManagementService.upgradeSubscription(
       input.tenantId,
       input.targetTier,
       input.billingCycle,
       user.id,
     );
+
+    return mapSubscriptionChangeResult(result);
   }
 
   /**
@@ -125,12 +204,14 @@ export class SubscriptionManagementResolver {
       throw new BadRequestException('Access denied to tenant');
     }
 
-    return await this.subscriptionManagementService.downgradeSubscription(
+    const result = await this.subscriptionManagementService.downgradeSubscription(
       input.tenantId,
       input.targetTier,
       input.effectiveDate,
       user.id,
     );
+
+    return mapSubscriptionChangeResult(result);
   }
 
   /**
@@ -148,12 +229,14 @@ export class SubscriptionManagementResolver {
       throw new BadRequestException('Access denied to tenant');
     }
 
-    return await this.subscriptionManagementService.cancelSubscription(
+    const result = await this.subscriptionManagementService.cancelSubscription(
       input.tenantId,
       input.cancelAtPeriodEnd,
       input.reason,
       user.id,
     );
+
+    return mapSubscriptionChangeResult(result);
   }
 
   /**
@@ -173,7 +256,8 @@ export class SubscriptionManagementResolver {
       throw new ForbiddenException('Insufficient permissions to view expiring trials');
     }
 
-    return await this.subscriptionManagementService.getExpiringTrials(daysAhead);
+    const notifications = await this.subscriptionManagementService.getExpiringTrials(daysAhead);
+    return notifications.map(mapTrialExpirationNotification);
   }
 
   /**

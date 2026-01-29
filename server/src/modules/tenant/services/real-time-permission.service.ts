@@ -100,10 +100,11 @@ export class RealTimePermissionService implements OnModuleInit, OnModuleDestroy 
       const features = featureNames || Object.keys(this.featureFlagService.getFeatureDefinitions());
       
       // Evaluate multiple features at once
+      const context = userId ? { userId } : undefined;
       const permissions = await this.featureFlagService.evaluateMultipleFeatures(
         tenantId,
         features,
-        { userId }
+        context
       );
 
       // Get tenant tier information
@@ -112,7 +113,7 @@ export class RealTimePermissionService implements OnModuleInit, OnModuleDestroy 
 
       const result: PermissionEvaluationResult = {
         tenantId,
-        userId,
+        ...(userId ? { userId } : {}),
         permissions,
         tier,
         evaluatedAt: new Date(),
@@ -137,7 +138,7 @@ export class RealTimePermissionService implements OnModuleInit, OnModuleDestroy 
       // Return empty permissions on error
       return {
         tenantId,
-        userId,
+        ...(userId ? { userId } : {}),
         permissions: {},
         tier: BusinessTier.MICRO,
         evaluatedAt: new Date(),
@@ -179,9 +180,9 @@ export class RealTimePermissionService implements OnModuleInit, OnModuleDestroy 
       
       this.logger.debug(`Preloaded permissions for tenant ${tenantId}`, { tenantId, userId });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Failed to preload permissions for tenant ${tenantId}`,
-        (error as Error).message,
+        `Failed to preload permissions for tenant ${tenantId}: ${errorMessage}`,
         { tenantId, userId }
       );
     }

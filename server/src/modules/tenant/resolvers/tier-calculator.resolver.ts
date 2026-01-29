@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { GraphqlJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { AuthUser } from '../../auth/types/auth.types';
 import { TierCalculatorService } from '../services/tier-calculator.service';
@@ -16,13 +16,48 @@ import {
   UpgradeRecommendationsInput,
   TierChangeHistoryInput,
   UpgradeUrgency,
+  TierChangeTrigger,
 } from '../types/tier-calculator.types';
+import {
+  TierChangeAuditLog,
+  UpgradeRecommendation,
+} from '../services/tier-calculator.service';
+
+const mapTierChangeAuditLog = (log: TierChangeAuditLog): TierChangeAuditLogType => {
+  const mapped: TierChangeAuditLogType = {
+    id: log.id,
+    tenantId: log.tenantId,
+    previousTier: log.previousTier,
+    newTier: log.newTier,
+    reason: log.reason,
+    triggeredBy: log.triggeredBy as TierChangeTrigger,
+    metricsAtChange: log.metricsAtChange,
+    timestamp: log.timestamp,
+  };
+
+  if (log.userId !== undefined) {
+    mapped.userId = log.userId;
+  }
+
+  return mapped;
+};
+
+const mapUpgradeRecommendation = (rec: UpgradeRecommendation): UpgradeRecommendationType => ({
+  tenantId: rec.tenantId,
+  currentTier: rec.currentTier,
+  recommendedTier: rec.recommendedTier,
+  urgency: rec.urgency as UpgradeUrgency,
+  reasons: rec.reasons,
+  metrics: rec.metrics,
+  estimatedBenefit: rec.estimatedBenefit,
+  recommendedActions: rec.recommendedActions,
+});
 
 /**
  * GraphQL resolver for tier calculator operations
  */
 @Resolver()
-@UseGuards(GraphqlJwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 export class TierCalculatorResolver {
   constructor(
     private readonly tierCalculatorService: TierCalculatorService,
@@ -82,13 +117,15 @@ export class TierCalculatorResolver {
       throw new ForbiddenException('Insufficient permissions to change tier');
     }
 
-    return await this.tierCalculatorService.changeTier(
+    const result = await this.tierCalculatorService.changeTier(
       input.tenantId,
       input.newTier,
       'manual',
       input.reason,
       user.id,
     );
+
+    return mapTierChangeAuditLog(result);
   }
 
   /**
@@ -111,11 +148,11 @@ export class TierCalculatorResolver {
     const recommendations = await this.tierCalculatorService.getUpgradeRecommendations(input.limit);
 
     // Filter by urgency if specified
-    if (input.urgencyFilter) {
-      return recommendations.filter(rec => rec.urgency === input.urgencyFilter);
-    }
+    const filtered = input.urgencyFilter
+      ? recommendations.filter(rec => rec.urgency === input.urgencyFilter)
+      : recommendations;
 
-    return recommendations;
+    return filtered.map(mapUpgradeRecommendation);
   }
 
   /**
@@ -136,7 +173,8 @@ export class TierCalculatorResolver {
       throw new ForbiddenException('Insufficient permissions to view tier change history');
     }
 
-    return await this.tierCalculatorService.getTierChangeHistory(input.tenantId, input.limit);
+    const logs = await this.tierCalculatorService.getTierChangeHistory(input.tenantId, input.limit);
+    return logs.map(mapTierChangeAuditLog);
   }
 
   /**

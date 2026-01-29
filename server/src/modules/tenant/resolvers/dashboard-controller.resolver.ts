@@ -131,7 +131,7 @@ class DashboardConfigurationType {
   upgradePrompts!: UpgradePrompt[];
 
   @Field(() => [DashboardCustomizationType])
-  customizations!: DashboardCustomization[];
+  customizations!: DashboardCustomizationType[];
 
   @Field()
   tier!: string;
@@ -188,10 +188,27 @@ export class DashboardControllerResolver {
     return {
       ...config,
       tier: config.tier.toString(),
-      customizations: config.customizations.map(c => ({
-        ...c,
-        settings: c.settings ? JSON.stringify(c.settings) : undefined,
-      })),
+      customizations: config.customizations.map(c => {
+        const mapped: DashboardCustomizationType = {
+          moduleId: c.moduleId,
+          isVisible: c.isVisible,
+          position: c.position,
+        };
+
+        if (c.customTitle !== undefined) {
+          mapped.customTitle = c.customTitle;
+        }
+
+        if (c.customIcon !== undefined) {
+          mapped.customIcon = c.customIcon;
+        }
+
+        if (c.settings !== undefined) {
+          mapped.settings = JSON.stringify(c.settings);
+        }
+
+        return mapped;
+      }),
     };
   }
 
@@ -234,14 +251,27 @@ export class DashboardControllerResolver {
     @CurrentTenant() tenantId: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<boolean> {
-    const parsedCustomizations: DashboardCustomization[] = customizations.map(c => ({
-      moduleId: c.moduleId,
-      isVisible: c.isVisible,
-      position: c.position,
-      customTitle: c.customTitle,
-      customIcon: c.customIcon,
-      settings: c.settings ? JSON.parse(c.settings) : undefined,
-    }));
+    const parsedCustomizations: DashboardCustomization[] = customizations.map(c => {
+      const parsed: DashboardCustomization = {
+        moduleId: c.moduleId,
+        isVisible: c.isVisible,
+        position: c.position,
+      };
+
+      if (c.customTitle !== undefined) {
+        parsed.customTitle = c.customTitle;
+      }
+
+      if (c.customIcon !== undefined) {
+        parsed.customIcon = c.customIcon;
+      }
+
+      if (c.settings !== undefined) {
+        parsed.settings = JSON.parse(c.settings);
+      }
+
+      return parsed;
+    });
 
     await this.dashboardControllerService.updateDashboardCustomizations(
       tenantId,

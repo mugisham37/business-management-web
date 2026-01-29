@@ -210,7 +210,7 @@ export class TierCalculatorService {
       triggeredBy,
       metricsAtChange: currentMetrics,
       timestamp: new Date(),
-      userId,
+      ...(userId ? { userId } : {}),
     };
 
     // Update tenant tier in database
@@ -246,7 +246,7 @@ export class TierCalculatorService {
    */
   async getUpgradeRecommendations(limit: number = 50): Promise<UpgradeRecommendation[]> {
     // Get all active tenants
-    const tenants = await this.drizzle.getDb()
+    const tenantRows = await this.drizzle.getDb()
       .select()
       .from(tenants)
       .where(eq(tenants.isActive, true))
@@ -254,7 +254,7 @@ export class TierCalculatorService {
 
     const recommendations: UpgradeRecommendation[] = [];
 
-    for (const tenant of tenants) {
+    for (const tenant of tenantRows) {
       try {
         const evaluation = await this.evaluateTierAppropriatenessRealTime(tenant.id);
         
@@ -278,7 +278,8 @@ export class TierCalculatorService {
           });
         }
       } catch (error) {
-        this.logger.error(`Failed to evaluate tenant ${tenant.id}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Failed to evaluate tenant ${tenant.id}: ${errorMessage}`);
       }
     }
 
@@ -320,7 +321,8 @@ export class TierCalculatorService {
         try {
           await this.processAutomaticTierUpgrade(recommendation.tenantId);
         } catch (error) {
-          this.logger.error(`Failed to process automatic upgrade for tenant ${recommendation.tenantId}: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.error(`Failed to process automatic upgrade for tenant ${recommendation.tenantId}: ${errorMessage}`);
         }
       }
 
@@ -334,7 +336,8 @@ export class TierCalculatorService {
       });
 
     } catch (error) {
-      this.logger.error(`Scheduled tier evaluation failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Scheduled tier evaluation failed: ${errorMessage}`);
     }
   }
 

@@ -14,6 +14,40 @@ import { FeatureFlag, FeatureDefinition, FeatureFlagStatus, FeatureRule, FEATURE
 import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from '../dto/feature-flag.dto';
 import { BusinessTier } from '../entities/tenant.entity';
 
+const buildFeatureAccessResponse = (
+  featureName: string,
+  details: {
+    hasAccess: boolean;
+    reason?: string;
+    requiredTier?: BusinessTier;
+    upgradePrompt?: UpgradePromptType;
+    dependencies?: FeatureDependencyStatus[];
+  }
+): FeatureAccessResponse => {
+  const response: FeatureAccessResponse = {
+    featureName,
+    hasAccess: details.hasAccess,
+  };
+
+  if (details.reason !== undefined) {
+    response.reason = details.reason;
+  }
+
+  if (details.requiredTier !== undefined) {
+    response.requiredTier = details.requiredTier.toString();
+  }
+
+  if (details.upgradePrompt !== undefined) {
+    response.upgradePrompt = details.upgradePrompt;
+  }
+
+  if (details.dependencies !== undefined) {
+    response.dependencies = details.dependencies;
+  }
+
+  return response;
+};
+
 @ObjectType()
 class FeatureDefinitionType {
   @Field()
@@ -245,14 +279,7 @@ export class FeatureFlagResolver {
       },
     );
 
-    return {
-      featureName,
-      hasAccess: details.hasAccess,
-      reason: details.reason,
-      requiredTier: details.requiredTier,
-      upgradePrompt: details.upgradePrompt,
-      dependencies: details.dependencies,
-    };
+    return buildFeatureAccessResponse(featureName, details);
   }
 
   @Query(() => [FeatureAccessResponse], { name: 'checkMultipleFeatures' })
@@ -273,14 +300,7 @@ export class FeatureFlagResolver {
         },
       );
 
-      results.push({
-        featureName,
-        hasAccess: details.hasAccess,
-        reason: details.reason,
-        requiredTier: details.requiredTier,
-        upgradePrompt: details.upgradePrompt,
-        dependencies: details.dependencies,
-      });
+      results.push(buildFeatureAccessResponse(featureName, details));
     }
 
     return results;
@@ -363,9 +383,9 @@ export class FeatureFlagResolver {
 
     return {
       tenantId: result.tenantId,
-      userId: result.userId,
+      ...(result.userId ? { userId: result.userId } : {}),
       permissions,
-      tier: result.tier,
+      tier: result.tier.toString(),
       evaluatedAt: result.evaluatedAt,
     };
   }
@@ -396,14 +416,7 @@ export class FeatureFlagResolver {
         },
       );
 
-      dependenciesStatus.push({
-        featureName: depFeature,
-        hasAccess: details.hasAccess,
-        reason: details.reason,
-        requiredTier: details.requiredTier,
-        upgradePrompt: details.upgradePrompt,
-        dependencies: details.dependencies,
-      });
+      dependenciesStatus.push(buildFeatureAccessResponse(depFeature, details));
     }
 
     return {

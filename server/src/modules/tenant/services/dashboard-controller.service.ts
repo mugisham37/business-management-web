@@ -407,7 +407,7 @@ export class DashboardControllerService {
 
       const configuration: DashboardConfiguration = {
         tenantId,
-        userId,
+        ...(userId ? { userId } : {}),
         availableModules: availableModules.sort((a, b) => a.priority - b.priority),
         lockedModules: lockedModules.sort((a, b) => a.priority - b.priority),
         upgradePrompts,
@@ -438,7 +438,7 @@ export class DashboardControllerService {
       // Return minimal configuration on error
       return {
         tenantId,
-        userId,
+        ...(userId ? { userId } : {}),
         availableModules: this.DASHBOARD_MODULES.filter(m => m.isCore).slice(0, 3),
         lockedModules: [],
         upgradePrompts: [],
@@ -576,9 +576,9 @@ export class DashboardControllerService {
       await this.getDashboardConfiguration(tenantId, userId);
       this.logger.debug(`Preloaded dashboard configuration for tenant ${tenantId}`, { tenantId, userId });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Failed to preload dashboard configuration for tenant ${tenantId}`,
-        (error as Error).message,
+        `Failed to preload dashboard configuration for tenant ${tenantId}: ${errorMessage}`,
         { tenantId, userId }
       );
     }

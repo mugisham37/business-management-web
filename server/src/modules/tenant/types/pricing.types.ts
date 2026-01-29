@@ -3,6 +3,24 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BusinessTier } from '../entities/tenant.entity';
 
 /**
+ * Alternative tier suggestion
+ */
+@ObjectType()
+export class TierAlternativeType {
+  @Field(() => BusinessTier)
+  @ApiProperty({ enum: BusinessTier, description: 'Alternative tier' })
+  tier!: BusinessTier;
+
+  @Field()
+  @ApiProperty({ description: 'Reason for suggesting this alternative' })
+  reason!: string;
+
+  @Field(() => Int, { nullable: true })
+  @ApiProperty({ description: 'Potential savings in cents', required: false })
+  savings?: number;
+}
+
+/**
  * Tier recommendation result
  */
 @ObjectType()
@@ -34,24 +52,6 @@ export class TierRecommendationType {
   @Field(() => [String])
   @ApiProperty({ description: 'Features included in this tier' })
   features!: string[];
-}
-
-/**
- * Alternative tier suggestion
- */
-@ObjectType()
-export class TierAlternativeType {
-  @Field(() => BusinessTier)
-  @ApiProperty({ enum: BusinessTier, description: 'Alternative tier' })
-  tier!: BusinessTier;
-
-  @Field()
-  @ApiProperty({ description: 'Reason for suggesting this alternative' })
-  reason!: string;
-
-  @Field(() => Int, { nullable: true })
-  @ApiProperty({ description: 'Potential savings in cents', required: false })
-  savings?: number;
 }
 
 /**

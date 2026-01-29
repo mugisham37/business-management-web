@@ -215,8 +215,6 @@ export class SubscriptionManagementService {
       billingCycle,
       currentPeriodStart: priceCalculation.effectiveDate,
       currentPeriodEnd: priceCalculation.nextBillingDate,
-      trialStart: undefined,
-      trialEnd: undefined,
       updatedAt: new Date(),
     };
 
@@ -532,7 +530,8 @@ export class SubscriptionManagementService {
 
         this.logger.log(`Trial expired and downgraded for tenant ${trial.tenantId}`);
       } catch (error) {
-        this.logger.error(`Failed to process trial expiration for tenant ${trial.tenantId}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Failed to process trial expiration for tenant ${trial.tenantId}: ${errorMessage}`);
         errors++;
       }
     }
@@ -571,7 +570,8 @@ export class SubscriptionManagementService {
         this.eventEmitter.emit('subscription.trial.reminder', reminder);
         sent++;
       } catch (error) {
-        this.logger.error(`Failed to send trial reminder for tenant ${reminder.tenantId}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Failed to send trial reminder for tenant ${reminder.tenantId}: ${errorMessage}`);
         errors++;
       }
     }
@@ -596,7 +596,8 @@ export class SubscriptionManagementService {
       this.logger.log(`Trial expirations processed: ${expirationResults.processed}, downgraded: ${expirationResults.downgraded}, errors: ${expirationResults.errors}`);
 
     } catch (error) {
-      this.logger.error(`Scheduled trial processing failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Scheduled trial processing failed: ${errorMessage}`);
     }
   }
 

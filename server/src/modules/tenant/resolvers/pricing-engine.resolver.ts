@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards, BadRequestException } from '@nestjs/common';
-import { GraphqlJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
+import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { AuthUser } from '../../auth/types/auth.types';
 import { PricingEngineService } from '../services/pricing-engine.service';
@@ -21,7 +21,7 @@ import { BusinessTier } from '../entities/tenant.entity';
  * GraphQL resolver for pricing engine operations
  */
 @Resolver()
-@UseGuards(GraphqlJwtAuthGuard)
+@UseGuards(GraphQLJwtAuthGuard)
 export class PricingEngineResolver {
   constructor(
     private readonly pricingEngineService: PricingEngineService,
@@ -142,11 +142,19 @@ export class PricingEngineResolver {
       }
     }
 
-    return {
+    const comparison: PricingComparisonType = {
       tiers,
-      recommendation,
-      currentTier,
     };
+
+    if (recommendation !== undefined) {
+      comparison.recommendation = recommendation;
+    }
+
+    if (currentTier !== undefined) {
+      comparison.currentTier = currentTier;
+    }
+
+    return comparison;
   }
 
   /**

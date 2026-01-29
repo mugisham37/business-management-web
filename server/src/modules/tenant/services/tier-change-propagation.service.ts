@@ -176,17 +176,27 @@ export class TierChangePropagationService implements OnModuleInit, OnModuleDestr
     const queuedEvents = this.propagationQueue.get(tenantId)?.length || 0;
     
     // Get last processed timestamp from cache
-    const lastProcessedAt = await this.cacheService.get<Date>(`tier-change:last-processed:${tenantId}`);
+    const lastProcessedAt = (await this.cacheService.get<Date>(`tier-change:last-processed:${tenantId}`)) ?? undefined;
     
     // Get recent errors from cache
     const errors = await this.cacheService.get<string[]>(`tier-change:errors:${tenantId}`) || [];
 
-    return {
+    const status = {
       isProcessing,
       queuedEvents,
-      lastProcessedAt,
       errors,
+    } as {
+      isProcessing: boolean;
+      queuedEvents: number;
+      lastProcessedAt?: Date;
+      errors: string[];
     };
+
+    if (lastProcessedAt !== undefined) {
+      status.lastProcessedAt = lastProcessedAt;
+    }
+
+    return status;
   }
 
   /**
@@ -252,7 +262,7 @@ export class TierChangePropagationService implements OnModuleInit, OnModuleDestr
       // Step 4: Create system state update
       const systemUpdate: SystemStateUpdate = {
         tenantId,
-        userId: event.userId,
+        ...(event.userId ? { userId: event.userId } : {}),
         permissions: permissionChanges,
         dashboard: dashboardChanges,
         tier: event.newTier,
@@ -359,7 +369,7 @@ export class TierChangePropagationService implements OnModuleInit, OnModuleDestr
 
     return {
       tenantId,
-      userId: event.userId,
+      ...(event.userId ? { userId: event.userId } : {}),
       changedFeatures,
       newTier,
       timestamp: new Date(),
@@ -393,7 +403,7 @@ export class TierChangePropagationService implements OnModuleInit, OnModuleDestr
 
     return {
       tenantId,
-      userId: event.userId,
+      ...(event.userId ? { userId: event.userId } : {}),
       newModules,
       removedModules,
       newUpgradePrompts,
@@ -456,9 +466,9 @@ export class TierChangePropagationService implements OnModuleInit, OnModuleDestr
 
       this.logger.debug(`Preloaded new state for tenant ${tenantId}`);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Failed to preload new state for tenant ${tenantId}`,
-        (error as Error).message,
+        `Failed to preload new state for tenant ${tenantId}: ${errorMessage}`,
         { tenantId, userId }
       );
     }
