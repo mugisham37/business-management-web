@@ -8,6 +8,7 @@ import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
 import { Faqs } from "@/components/landing/ui/Faqs"
 import Testimonial from "@/components/landing/ui/Testimonial"
 import { RecommendationBanner } from "@/components/pricing/RecommendationBanner"
+import { SubscriptionModal } from "@/components/pricing/SubscriptionModal"
 import { cx } from "@/lib/utils/cn"
 import {
   RiCheckLine,
@@ -23,6 +24,7 @@ import { TIER_CONFIGS, formatLimit } from "@/lib/config/pricing-config"
 import { BusinessTier } from "@/types/pricing"
 import { motion } from "framer-motion"
 import { usePricingRecommendations } from "@/hooks/usePricingRecommendations"
+import { useSubscription } from "@/hooks/useSubscription"
 
 export default function Pricing() {
   const [billingFrequency, setBillingFrequency] = useState<"monthly" | "annually">("monthly")
