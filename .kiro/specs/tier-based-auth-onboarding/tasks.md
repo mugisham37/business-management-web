@@ -33,14 +33,14 @@ This implementation plan breaks down the tier-based authentication and onboardin
     - **Property 4: Tier-Based Access Control**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.5**
 
-- [ ] 2. Implement progressive onboarding service
-  - [ ] 2.1 Create onboarding workflow engine with state management
+- [-] 2. Implement progressive onboarding service
+  - [x] 2.1 Create onboarding workflow engine with state management
     - Build multi-step workflow engine with persistent state tracking
     - Implement step validation and conditional logic
     - Add progress saving and resumption capabilities
     - _Requirements: 2.1, 2.7, 2.8_
 
-  - [ ] 2.2 Implement business profile collection and validation
+  - [-] 2.2 Implement business profile collection and validation
     - Create data models for business profile information
     - Add validation schemas for each onboarding step
     - Implement industry classification and business type logic

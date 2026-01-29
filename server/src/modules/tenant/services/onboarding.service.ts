@@ -18,6 +18,51 @@ export enum OnboardingStep {
 }
 
 /**
+ * Workflow step configuration
+ */
+export interface WorkflowStepConfig {
+    id: OnboardingStep;
+    title: string;
+    description: string;
+    isRequired: boolean;
+    dependsOn?: OnboardingStep[];
+    validationRules: ValidationRule[];
+    conditionalLogic?: ConditionalLogic;
+}
+
+/**
+ * Validation rule for step data
+ */
+export interface ValidationRule {
+    field: string;
+    type: 'required' | 'min' | 'max' | 'pattern' | 'custom';
+    value?: any;
+    message: string;
+    customValidator?: (data: any) => boolean;
+}
+
+/**
+ * Conditional logic for step visibility/requirements
+ */
+export interface ConditionalLogic {
+    condition: (data: OnboardingData) => boolean;
+    action: 'show' | 'hide' | 'require' | 'optional';
+}
+
+/**
+ * Workflow state for tracking progress
+ */
+export interface WorkflowState {
+    currentStep: OnboardingStep;
+    completedSteps: OnboardingStep[];
+    availableSteps: OnboardingStep[];
+    canProceed: boolean;
+    validationErrors: Record<string, string[]>;
+    lastUpdated: Date;
+    sessionId: string;
+}
+
+/**
  * Business type categories for plan recommendation
  */
 export enum BusinessType {
@@ -64,6 +109,9 @@ export interface OnboardingStatus {
     onboardingData: OnboardingData;
     recommendedPlan: BusinessTier | null;
     completedAt: Date | null;
+    workflowState: WorkflowState;
+    canResume: boolean;
+    sessionId: string;
 }
 
 @Injectable()
@@ -76,12 +124,298 @@ export class OnboardingService {
         OnboardingStep.WELCOME,
     ];
 
+    private readonly workflowConfig: Map<OnboardingStep, WorkflowStepConfig> = new Map([
+        [OnboardingStep.BUSINESS_PROFILE, {
+            id: OnboardingStep.BUSINESS_PROFILE,
+            title: 'Business Profile',
+            description: 'Tell us about your business',
+            isRequired: true,
+            validationRules: [
+                { field: 'businessName', type: 'required', message: 'Business name is required' },
+                { field: 'businessIndustry', type: 'required', message: 'Business industry is required' },
+                { field: 'businessSize', type: 'required', message: 'Business size is required' },
+            ],
+        }],
+        [OnboardingStep.BUSINESS_TYPE, {
+            id: OnboardingStep.BUSINESS_TYPE,
+            title: 'Business Type',
+            description: 'What type of business do you operate?',
+            isRequired: true,
+            dependsOn: [OnboardingStep.BUSINESS_PROFILE],
+            validationRules: [
+                { field: 'businessType', type: 'required', message: 'Business type is required' },
+            ],
+        }],
+        [OnboardingStep.USAGE_EXPECTATIONS, {
+            id: OnboardingStep.USAGE_EXPECTATIONS,
+            title: 'Usage Expectations',
+            description: 'Help us understand your expected usage',
+            isRequired: true,
+            dependsOn: [OnboardingStep.BUSINESS_TYPE],
+            validationRules: [
+                { field: 'expectedEmployees', type: 'min', value: 1, message: 'Expected employees must be at least 1' },
+                { field: 'expectedLocations', type: 'min', value: 1, message: 'Expected locations must be at least 1' },
+                { field: 'expectedMonthlyTransactions', type: 'min', value: 0, message: 'Expected transactions cannot be negative' },
+                { field: 'expectedMonthlyRevenue', type: 'min', value: 0, message: 'Expected revenue cannot be negative' },
+            ],
+        }],
+        [OnboardingStep.PLAN_SELECTION, {
+            id: OnboardingStep.PLAN_SELECTION,
+            title: 'Plan Selection',
+            description: 'Choose your subscription plan',
+            isRequired: true,
+            dependsOn: [OnboardingStep.USAGE_EXPECTATIONS],
+            validationRules: [
+                { field: 'selectedPlan', type: 'required', message: 'Plan selection is required' },
+            ],
+        }],
+        [OnboardingStep.WELCOME, {
+            id: OnboardingStep.WELCOME,
+            title: 'Welcome',
+            description: 'Welcome to your new business platform',
+            isRequired: false,
+            dependsOn: [OnboardingStep.PLAN_SELECTION],
+            validationRules: [],
+        }],
+    ]);
+
     constructor(
         private readonly drizzle: DrizzleService,
         private readonly logger: CustomLoggerService,
         private readonly eventEmitter: EventEmitter2,
     ) {
         this.logger.setContext('OnboardingService');
+    }
+
+    /**
+     * Initialize or resume onboarding workflow
+     */
+    async initializeWorkflow(tenantId: string): Promise<WorkflowState> {
+        const status = await this.getOnboardingStatus(tenantId);
+        const sessionId = this.generateSessionId();
+        
+        const workflowState: WorkflowState = {
+            currentStep: this.determineCurrentStep(status.completedSteps),
+            completedSteps: status.completedSteps,
+            availableSteps: this.getAvailableSteps(status.completedSteps, status.onboardingData),
+            canProceed: this.canProceedToNextStep(status.completedSteps, status.onboardingData),
+            validationErrors: {},
+            lastUpdated: new Date(),
+            sessionId,
+        };
+
+        // Save workflow state
+        await this.saveWorkflowState(tenantId, workflowState);
+        
+        this.logger.log(`Workflow initialized for tenant ${tenantId} with session ${sessionId}`);
+        
+        return workflowState;
+    }
+
+    /**
+     * Validate step data against configured rules
+     */
+    validateStepData(step: OnboardingStep, data: Partial<OnboardingData>): Record<string, string[]> {
+        const stepConfig = this.workflowConfig.get(step);
+        if (!stepConfig) {
+            throw new BadRequestException(`Invalid step: ${step}`);
+        }
+
+        const errors: Record<string, string[]> = {};
+
+        for (const rule of stepConfig.validationRules) {
+            const fieldValue = (data as any)[rule.field];
+            const fieldErrors: string[] = [];
+
+            switch (rule.type) {
+                case 'required':
+                    if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+                        fieldErrors.push(rule.message);
+                    }
+                    break;
+                case 'min':
+                    if (typeof fieldValue === 'number' && fieldValue < rule.value) {
+                        fieldErrors.push(rule.message);
+                    }
+                    break;
+                case 'max':
+                    if (typeof fieldValue === 'number' && fieldValue > rule.value) {
+                        fieldErrors.push(rule.message);
+                    }
+                    break;
+                case 'pattern':
+                    if (typeof fieldValue === 'string' && !new RegExp(rule.value).test(fieldValue)) {
+                        fieldErrors.push(rule.message);
+                    }
+                    break;
+                case 'custom':
+                    if (rule.customValidator && !rule.customValidator(data)) {
+                        fieldErrors.push(rule.message);
+                    }
+                    break;
+            }
+
+            if (fieldErrors.length > 0) {
+                errors[rule.field] = fieldErrors;
+            }
+        }
+
+        return errors;
+    }
+
+    /**
+     * Check if user can proceed to next step
+     */
+    canProceedToNextStep(completedSteps: OnboardingStep[], data: OnboardingData): boolean {
+        const currentStepIndex = completedSteps.length;
+        if (currentStepIndex >= this.allSteps.length) {
+            return false; // Already completed
+        }
+
+        const currentStep = this.allSteps[currentStepIndex];
+        if (!currentStep) {
+            return false; // No more steps
+        }
+
+        const stepConfig = this.workflowConfig.get(currentStep);
+        
+        if (!stepConfig) {
+            return false;
+        }
+
+        // Check dependencies
+        if (stepConfig.dependsOn) {
+            for (const dependency of stepConfig.dependsOn) {
+                if (!completedSteps.includes(dependency)) {
+                    return false;
+                }
+            }
+        }
+
+        // Check conditional logic
+        if (stepConfig.conditionalLogic) {
+            const conditionResult = stepConfig.conditionalLogic.condition(data);
+            if (stepConfig.conditionalLogic.action === 'hide' && conditionResult) {
+                return true; // Skip this step
+            }
+            if (stepConfig.conditionalLogic.action === 'show' && !conditionResult) {
+                return false; // Cannot proceed
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get available steps based on current progress and conditional logic
+     */
+    getAvailableSteps(completedSteps: OnboardingStep[], data: OnboardingData): OnboardingStep[] {
+        const availableSteps: OnboardingStep[] = [];
+
+        for (const step of this.allSteps) {
+            if (completedSteps.includes(step)) {
+                continue; // Already completed
+            }
+
+            const stepConfig = this.workflowConfig.get(step);
+            if (!stepConfig) {
+                continue;
+            }
+
+            // Check dependencies
+            let dependenciesMet = true;
+            if (stepConfig.dependsOn) {
+                for (const dependency of stepConfig.dependsOn) {
+                    if (!completedSteps.includes(dependency)) {
+                        dependenciesMet = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!dependenciesMet) {
+                continue;
+            }
+
+            // Check conditional logic
+            if (stepConfig.conditionalLogic) {
+                const conditionResult = stepConfig.conditionalLogic.condition(data);
+                if (stepConfig.conditionalLogic.action === 'hide' && conditionResult) {
+                    continue; // Skip this step
+                }
+                if (stepConfig.conditionalLogic.action === 'show' && !conditionResult) {
+                    continue; // Not available yet
+                }
+            }
+
+            availableSteps.push(step);
+        }
+
+        return availableSteps;
+    }
+
+    /**
+     * Determine current step based on completed steps
+     */
+    determineCurrentStep(completedSteps: OnboardingStep[]): OnboardingStep {
+        for (const step of this.allSteps) {
+            if (!completedSteps.includes(step)) {
+                return step;
+            }
+        }
+        return OnboardingStep.WELCOME; // All steps completed
+    }
+
+    /**
+     * Save workflow state to database
+     */
+    private async saveWorkflowState(tenantId: string, workflowState: WorkflowState): Promise<void> {
+        const [tenant] = await this.drizzle.getDb()
+            .select()
+            .from(tenants)
+            .where(eq(tenants.id, tenantId));
+
+        if (!tenant) {
+            throw new NotFoundException(`Tenant ${tenantId} not found`);
+        }
+
+        const currentSettings = (tenant.settings || {}) as Record<string, any>;
+        const updatedSettings = {
+            ...currentSettings,
+            workflowState,
+        };
+
+        await this.drizzle.getDb()
+            .update(tenants)
+            .set({
+                settings: updatedSettings,
+                updatedAt: new Date(),
+            })
+            .where(eq(tenants.id, tenantId));
+    }
+
+    /**
+     * Load workflow state from database
+     */
+    private async loadWorkflowState(tenantId: string): Promise<WorkflowState | null> {
+        const [tenant] = await this.drizzle.getDb()
+            .select()
+            .from(tenants)
+            .where(eq(tenants.id, tenantId));
+
+        if (!tenant) {
+            return null;
+        }
+
+        const settings = (tenant.settings || {}) as Record<string, any>;
+        return settings.workflowState || null;
+    }
+
+    /**
+     * Generate unique session ID for workflow tracking
+     */
+    private generateSessionId(): string {
+        return `onboarding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
     /**
@@ -110,6 +444,21 @@ export class OnboardingService {
         // Calculate recommended plan based on collected data
         const recommendedPlan = this.calculateRecommendedPlan(onboardingData);
 
+        // Load or create workflow state
+        let workflowState = await this.loadWorkflowState(tenantId);
+        if (!workflowState) {
+            workflowState = {
+                currentStep: this.determineCurrentStep(completedSteps),
+                completedSteps,
+                availableSteps: this.getAvailableSteps(completedSteps, onboardingData),
+                canProceed: this.canProceedToNextStep(completedSteps, onboardingData),
+                validationErrors: {},
+                lastUpdated: new Date(),
+                sessionId: this.generateSessionId(),
+            };
+            await this.saveWorkflowState(tenantId, workflowState);
+        }
+
         return {
             tenantId,
             completionPercentage,
@@ -120,6 +469,9 @@ export class OnboardingService {
             onboardingData,
             recommendedPlan,
             completedAt,
+            workflowState,
+            canResume: !isComplete && completedSteps.length > 0,
+            sessionId: workflowState.sessionId,
         };
     }
 
@@ -145,9 +497,24 @@ export class OnboardingService {
             throw new BadRequestException(`Invalid onboarding step: ${step}`);
         }
 
+        // Validate step data
+        const validationErrors = this.validateStepData(step, data);
+        if (Object.keys(validationErrors).length > 0) {
+            throw new BadRequestException({
+                message: 'Validation failed',
+                errors: validationErrors,
+            });
+        }
+
         const currentSettings = (tenant.settings || {}) as Record<string, any>;
         const currentOnboardingData = (currentSettings.onboarding || {}) as OnboardingData;
         const currentCompletedSteps = (currentSettings.completedOnboardingSteps || []) as OnboardingStep[];
+
+        // Check if step can be completed based on workflow rules
+        const availableSteps = this.getAvailableSteps(currentCompletedSteps, currentOnboardingData);
+        if (!availableSteps.includes(step) && !currentCompletedSteps.includes(step)) {
+            throw new BadRequestException(`Step ${step} is not available at this time`);
+        }
 
         // Merge new data with existing
         const updatedOnboardingData: OnboardingData = {
@@ -164,11 +531,23 @@ export class OnboardingService {
         const recommendedPlan = this.calculateRecommendedPlan(updatedOnboardingData);
         updatedOnboardingData.recommendedPlan = recommendedPlan;
 
+        // Update workflow state
+        const workflowState: WorkflowState = {
+            currentStep: this.determineCurrentStep(updatedCompletedSteps),
+            completedSteps: updatedCompletedSteps,
+            availableSteps: this.getAvailableSteps(updatedCompletedSteps, updatedOnboardingData),
+            canProceed: this.canProceedToNextStep(updatedCompletedSteps, updatedOnboardingData),
+            validationErrors: {},
+            lastUpdated: new Date(),
+            sessionId: currentSettings.workflowState?.sessionId || this.generateSessionId(),
+        };
+
         // Update tenant settings
         const updatedSettings = {
             ...currentSettings,
             onboarding: updatedOnboardingData,
             completedOnboardingSteps: updatedCompletedSteps,
+            workflowState,
         };
 
         await this.drizzle.getDb()
@@ -187,10 +566,53 @@ export class OnboardingService {
             tenantId,
             step,
             data,
+            workflowState,
             timestamp: new Date(),
         });
 
         return this.getOnboardingStatus(tenantId);
+    }
+
+    /**
+     * Resume onboarding from where user left off
+     */
+    async resumeOnboarding(tenantId: string): Promise<OnboardingStatus> {
+        const status = await this.getOnboardingStatus(tenantId);
+        
+        if (status.isComplete) {
+            throw new BadRequestException('Onboarding is already complete');
+        }
+
+        // Initialize workflow if not already done
+        if (!status.workflowState.sessionId) {
+            await this.initializeWorkflow(tenantId);
+        }
+
+        this.logger.log(`Onboarding resumed for tenant ${tenantId}`);
+
+        // Emit event
+        this.eventEmitter.emit('tenant.onboarding.resumed', {
+            tenantId,
+            currentStep: status.workflowState.currentStep,
+            completedSteps: status.completedSteps,
+            timestamp: new Date(),
+        });
+
+        return this.getOnboardingStatus(tenantId);
+    }
+
+    /**
+     * Get step configuration for validation and UI rendering
+     */
+    getStepConfiguration(step: OnboardingStep): WorkflowStepConfig | null {
+        return this.workflowConfig.get(step) || null;
+    }
+
+    /**
+     * Get all step configurations
+     */
+    getAllStepConfigurations(): WorkflowStepConfig[] {
+        return Array.from(this.workflowConfig.values());
     }
 
     /**
