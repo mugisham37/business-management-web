@@ -17,82 +17,30 @@ import {
     CHANGE_PASSWORD_MUTATION,
     FORGOT_PASSWORD_MUTATION,
     RESET_PASSWORD_MUTATION,
-    SETUP_MFA_MUTATION,
     ENABLE_MFA_MUTATION,
     DISABLE_MFA_MUTATION,
-    VERIFY_MFA_MUTATION,
+    VERIFY_MFA_TOKEN_MUTATION,
     GENERATE_BACKUP_CODES_MUTATION,
     LINK_SOCIAL_PROVIDER_MUTATION,
     UNLINK_SOCIAL_PROVIDER_MUTATION,
-    TERMINATE_SESSION_MUTATION,
-    UPDATE_SECURITY_SETTINGS_MUTATION,
     GRANT_PERMISSION_MUTATION,
     REVOKE_PERMISSION_MUTATION,
     ASSIGN_ROLE_MUTATION,
     BULK_GRANT_PERMISSIONS_MUTATION,
     BULK_REVOKE_PERMISSIONS_MUTATION,
-    CREATE_ROLE_MUTATION,
-    UPDATE_ROLE_PERMISSIONS_MUTATION,
-    TRUST_DEVICE_MUTATION,
-    UNTRUST_DEVICE_MUTATION,
-    START_ONBOARDING_MUTATION,
-    SUBMIT_ONBOARDING_STEP_MUTATION,
-    COMPLETE_ONBOARDING_MUTATION,
-    UPDATE_TIER_MUTATION,
-    PROCESS_PAYMENT_MUTATION,
-    UPDATE_PAYMENT_METHOD_MUTATION,
-    CANCEL_SUBSCRIPTION_MUTATION,
-    UPDATE_IP_RESTRICTIONS_MUTATION,
-    UPDATE_TIME_BASED_ACCESS_MUTATION,
-    REGISTER_DEVICE_MUTATION,
-    UPDATE_SESSION_MUTATION,
-    TERMINATE_ALL_USER_SESSIONS_MUTATION,
-    SEND_SECURITY_ALERT_MUTATION,
-    BLOCK_IP_ADDRESS_MUTATION,
-    UNBLOCK_IP_ADDRESS_MUTATION
+    GENERATE_MFA_SETUP_MUTATION,
 } from '@/graphql/mutations/auth-complete';
 
 import {
     ME_QUERY,
     REQUIRES_MFA_QUERY,
-    GET_MFA_SETUP_QUERY,
-    GET_MFA_STATUS_QUERY,
-    IS_MFA_ENABLED_QUERY,
-    GET_USER_PERMISSIONS_QUERY,
-    GET_MY_PERMISSIONS_QUERY,
     CHECK_PERMISSION_QUERY,
     GET_AVAILABLE_PERMISSIONS_QUERY,
     GET_ROLES_QUERY,
     GET_ROLE_PERMISSIONS_QUERY,
-    GET_ACTIVE_SESSIONS_QUERY,
-    GET_SECURITY_SETTINGS_QUERY,
-    GET_AUDIT_LOGS_QUERY,
-    GET_USER_TIER_QUERY,
-    GET_MY_TIER_QUERY,
-    GET_DEVICE_SESSIONS_QUERY,
-    GET_TRUSTED_DEVICES_QUERY,
-    GET_SECURITY_EVENTS_QUERY,
-    GET_ONBOARDING_STATUS_QUERY,
-    GET_SUBSCRIPTION_STATUS_QUERY,
-    VALIDATE_SESSION_QUERY,
-    GET_IP_RESTRICTIONS_QUERY,
-    GET_TIME_BASED_ACCESS_QUERY,
-    GET_SOCIAL_AUTH_URL_QUERY,
-    GET_CONNECTED_SOCIAL_PROVIDERS_QUERY,
-    BASIC_FEATURE_QUERY,
-    SMALL_TIER_FEATURE_QUERY,
-    MEDIUM_TIER_FEATURE_QUERY,
-    ENTERPRISE_FEATURE_QUERY,
-    ADVANCED_REPORTS_QUERY,
-    MULTI_LOCATION_DATA_QUERY,
-    GET_USER_FEATURES_QUERY,
-    GET_UPGRADE_RECOMMENDATIONS_QUERY,
-    CHECK_PERMISSION_WITH_DETAILS_QUERY,
-    GET_USER_PERMISSIONS_WITH_METADATA_QUERY,
-    GET_AVAILABLE_PERMISSIONS_DETAILED_QUERY
 } from '@/graphql/queries/auth-complete';
 
-export interface GraphQLOperationResult<T = any> {
+export interface GraphQLOperationResult<T = Record<string, unknown>> {
     success: boolean;
     data?: T;
     message?: string;
@@ -100,10 +48,10 @@ export interface GraphQLOperationResult<T = any> {
 }
 
 export class GraphQLIntegrationService {
-    private apolloClient: ApolloClient<any>;
+    private apolloClient: ApolloClient<Record<string, unknown>>;
     private subscriptionService: AuthEventSubscriptionService;
 
-    constructor(apolloClient: ApolloClient<any>) {
+    constructor(apolloClient: ApolloClient<Record<string, unknown>>) {
         this.apolloClient = apolloClient;
         this.subscriptionService = new AuthEventSubscriptionService(apolloClient);
     }
@@ -111,7 +59,7 @@ export class GraphQLIntegrationService {
     /**
      * Authentication Operations
      */
-    async login(email: string, password: string, deviceInfo?: any): Promise<GraphQLOperationResult> {
+    async login(email: string, password: string, deviceInfo?: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: LOGIN_MUTATION,
@@ -121,19 +69,20 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.login?.success || false,
+                success: (data?.login as Record<string, unknown>)?.success as boolean || false,
                 data: data?.login,
-                message: data?.login?.message
+                message: (data?.login as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Login failed';
             return {
                 success: false,
-                error: error.message || 'Login failed'
+                error: errorMessage
             };
         }
     }
 
-    async loginWithMfa(email: string, password: string, mfaToken: string, deviceInfo?: any): Promise<GraphQLOperationResult> {
+    async loginWithMfa(email: string, password: string, mfaToken: string, deviceInfo?: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: LOGIN_WITH_MFA_MUTATION,
@@ -143,19 +92,20 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.loginWithMfa?.success || false,
+                success: (data?.loginWithMfa as Record<string, unknown>)?.success as boolean || false,
                 data: data?.loginWithMfa,
-                message: data?.loginWithMfa?.message
+                message: (data?.loginWithMfa as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'MFA login failed';
             return {
                 success: false,
-                error: error.message || 'MFA login failed'
+                error: errorMessage
             };
         }
     }
 
-    async register(userData: any): Promise<GraphQLOperationResult> {
+    async register(userData: Record<string, unknown>): Promise<GraphQLOperationResult> {
         try {
             const { data } = await this.apolloClient.mutate({
                 mutation: REGISTER_MUTATION,
@@ -163,14 +113,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.register?.success || false,
+                success: (data?.register as Record<string, unknown>)?.success as boolean || false,
                 data: data?.register,
-                message: data?.register?.message
+                message: (data?.register as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Registration failed';
             return {
                 success: false,
-                error: error.message || 'Registration failed'
+                error: errorMessage
             };
         }
     }
@@ -182,14 +133,15 @@ export class GraphQLIntegrationService {
             });
 
             return {
-                success: data?.logout?.success || true,
+                success: (data?.logout as Record<string, unknown>)?.success as boolean || true,
                 data: data?.logout,
-                message: data?.logout?.message
+                message: (data?.logout as Record<string, unknown>)?.message as string
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Logout failed';
             return {
                 success: false,
-                error: error.message || 'Logout failed'
+                error: errorMessage
             };
         }
     }

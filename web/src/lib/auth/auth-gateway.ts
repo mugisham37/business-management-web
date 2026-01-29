@@ -5,7 +5,7 @@
  */
 
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useTierAccess } from '@/hooks/useTierAccess';
 import { PostAuthRedirectManager } from './post-auth-redirect';
@@ -18,7 +18,7 @@ export interface AuthCredentials {
 
 export interface AuthResult {
   success: boolean;
-  user?: any;
+  user?: Record<string, unknown>;
   tokens?: {
     accessToken: string;
     refreshToken: string;
@@ -272,7 +272,7 @@ export class AuthGateway {
   /**
    * Check if user is authenticated and get current session
    */
-  async getCurrentSession(): Promise<{ isAuthenticated: boolean; user?: any; requiresOnboarding?: boolean }> {
+  async getCurrentSession(): Promise<{ isAuthenticated: boolean; user?: Record<string, unknown>; requiresOnboarding?: boolean }> {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {

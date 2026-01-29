@@ -78,7 +78,7 @@ export class PostAuthRedirectManager {
   /**
    * Determine the appropriate redirect URL after authentication
    */
-  determineRedirectUrl(user: any): string {
+  determineRedirectUrl(user: Record<string, unknown> | undefined): string {
     // Check for intended destination first
     const intendedDestination = this.getIntendedDestination();
     
@@ -91,7 +91,7 @@ export class PostAuthRedirectManager {
     }
 
     // If user needs onboarding, redirect to onboarding
-    if (user && !user.hasCompletedOnboarding) {
+    if (user && !(user.hasCompletedOnboarding as boolean)) {
       return this.config.onboardingRoute;
     }
 
@@ -125,7 +125,7 @@ export class PostAuthRedirectManager {
   /**
    * Handle redirect after successful authentication
    */
-  handlePostAuthRedirect(user: any, router: any): void {
+  handlePostAuthRedirect(user: Record<string, unknown> | undefined, router: { replace: (url: string) => void }): void {
     const redirectUrl = this.determineRedirectUrl(user);
     
     console.log('Redirecting after authentication to:', redirectUrl);
@@ -142,7 +142,7 @@ export function usePostAuthRedirect() {
   const router = useRouter();
   const manager = PostAuthRedirectManager.getInstance();
 
-  const handleRedirect = useCallback((user: any) => {
+  const handleRedirect = useCallback((user: Record<string, unknown> | undefined) => {
     manager.handlePostAuthRedirect(user, router);
   }, [router, manager]);
 

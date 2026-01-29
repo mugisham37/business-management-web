@@ -89,7 +89,7 @@ export class AuthErrorHandler {
   /**
    * Classify and enhance error with user-friendly information
    */
-  classifyError(error: any, context?: string): AuthError {
+  classifyError(error: unknown, context?: string): AuthError {
     // Network errors
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       return {
@@ -158,7 +158,7 @@ export class AuthErrorHandler {
   /**
    * Handle 401 Unauthorized errors
    */
-  private handleUnauthorizedError(error: any): AuthError {
+  private handleUnauthorizedError(error: unknown): AuthError {
     const errorCode = error.body?.code || error.code;
     
     switch (errorCode) {
@@ -201,7 +201,7 @@ export class AuthErrorHandler {
   /**
    * Handle 403 Forbidden errors
    */
-  private handleForbiddenError(error: any): AuthError {
+  private handleForbiddenError(error: unknown): AuthError {
     return {
       code: AuthErrorCode.ACCOUNT_DISABLED,
       message: 'Account access denied',
@@ -214,7 +214,7 @@ export class AuthErrorHandler {
   /**
    * Handle 429 Rate Limit errors
    */
-  private handleRateLimitError(error: any): AuthError {
+  private handleRateLimitError(error: unknown): AuthError {
     const retryAfter = parseInt(error.headers?.['retry-after']) || 60;
     
     return {
@@ -230,7 +230,7 @@ export class AuthErrorHandler {
   /**
    * Handle social authentication errors
    */
-  private handleSocialAuthError(error: any): AuthError {
+  private handleSocialAuthError(error: unknown): AuthError {
     if (error.message?.includes('popup')) {
       return {
         code: AuthErrorCode.POPUP_BLOCKED,
@@ -263,7 +263,7 @@ export class AuthErrorHandler {
   /**
    * Handle GraphQL errors
    */
-  private handleGraphQLError(error: any): AuthError {
+  private handleGraphQLError(error: unknown): AuthError {
     const code = error.extensions?.code;
     
     switch (code) {

@@ -8,6 +8,7 @@ import { ApolloClient, from, createHttpLink, InMemoryCache } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { createPermissionInterceptorLink } from './GraphQLPermissionInterceptor';
+import type { ErrorPayload } from '@/types/auth';
 
 /**
  * Create Apollo Client with permission validation
@@ -15,7 +16,7 @@ import { createPermissionInterceptorLink } from './GraphQLPermissionInterceptor'
 export function createApolloClientWithPermissions(options: {
   uri: string;
   getAuthToken?: () => string | null;
-  onPermissionError?: (error: any) => void;
+  onPermissionError?: (error: ErrorPayload) => void;
   enablePermissionValidation?: boolean;
 }) {
   const {
@@ -42,7 +43,7 @@ export function createApolloClientWithPermissions(options: {
   });
 
   // Error Link
-  const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+  const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
     if (graphQLErrors) {
       graphQLErrors.forEach(({ message, locations, path, extensions }) => {
         console.error(
@@ -113,15 +114,15 @@ export function createApolloClientWithPermissions(options: {
 /**
  * Permission-aware query wrapper
  */
-export function createPermissionAwareQuery<TData = any, TVariables = any>(
-  client: ApolloClient<any>
+export function createPermissionAwareQuery<TData = Record<string, unknown>, TVariables extends Record<string, unknown> = Record<string, unknown>>(
+  client: ApolloClient<Record<string, unknown>>
 ) {
   return async (options: {
-    query: any;
+    query: unknown;
     variables?: TVariables;
     skipPermissionCheck?: boolean;
     userId?: string;
-    context?: any;
+    context?: Record<string, unknown>;
   }) => {
     const { query, variables, skipPermissionCheck, userId, context = {} } = options;
 
@@ -138,9 +139,10 @@ export function createPermissionAwareQuery<TData = any, TVariables = any>(
       });
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle permission errors gracefully
-      if (error.graphQLErrors?.some((e: any) => e.extensions?.code === 'FORBIDDEN')) {
+      const apolloError = error as ApolloClient<Record<string, unknown>> & { graphQLErrors?: Array<{ extensions?: Record<string, unknown> }> };
+      if (apolloError.graphQLErrors?.some((e: Record<string, unknown>) => (e.extensions as Record<string, unknown>)?.code === 'FORBIDDEN')) {
         console.warn('Query blocked due to insufficient permissions');
         return {
           data: null,
@@ -157,15 +159,15 @@ export function createPermissionAwareQuery<TData = any, TVariables = any>(
 /**
  * Permission-aware mutation wrapper
  */
-export function createPermissionAwareMutation<TData = any, TVariables = any>(
-  client: ApolloClient<any>
+export function createPermissionAwareMutation<TData = Record<string, unknown>, TVariables extends Record<string, unknown> = Record<string, unknown>>(
+  client: ApolloClient<Record<string, unknown>>
 ) {
   return async (options: {
-    mutation: any;
+    mutation: unknown;
     variables?: TVariables;
     skipPermissionCheck?: boolean;
     userId?: string;
-    context?: any;
+    context?: Record<string, unknown>;
   }) => {
     const { mutation, variables, skipPermissionCheck, userId, context = {} } = options;
 
@@ -181,9 +183,10 @@ export function createPermissionAwareMutation<TData = any, TVariables = any>(
       });
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle permission errors gracefully
-      if (error.graphQLErrors?.some((e: any) => e.extensions?.code === 'FORBIDDEN')) {
+      const apolloError = error as ApolloClient<Record<string, unknown>> & { graphQLErrors?: Array<{ extensions?: Record<string, unknown> }> };
+      if (apolloError.graphQLErrors?.some((e: Record<string, unknown>) => (e.extensions as Record<string, unknown>)?.code === 'FORBIDDEN')) {
         console.warn('Mutation blocked due to insufficient permissions');
         return {
           data: null,
@@ -212,13 +215,13 @@ export const PermissionContext = {
   /**
    * Combine multiple context options
    */
-  combine: (...contexts: any[]) => Object.assign({}, ...contexts),
+  combine: (...contexts: Record<string, unknown>[]) => Object.assign({}, ...contexts),
 };
 
 /**
  * Hook for permission-aware Apollo operations
  */
-export function usePermissionAwareApollo(client: ApolloClient<any>) {
+export function usePermissionAwareApollo(client: ApolloClient<Record<string, unknown>>) {
   const query = createPermissionAwareQuery(client);
   const mutate = createPermissionAwareMutation(client);
 
@@ -240,7 +243,7 @@ export const defaultApolloConfig = {
     }
     return null;
   },
-  onPermissionError: (error: any) => {
+  onPermissionError: (error: ErrorPayload) => {
     console.warn('Permission error:', error);
     // You can add custom error handling here, such as:
     // - Redirecting to login page
