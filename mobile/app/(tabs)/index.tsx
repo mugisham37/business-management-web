@@ -2,27 +2,40 @@
  * Dashboard Screen
  *
  * Main dashboard with KPIs, quick actions, and activity feed.
+ * Enhanced with mobile-responsive design and tier-aware features.
  */
-import React from "react";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, RefreshControl, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeScreen, ScreenContent } from "@/components/layout";
 import { StatCard, Card, Button } from "@/components/core";
 import { LoadingState } from "@/components/state";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/auth";
+import { useTierAccess } from "@/hooks/useTierAccess";
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-
+  const { currentTier, hasAccess } = useTierAccess();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     // TODO: Refetch dashboard data
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
+
+  const handleFeatureAccess = (requiredTier: string, action: () => void) => {
+    if (hasAccess(requiredTier)) {
+      action();
+    } else {
+      setShowUpgradePrompt(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -126,24 +139,48 @@ export default function DashboardScreen() {
               label="New Sale"
               color="#3B82F6"
               onPress={() => router.push("/(tabs)/pos")}
+              hasAccess={hasAccess('MICRO')}
+              requiredTier="MICRO"
             />
             <QuickActionCard
               icon="scan-outline"
               label="Scan Item"
               color="#22C55E"
-              onPress={() => { }}
+              onPress={() => handleFeatureAccess('MICRO', () => {})}
+              hasAccess={hasAccess('MICRO')}
+              requiredTier="MICRO"
             />
             <QuickActionCard
               icon="add-circle-outline"
               label="Add Product"
               color="#8B5CF6"
               onPress={() => router.push("/(tabs)/inventory")}
+              hasAccess={hasAccess('MICRO')}
+              requiredTier="MICRO"
             />
             <QuickActionCard
               icon="people-outline"
               label="Customers"
               color="#F59E0B"
-              onPress={() => { }}
+              onPress={() => handleFeatureAccess('SMALL', () => router.push("/crm/customers"))}
+              hasAccess={hasAccess('SMALL')}
+              requiredTier="SMALL"
+            />
+            <QuickActionCard
+              icon="analytics-outline"
+              label="Analytics"
+              color="#EC4899"
+              onPress={() => handleFeatureAccess('SMALL', () => router.push("/analytics"))}
+              hasAccess={hasAccess('SMALL')}
+              requiredTier="SMALL"
+            />
+            <QuickActionCard
+              icon="business-outline"
+              label="B2B Orders"
+              color="#10B981"
+              onPress={() => handleFeatureAccess('MEDIUM', () => router.push("/b2b/orders"))}
+              hasAccess={hasAccess('MEDIUM')}
+              requiredTier="MEDIUM"
             />
           </View>
         </View>
@@ -185,6 +222,47 @@ export default function DashboardScreen() {
           </Card>
         </View>
       </ScrollView>
+
+      {/* Upgrade Prompt Modal */}
+      {showUpgradePrompt && (
+        <View className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <View className="bg-background rounded-lg p-6 mx-4 max-w-sm w-full">
+            <View className="items-center">
+              <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4">
+                <Ionicons name="diamond-outline" size={32} color="#3B82F6" />
+              </View>
+              <Text className="text-text-primary text-lg font-semibold mb-2 text-center">
+                Upgrade Required
+              </Text>
+              <Text className="text-text-secondary text-center mb-6">
+                This feature requires a higher tier plan. Upgrade to unlock advanced features.
+              </Text>
+              <View className="flex-row gap-3 w-full">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onPress={() => setShowUpgradePrompt(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onPress={() => {
+                    setShowUpgradePrompt(false);
+                    // Navigate to pricing page
+                    router.push("/pricing");
+                  }}
+                  className="flex-1"
+                >
+                  Upgrade
+                </Button>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeScreen>
   );
 }
@@ -195,22 +273,32 @@ interface QuickActionCardProps {
   label: string;
   color: string;
   onPress: () => void;
+  hasAccess?: boolean;
+  requiredTier?: string;
 }
 
-function QuickActionCard({ icon, label, color, onPress }: QuickActionCardProps) {
+function QuickActionCard({ icon, label, color, onPress, hasAccess = true, requiredTier }: QuickActionCardProps) {
   return (
     <Card
       onPress={onPress}
       noPadding
-      className="flex-1 min-w-[70px] items-center py-4"
+      className={`flex-1 min-w-[70px] items-center py-4 ${!hasAccess ? 'opacity-60' : ''}`}
     >
       <View
-        className="w-12 h-12 rounded-xl items-center justify-center mb-2"
+        className="w-12 h-12 rounded-xl items-center justify-center mb-2 relative"
         style={{ backgroundColor: `${color}20` }}
       >
         <Ionicons name={icon} size={24} color={color} />
+        {!hasAccess && (
+          <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-yellow-500 items-center justify-center">
+            <Ionicons name="lock-closed" size={10} color="#FFFFFF" />
+          </View>
+        )}
       </View>
-      <Text className="text-text-primary text-xs font-medium">{label}</Text>
+      <Text className="text-text-primary text-xs font-medium text-center">{label}</Text>
+      {!hasAccess && requiredTier && (
+        <Text className="text-yellow-600 text-xs mt-1">{requiredTier}</Text>
+      )}
     </Card>
   );
 }
