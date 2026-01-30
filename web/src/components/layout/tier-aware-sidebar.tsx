@@ -59,7 +59,7 @@ import { useAuth } from "@/hooks/authentication/useAuth";
 import { useTierAccess, BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import type { LucideIcon } from "lucide-react";
 
 // Type definitions for navigation with tier requirements
@@ -318,6 +318,11 @@ function MobileBottomNav({
 }) {
   const pathname = usePathname();
   const { tierMeetsRequirement } = useTierAccess();
+  
+  // Helper to check tier access
+  const hasAccess = (tier: BusinessTier, requiredTier: BusinessTier) => {
+    return tierMeetsRequirement(tier, requiredTier);
+  };
 
   // Core navigation items for mobile bottom nav
   const mobileNavItems = [
@@ -464,9 +469,9 @@ export function TierAwareSidebar({
   };
 
   // Helper to check if user has access to a tier
-  const hasAccess = (requiredTier: BusinessTier) => {
+  const hasAccess = useCallback((requiredTier: BusinessTier) => {
     return tierMeetsRequirement(currentTier, requiredTier);
-  };
+  }, [tierMeetsRequirement, currentTier]);
 
   // Filter navigation groups and items based on tier
   const filteredNavigationGroups = useMemo(() => {
@@ -490,8 +495,7 @@ export function TierAwareSidebar({
       .filter((group) => 
         group.items.length > 0 || (showLockedItems && group.lockedItems.length > 0)
       );
-  // Using tierMeetsRequirement and currentTier instead of hasAccess function for proper dependency tracking
-  }, [showLockedItems, tierMeetsRequirement, currentTier]);
+  }, [showLockedItems, hasAccess]);
 
   // Render upgrade indicator for locked items
   const renderUpgradeIndicator = (requiredTier: BusinessTier) => (
@@ -519,29 +523,6 @@ export function TierAwareSidebar({
         {renderUpgradeIndicator(item.requiredTier)}
       </SidebarMenuButton>
     </SidebarMenuItem>
-  );
-
-  // Mobile upgrade prompt component
-  const MobileUpgradePrompt = ({ requiredTier }: { requiredTier: BusinessTier }) => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg p-6 max-w-sm w-full">
-        <div className="text-center">
-          <Crown className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Upgrade Required</h3>
-          <p className="text-muted-foreground mb-4">
-            This feature requires the {TIER_CONFIG[requiredTier].name} plan.
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={() => {}}>
-              Learn More
-            </Button>
-            <Button className="flex-1" onClick={() => onUpgradeClick?.(requiredTier)}>
-              Upgrade Now
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 
   const sidebarContent = (
@@ -713,10 +694,17 @@ export function TierAwareSidebar({
           </SidebarFooter>
         </MobileSidebarSheet>
         
-        <MobileBottomNav 
-          currentTier={currentTier} 
-          onUpgradeClick={onUpgradeClick} 
-        />
+        {onUpgradeClick && (
+          <MobileBottomNav 
+            currentTier={currentTier} 
+            onUpgradeClick={onUpgradeClick} 
+          />
+        )}
+        {!onUpgradeClick && (
+          <MobileBottomNav 
+            currentTier={currentTier} 
+          />
+        )}
       </>
     );
   }

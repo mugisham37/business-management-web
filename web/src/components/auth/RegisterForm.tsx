@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AuthErrorDisplay } from './AuthErrorDisplay';
+import { AuthErrorCode } from '@/lib/auth/auth-errors';
 import { useAuthWithRetry } from '@/hooks/authentication/useAuthWithRetry';
 import { useNetworkStatus } from '@/hooks/utilities-infrastructure/useNetworkStatus';
 import { cn } from '@/lib/utils/cn';
@@ -89,7 +90,7 @@ export function RegisterForm({
     // Use retry logic if enabled, otherwise use external props
     const isLoading = useRetryLogic ? authWithRetry.isLoading : externalLoading;
     const error = useRetryLogic ? authWithRetry.error : 
-        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: 'UNKNOWN_ERROR' as any } : null);
+        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: AuthErrorCode.UNKNOWN_ERROR } : null);
 
     const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
 
@@ -203,7 +204,7 @@ export function RegisterForm({
                 >
                     <WifiOff className="w-5 h-5 text-orange-500 shrink-0" />
                     <p className="text-sm text-orange-700 dark:text-orange-400">
-                        You're currently offline. Please check your internet connection.
+                        You&apos;re currently offline. Please check your internet connection.
                     </p>
                 </motion.div>
             )}

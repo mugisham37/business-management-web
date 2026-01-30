@@ -89,7 +89,7 @@ export function TierGate({
           <FeatureLockedOverlay
             {...(requiredTier !== undefined && { requiredTier })}
             {...(requiredFeature !== undefined && { requiredFeature })}
-            currentTier={businessTier}
+            currentTier={businessTier as BusinessTier}
             showUpgradePrompt={showUpgradePrompt}
             {...(upgradePromptTitle !== undefined && { title: upgradePromptTitle })}
             {...(upgradePromptDescription !== undefined && { description: upgradePromptDescription })}
@@ -102,7 +102,7 @@ export function TierGate({
         <TierUpgradePrompt
           {...(requiredTier !== undefined && { requiredTier })}
           {...(requiredFeature !== undefined && { requiredFeature })}
-          currentTier={businessTier}
+          currentTier={businessTier as BusinessTier}
           {...(upgradePromptTitle !== undefined && { title: upgradePromptTitle })}
           {...(upgradePromptDescription !== undefined && { description: upgradePromptDescription })}
           {...(className !== undefined && { className })}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { TierAwareSidebar } from "./tier-aware-sidebar";
 import { Navbar } from "./navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -14,25 +14,25 @@ interface TierAwareDashboardLayoutProps {
   children: React.ReactNode;
 }
 
+// Type extension for user with business tier
+type UserWithTier = { businessTier?: BusinessTier };
+
 export function TierAwareDashboardLayout({ children }: TierAwareDashboardLayoutProps) {
   const { user } = useAuth();
   const { isLoading, refetch } = useTierAccess();
-  const [currentTier, setCurrentTier] = useState<BusinessTier>(BusinessTier.MICRO);
+  
+  // Compute initial tier from user data - avoids setState in effect
+  const initialTier = useMemo(() => {
+    if (user && !isLoading) {
+      return (user as UserWithTier).businessTier ?? BusinessTier.MICRO;
+    }
+    return BusinessTier.MICRO;
+  }, [user, isLoading]);
+  
+  const [currentTier, setCurrentTier] = useState<BusinessTier>(initialTier);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeTargetTier, setUpgradeTargetTier] = useState<BusinessTier>(BusinessTier.SMALL);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Initialize current tier from user data or context
-  useEffect(() => {
-    if (user && !isLoading && !isInitialized) {
-      // In a real implementation, this would come from the user's subscription data
-      // Using a type assertion to access businessTier which may be added via extension
-      type UserWithTier = typeof user & { businessTier?: BusinessTier };
-      const userTier = (user as UserWithTier).businessTier ?? BusinessTier.MICRO;
-      setCurrentTier(userTier);
-      setIsInitialized(true);
-    }
-  }, [user, isLoading, isInitialized]);
+  const isInitialized = !isLoading && !!user;
 
   // Handle upgrade click from sidebar
   const handleUpgradeClick = (requiredTier: BusinessTier) => {

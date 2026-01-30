@@ -1,6 +1,9 @@
 /**
  * Hooks Index
  * Central exports for all custom React hooks
+ * 
+ * This file exports all hooks from their respective subfolders for convenient access.
+ * Hooks are organized by domain/module.
  */
 
 // ============================================================================
@@ -13,7 +16,43 @@ export { useOnboarding, useOnboardingStatus, useAvailablePlans } from './useOnbo
 export { useRealtime } from './useRealtime';
 
 // ============================================================================
-// UTILITIES-INFRASTRUCTURE HOOKS
+// AUTHENTICATION HOOKS
+// ============================================================================
+export { 
+  useAuth, 
+  useMFA, 
+  usePermission, 
+  useRequireAllPermissions, 
+  useRequireAuth, 
+  useAuthLoading, 
+  useCurrentUser, 
+  useTokens,
+  useAdvancedAuth,
+  useCompleteMfa,
+  usePermissions,
+  useAuthSubscriptions,
+  useAuthEvent,
+} from './authentication/useAuth';
+export { useSocialAuth, useOAuthCallback } from './authentication/useSocialAuth';
+export { useAuthWithRetry } from './authentication/useAuthWithRetry';
+export { 
+  useAuthEvents, 
+  useAuthEventsOnly, 
+  useSessionEventsOnly, 
+  useSecurityAlertsOnly 
+} from './authentication/useAuthEvents';
+export { 
+  useAuthEventSubscriptions, 
+  useSecurityEventSubscriptions, 
+  useBusinessEventSubscriptions, 
+  useAdminEventSubscriptions 
+} from './authentication/useAuthEventSubscriptions';
+export { useAuthManagement } from './authentication/useAuthManagement';
+export { useSecurity } from './authentication/useSecurity';
+export { useSecuritySettings } from './authentication/useSecuritySettings';
+
+// ============================================================================
+// UTILITIES & INFRASTRUCTURE HOOKS
 // ============================================================================
 export { useIsMobile } from './utilities-infrastructure/use-mobile';
 export { useNetworkStatus } from './utilities-infrastructure/useNetworkStatus';
@@ -83,42 +122,6 @@ export {
   type UseUpgradeFlowReturn,
 } from './utilities-infrastructure/useUpgradeFlow';
 export { useOnboardingFlow } from './utilities-infrastructure/useOnboardingFlow';
-
-// ============================================================================
-// AUTHENTICATION HOOKS
-// ============================================================================
-export { 
-  useAuth, 
-  useMFA, 
-  usePermission, 
-  useRequireAllPermissions, 
-  useRequireAuth, 
-  useAuthLoading, 
-  useCurrentUser, 
-  useTokens,
-  useAdvancedAuth,
-  useCompleteMfa,
-  usePermissions,
-  useAuthSubscriptions,
-  useAuthEvent,
-} from './authentication/useAuth';
-export { useSocialAuth, useOAuthCallback } from './authentication/useSocialAuth';
-export { useAuthWithRetry } from './authentication/useAuthWithRetry';
-export { 
-  useAuthEvents, 
-  useAuthEventsOnly, 
-  useSessionEventsOnly, 
-  useSecurityAlertsOnly 
-} from './authentication/useAuthEvents';
-export { 
-  useAuthEventSubscriptions, 
-  useSecurityEventSubscriptions, 
-  useBusinessEventSubscriptions, 
-  useAdminEventSubscriptions 
-} from './authentication/useAuthEventSubscriptions';
-export { useAuthManagement } from './authentication/useAuthManagement';
-export { useSecurity } from './authentication/useSecurity';
-export { useSecuritySettings } from './authentication/useSecuritySettings';
 
 // ============================================================================
 // ANALYTICS & REPORTING HOOKS

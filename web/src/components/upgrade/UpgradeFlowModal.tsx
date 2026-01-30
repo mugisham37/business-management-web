@@ -195,7 +195,7 @@ export function UpgradeFlowModal({
         targetTier: selectedTier,
         billingCycle,
         paymentMethod,
-        featureId,
+        ...(featureId ? { featureId } : {}),
       });
 
       if (success) {

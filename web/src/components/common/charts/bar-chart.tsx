@@ -4,7 +4,7 @@ import { Bar, BarChart as RechartsBarChart, CartesianGrid, XAxis, YAxis, Tooltip
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface BarChartProps {
-    data: any[];
+    data: Record<string, unknown>[];
     xKey: string;
     bars: {
         key: string;

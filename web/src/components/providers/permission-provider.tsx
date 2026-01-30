@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext } from "react";
 import { useAuth } from "@/hooks/authentication/useAuth";
+import { UserRole } from "@/types/auth";
 
 interface PermissionContextValue {
     hasPermission: (permission: string | string[]) => boolean;
@@ -16,8 +17,8 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
     // Get permissions and roles from user object
     const permissions = user?.permissions || [];
-    // CompleteUser has 'role' (singular), not 'roles' - convert to array for consistent handling
-    const roles = user?.role ? [user.role] : [];
+    // CompleteUser has 'role' (singular UserRole enum), convert to array for consistent handling
+    const userRole = user?.role;
 
     const hasPermission = (permission: string | string[]): boolean => {
         if (!user) return false;
@@ -27,10 +28,11 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
     };
 
     const hasRole = (role: string | string[]): boolean => {
-        if (!user) return false;
+        if (!user || !userRole) return false;
 
         const rolesList = Array.isArray(role) ? role : [role];
-        return rolesList.some((r) => roles?.includes(r));
+        // Compare string values since UserRole is an enum
+        return rolesList.some((r) => r === userRole || r === (userRole as UserRole));
     };
 
     const can = (action: string, resource: string): boolean => {

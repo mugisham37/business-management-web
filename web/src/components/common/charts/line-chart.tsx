@@ -4,7 +4,7 @@ import { Line, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Tool
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface LineChartProps {
-    data: any[];
+    data: Record<string, unknown>[];
     xKey: string;
     lines: {
         key: string;

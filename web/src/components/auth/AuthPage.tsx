@@ -9,7 +9,6 @@ import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { SocialLoginButtons } from './SocialLoginButtons';
 import { useAuthGateway } from '@/lib/auth/auth-gateway';
-import { cn } from '@/lib/utils/cn';
 
 type AuthMode = 'login' | 'register';
 
@@ -51,13 +50,14 @@ export function AuthPage({
 
                 onLoginSuccess?.();
                 // Redirect is handled by authGateway.authenticateAndRedirect
-            } catch (err: any) {
-                setError(err.message || 'Login failed. Please try again.');
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+                setError(errorMessage);
             } finally {
                 setIsLoading(false);
             }
         },
-        [onLoginSuccess]
+        [authGateway, onLoginSuccess]
     );
 
     const handleRegister = useCallback(
@@ -82,22 +82,14 @@ export function AuthPage({
 
                 onRegisterSuccess?.();
                 // Redirect is handled by authGateway.registerAndRedirect
-            } catch (err: any) {
-                setError(err.message || 'Registration failed. Please try again.');
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+                setError(errorMessage);
             } finally {
                 setIsLoading(false);
             }
         },
-        [onRegisterSuccess]
-    );
-
-    const handleSocialLogin = useCallback(
-        async (provider: 'google' | 'facebook' | 'github') => {
-            // The social login is now handled by the SocialLoginButtons component
-            // This callback is kept for backward compatibility
-            console.log('Social login initiated:', provider);
-        },
-        []
+        [authGateway, onRegisterSuccess]
     );
 
     const handleForgotPassword = useCallback(() => {

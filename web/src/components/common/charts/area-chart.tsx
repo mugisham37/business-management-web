@@ -4,7 +4,7 @@ import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis, Tool
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface AreaChartProps {
-    data: any[];
+    data: Record<string, unknown>[];
     xKey: string;
     areas: {
         key: string;

@@ -71,12 +71,19 @@ export function SecurityDashboard() {
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [timeRange, setTimeRange] = useState('24h');
 
-  const { state: authEventsState, getEventsByType, getCriticalAlerts } = useAuthEvents();
+  const [authEventsState, { getEventsByType, getCriticalAlerts }] = useAuthEvents();
   const { settings, updateSettings, isLoading: settingsLoading } = useSecuritySettings();
-  const { logs, isLoading: logsLoading, refetch: refetchLogs } = useAuditLogs({
-    limit: 100,
-    timeRange,
-  });
+  const { auditLogs, fetchAuditLogs } = useAuditLogs();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAuditLogs();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const [metrics, setMetrics] = useState<SecurityMetrics>({
     totalEvents: 0,
@@ -95,10 +102,13 @@ export function SecurityDashboard() {
     const failedLogins = getEventsByType('FAILED_LOGIN_ATTEMPT').length;
     const suspiciousActivity = getEventsByType('SUSPICIOUS_ACTIVITY').length;
     const criticalAlerts = getCriticalAlerts().length;
+    const totalEvents = authEventsState.events.auth.length + 
+                       authEventsState.events.session.length + 
+                       authEventsState.events.security.length;
 
     setMetrics(prev => ({
       ...prev,
-      totalEvents: authEventsState.events.length,
+      totalEvents,
       failedLogins,
       suspiciousActivity: suspiciousActivity + criticalAlerts,
     }));
@@ -156,10 +166,10 @@ export function SecurityDashboard() {
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
-            onClick={() => refetchLogs()}
-            disabled={logsLoading}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
           >
-            <RefreshCw className={cn("h-4 w-4 mr-2", logsLoading && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
             Refresh
           </Button>
           <Button onClick={exportSecurityReport}>
@@ -238,7 +248,7 @@ export function SecurityDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {authEventsState.events.slice(0, 5).map((event, index) => (
+                {authEventsState.events.auth.slice(0, 5).map((event, index) => (
                   <motion.div
                     key={event.id}
                     initial={{ opacity: 0, y: 20 }}

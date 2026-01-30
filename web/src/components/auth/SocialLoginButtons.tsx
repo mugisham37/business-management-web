@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils/cn';
 import { useSocialAuth } from '@/hooks/authentication/useSocialAuth';
+import { SocialAuthResult, SocialAuthError } from '@/lib/auth/social-auth';
 
 interface SocialLoginButtonsProps {
     onGoogleClick?: () => void;
@@ -14,8 +15,8 @@ interface SocialLoginButtonsProps {
     className?: string;
     usePopup?: boolean;
     redirectTo?: string;
-    onSuccess?: (result: any) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (result: SocialAuthResult) => void;
+    onError?: (error: SocialAuthError) => void;
 }
 
 export function SocialLoginButtons({
