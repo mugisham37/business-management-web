@@ -22,9 +22,9 @@ export function useTierAccess() {
   return {
     getCurrentTier: () => 'free',
     getTierLimits: (): TierLimit[] => [],
-    canAccessFeature: (feature: string): boolean => true,
-    upgradeRequired: (feature: string): boolean => false,
-    getRemainingUsage: (feature: string): number => 0,
+    canAccessFeature: (_feature: string): boolean => true,
+    upgradeRequired: (_feature: string): boolean => false,
+    getRemainingUsage: (_feature: string): number => 0,
     checkTierAccess: (): TierAccessState => ({
       currentTier: 'free',
       limits: [],

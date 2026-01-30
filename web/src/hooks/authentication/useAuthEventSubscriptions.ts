@@ -5,8 +5,14 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from '@apollo/client';
-import { AuthEventSubscriptionService, AuthEvent, SecurityAlert, PermissionChange, TierChange } from '@/lib/realtime/AuthEventSubscriptionService';
+import { AuthEventSubscriptionService, AuthEvent, SecurityAlert, PermissionChange, TierChange, type EventHandler } from '@/lib/realtime/AuthEventSubscriptionService';
 import { useAuth } from '@/hooks/authentication/useAuth';
+import { UserRole } from '@/types/auth';
+
+// Helper to check if user has admin privileges
+const isAdmin = (role: UserRole | undefined): boolean => {
+    return role === UserRole.SUPER_ADMIN || role === UserRole.TENANT_ADMIN;
+};
 
 interface UseAuthEventSubscriptionsOptions {
     enableAuthEvents?: boolean;
@@ -115,6 +121,7 @@ export function useAuthEventSubscriptions(
     useEffect(() => {
         if (isAuthenticated && !serviceRef.current) {
             serviceRef.current = new AuthEventSubscriptionService(apolloClient as ApolloClient<NormalizedCacheObject>);
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: setting service ready state after initialization
             setIsServiceReady(true);
         }
 
@@ -172,49 +179,49 @@ export function useAuthEventSubscriptions(
 
         // Payment events
         if (options.enablePaymentEvents && handlers.onPaymentEvent) {
-            const unsubscribe = service.subscribeToPaymentEvents(handlers.onPaymentEvent);
+            const unsubscribe = service.subscribeToPaymentEvents(handlers.onPaymentEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // Device trust events
         if (options.enableDeviceTrustEvents && handlers.onDeviceTrustEvent) {
-            const unsubscribe = service.subscribeToDeviceTrustEvents(handlers.onDeviceTrustEvent);
+            const unsubscribe = service.subscribeToDeviceTrustEvents(handlers.onDeviceTrustEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // Onboarding progress
         if (options.enableOnboardingProgress && handlers.onOnboardingProgress) {
-            const unsubscribe = service.subscribeToOnboardingProgress(handlers.onOnboardingProgress);
+            const unsubscribe = service.subscribeToOnboardingProgress(handlers.onOnboardingProgress as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // Tenant auth events (admin only)
-        if (options.enableTenantAuthEvents && handlers.onTenantAuthEvent && user?.role === 'admin') {
+        if (options.enableTenantAuthEvents && handlers.onTenantAuthEvent && isAdmin(user?.role)) {
             const unsubscribe = service.subscribeToTenantAuthEvents(handlers.onTenantAuthEvent);
             unsubscribers.push(unsubscribe);
         }
 
         // Role assignment events (admin only)
-        if (options.enableRoleAssignmentEvents && handlers.onRoleAssignmentEvent && user?.role === 'admin') {
-            const unsubscribe = service.subscribeToRoleAssignmentEvents(handlers.onRoleAssignmentEvent);
+        if (options.enableRoleAssignmentEvents && handlers.onRoleAssignmentEvent && isAdmin(user?.role)) {
+            const unsubscribe = service.subscribeToRoleAssignmentEvents(handlers.onRoleAssignmentEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // IP restriction events
         if (options.enableIpRestrictionEvents && handlers.onIpRestrictionEvent) {
-            const unsubscribe = service.subscribeToIpRestrictionEvents(handlers.onIpRestrictionEvent);
+            const unsubscribe = service.subscribeToIpRestrictionEvents(handlers.onIpRestrictionEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // Session limit events
         if (options.enableSessionLimitEvents && handlers.onSessionLimitEvent) {
-            const unsubscribe = service.subscribeToSessionLimitEvents(handlers.onSessionLimitEvent);
+            const unsubscribe = service.subscribeToSessionLimitEvents(handlers.onSessionLimitEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
         // Password policy events
         if (options.enablePasswordPolicyEvents && handlers.onPasswordPolicyEvent) {
-            const unsubscribe = service.subscribeToPasswordPolicyEvents(handlers.onPasswordPolicyEvent);
+            const unsubscribe = service.subscribeToPasswordPolicyEvents(handlers.onPasswordPolicyEvent as unknown as EventHandler<Record<string, unknown>>);
             unsubscribers.push(unsubscribe);
         }
 
@@ -258,7 +265,7 @@ export function useAuthEventSubscriptions(
 
     // Subscribe to user-specific events (admin only)
     const subscribeToUserEvents = useCallback((userId: string, handler: (event: AuthEvent) => void) => {
-        if (!serviceRef.current || !isAuthenticated || user?.role !== 'admin') {
+        if (!serviceRef.current || !isAuthenticated || !isAdmin(user?.role)) {
             return () => {};
         }
 

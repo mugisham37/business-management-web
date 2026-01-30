@@ -372,3 +372,24 @@ export const UPDATE_SECURITY_SETTINGS_MUTATION = gql`
     }
   }
 `;
+
+// IP Address Blocking Mutations
+export const BLOCK_IP_ADDRESS_MUTATION = gql`
+  mutation BlockIpAddress($input: BlockIpAddressInput!) {
+    blockIpAddress(input: $input) {
+      success
+      message
+      blockedIp
+      expiresAt
+    }
+  }
+`;
+
+export const UNBLOCK_IP_ADDRESS_MUTATION = gql`
+  mutation UnblockIpAddress($ipAddress: String!) {
+    unblockIpAddress(ipAddress: $ipAddress) {
+      success
+      message
+    }
+  }
+`;

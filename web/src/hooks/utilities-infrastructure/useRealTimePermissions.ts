@@ -147,6 +147,7 @@ export function useRealTimePermissions(options: UseRealTimePermissionsOptions = 
       const interval = setInterval(updateStatus, 1000);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, []);
 
   // Handle permission change events
@@ -230,6 +231,7 @@ export function useRealTimePermissions(options: UseRealTimePermissionsOptions = 
   // Auto-connect when userId is provided
   useEffect(() => {
     if (autoConnect && userId && serviceRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- connect establishes WebSocket subscription
       void connect(userId);
     }
 

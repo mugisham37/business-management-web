@@ -250,7 +250,8 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
    * Handle navigation events
    */
   useEffect(() => {
-    validateAccess();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- validateAccess establishes auth state
+    void validateAccess();
   }, [validateAccess]);
 
   /**

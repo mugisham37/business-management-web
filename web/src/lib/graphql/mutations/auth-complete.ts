@@ -44,4 +44,7 @@ export {
   PROCESS_PAYMENT_MUTATION,
   // Security Settings Mutations
   UPDATE_SECURITY_SETTINGS_MUTATION,
+  // IP Address Blocking Mutations
+  BLOCK_IP_ADDRESS_MUTATION,
+  UNBLOCK_IP_ADDRESS_MUTATION,
 } from './auth';

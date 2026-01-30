@@ -45,6 +45,7 @@ export function useSubscription() {
 
   // Load subscription status on mount - using async IIFE pattern
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loading initial data
     void loadSubscriptionStatus();
   }, [loadSubscriptionStatus]);
 
@@ -58,7 +59,7 @@ export function useSubscription() {
     setSelectedPlan(null);
   }, []);
 
-  const handleSubscriptionComplete = useCallback((_subscriptionId: string) => {
+  const handleSubscriptionComplete = useCallback(() => {
     // Refresh subscription status after successful subscription
     void loadSubscriptionStatus();
     

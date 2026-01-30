@@ -113,7 +113,7 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
     } catch (error) {
       console.error("Failed to parse WebSocket message:", error);
     }
-  }, [user?.id, onTierChange, onFeatureAccessUpdate, onSubscriptionUpdate]);
+  }, [user, onTierChange, onFeatureAccessUpdate, onSubscriptionUpdate]);
 
   // Handle WebSocket connection open
   const handleOpen = useCallback(() => {
@@ -225,6 +225,7 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
   // Effect to manage connection lifecycle
   useEffect(() => {
     if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- connect establishes WebSocket connection
       connect();
     }
 

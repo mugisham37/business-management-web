@@ -181,9 +181,14 @@ export function useSecuritySettings(): UseSecuritySettingsReturn {
       
       // Simple CIDR check (basic implementation)
       if (range.includes('/')) {
-        const [network, prefixLength] = range.split('/');
+        const parts = range.split('/');
+        const network = parts[0];
+        const prefixLength = parts[1];
+        if (network === undefined || prefixLength === undefined) return false;
         // This is a simplified check - in production, use a proper CIDR library
-        return ip.startsWith(network.split('.').slice(0, Math.floor(parseInt(prefixLength) / 8)).join('.'));
+        const prefixNum = Math.floor(parseInt(prefixLength) / 8);
+        const networkParts = network.split('.').slice(0, prefixNum).join('.');
+        return ip.startsWith(networkParts);
       }
       
       return false;
