@@ -5,8 +5,8 @@
  */
 
 import React from 'react';
-import { usePermissionGuard, useFeatureAccess } from '@/hooks/usePermissionValidation';
-import { BusinessTier } from '@/hooks/useTierAccess';
+import { usePermissionGuard, useFeatureAccess } from '@/hooks/utilities-infrastructure/usePermissionValidation';
+import { BusinessTier } from '@/hooks/utilities-infrastructure/useTierAccess';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

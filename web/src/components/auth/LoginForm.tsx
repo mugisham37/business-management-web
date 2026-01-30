@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AuthErrorDisplay } from './AuthErrorDisplay';
-import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useAuthWithRetry } from '@/hooks/authentication/useAuthWithRetry';
+import { useNetworkStatus } from '@/hooks/utilities-infrastructure/useNetworkStatus';
 import { cn } from '@/lib/utils/cn';
 
 interface LoginFormProps {

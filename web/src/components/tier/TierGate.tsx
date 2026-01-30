@@ -11,7 +11,7 @@
 
 import React, { ReactNode } from 'react';
 import { BusinessTier } from '@/types/onboarding';
-import { useBusinessTier, useTierGate, useFeatureGate } from '@/hooks/useTenant';
+import { useBusinessTier, useTierGate, useFeatureGate } from '@/hooks/orders-sales/useTenant';
 import { TierUpgradePrompt } from './TierUpgradePrompt';
 import { FeatureLockedOverlay } from './FeatureLockedOverlay';
 

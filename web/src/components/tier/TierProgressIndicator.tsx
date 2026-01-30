@@ -21,7 +21,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscription } from '@/hooks/orders-sales/useSubscription';
 import { getTierManager } from '@/lib/services/tier-manager.service';
 import { useApolloClient, NormalizedCacheObject, ApolloClient } from '@apollo/client';
 

@@ -17,17 +17,7 @@ import {
   Settings,
   ChevronUp,
   ChevronDown,
-  Activity,
-  Zap,
-  Server,
-  Database,
-  HardDrive,
-  LifeBuoy,
-  GitPullRequest,
-  Smartphone,
   Boxes,
-  Clock,
-  LinkIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,7 +28,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -58,7 +47,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/authentication/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -358,14 +347,14 @@ export function AppSidebar() {
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Avatar className="h-6 w-6">
                     <AvatarFallback>
-                      {(user as any)?.name
+                      {(user?.displayName || user?.firstName)
                         ?.split(" ")
                         .map((n: string) => n[0])
                         .join("")
                         .toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="truncate">{(user as any)?.name || "User"}</span>
+                  <span className="truncate">{user?.displayName || user?.firstName || "User"}</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

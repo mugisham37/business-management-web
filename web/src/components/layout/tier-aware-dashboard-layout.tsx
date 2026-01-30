@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { TierAwareSidebar } from "./tier-aware-sidebar";
 import { Navbar } from "./navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
-import { useTierAccess, BusinessTier } from "@/hooks/useTierAccess";
+import { useAuth } from "@/hooks/authentication/useAuth";
+import { useTierAccess, BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
 import { UpgradePromptModal } from "../upgrade/upgrade-prompt-modal";
 import { RealtimeDashboardWrapper } from "../dashboard/realtime-dashboard-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,7 @@ interface TierAwareDashboardLayoutProps {
 
 export function TierAwareDashboardLayout({ children }: TierAwareDashboardLayoutProps) {
   const { user } = useAuth();
-  const { modules, isLoading, refetch } = useTierAccess();
+  const { isLoading, refetch } = useTierAccess();
   const [currentTier, setCurrentTier] = useState<BusinessTier>(BusinessTier.MICRO);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeTargetTier, setUpgradeTargetTier] = useState<BusinessTier>(BusinessTier.SMALL);
@@ -24,14 +24,15 @@ export function TierAwareDashboardLayout({ children }: TierAwareDashboardLayoutP
 
   // Initialize current tier from user data or context
   useEffect(() => {
-    if (user && !isLoading) {
+    if (user && !isLoading && !isInitialized) {
       // In a real implementation, this would come from the user's subscription data
-      // For now, we'll simulate getting it from user context or API
-      const userTier = (user as any)?.businessTier || BusinessTier.MICRO;
+      // Using a type assertion to access businessTier which may be added via extension
+      type UserWithTier = typeof user & { businessTier?: BusinessTier };
+      const userTier = (user as UserWithTier).businessTier ?? BusinessTier.MICRO;
       setCurrentTier(userTier);
       setIsInitialized(true);
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, isInitialized]);
 
   // Handle upgrade click from sidebar
   const handleUpgradeClick = (requiredTier: BusinessTier) => {

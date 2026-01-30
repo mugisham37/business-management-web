@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/authentication/useAuth";
 
 interface PermissionContextValue {
     hasPermission: (permission: string | string[]) => boolean;
@@ -16,7 +16,8 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
     // Get permissions and roles from user object
     const permissions = user?.permissions || [];
-    const roles = user?.roles || [];
+    // CompleteUser has 'role' (singular), not 'roles' - convert to array for consistent handling
+    const roles = user?.role ? [user.role] : [];
 
     const hasPermission = (permission: string | string[]): boolean => {
         if (!user) return false;

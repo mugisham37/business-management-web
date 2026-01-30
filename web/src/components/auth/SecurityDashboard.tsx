@@ -29,9 +29,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuthEvents } from '@/hooks/useAuthEvents';
-import { useSecuritySettings } from '@/hooks/useSecuritySettings';
-import { useAuditLogs } from '@/hooks/useAuditLogs';
+import { useAuthEvents } from '@/hooks/authentication/useAuthEvents';
+import { useSecuritySettings } from '@/hooks/authentication/useSecuritySettings';
+import { useAuditLogs } from '@/hooks/utilities-infrastructure/useAuditLogs';
 import { cn } from '@/lib/utils/cn';
 
 interface SecurityMetrics {

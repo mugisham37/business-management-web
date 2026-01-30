@@ -5,6 +5,38 @@
 
 export { useIsMobile } from './utilities-infrastructure/use-mobile';
 export { useCacheStrategy } from './useCacheStrategy';
+
+// Social Auth (from authentication folder)
+export { useSocialAuth } from './authentication/useSocialAuth';
+
+// Auth with Retry (from authentication folder)
+export { useAuthWithRetry } from './authentication/useAuthWithRetry';
+
+// Network Status (from utilities-infrastructure folder)
+export { useNetworkStatus } from './utilities-infrastructure/useNetworkStatus';
+
+// Permission Validation (from utilities-infrastructure folder)
+export { 
+  useFeatureAccess,
+  usePermissionGuard,
+} from './utilities-infrastructure/usePermissionValidation';
+
+// Navigation Guard (from utilities-infrastructure folder)
+export { useNavigationGuard } from './utilities-infrastructure/useNavigationGuard';
+
+// Auth Events (from authentication folder)
+export { useAuthEvents } from './authentication/useAuthEvents';
+
+// Security Settings (from authentication folder)
+export { useSecuritySettings } from './authentication/useSecuritySettings';
+
+// Audit Logs (from utilities-infrastructure folder)
+export { useAuditLogs } from './utilities-infrastructure/useAuditLogs';
+
+// Realtime Tier Updates (from utilities-infrastructure folder)
+export { useRealtimeTierUpdates, useTierChangeAnimations } from './utilities-infrastructure/useRealtimeTierUpdates';
+
+// Error Handler
 export { useErrorHandler, withErrorHandler, type ErrorType, type ErrorContext, type UseErrorHandlerResult } from './utilities-infrastructure/useErrorHandler';
 export { 
   useEnhancedMutation,

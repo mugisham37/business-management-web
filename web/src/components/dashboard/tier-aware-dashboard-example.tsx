@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { MetricCard } from "@/components/common/metric-card";
-import { BusinessTier } from "@/hooks/useTierAccess";
-import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
+import { useUpgradeFlow } from "@/hooks/utilities-infrastructure/useUpgradeFlow";
 import { InlineUpgradePrompt, LockedFeatureWrapper } from "../upgrade/inline-upgrade-prompt";
 import {
   TrendingUp,

@@ -7,7 +7,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useNavigationGuard, NavigationGuardConfig } from '@/hooks/useNavigationGuard';
+import { useNavigationGuard, NavigationGuardConfig } from '@/hooks/utilities-infrastructure/useNavigationGuard';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

@@ -33,7 +33,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -56,8 +55,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useAuth } from "@/hooks/useAuth";
-import { useTierAccess, BusinessTier } from "@/hooks/useTierAccess";
+import { useAuth } from "@/hooks/authentication/useAuth";
+import { useTierAccess, BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
@@ -318,7 +317,7 @@ function MobileBottomNav({
   onUpgradeClick?: (requiredTier: BusinessTier) => void; 
 }) {
   const pathname = usePathname();
-  const { hasAccess } = useTierAccess();
+  const { tierMeetsRequirement } = useTierAccess();
 
   // Core navigation items for mobile bottom nav
   const mobileNavItems = [
@@ -443,7 +442,7 @@ export function TierAwareSidebar({
   onUpgradeClick 
 }: TierAwareSidebarProps) {
   const { user } = useAuth();
-  const { tierMeetsRequirement, getTierInfo } = useTierAccess();
+  const { tierMeetsRequirement } = useTierAccess();
   const pathname = usePathname();
   const [showLockedItems, setShowLockedItems] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -491,7 +490,8 @@ export function TierAwareSidebar({
       .filter((group) => 
         group.items.length > 0 || (showLockedItems && group.lockedItems.length > 0)
       );
-  }, [currentTier, showLockedItems, hasAccess]);
+  // Using tierMeetsRequirement and currentTier instead of hasAccess function for proper dependency tracking
+  }, [showLockedItems, tierMeetsRequirement, currentTier]);
 
   // Render upgrade indicator for locked items
   const renderUpgradeIndicator = (requiredTier: BusinessTier) => (
@@ -679,13 +679,13 @@ export function TierAwareSidebar({
                     <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                       <Avatar className="h-6 w-6">
                         <AvatarFallback>
-                          {(user as any)?.firstName
+                          {user?.firstName
                             ?.charAt(0)
                             ?.toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
                       <span className="truncate">
-                        {(user as any)?.firstName || "User"}
+                        {user?.firstName || "User"}
                       </span>
                       <ChevronUp className="ml-auto" />
                     </SidebarMenuButton>
@@ -764,13 +764,13 @@ export function TierAwareSidebar({
                 <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                   <Avatar className="h-6 w-6">
                     <AvatarFallback>
-                      {(user as any)?.firstName
+                      {user?.firstName
                         ?.charAt(0)
                         ?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="truncate">
-                    {(user as any)?.firstName || "User"}
+                    {user?.firstName || "User"}
                   </span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>

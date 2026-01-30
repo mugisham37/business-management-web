@@ -8,7 +8,7 @@
 
 import { useEffect, ReactNode } from 'react';
 import { useSessionRenewal } from '@/lib/auth/session-renewal';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 import { useRouter } from 'next/navigation';
 
 interface SessionManagerProps {

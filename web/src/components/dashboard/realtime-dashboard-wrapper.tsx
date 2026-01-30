@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRealtimeTierUpdates, useTierChangeAnimations } from "@/hooks/useRealtimeTierUpdates";
-import { BusinessTier } from "@/hooks/useTierAccess";
-import { useUpgradeFlow } from "@/hooks/useUpgradeFlow";
+import { useRealtimeTierUpdates, useTierChangeAnimations } from "@/hooks/utilities-infrastructure/useRealtimeTierUpdates";
+import { BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
+import { useUpgradeFlow } from "@/hooks/utilities-infrastructure/useUpgradeFlow";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -20,7 +20,7 @@ import {
 import { BusinessTier } from '@/types/onboarding';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscription } from '@/hooks/orders-sales/useSubscription';
 
 export interface FeatureLockedOverlayProps {
   requiredTier?: BusinessTier;

@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/authentication/useAuth";
 import { usePathname } from "next/navigation";
 import {
   Breadcrumb,
@@ -82,7 +82,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <nav className="flex h-14 items-center gap-4 px-4">
         {/* LEFT - Sidebar Trigger & Breadcrumbs */}
         <div className="flex items-center gap-2 flex-1">
@@ -211,9 +211,9 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={(user as any)?.avatar} alt={(user as any)?.name || "User"} />
+                  <AvatarImage src={user?.avatar} alt={user?.displayName || user?.firstName || "User"} />
                   <AvatarFallback>
-                    {(user as any)?.name
+                    {(user?.displayName || user?.firstName)
                       ?.split(" ")
                       .map((n: string) => n[0])
                       .join("")
@@ -226,10 +226,10 @@ export function Navbar() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {(user as any)?.name || "User"}
+                    {user?.displayName || user?.firstName || "User"}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {(user as any)?.email || "user@example.com"}
+                    {user?.email || "user@example.com"}
                   </p>
                 </div>
               </DropdownMenuLabel>

@@ -27,8 +27,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useTierAccess } from '@/hooks/useTierAccess';
-import { useUpgradeFlow } from '@/hooks/useUpgradeFlow';
+import { useTierAccess } from '@/hooks/utilities-infrastructure/useTierAccess';
+import { useUpgradeFlow } from '@/hooks/utilities-infrastructure/useUpgradeFlow';
 import { cn } from '@/lib/utils/cn';
 
 export interface BusinessTier {

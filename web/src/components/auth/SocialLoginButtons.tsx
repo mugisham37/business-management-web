@@ -4,7 +4,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils/cn';
-import { useSocialAuth } from '@/hooks/useSocialAuth';
+import { useSocialAuth } from '@/hooks/authentication/useSocialAuth';
 
 interface SocialLoginButtonsProps {
     onGoogleClick?: () => void;

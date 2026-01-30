@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BusinessTier } from "@/hooks/useTierAccess";
+import { BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
 import { motion } from "framer-motion";
 import {
   Lock,

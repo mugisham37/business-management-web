@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BusinessTier } from "@/hooks/useTierAccess";
+import { BusinessTier } from "@/hooks/utilities-infrastructure/useTierAccess";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
