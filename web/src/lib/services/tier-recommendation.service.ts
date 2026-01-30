@@ -2,7 +2,7 @@
  * TierRecommendationService - Business profile assessment and tier recommendation
  */
 
-import { BusinessTier, BusinessType, OnboardingData } from '@/hooks/useOnboarding';
+import { BusinessTier, BusinessType, OnboardingData } from '@/types/onboarding';
 
 /**
  * Tier recommendation result
@@ -81,7 +81,7 @@ export class TierRecommendationService {
     },
   };
 
-  private readonly businessTypeWeights = {
+  private readonly businessTypeWeights: Record<BusinessType, Record<BusinessTier, number>> = {
     [BusinessType.FREE]: {
       [BusinessTier.MICRO]: 1.0,
       [BusinessTier.SMALL]: 0.3,
@@ -111,6 +111,48 @@ export class TierRecommendationService {
       [BusinessTier.SMALL]: 0.3,
       [BusinessTier.MEDIUM]: 0.7,
       [BusinessTier.ENTERPRISE]: 1.0,
+    },
+    [BusinessType.SERVICE]: {
+      [BusinessTier.MICRO]: 0.6,
+      [BusinessTier.SMALL]: 1.0,
+      [BusinessTier.MEDIUM]: 0.6,
+      [BusinessTier.ENTERPRISE]: 0.3,
+    },
+    [BusinessType.MANUFACTURING]: {
+      [BusinessTier.MICRO]: 0.2,
+      [BusinessTier.SMALL]: 0.5,
+      [BusinessTier.MEDIUM]: 0.9,
+      [BusinessTier.ENTERPRISE]: 1.0,
+    },
+    [BusinessType.HOSPITALITY]: {
+      [BusinessTier.MICRO]: 0.5,
+      [BusinessTier.SMALL]: 1.0,
+      [BusinessTier.MEDIUM]: 0.7,
+      [BusinessTier.ENTERPRISE]: 0.4,
+    },
+    [BusinessType.HEALTHCARE]: {
+      [BusinessTier.MICRO]: 0.3,
+      [BusinessTier.SMALL]: 0.6,
+      [BusinessTier.MEDIUM]: 0.9,
+      [BusinessTier.ENTERPRISE]: 1.0,
+    },
+    [BusinessType.EDUCATION]: {
+      [BusinessTier.MICRO]: 0.6,
+      [BusinessTier.SMALL]: 0.9,
+      [BusinessTier.MEDIUM]: 0.6,
+      [BusinessTier.ENTERPRISE]: 0.4,
+    },
+    [BusinessType.NONPROFIT]: {
+      [BusinessTier.MICRO]: 0.8,
+      [BusinessTier.SMALL]: 1.0,
+      [BusinessTier.MEDIUM]: 0.5,
+      [BusinessTier.ENTERPRISE]: 0.2,
+    },
+    [BusinessType.OTHER]: {
+      [BusinessTier.MICRO]: 0.5,
+      [BusinessTier.SMALL]: 0.8,
+      [BusinessTier.MEDIUM]: 0.6,
+      [BusinessTier.ENTERPRISE]: 0.4,
     },
   };
 
@@ -396,16 +438,26 @@ export class TierRecommendationService {
     
     const alternativeCosts = Object.values(BusinessTier).map(tier => {
       const pricing = this.tierLimits[tier].price;
-      const savings = tier !== recommendedTier && pricing.monthly < recommendedCost 
+      const savingsAmount = tier !== recommendedTier && pricing.monthly < recommendedCost 
         ? recommendedCost - pricing.monthly 
-        : undefined;
+        : null;
 
-      return {
+      const result: {
+        tier: BusinessTier;
+        monthlyCost: number;
+        annualCost: number;
+        savings?: number;
+      } = {
         tier,
         monthlyCost: pricing.monthly,
         annualCost: pricing.annually * 12,
-        savings,
       };
+
+      if (savingsAmount !== null) {
+        result.savings = savingsAmount;
+      }
+
+      return result;
     });
 
     return {

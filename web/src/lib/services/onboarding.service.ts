@@ -3,7 +3,7 @@
  * Implements 5-step onboarding process with backend persistence
  */
 
-import { ApolloClient, gql } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject, gql } from '@apollo/client';
 import { 
   GET_ONBOARDING_STATUS,
   GET_AVAILABLE_PLANS,
@@ -16,12 +16,35 @@ import {
   BusinessType, 
   BusinessTier, 
   OnboardingData,
-  OnboardingStatus,
+  WorkflowState,
   PlanFeatures,
-  WorkflowState
-} from '@/hooks/useOnboarding';
+} from '@/types/onboarding';
 import { getTierAssignmentService, TierAssignmentResult } from './tier-assignment.service';
 import { getOnboardingRecoveryService, RecoverySession, RecoveryResult } from './onboarding-recovery.service';
+
+/**
+ * GraphQL error interface
+ */
+interface GraphQLErrorWithExtensions extends Error {
+  graphQLErrors?: Array<{
+    extensions?: {
+      errors?: Record<string, string[]>;
+    };
+  }>;
+}
+
+/**
+ * Onboarding status response from backend
+ */
+interface OnboardingStatusResponse {
+  sessionId?: string;
+  currentStep: number;
+  completedSteps: OnboardingStep[];
+  onboardingData: OnboardingData;
+  recommendedPlan?: BusinessTier | null;
+  workflowState: WorkflowState;
+  completedAt?: Date;
+}
 
 // Additional GraphQL operations
 const ANALYZE_BUSINESS_PROFILE = gql`
@@ -161,12 +184,12 @@ export interface StepData {
 }
 
 export class OnboardingService {
-  private apolloClient: ApolloClient<any>;
+  private apolloClient: ApolloClient<NormalizedCacheObject>;
   private currentSession: OnboardingSession | null = null;
   private tierAssignmentService: ReturnType<typeof getTierAssignmentService>;
   private recoveryService: ReturnType<typeof getOnboardingRecoveryService>;
 
-  constructor(apolloClient: ApolloClient<any>) {
+  constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
     this.apolloClient = apolloClient;
     this.tierAssignmentService = getTierAssignmentService(apolloClient);
     this.recoveryService = getOnboardingRecoveryService(apolloClient);
@@ -183,7 +206,7 @@ export class OnboardingService {
         fetchPolicy: 'network-only', // Always get fresh data
       });
 
-      const status: OnboardingStatus = data.myOnboardingStatus;
+      const status: OnboardingStatusResponse = data.myOnboardingStatus;
 
       // Create session from backend data
       const session: OnboardingSession = {
@@ -192,7 +215,7 @@ export class OnboardingService {
         currentStep: status.currentStep,
         completedSteps: status.completedSteps,
         onboardingData: status.onboardingData,
-        recommendedTier: status.recommendedPlan,
+        recommendedTier: status.recommendedPlan ?? null,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         workflowState: status.workflowState,
       };
@@ -230,7 +253,7 @@ export class OnboardingService {
         },
       });
 
-      const updatedStatus: OnboardingStatus = result.updateOnboardingStep;
+      const updatedStatus: OnboardingStatusResponse = result.updateOnboardingStep;
 
       // Update current session
       this.currentSession = {
@@ -238,7 +261,7 @@ export class OnboardingService {
         currentStep: updatedStatus.currentStep,
         completedSteps: updatedStatus.completedSteps,
         onboardingData: updatedStatus.onboardingData,
-        recommendedTier: updatedStatus.recommendedPlan,
+        recommendedTier: updatedStatus.recommendedPlan ?? null,
         workflowState: updatedStatus.workflowState,
       };
 
@@ -258,24 +281,26 @@ export class OnboardingService {
         nextStep,
         recommendedTier: updatedStatus.recommendedPlan || undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to submit step:', error);
+      
+      const graphQLError = error as GraphQLErrorWithExtensions;
       
       // Create recovery session for failure
       if (this.currentSession) {
         await this.createRecoverySession(
           this.currentSession.userId,
           step,
-          error.message || 'Unknown error',
+          graphQLError.message || 'Unknown error',
           { ...this.currentSession.onboardingData, ...data }
         );
       }
       
       // Handle validation errors from backend
-      if (error.graphQLErrors?.[0]?.extensions?.errors) {
+      if (graphQLError.graphQLErrors?.[0]?.extensions?.errors) {
         return {
           success: false,
-          errors: error.graphQLErrors[0].extensions.errors,
+          errors: graphQLError.graphQLErrors[0].extensions.errors,
         };
       }
 
@@ -341,7 +366,7 @@ export class OnboardingService {
         },
       });
 
-      const completedStatus: OnboardingStatus = data.completeOnboarding;
+      const completedStatus: OnboardingStatusResponse = data.completeOnboarding;
 
       // Assign tier with permissions
       const tierAssignmentResult: TierAssignmentResult = await this.tierAssignmentService.assignTier(
@@ -391,15 +416,15 @@ export class OnboardingService {
         mutation: RESUME_ONBOARDING,
       });
 
-      const status: OnboardingStatus = data.resumeOnboarding;
+      const status: OnboardingStatusResponse = data.resumeOnboarding;
 
       const session: OnboardingSession = {
-        sessionId: status.sessionId,
+        sessionId: status.sessionId ?? this.generateSessionId(),
         userId,
         currentStep: status.currentStep,
         completedSteps: status.completedSteps,
         onboardingData: status.onboardingData,
-        recommendedTier: status.recommendedPlan,
+        recommendedTier: status.recommendedPlan ?? null,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         workflowState: status.workflowState,
       };
@@ -531,7 +556,7 @@ export class OnboardingService {
           completedSteps: this.getCompletedStepsForStep(result.resumedStep),
           availableSteps: [result.resumedStep],
           canProceed: true,
-          validationErrors: {},
+          validationErrors: [],
           lastUpdated: new Date(),
           sessionId: result.sessionId,
         },
@@ -687,7 +712,7 @@ export class OnboardingService {
 // Export singleton instance
 let onboardingServiceInstance: OnboardingService | null = null;
 
-export const getOnboardingService = (apolloClient: ApolloClient<any>): OnboardingService => {
+export const getOnboardingService = (apolloClient: ApolloClient<NormalizedCacheObject>): OnboardingService => {
   if (!onboardingServiceInstance) {
     onboardingServiceInstance = new OnboardingService(apolloClient);
   }

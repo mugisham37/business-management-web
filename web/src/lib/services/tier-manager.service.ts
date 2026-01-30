@@ -11,8 +11,8 @@
  * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 10.1, 10.2, 10.3
  */
 
-import { ApolloClient, gql } from '@apollo/client';
-import { BusinessTier } from '@/types/core';
+import { ApolloClient, NormalizedCacheObject, gql } from '@apollo/client';
+import { BusinessTier } from '@/types/onboarding';
 import { TierAssignmentService, getTierAssignmentService } from './tier-assignment.service';
 import { TierRecommendationService, tierRecommendationService } from './tier-recommendation.service';
 import { SubscriptionService } from './subscription-service';
@@ -96,7 +96,7 @@ export interface AccessResult {
   requiredTier?: BusinessTier;
   reason?: string;
   upgradeRequired: boolean;
-  upgradeOptions?: BusinessTier[];
+  upgradeOptions?: BusinessTier[] | undefined;
 }
 
 export interface TierUpgradeResult {
@@ -159,7 +159,7 @@ export interface TierChangeEvent {
  * Comprehensive Tier Management Service
  */
 export class TierManager {
-  private apolloClient: ApolloClient<any>;
+  private apolloClient: ApolloClient<NormalizedCacheObject>;
   private tierAssignmentService: TierAssignmentService;
   private tierRecommendationService: TierRecommendationService;
   private eventListeners: Map<string, (event: TierChangeEvent) => void> = new Map();
@@ -356,7 +356,7 @@ export class TierManager {
     }
   };
 
-  constructor(apolloClient: ApolloClient<any>) {
+  constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
     this.apolloClient = apolloClient;
     this.tierAssignmentService = getTierAssignmentService(apolloClient);
     this.tierRecommendationService = tierRecommendationService;
@@ -710,8 +710,9 @@ export class TierManager {
    * Get current user tier (mock implementation - would fetch from backend)
    */
   private async getCurrentUserTier(userId: string): Promise<{ tier: BusinessTier }> {
-    // In a real implementation, this would fetch from the backend
+    // TODO: In a real implementation, this would fetch from the backend using userId
     // For now, return a default tier
+    console.debug(`Fetching tier for user: ${userId}`);
     return { tier: BusinessTier.MICRO };
   }
 
@@ -781,7 +782,7 @@ export class TierManager {
 // Export singleton instance
 let tierManagerInstance: TierManager | null = null;
 
-export const getTierManager = (apolloClient: ApolloClient<any>): TierManager => {
+export const getTierManager = (apolloClient: ApolloClient<NormalizedCacheObject>): TierManager => {
   if (!tierManagerInstance) {
     tierManagerInstance = new TierManager(apolloClient);
   }

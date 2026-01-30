@@ -29,10 +29,10 @@ export interface TierLimits {
 }
 
 export enum BusinessTier {
-  MICRO = 'micro',
-  SMALL = 'small', 
-  MEDIUM = 'medium',
-  ENTERPRISE = 'enterprise',
+  MICRO = 'MICRO',
+  SMALL = 'SMALL', 
+  MEDIUM = 'MEDIUM',
+  ENTERPRISE = 'ENTERPRISE',
 }
 
 export interface TierRecommendation {

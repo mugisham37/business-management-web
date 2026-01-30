@@ -2,8 +2,8 @@
  * TierAssignmentService - Tier assignment logic with permission mapping
  */
 
-import { BusinessTier } from '@/hooks/useOnboarding';
-import { ApolloClient, gql } from '@apollo/client';
+import { BusinessTier } from '@/types/onboarding';
+import { ApolloClient, NormalizedCacheObject, gql } from '@apollo/client';
 
 // GraphQL operations
 const ASSIGN_TIER = gql`
@@ -72,7 +72,7 @@ export interface PermissionUpdateResult {
 }
 
 export class TierAssignmentService {
-  private apolloClient: ApolloClient<any>;
+  private apolloClient: ApolloClient<NormalizedCacheObject>;
 
   // Complete permission mapping for all tiers
   private readonly tierPermissionMap: Record<BusinessTier, TierPermissions> = {
@@ -431,7 +431,7 @@ export class TierAssignmentService {
     },
   };
 
-  constructor(apolloClient: ApolloClient<any>) {
+  constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
     this.apolloClient = apolloClient;
   }
 
@@ -616,7 +616,11 @@ export class TierAssignmentService {
   async validateTierEligibility(
     userId: string,
     tier: BusinessTier,
-    businessData?: any
+    businessData?: {
+      expectedEmployees?: number;
+      expectedLocations?: number;
+      expectedMonthlyTransactions?: number;
+    }
   ): Promise<{
     eligible: boolean;
     reasons: string[];
@@ -630,23 +634,27 @@ export class TierAssignmentService {
     if (businessData) {
       const tierLimits = this.tierPermissionMap[tier].limits;
       
-      if (businessData.expectedEmployees > tierLimits.employees && tierLimits.employees !== -1) {
+      const employees = businessData.expectedEmployees ?? 0;
+      const locations = businessData.expectedLocations ?? 0;
+      const transactions = businessData.expectedMonthlyTransactions ?? 0;
+      
+      if (employees > tierLimits.employees && tierLimits.employees !== -1) {
         eligible = false;
-        reasons.push(`Employee count (${businessData.expectedEmployees}) exceeds tier limit (${tierLimits.employees})`);
+        reasons.push(`Employee count (${employees}) exceeds tier limit (${tierLimits.employees})`);
       }
       
-      if (businessData.expectedLocations > tierLimits.locations && tierLimits.locations !== -1) {
+      if (locations > tierLimits.locations && tierLimits.locations !== -1) {
         eligible = false;
-        reasons.push(`Location count (${businessData.expectedLocations}) exceeds tier limit (${tierLimits.locations})`);
+        reasons.push(`Location count (${locations}) exceeds tier limit (${tierLimits.locations})`);
       }
       
-      if (businessData.expectedMonthlyTransactions > tierLimits.transactions && tierLimits.transactions !== -1) {
+      if (transactions > tierLimits.transactions && tierLimits.transactions !== -1) {
         eligible = false;
-        reasons.push(`Transaction volume (${businessData.expectedMonthlyTransactions}) exceeds tier limit (${tierLimits.transactions})`);
+        reasons.push(`Transaction volume (${transactions}) exceeds tier limit (${tierLimits.transactions})`);
       }
 
       // Add warnings for approaching limits
-      if (businessData.expectedEmployees > tierLimits.employees * 0.8 && tierLimits.employees !== -1) {
+      if (employees > tierLimits.employees * 0.8 && tierLimits.employees !== -1) {
         warnings.push('Employee count is approaching tier limit');
       }
     }
@@ -709,7 +717,7 @@ export class TierAssignmentService {
 // Export singleton instance
 let tierAssignmentServiceInstance: TierAssignmentService | null = null;
 
-export const getTierAssignmentService = (apolloClient: ApolloClient<any>): TierAssignmentService => {
+export const getTierAssignmentService = (apolloClient: ApolloClient<NormalizedCacheObject>): TierAssignmentService => {
   if (!tierAssignmentServiceInstance) {
     tierAssignmentServiceInstance = new TierAssignmentService(apolloClient);
   }

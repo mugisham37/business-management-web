@@ -3,18 +3,50 @@
  * Manages user onboarding state and workflows
  */
 
-export interface OnboardingStep {
+// Re-export all types from the centralized types file
+export {
+  OnboardingStep,
+  BusinessTier,
+  BusinessType,
+  BusinessSize,
+  OnboardingStatus,
+  OnboardingData,
+  WorkflowState,
+  PlanFeatures,
+  PlanLimits,
+  OnboardingStepConfig,
+  ONBOARDING_STEPS,
+  getStepByIndex,
+  getStepIndex,
+  getAllTiers,
+  getAllBusinessTypes,
+} from '@/types/onboarding';
+
+import type {
+  OnboardingStep as OnboardingStepEnum,
+  OnboardingData,
+} from '@/types/onboarding';
+
+/**
+ * Onboarding step item (used in hook state)
+ */
+export interface OnboardingStepItem {
   id: string;
   name: string;
   completed: boolean;
   data?: Record<string, unknown>;
 }
 
+/**
+ * Onboarding state interface
+ */
 export interface OnboardingState {
   isOnboarding: boolean;
   currentStep: number;
-  steps: OnboardingStep[];
+  steps: OnboardingStepItem[];
   progress: number;
+  currentStepEnum?: OnboardingStepEnum;
+  onboardingData?: OnboardingData;
 }
 
 /**
@@ -23,8 +55,8 @@ export interface OnboardingState {
 export function useOnboarding() {
   return {
     startOnboarding: () => {},
-    completeStep: (stepId: string) => {},
-    skipStep: (stepId: string) => {},
+    completeStep: (_stepId: string) => {},
+    skipStep: (_stepId: string) => {},
     resetOnboarding: () => {},
     getOnboardingState: (): OnboardingState => ({
       isOnboarding: false,

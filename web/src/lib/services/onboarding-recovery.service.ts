@@ -2,8 +2,8 @@
  * OnboardingRecoveryService - Onboarding failure recovery and resume functionality
  */
 
-import { ApolloClient, gql } from '@apollo/client';
-import { OnboardingStep, OnboardingData, BusinessTier } from '@/hooks/useOnboarding';
+import { ApolloClient, NormalizedCacheObject, gql } from '@apollo/client';
+import { OnboardingStep, OnboardingData } from '@/hooks/useOnboarding';
 
 // GraphQL operations
 const CREATE_RECOVERY_SESSION = gql`
@@ -160,11 +160,11 @@ export interface RecoveryStrategy {
 }
 
 export class OnboardingRecoveryService {
-  private apolloClient: ApolloClient<any>;
+  private apolloClient: ApolloClient<NormalizedCacheObject>;
   private readonly maxRecoveryAttempts = 3;
   private readonly recoverySessionTTL = 24 * 60 * 60 * 1000; // 24 hours
 
-  constructor(apolloClient: ApolloClient<any>) {
+  constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
     this.apolloClient = apolloClient;
   }
 
@@ -564,11 +564,14 @@ export class OnboardingRecoveryService {
    */
   private async executeResetStrategy(session: RecoverySession): Promise<RecoveryResult> {
     // Reset to the beginning but preserve some data
-    const preservedData: Partial<OnboardingData> = {
-      businessName: session.preservedData.businessName,
-      businessIndustry: session.preservedData.businessIndustry,
-      // Reset other fields
-    };
+    const preservedData: Partial<OnboardingData> = {};
+    
+    if (session.preservedData.businessName !== undefined) {
+      preservedData.businessName = session.preservedData.businessName;
+    }
+    if (session.preservedData.businessIndustry !== undefined) {
+      preservedData.businessIndustry = session.preservedData.businessIndustry;
+    }
     
     return {
       success: true,
@@ -728,7 +731,7 @@ export class OnboardingRecoveryService {
         variables: { userId },
       });
 
-      return data.activeRecoverySessions.map((session: any) => ({
+      return data.activeRecoverySessions.map((session: RecoverySession & { failureTimestamp: string; lastRecoveryAttempt?: string; expiresAt: string }) => ({
         ...session,
         failureTimestamp: new Date(session.failureTimestamp),
         lastRecoveryAttempt: session.lastRecoveryAttempt 
@@ -746,7 +749,7 @@ export class OnboardingRecoveryService {
 // Export singleton instance
 let onboardingRecoveryServiceInstance: OnboardingRecoveryService | null = null;
 
-export const getOnboardingRecoveryService = (apolloClient: ApolloClient<any>): OnboardingRecoveryService => {
+export const getOnboardingRecoveryService = (apolloClient: ApolloClient<NormalizedCacheObject>): OnboardingRecoveryService => {
   if (!onboardingRecoveryServiceInstance) {
     onboardingRecoveryServiceInstance = new OnboardingRecoveryService(apolloClient);
   }

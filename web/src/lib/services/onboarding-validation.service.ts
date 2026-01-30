@@ -2,7 +2,7 @@
  * OnboardingValidationService - Step validation and progress tracking
  */
 
-import { OnboardingStep, BusinessType, OnboardingData } from '@/hooks/useOnboarding';
+import { OnboardingStep, BusinessType, OnboardingData } from '@/types/onboarding';
 
 /**
  * Validation rule interface
@@ -10,9 +10,9 @@ import { OnboardingStep, BusinessType, OnboardingData } from '@/hooks/useOnboard
 export interface ValidationRule {
   field: string;
   type: 'required' | 'min' | 'max' | 'pattern' | 'custom';
-  value?: any;
+  value?: number | string | RegExp;
   message: string;
-  customValidator?: (data: any) => boolean;
+  customValidator?: (data: Partial<OnboardingData>) => boolean;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface ValidationRule {
 export interface ValidationResult {
   isValid: boolean;
   errors: Record<string, string[]>;
-  warnings?: Record<string, string[]>;
+  warnings?: Record<string, string[]> | undefined;
 }
 
 /**
@@ -32,19 +32,24 @@ export interface StepConfig {
   title: string;
   description: string;
   isRequired: boolean;
-  dependsOn?: OnboardingStep[];
+  dependsOn?: OnboardingStep[] | undefined;
   validationRules: ValidationRule[];
   estimatedTime?: number; // in minutes
 }
 
 export class OnboardingValidationService {
-  private readonly stepConfigs: Map<OnboardingStep, StepConfig> = new Map([
-    [OnboardingStep.BUSINESS_PROFILE, {
+  private readonly stepConfigs: Map<OnboardingStep, StepConfig>;
+
+  constructor() {
+    this.stepConfigs = new Map<OnboardingStep, StepConfig>();
+    
+    this.stepConfigs.set(OnboardingStep.BUSINESS_PROFILE, {
       id: OnboardingStep.BUSINESS_PROFILE,
       title: 'Business Profile',
       description: 'Tell us about your business',
       isRequired: true,
       estimatedTime: 3,
+      dependsOn: undefined,
       validationRules: [
         {
           field: 'businessName',
@@ -68,8 +73,9 @@ export class OnboardingValidationService {
           message: 'Please select your business size',
         },
       ],
-    }],
-    [OnboardingStep.BUSINESS_TYPE, {
+    });
+
+    this.stepConfigs.set(OnboardingStep.BUSINESS_TYPE, {
       id: OnboardingStep.BUSINESS_TYPE,
       title: 'Business Type',
       description: 'What type of business do you operate?',
@@ -86,14 +92,15 @@ export class OnboardingValidationService {
           field: 'businessType',
           type: 'custom',
           message: 'Invalid business type selection',
-          customValidator: (data) => {
+          customValidator: (data: Partial<OnboardingData>) => {
             const validTypes = Object.values(BusinessType);
-            return validTypes.includes(data.businessType);
+            return data.businessType !== undefined && validTypes.includes(data.businessType);
           },
         },
       ],
-    }],
-    [OnboardingStep.USAGE_EXPECTATIONS, {
+    });
+
+    this.stepConfigs.set(OnboardingStep.USAGE_EXPECTATIONS, {
       id: OnboardingStep.USAGE_EXPECTATIONS,
       title: 'Usage Expectations',
       description: 'Help us understand your expected usage',
@@ -145,11 +152,11 @@ export class OnboardingValidationService {
           field: 'expectedMonthlyRevenue',
           type: 'custom',
           message: 'Revenue seems unusually high for the business size',
-          customValidator: (data) => {
+          customValidator: (data: Partial<OnboardingData>) => {
             const { expectedMonthlyRevenue, businessSize } = data;
             if (!expectedMonthlyRevenue || !businessSize) return true;
             
-            const maxRevenueBySize = {
+            const maxRevenueBySize: Record<string, number> = {
               solo: 50000,
               small: 500000,
               medium: 5000000,
@@ -157,12 +164,14 @@ export class OnboardingValidationService {
               enterprise: Infinity,
             };
             
-            return expectedMonthlyRevenue <= maxRevenueBySize[businessSize as keyof typeof maxRevenueBySize];
+            const maxRevenue = maxRevenueBySize[businessSize as string];
+            return maxRevenue !== undefined && expectedMonthlyRevenue <= maxRevenue;
           },
         },
       ],
-    }],
-    [OnboardingStep.PLAN_SELECTION, {
+    });
+
+    this.stepConfigs.set(OnboardingStep.PLAN_SELECTION, {
       id: OnboardingStep.PLAN_SELECTION,
       title: 'Plan Selection',
       description: 'Choose your subscription plan',
@@ -176,8 +185,9 @@ export class OnboardingValidationService {
           message: 'Please select a subscription plan',
         },
       ],
-    }],
-    [OnboardingStep.WELCOME, {
+    });
+
+    this.stepConfigs.set(OnboardingStep.WELCOME, {
       id: OnboardingStep.WELCOME,
       title: 'Welcome',
       description: 'Welcome to your new business platform',
@@ -185,8 +195,8 @@ export class OnboardingValidationService {
       dependsOn: [OnboardingStep.PLAN_SELECTION],
       estimatedTime: 1,
       validationRules: [],
-    }],
-  ]);
+    });
+  }
 
   /**
    * Validate data for a specific step
@@ -204,7 +214,7 @@ export class OnboardingValidationService {
     const warnings: Record<string, string[]> = {};
 
     for (const rule of config.validationRules) {
-      const fieldValue = (data as any)[rule.field];
+      const fieldValue = data[rule.field as keyof OnboardingData];
       const fieldErrors: string[] = [];
 
       switch (rule.type) {
@@ -215,23 +225,23 @@ export class OnboardingValidationService {
           break;
 
         case 'min':
-          if (typeof fieldValue === 'number' && fieldValue < rule.value) {
+          if (typeof fieldValue === 'number' && typeof rule.value === 'number' && fieldValue < rule.value) {
             fieldErrors.push(rule.message);
-          } else if (typeof fieldValue === 'string' && fieldValue.length < rule.value) {
+          } else if (typeof fieldValue === 'string' && typeof rule.value === 'number' && fieldValue.length < rule.value) {
             fieldErrors.push(rule.message);
           }
           break;
 
         case 'max':
-          if (typeof fieldValue === 'number' && fieldValue > rule.value) {
+          if (typeof fieldValue === 'number' && typeof rule.value === 'number' && fieldValue > rule.value) {
             fieldErrors.push(rule.message);
-          } else if (typeof fieldValue === 'string' && fieldValue.length > rule.value) {
+          } else if (typeof fieldValue === 'string' && typeof rule.value === 'number' && fieldValue.length > rule.value) {
             fieldErrors.push(rule.message);
           }
           break;
 
         case 'pattern':
-          if (typeof fieldValue === 'string' && !new RegExp(rule.value).test(fieldValue)) {
+          if (typeof fieldValue === 'string' && rule.value && !new RegExp(String(rule.value)).test(fieldValue)) {
             fieldErrors.push(rule.message);
           }
           break;
@@ -241,7 +251,10 @@ export class OnboardingValidationService {
             // Check if this should be a warning instead of error
             if (rule.message.includes('seems') || rule.message.includes('unusual')) {
               if (!warnings[rule.field]) warnings[rule.field] = [];
-              warnings[rule.field].push(rule.message);
+              const fieldWarnings = warnings[rule.field];
+              if (fieldWarnings) {
+                fieldWarnings.push(rule.message);
+              }
             } else {
               fieldErrors.push(rule.message);
             }
@@ -343,7 +356,7 @@ export class OnboardingValidationService {
     const errors: Record<string, string[]> = {};
 
     // Check required fields across all steps
-    const requiredFields = [
+    const requiredFields: (keyof OnboardingData)[] = [
       'businessName',
       'businessIndustry', 
       'businessSize',
@@ -353,7 +366,7 @@ export class OnboardingValidationService {
     ];
 
     for (const field of requiredFields) {
-      const value = (data as any)[field];
+      const value = data[field];
       if (value === undefined || value === null || value === '') {
         if (!errors[field]) errors[field] = [];
         errors[field].push(`${field} is required for completion`);
@@ -361,8 +374,8 @@ export class OnboardingValidationService {
     }
 
     // Validate business logic consistency
-    if (data.expectedEmployees && data.businessSize) {
-      const employeeRanges = {
+    if (data.expectedEmployees !== undefined && data.businessSize) {
+      const employeeRanges: Record<string, [number, number]> = {
         solo: [1, 1],
         small: [2, 10],
         medium: [11, 50],
@@ -371,7 +384,8 @@ export class OnboardingValidationService {
       };
 
       const range = employeeRanges[data.businessSize as keyof typeof employeeRanges];
-      if (range && (data.expectedEmployees < range[0] || data.expectedEmployees > range[1])) {
+      const employees = data.expectedEmployees;
+      if (range && employees !== undefined && (employees < range[0] || employees > range[1])) {
         if (!errors.expectedEmployees) errors.expectedEmployees = [];
         errors.expectedEmployees.push('Employee count doesn\'t match business size');
       }
@@ -406,7 +420,7 @@ export class OnboardingValidationService {
     const canComplete = completionValidation.isValid && remainingSteps === 0;
     
     const issues: string[] = [];
-    for (const [field, fieldErrors] of Object.entries(completionValidation.errors)) {
+    for (const [, fieldErrors] of Object.entries(completionValidation.errors)) {
       issues.push(...fieldErrors);
     }
 

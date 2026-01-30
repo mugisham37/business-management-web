@@ -1,5 +1,4 @@
-import { BusinessTier, TierRecommendation } from '@/types/pricing';
-import { BusinessType, OnboardingData } from '@/hooks/useOnboarding';
+import { BusinessTier, BusinessType, OnboardingData, TierRecommendation } from '@/types/onboarding';
 
 interface BusinessMetrics {
   employeeCount: number;
@@ -41,7 +40,7 @@ export class RecommendationEngine {
       recommendedTier,
       confidence,
       reasoning: this.generateReasoning(recommendedTier, metrics),
-      alternatives: this.generateAlternatives(recommendedTier, tierScores, metrics),
+      alternatives: this.generateAlternatives(recommendedTier, tierScores),
     };
   }
 
@@ -200,8 +199,7 @@ export class RecommendationEngine {
    */
   private static generateAlternatives(
     recommendedTier: BusinessTier, 
-    tierScores: Record<BusinessTier, number>,
-    metrics: BusinessMetrics
+    tierScores: Record<BusinessTier, number>
   ): TierRecommendation['alternatives'] {
     const alternatives: TierRecommendation['alternatives'] = [];
     

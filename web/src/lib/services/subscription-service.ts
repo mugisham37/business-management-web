@@ -1,6 +1,6 @@
 'use client';
 
-import { BusinessTier } from '@/types/pricing';
+import { BusinessTier } from '@/types/onboarding';
 
 export interface SubscriptionPlan {
   tier: BusinessTier;

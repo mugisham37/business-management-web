@@ -7,8 +7,8 @@
  * Requirements: 2.3, 10.2
  */
 
-import { ApolloClient, gql } from '@apollo/client';
-import { BusinessTier } from '@/types/core';
+import { ApolloClient, NormalizedCacheObject, gql, ObservableSubscription } from '@apollo/client';
+import { BusinessTier } from '@/types/onboarding';
 
 // GraphQL subscriptions for real-time updates
 const PERMISSION_CHANGE_SUBSCRIPTION = gql`
@@ -115,7 +115,7 @@ export interface SecurityEvent {
   eventType: SecurityEventType;
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   requiresAction: boolean;
 }
@@ -153,15 +153,15 @@ export interface SubscriptionOptions {
  * Real-Time Permission Updates Service
  */
 export class RealTimePermissionUpdatesService {
-  private apolloClient: ApolloClient<any>;
-  private subscriptions: Map<string, any> = new Map();
+  private apolloClient: ApolloClient<NormalizedCacheObject>;
+  private subscriptions: Map<string, ObservableSubscription> = new Map();
   private connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error' = 'disconnected';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000; // Start with 1 second
-  private eventListeners: Map<string, (event: any) => void> = new Map();
+  private eventListeners: Map<string, (event: PermissionChangeEvent | TierChangeEvent | SecurityEvent) => void> = new Map();
 
-  constructor(apolloClient: ApolloClient<any>) {
+  constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
     this.apolloClient = apolloClient;
   }
 
@@ -442,7 +442,7 @@ export class RealTimePermissionUpdatesService {
     eventType: SecurityEventType,
     severity: 'low' | 'medium' | 'high' | 'critical',
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     requiresAction = false
   ): Promise<BroadcastResult> {
     try {
@@ -503,7 +503,7 @@ export class RealTimePermissionUpdatesService {
   /**
    * Add event listener
    */
-  addEventListener(eventType: string, callback: (event: any) => void): void {
+  addEventListener(eventType: string, callback: (event: PermissionChangeEvent | TierChangeEvent | SecurityEvent) => void): void {
     this.eventListeners.set(`${eventType}_${Date.now()}`, callback);
   }
 
@@ -565,7 +565,7 @@ export class RealTimePermissionUpdatesService {
   /**
    * Emit event to all listeners
    */
-  private emitEvent(eventType: string, event: any): void {
+  private emitEvent(eventType: string, event: PermissionChangeEvent | TierChangeEvent | SecurityEvent): void {
     this.eventListeners.forEach((callback, key) => {
       if (key.startsWith(eventType)) {
         try {
@@ -590,7 +590,7 @@ export class RealTimePermissionUpdatesService {
 // Export singleton instance
 let realTimePermissionUpdatesServiceInstance: RealTimePermissionUpdatesService | null = null;
 
-export const getRealTimePermissionUpdatesService = (apolloClient: ApolloClient<any>): RealTimePermissionUpdatesService => {
+export const getRealTimePermissionUpdatesService = (apolloClient: ApolloClient<NormalizedCacheObject>): RealTimePermissionUpdatesService => {
   if (!realTimePermissionUpdatesServiceInstance) {
     realTimePermissionUpdatesServiceInstance = new RealTimePermissionUpdatesService(apolloClient);
   }
