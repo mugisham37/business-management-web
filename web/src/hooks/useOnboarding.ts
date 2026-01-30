@@ -4,17 +4,20 @@
  */
 
 // Re-export all types from the centralized types file
-export {
+export type {
   OnboardingStep,
   BusinessTier,
   BusinessType,
   BusinessSize,
-  OnboardingStatus,
   OnboardingData,
   WorkflowState,
   PlanFeatures,
   PlanLimits,
   OnboardingStepConfig,
+} from '@/types/onboarding';
+
+export {
+  OnboardingStatus,
   ONBOARDING_STEPS,
   getStepByIndex,
   getStepIndex,
@@ -55,8 +58,8 @@ export interface OnboardingState {
 export function useOnboarding() {
   return {
     startOnboarding: () => {},
-    completeStep: (_stepId: string) => {},
-    skipStep: (_stepId: string) => {},
+    completeStep: (_stepId: string) => { void _stepId; },
+    skipStep: (_stepId: string) => { void _stepId; },
     resetOnboarding: () => {},
     getOnboardingState: (): OnboardingState => ({
       isOnboarding: false,

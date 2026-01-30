@@ -210,7 +210,7 @@ export interface AuthEvent {
   userId: string;
   tenantId: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   deviceInfo?: {
@@ -232,7 +232,7 @@ export interface SecurityAlert {
   timestamp: Date;
   acknowledged: boolean;
   actionRequired?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   userId?: string;
   tenantId: string;
 }

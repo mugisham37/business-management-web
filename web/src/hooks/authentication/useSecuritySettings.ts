@@ -5,8 +5,8 @@
 
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
+import { GET_SECURITY_SETTINGS_QUERY } from '@/graphql/queries/auth-complete';
 import {
-  GET_SECURITY_SETTINGS_QUERY,
   UPDATE_SECURITY_SETTINGS_MUTATION,
   BLOCK_IP_ADDRESS_MUTATION,
   UNBLOCK_IP_ADDRESS_MUTATION,
@@ -138,6 +138,60 @@ export function useSecuritySettings(): UseSecuritySettingsReturn {
   const settings = settingsData?.getSecuritySettings || null;
   const isLoading = settingsLoading || updateLoading;
 
+  // Utility functions - defined first since they are used by other functions
+  const validateIpAddress = useCallback((ip: string): boolean => {
+    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+    
+    return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+  }, []);
+
+  const validateIpRange = useCallback((range: string): boolean => {
+    // Support CIDR notation (e.g., 192.168.1.0/24)
+    const cidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:[0-9]|[1-2][0-9]|3[0-2])$/;
+    
+    // Support range notation (e.g., 192.168.1.1-192.168.1.100)
+    const rangeRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    
+    return cidrRegex.test(range) || rangeRegex.test(range) || validateIpAddress(range);
+  }, [validateIpAddress]);
+
+  const isIpBlocked = useCallback((ip: string): boolean => {
+    const currentSettings = settings || DEFAULT_SETTINGS;
+    return currentSettings.blockedIpAddresses.includes(ip) ||
+           ipRestrictions.some(restriction => 
+             restriction.type === 'block' && 
+             restriction.ipAddress === ip && 
+             restriction.isActive &&
+             (!restriction.expiresAt || restriction.expiresAt > new Date())
+           );
+  }, [settings, ipRestrictions]);
+
+  const isIpAllowed = useCallback((ip: string): boolean => {
+    const currentSettings = settings || DEFAULT_SETTINGS;
+    
+    // If no allowed ranges specified, allow all (except blocked)
+    if (currentSettings.allowedIpRanges.length === 0) {
+      return !isIpBlocked(ip);
+    }
+
+    // Check if IP is in any allowed range
+    const isInAllowedRange = currentSettings.allowedIpRanges.some((range: string) => {
+      if (range === ip) return true;
+      
+      // Simple CIDR check (basic implementation)
+      if (range.includes('/')) {
+        const [network, prefixLength] = range.split('/');
+        // This is a simplified check - in production, use a proper CIDR library
+        return ip.startsWith(network.split('.').slice(0, Math.floor(parseInt(prefixLength) / 8)).join('.'));
+      }
+      
+      return false;
+    });
+
+    return isInAllowedRange && !isIpBlocked(ip);
+  }, [settings, isIpBlocked]);
+
   // Settings management
   const updateSettings = useCallback(async (updates: Partial<SecuritySettings>): Promise<boolean> => {
     try {
@@ -193,7 +247,7 @@ export function useSecuritySettings(): UseSecuritySettingsReturn {
           type: 'block',
           reason,
           createdAt: new Date(),
-          expiresAt,
+          ...(expiresAt !== undefined && { expiresAt }),
           isActive: true,
         };
         
@@ -207,7 +261,7 @@ export function useSecuritySettings(): UseSecuritySettingsReturn {
       setError(errorMessage);
       return false;
     }
-  }, [blockIpMutation]);
+  }, [blockIpMutation, validateIpAddress]);
 
   const unblockIpAddress = useCallback(async (ipAddress: string): Promise<boolean> => {
     try {
@@ -250,71 +304,17 @@ export function useSecuritySettings(): UseSecuritySettingsReturn {
     };
 
     return updateSettings(updatedSettings);
-  }, [settings, updateSettings]);
+  }, [settings, updateSettings, validateIpRange]);
 
   const removeAllowedIpRange = useCallback(async (ipRange: string): Promise<boolean> => {
     const currentSettings = settings || DEFAULT_SETTINGS;
     const updatedSettings = {
       ...currentSettings,
-      allowedIpRanges: currentSettings.allowedIpRanges.filter(range => range !== ipRange),
+      allowedIpRanges: currentSettings.allowedIpRanges.filter((range: string) => range !== ipRange),
     };
 
     return updateSettings(updatedSettings);
   }, [settings, updateSettings]);
-
-  // Utility functions
-  const validateIpAddress = useCallback((ip: string): boolean => {
-    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
-    
-    return ipv4Regex.test(ip) || ipv6Regex.test(ip);
-  }, []);
-
-  const validateIpRange = useCallback((range: string): boolean => {
-    // Support CIDR notation (e.g., 192.168.1.0/24)
-    const cidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:[0-9]|[1-2][0-9]|3[0-2])$/;
-    
-    // Support range notation (e.g., 192.168.1.1-192.168.1.100)
-    const rangeRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    
-    return cidrRegex.test(range) || rangeRegex.test(range) || validateIpAddress(range);
-  }, [validateIpAddress]);
-
-  const isIpBlocked = useCallback((ip: string): boolean => {
-    const currentSettings = settings || DEFAULT_SETTINGS;
-    return currentSettings.blockedIpAddresses.includes(ip) ||
-           ipRestrictions.some(restriction => 
-             restriction.type === 'block' && 
-             restriction.ipAddress === ip && 
-             restriction.isActive &&
-             (!restriction.expiresAt || restriction.expiresAt > new Date())
-           );
-  }, [settings, ipRestrictions]);
-
-  const isIpAllowed = useCallback((ip: string): boolean => {
-    const currentSettings = settings || DEFAULT_SETTINGS;
-    
-    // If no allowed ranges specified, allow all (except blocked)
-    if (currentSettings.allowedIpRanges.length === 0) {
-      return !isIpBlocked(ip);
-    }
-
-    // Check if IP is in any allowed range
-    const isInAllowedRange = currentSettings.allowedIpRanges.some(range => {
-      if (range === ip) return true;
-      
-      // Simple CIDR check (basic implementation)
-      if (range.includes('/')) {
-        const [network, prefixLength] = range.split('/');
-        // This is a simplified check - in production, use a proper CIDR library
-        return ip.startsWith(network.split('.').slice(0, Math.floor(parseInt(prefixLength) / 8)).join('.'));
-      }
-      
-      return false;
-    });
-
-    return isInAllowedRange && !isIpBlocked(ip);
-  }, [settings, isIpBlocked]);
 
   return {
     settings,

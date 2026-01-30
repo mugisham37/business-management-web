@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BusinessTier } from "./useTierAccess";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/hooks/authentication/useAuth";
 
 interface TierChangeEvent {
   type: "TIER_CHANGED" | "TRIAL_STARTED" | "TRIAL_EXPIRED" | "SUBSCRIPTION_UPDATED";
@@ -12,7 +12,7 @@ interface TierChangeEvent {
   newTier: BusinessTier;
   effectiveDate: string;
   reason?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -56,6 +56,7 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const connectRef = useRef<(() => void) | null>(null);
   const maxReconnectAttempts = 5;
 
   const {
@@ -137,7 +138,7 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
       
       reconnectTimeoutRef.current = setTimeout(() => {
         console.log(`Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
-        connect();
+        connectRef.current?.();
       }, reconnectInterval * reconnectAttemptsRef.current);
     }
   }, [autoReconnect, reconnectInterval, onConnectionChange]);
@@ -175,6 +176,11 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
     }
   }, [user?.id, getWebSocketUrl, handleOpen, handleMessage, handleClose, handleError]);
 
+  // Keep connectRef in sync with connect function for use in handleClose
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -199,7 +205,7 @@ export function useRealtimeTierUpdates(options: RealtimeTierUpdatesOptions = {})
   }, [disconnect, connect]);
 
   // Send a message (for testing or specific commands)
-  const sendMessage = useCallback((message: any) => {
+  const sendMessage = useCallback((message: Record<string, unknown>) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
     } else {

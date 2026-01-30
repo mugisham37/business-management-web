@@ -8,7 +8,20 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthGateway } from '@/lib/auth/auth-gateway';
 import { useSessionRenewal } from '@/lib/auth/session-renewal';
-import { usePermissions } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/authentication/useAuth';
+
+/**
+ * User shape as returned by the session for navigation guard purposes
+ */
+interface SessionUser {
+  id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  roles?: string[];
+  tier?: string;
+  permissions?: string[];
+}
 
 export interface NavigationGuardConfig {
   requireAuth?: boolean;
@@ -22,7 +35,7 @@ export interface NavigationGuardState {
   isLoading: boolean;
   hasAccess: boolean;
   error: string | null;
-  user: any;
+  user: SessionUser | null;
   permissions: string[];
 }
 
@@ -35,7 +48,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
   const pathname = usePathname();
   const { getCurrentSession } = useAuthGateway();
   const { startMonitoring, stopMonitoring, isValid, forceRenewal } = useSessionRenewal();
-  const { hasPermission, hasAllPermissions } = usePermissions();
+  const { hasAllPermissions } = usePermissions();
 
   const [state, setState] = useState<NavigationGuardState>({
     isLoading: true,
@@ -56,7 +69,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
   /**
    * Check user permissions against requirements
    */
-  const checkPermissions = useCallback(async (user: any): Promise<boolean> => {
+  const checkPermissions = useCallback(async (user: SessionUser): Promise<boolean> => {
     if (requiredPermissions.length === 0) {
       return true; // No specific permissions required
     }
@@ -74,7 +87,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
   /**
    * Check user role against allowed roles
    */
-  const checkRoles = useCallback((user: any): boolean => {
+  const checkRoles = useCallback((user: SessionUser): boolean => {
     if (allowedRoles.length === 0) {
       return true; // No specific roles required
     }
@@ -86,7 +99,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
   /**
    * Check user tier against tier restrictions
    */
-  const checkTierRestrictions = useCallback((user: any): boolean => {
+  const checkTierRestrictions = useCallback((user: SessionUser): boolean => {
     if (tierRestrictions.length === 0) {
       return true; // No tier restrictions
     }
@@ -136,11 +149,22 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
         return;
       }
 
-      const user = session.user;
+      const user = session.user as SessionUser | undefined;
 
       // Check if user needs to complete onboarding
       if (session.requiresOnboarding && pathname !== '/onboarding') {
         router.push('/onboarding');
+        return;
+      }
+
+      if (!user) {
+        setState({
+          isLoading: false,
+          hasAccess: false,
+          error: 'User data not available',
+          user: null,
+          permissions: []
+        });
         return;
       }
 
@@ -152,7 +176,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
           hasAccess: false,
           error: 'Insufficient permissions',
           user,
-          permissions: user.permissions || []
+          permissions: user.permissions ?? []
         });
         router.push('/dashboard?error=insufficient_permissions');
         return;
@@ -166,7 +190,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
           hasAccess: false,
           error: 'Insufficient role privileges',
           user,
-          permissions: user.permissions || []
+          permissions: user.permissions ?? []
         });
         router.push('/dashboard?error=insufficient_role');
         return;
@@ -180,7 +204,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
           hasAccess: false,
           error: 'Tier upgrade required',
           user,
-          permissions: user.permissions || []
+          permissions: user.permissions ?? []
         });
         router.push('/pricing?upgrade_required=true');
         return;
@@ -192,7 +216,7 @@ export function useNavigationGuard(config: NavigationGuardConfig = {}) {
         hasAccess: true,
         error: null,
         user,
-        permissions: user.permissions || []
+        permissions: user.permissions ?? []
       });
 
     } catch (error) {

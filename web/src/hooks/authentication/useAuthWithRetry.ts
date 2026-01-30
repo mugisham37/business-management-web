@@ -5,13 +5,21 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { authErrorHandler, AuthError, AuthErrorCode } from '@/lib/auth/auth-errors';
-import { useNetworkStatus } from './useNetworkStatus';
+import { authErrorHandler, AuthError } from '@/lib/auth/auth-errors';
+import { useNetworkStatus } from '@/hooks/utilities-infrastructure/useNetworkStatus';
 
 export interface AuthAttempt {
   timestamp: Date;
   error?: AuthError;
   success: boolean;
+}
+
+export interface RegistrationData {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  [key: string]: unknown;
 }
 
 export interface UseAuthWithRetryOptions {
@@ -29,7 +37,7 @@ export interface UseAuthWithRetryReturn {
   canRetry: boolean;
   retryCount: number;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: RegistrationData) => Promise<void>;
   retry: () => Promise<void>;
   clearError: () => void;
   resetAttempts: () => void;
@@ -51,7 +59,7 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
   const [attempts, setAttempts] = useState<AuthAttempt[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   
-  const lastAttemptRef = useRef<{ action: string; data: any } | null>(null);
+  const lastAttemptRef = useRef<{ action: string; data: Record<string, unknown> } | null>(null);
 
   const recordAttempt = useCallback((success: boolean, error?: AuthError) => {
     const attempt: AuthAttempt = {
@@ -66,10 +74,10 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
   const executeWithRetry = useCallback(async (
     action: () => Promise<void>,
     actionName: string,
-    actionData?: any
+    actionData?: Record<string, unknown>
   ) => {
     // Store last attempt for retry
-    lastAttemptRef.current = { action: actionName, data: actionData };
+    lastAttemptRef.current = { action: actionName, data: actionData ?? {} };
 
     setIsLoading(true);
     setError(null);
@@ -128,9 +136,9 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const error = new Error(errorData.message || 'Login failed');
-        (error as any).status = response.status;
-        (error as any).body = errorData;
+        const error: Error & { status?: number; body?: unknown } = new Error(errorData.message || 'Login failed');
+        error.status = response.status;
+        error.body = errorData;
         throw error;
       }
 
@@ -148,7 +156,7 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
     await executeWithRetry(loginAction, 'login', { email });
   }, [executeWithRetry, router]);
 
-  const register = useCallback(async (registrationData: any) => {
+  const register = useCallback(async (registrationData: RegistrationData) => {
     const registerAction = async () => {
       // TODO: Replace with actual registration API call
       const response = await fetch('/api/auth/register', {
@@ -161,43 +169,18 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const error = new Error(errorData.message || 'Registration failed');
-        (error as any).status = response.status;
-        (error as any).body = errorData;
+        const error: Error & { status?: number; body?: unknown } = new Error(errorData.message || 'Registration failed');
+        error.status = response.status;
+        error.body = errorData;
         throw error;
       }
 
-      const data = await response.json();
-      
       // Redirect to onboarding for new users
       router.push('/onboarding');
     };
 
-    await executeWithRetry(registerAction, 'register', registrationData);
+    await executeWithRetry(registerAction, 'register', registrationData as Record<string, unknown>);
   }, [executeWithRetry, router]);
-
-  const retry = useCallback(async () => {
-    if (!lastAttemptRef.current || !canRetry) {
-      return;
-    }
-
-    const { action, data } = lastAttemptRef.current;
-    onRetry?.(retryCount + 1);
-
-    // Add delay before retry
-    if (retryCount > 0) {
-      await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
-    }
-
-    switch (action) {
-      case 'login':
-        await login(data.email, data.password || '');
-        break;
-      case 'register':
-        await register(data);
-        break;
-    }
-  }, [lastAttemptRef.current, retryCount, retryDelay, login, register, onRetry]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -210,12 +193,37 @@ export function useAuthWithRetry(options: UseAuthWithRetryOptions = {}): UseAuth
     lastAttemptRef.current = null;
   }, []);
 
+  // Define canRetry before using it in retry callback
   const canRetry = Boolean(
     error && 
     authErrorHandler.isRetryable(error) && 
     retryCount < maxRetries &&
     lastAttemptRef.current
   );
+
+  const retry = useCallback(async () => {
+    const lastAttempt = lastAttemptRef.current;
+    if (!lastAttempt || !canRetry) {
+      return;
+    }
+
+    const { action, data } = lastAttempt;
+    onRetry?.(retryCount + 1);
+
+    // Add delay before retry
+    if (retryCount > 0) {
+      await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
+    }
+
+    switch (action) {
+      case 'login':
+        await login(data.email as string, (data.password as string) || '');
+        break;
+      case 'register':
+        await register(data as RegistrationData);
+        break;
+    }
+  }, [canRetry, retryCount, retryDelay, login, register, onRetry]);
 
   return {
     isLoading,

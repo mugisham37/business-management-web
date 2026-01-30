@@ -3,10 +3,10 @@
  * React hook for managing authentication event subscriptions
  */
 
-import { useEffect, useCallback, useRef } from 'react';
-import { useApolloClient } from '@apollo/client';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import { useApolloClient, type ApolloClient, type NormalizedCacheObject } from '@apollo/client';
 import { AuthEventSubscriptionService, AuthEvent, SecurityAlert, PermissionChange, TierChange } from '@/lib/realtime/AuthEventSubscriptionService';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 
 interface UseAuthEventSubscriptionsOptions {
     enableAuthEvents?: boolean;
@@ -25,6 +25,65 @@ interface UseAuthEventSubscriptionsOptions {
     enablePasswordPolicyEvents?: boolean;
 }
 
+interface PaymentEvent {
+    id: string;
+    type: string;
+    amount?: number;
+    currency?: string;
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface DeviceTrustEvent {
+    id: string;
+    deviceId: string;
+    trusted: boolean;
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface OnboardingProgressEvent {
+    id: string;
+    step: string;
+    progress: number;
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface RoleAssignmentEvent {
+    id: string;
+    userId: string;
+    role: string;
+    action: 'assigned' | 'revoked';
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface IpRestrictionEvent {
+    id: string;
+    ipAddress: string;
+    action: 'blocked' | 'allowed';
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface SessionLimitEvent {
+    id: string;
+    userId: string;
+    sessionCount: number;
+    limit: number;
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
+interface PasswordPolicyEvent {
+    id: string;
+    userId: string;
+    event: string;
+    timestamp: Date;
+    metadata?: Record<string, unknown>;
+}
+
 interface AuthEventHandlers {
     onAuthEvent?: (event: AuthEvent) => void;
     onPermissionChange?: (change: PermissionChange) => void;
@@ -32,14 +91,14 @@ interface AuthEventHandlers {
     onMfaEvent?: (event: AuthEvent) => void;
     onSessionEvent?: (event: AuthEvent) => void;
     onTierChange?: (change: TierChange) => void;
-    onPaymentEvent?: (event: any) => void;
-    onDeviceTrustEvent?: (event: any) => void;
-    onOnboardingProgress?: (event: any) => void;
+    onPaymentEvent?: (event: PaymentEvent) => void;
+    onDeviceTrustEvent?: (event: DeviceTrustEvent) => void;
+    onOnboardingProgress?: (event: OnboardingProgressEvent) => void;
     onTenantAuthEvent?: (event: AuthEvent) => void;
-    onRoleAssignmentEvent?: (event: any) => void;
-    onIpRestrictionEvent?: (event: any) => void;
-    onSessionLimitEvent?: (event: any) => void;
-    onPasswordPolicyEvent?: (event: any) => void;
+    onRoleAssignmentEvent?: (event: RoleAssignmentEvent) => void;
+    onIpRestrictionEvent?: (event: IpRestrictionEvent) => void;
+    onSessionLimitEvent?: (event: SessionLimitEvent) => void;
+    onPasswordPolicyEvent?: (event: PasswordPolicyEvent) => void;
 }
 
 export function useAuthEventSubscriptions(
@@ -50,17 +109,20 @@ export function useAuthEventSubscriptions(
     const { isAuthenticated, user } = useAuth();
     const serviceRef = useRef<AuthEventSubscriptionService | null>(null);
     const unsubscribersRef = useRef<(() => void)[]>([]);
+    const [isServiceReady, setIsServiceReady] = useState(false);
 
     // Initialize service
     useEffect(() => {
         if (isAuthenticated && !serviceRef.current) {
-            serviceRef.current = new AuthEventSubscriptionService(apolloClient);
+            serviceRef.current = new AuthEventSubscriptionService(apolloClient as ApolloClient<NormalizedCacheObject>);
+            setIsServiceReady(true);
         }
 
         return () => {
             if (serviceRef.current) {
                 serviceRef.current.unsubscribeAll();
                 serviceRef.current = null;
+                setIsServiceReady(false);
             }
         };
     }, [apolloClient, isAuthenticated]);
@@ -215,7 +277,7 @@ export function useAuthEventSubscriptions(
 
     return {
         subscribeToUserEvents,
-        isConnected: !!serviceRef.current && isAuthenticated
+        isConnected: isServiceReady && isAuthenticated
     };
 }
 
@@ -227,8 +289,8 @@ export function useSecurityEventSubscriptions(handlers: {
     onAuthEvent?: (event: AuthEvent) => void;
     onSessionEvent?: (event: AuthEvent) => void;
     onMfaEvent?: (event: AuthEvent) => void;
-    onDeviceTrustEvent?: (event: any) => void;
-    onIpRestrictionEvent?: (event: any) => void;
+    onDeviceTrustEvent?: (event: DeviceTrustEvent) => void;
+    onIpRestrictionEvent?: (event: IpRestrictionEvent) => void;
 }) {
     return useAuthEventSubscriptions(
         {
@@ -248,9 +310,9 @@ export function useSecurityEventSubscriptions(handlers: {
  */
 export function useBusinessEventSubscriptions(handlers: {
     onTierChange?: (change: TierChange) => void;
-    onPaymentEvent?: (event: any) => void;
+    onPaymentEvent?: (event: PaymentEvent) => void;
     onPermissionChange?: (change: PermissionChange) => void;
-    onOnboardingProgress?: (event: any) => void;
+    onOnboardingProgress?: (event: OnboardingProgressEvent) => void;
 }) {
     return useAuthEventSubscriptions(
         {
@@ -268,10 +330,10 @@ export function useBusinessEventSubscriptions(handlers: {
  */
 export function useAdminEventSubscriptions(handlers: {
     onTenantAuthEvent?: (event: AuthEvent) => void;
-    onRoleAssignmentEvent?: (event: any) => void;
+    onRoleAssignmentEvent?: (event: RoleAssignmentEvent) => void;
     onSecurityAlert?: (alert: SecurityAlert) => void;
-    onSessionLimitEvent?: (event: any) => void;
-    onPasswordPolicyEvent?: (event: any) => void;
+    onSessionLimitEvent?: (event: SessionLimitEvent) => void;
+    onPasswordPolicyEvent?: (event: PasswordPolicyEvent) => void;
 }) {
     return useAuthEventSubscriptions(
         {

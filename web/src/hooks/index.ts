@@ -3,16 +3,16 @@
  * Central exports for all custom React hooks
  */
 
-export { useIsMobile } from './use-mobile';
+export { useIsMobile } from './utilities-infrastructure/use-mobile';
 export { useCacheStrategy } from './useCacheStrategy';
-export { useErrorHandler, withErrorHandler, type ErrorType, type ErrorContext, type UseErrorHandlerResult } from './useErrorHandler';
+export { useErrorHandler, withErrorHandler, type ErrorType, type ErrorContext, type UseErrorHandlerResult } from './utilities-infrastructure/useErrorHandler';
 export { 
   useEnhancedMutation,
   useCreateMutation,
   useUpdateMutation,
   useDeleteMutation,
   useCacheInvalidation
-} from './useGraphQLMutations';
+} from './utilities-infrastructure/useGraphQLMutations';
 export { 
   useAuth, 
   useMFA, 
@@ -22,7 +22,7 @@ export {
   useAuthLoading, 
   useCurrentUser, 
   useTokens 
-} from './useAuth';
+} from './authentication/useAuth';
 
 // Tenant hooks
 export {
@@ -35,12 +35,12 @@ export {
   useFeatureGate,
   useTierGate,
   useFeatureAndTierGate,
-} from './useTenant';
+} from './orders-sales/useTenant';
 
 // Analytics hooks
 export {
   useAnalytics,
-} from './useAnalytics';
+} from './analytics-reporting/useAnalytics';
 
 // Financial hooks
 export {
@@ -53,7 +53,7 @@ export {
   useAccountingIntegrity,
   useFinancialReportSubscriptions,
   useFinancialReporting,
-} from './useFinancialReporting';
+} from './finance-accounting/useFinancialReporting';
 
 export {
   useBudget,
@@ -62,7 +62,7 @@ export {
   useBudgetMutations,
   useBudgetSubscriptions,
   useBudgetManagement,
-} from './useBudgetManagement';
+} from './finance-accounting/useBudgetManagement';
 
 export {
   useAccount,
@@ -73,7 +73,7 @@ export {
   useAccountBalanceSubscriptions,
   useAccountValidation,
   useChartOfAccounts,
-} from './useChartOfAccounts';
+} from './finance-accounting/useChartOfAccounts';
 
 export {
   useJournalEntry,
@@ -82,7 +82,7 @@ export {
   useJournalEntryMutations,
   useJournalEntrySubscriptions,
   useJournalEntryValidation,
-} from './useJournalEntries';
+} from './finance-accounting/useJournalEntries';
 
 export {
   useCurrencyConversion,
@@ -92,7 +92,7 @@ export {
   useCurrencySubscriptions,
   useCurrencyFormatting,
   useMultiCurrency,
-} from './useMultiCurrency';
+} from './finance-accounting/useMultiCurrency';
 
 export {
   useAccountsReceivable,
@@ -101,11 +101,11 @@ export {
   useARAPMutations,
   useARAPSubscriptions,
   useAccountsReceivablePayable,
-} from './useAccountsReceivablePayable';
+} from './finance-accounting/useAccountsReceivablePayable';
 
 export {
   useFinancialDashboard,
-} from './useFinancialDashboard';
+} from './finance-accounting/useFinancialDashboard';
 
 // Supplier hooks
 export {
@@ -123,7 +123,7 @@ export {
   useSupplierSubscriptions,
   useSupplierManagement,
   useSupplierFilters,
-} from './useSuppliers';
+} from './supply-chain-procurement/useSuppliers';
 
 export {
   useSupplierContacts,
@@ -134,7 +134,7 @@ export {
   useDeleteSupplierContact,
   useSetPrimaryContact,
   useSupplierContactManagement,
-} from './useSupplierContacts';
+} from './orders-sales/useSupplierContacts';
 
 export {
   useSupplierCommunications,
@@ -148,7 +148,7 @@ export {
   useMarkFollowUpComplete,
   useSupplierCommunicationManagement,
   useCommunicationFilters,
-} from './useSupplierCommunications';
+} from './supply-chain-procurement/useSupplierCommunications';
 
 export {
   useSupplierEvaluations,
@@ -166,7 +166,7 @@ export {
   useSupplierEvaluationSubscriptions,
   useSupplierEvaluationManagement,
   useEvaluationScoring,
-} from './useSupplierEvaluations';
+} from './supply-chain-procurement/useSupplierEvaluations';
 
 export {
   usePurchaseOrders,
@@ -186,23 +186,23 @@ export {
   usePurchaseOrderSubscriptions,
   useProcurementManagement,
   usePurchaseOrderFilters,
-} from './useProcurement';
+} from './supply-chain-procurement/useProcurement';
 
 // CRM Hooks
-export { useCRM } from './useCRM';
-export { useCustomers, useCustomer, useCustomerByEmail, useCustomerByPhone, useCustomerSearch, useCustomerStats } from './useCustomers';
-export { useLoyalty, useCustomerLoyalty, useCampaignLoyalty, useLoyaltyStats, useLoyaltyTiers } from './useLoyalty';
-export { useCampaigns, useCampaign, useActiveCampaignsForCustomer, useCampaignPerformance, useCampaignStats, useCampaignValidation } from './useCampaigns';
-export { useCustomerAnalytics, useCustomerLifetimeValue, useCustomerPurchasePatterns, useCustomerChurnRisk, useSegmentAnalytics, useHighChurnRiskCustomers, useCustomerMetrics, useAnalyticsInsights } from './useCustomerAnalytics';
-export { useB2BCustomers, useB2BCustomer, useB2BCustomerMetrics, useB2BCustomersByIndustry, useB2BCustomersBySalesRep, useB2BCustomersWithExpiringContracts, useB2BCreditManagement } from './useB2BCustomers';
-export { useB2BOrders, useB2BOrder, useB2BOrderByNumber, useOrdersRequiringApproval, useB2BOrderAnalytics } from './useB2BOrders';
-export { useQuotes, useQuote, useQuoteSubscriptions } from './useQuotes';
-export { useContracts, useContract, useExpiringContracts, useContractExpirationNotifications } from './useContracts';
-export { useB2BPricing, useCustomerPricing, useBulkPricing, usePricingChangeNotifications } from './useB2BPricing';
-export { useTerritories, useTerritory, useTerritoryMutations, useTerritoryValidation, useTerritoryManagement } from './useTerritories';
-export { useB2BWorkflows, useB2BWorkflow, usePendingApprovals, useWorkflowAnalytics, useWorkflowHistory } from './useB2BWorkflows';
-export { useCommunications, useCustomerCommunications, useCommunicationStats, useCommunicationTemplates, useCommunicationAutomation } from './useCommunications';
-export { useSegmentation, useSegment, useSegmentMembers, useSegmentCriteriaBuilder, useSegmentTemplates } from './useSegmentation';
+export { useCRM } from './orders-sales/useCRM';
+export { useCustomers, useCustomer, useCustomerByEmail, useCustomerByPhone, useCustomerSearch, useCustomerStats } from './orders-sales/useCustomers';
+export { useLoyalty, useCustomerLoyalty, useCampaignLoyalty, useLoyaltyStats, useLoyaltyTiers } from './orders-sales/useLoyalty';
+export { useCampaigns, useCampaign, useActiveCampaignsForCustomer, useCampaignPerformance, useCampaignStats, useCampaignValidation } from './analytics-reporting/useCampaigns';
+export { useCustomerAnalytics, useCustomerLifetimeValue, useCustomerPurchasePatterns, useCustomerChurnRisk, useSegmentAnalytics, useHighChurnRiskCustomers, useCustomerMetrics, useAnalyticsInsights } from './analytics-reporting/useCustomerAnalytics';
+export { useB2BCustomers, useB2BCustomer, useB2BCustomerMetrics, useB2BCustomersByIndustry, useB2BCustomersBySalesRep, useB2BCustomersWithExpiringContracts, useB2BCreditManagement } from './orders-sales/useB2BCustomers';
+export { useB2BOrders, useB2BOrder, useB2BOrderByNumber, useOrdersRequiringApproval, useB2BOrderAnalytics } from './orders-sales/useB2BOrders';
+export { useQuotes, useQuote, useQuoteSubscriptions } from './orders-sales/useQuotes';
+export { useContracts, useContract, useExpiringContracts, useContractExpirationNotifications } from './supply-chain-procurement/useContracts';
+export { useB2BPricing, useCustomerPricing, useBulkPricing, usePricingChangeNotifications } from './products-catalog/useB2BPricing';
+export { useTerritories, useTerritory, useTerritoryMutations, useTerritoryValidation, useTerritoryManagement } from './analytics-reporting/useTerritories';
+export { useB2BWorkflows, useB2BWorkflow, usePendingApprovals, useWorkflowAnalytics, useWorkflowHistory } from './supply-chain-procurement/useB2BWorkflows';
+export { useCommunications, useCustomerCommunications, useCommunicationStats, useCommunicationTemplates, useCommunicationAutomation } from './communication-notifications/useCommunications';
+export { useSegmentation, useSegment, useSegmentMembers, useSegmentCriteriaBuilder, useSegmentTemplates } from './orders-sales/useSegmentation';
 
 // Inventory Hooks
 export {
@@ -216,7 +216,7 @@ export {
   useOutOfStockItems,
   useInventorySubscriptions,
   useInventoryManagement,
-} from './useInventory';
+} from './inventory-location/useInventory';
 
 export {
   useProduct,
@@ -225,7 +225,7 @@ export {
   useFeaturedProducts,
   useProductSubscriptions,
   useProductManagement,
-} from './useProducts';
+} from './products-catalog/useProducts';
 
 export {
   useCategory,
@@ -234,7 +234,7 @@ export {
   useCategoryTree,
   useCategorySearch,
   useCategoryManagement,
-} from './useCategories';
+} from './products-catalog/useCategories';
 
 export {
   useBrand,
@@ -243,7 +243,7 @@ export {
   useBrandSearch,
   usePopularBrands,
   useBrandManagement,
-} from './useBrands';
+} from './products-catalog/useBrands';
 
 export {
   useBatchTracking,
@@ -252,7 +252,7 @@ export {
   useFIFOBatches,
   useBatchSubscriptions,
   useBatchTrackingManagement,
-} from './useBatchTracking';
+} from './products-catalog/useBatchTracking';
 
 // POS Hooks
 export {
@@ -260,40 +260,33 @@ export {
   usePOSSession,
   usePOSConfiguration,
   useDailySalesSummary,
-} from './usePOS';
+} from './orders-sales/usePOS';
 
 export {
   useTransactions,
   useTransaction,
-} from './useTransactions';
+} from './finance-accounting/useTransactions';
 
 export {
   usePayments,
-} from './usePayments';
+} from './orders-sales/usePayments';
 
 export {
   useReceipts,
-} from './useReceipts';
+} from './orders-sales/useReceipts';
 
 export {
   useOfflineSync,
-} from './useOfflineSync';
+} from './utilities-infrastructure/useOfflineSync';
 
 export {
   useReconciliation,
   useReconciliationReport,
-} from './useReconciliation';
+} from './finance-accounting/useReconciliation';
 
 // Location Management Hooks
 export {
-  useLocation,
   useLocations,
-  useLocationTree,
-  useLocationMutations,
-  useLocationSubscriptions,
-  useLocationSearch,
-  useLocationValidation,
-  useLocationManagement,
 } from './useLocations';
 
 export {
@@ -303,7 +296,7 @@ export {
   useFranchiseMutations,
   useFranchiseValidation,
   useFranchiseManagement,
-} from './useFranchises';
+} from './supply-chain-procurement/useFranchises';
 
 export {
   useLocationPricing,
@@ -312,7 +305,7 @@ export {
   usePricingCalculations,
   usePricingValidation,
   useLocationPricingManagement,
-} from './useLocationPricing';
+} from './inventory-location/useLocationPricing';
 
 export {
   useLocationPromotions,
@@ -322,7 +315,7 @@ export {
   usePromotionValidation,
   usePromotionStatus,
   useLocationPromotionManagement,
-} from './useLocationPromotions';
+} from './inventory-location/useLocationPromotions';
 
 export {
   useLocationInventoryPolicy,
@@ -332,7 +325,7 @@ export {
   useInventoryPolicyValidation,
   useInventoryRecommendations,
   useLocationInventoryPolicyManagement,
-} from './useLocationInventoryPolicies';
+} from './inventory-location/useLocationInventoryPolicies';
 
 export {
   useLocationSalesReport,
@@ -343,7 +336,7 @@ export {
   useReportFormatting,
   useReportFilters,
   useLocationReportingManagement,
-} from './useLocationReporting';
+} from './inventory-location/useLocationReporting';
 
 export {
   useNearbyLocations,
@@ -356,7 +349,7 @@ export {
   useMapUtilities,
   useGeospatialValidation,
   useLocationGeospatialManagement,
-} from './useLocationGeospatial';
+} from './inventory-location/useLocationGeospatial';
 
 export {
   useLocationAuditHistory,
@@ -367,7 +360,7 @@ export {
   useAuditFiltering,
   useAuditExport,
   useLocationAuditManagement,
-} from './useLocationAudit';
+} from './inventory-location/useLocationAudit';
 
 export {
   useBulkOperationStatus,
@@ -377,7 +370,7 @@ export {
   useBulkOperationProgress,
   useBulkOperationTemplates,
   useLocationBulkOperationsManagement,
-} from './useLocationBulkOperations';
+} from './inventory-location/useLocationBulkOperations';
 
 export {
   useLocationSyncStatus,
@@ -388,4 +381,4 @@ export {
   useSyncMonitoring,
   useSyncScheduling,
   useLocationSyncManagement,
-} from './useLocationSync';
+} from './inventory-location/useLocationSync';

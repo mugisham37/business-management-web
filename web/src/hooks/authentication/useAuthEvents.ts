@@ -3,16 +3,13 @@
  * React hook for managing real-time authentication events and security notifications
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   authEventManager, 
   AuthEvent, 
   SessionEvent, 
   SecurityAlert, 
   CrossDeviceNotification,
-  AuthEventType,
-  SessionEventType,
-  SecurityAlertType,
   AuthEventSubscriptionOptions,
   SessionEventSubscriptionOptions,
   SecurityAlertSubscriptionOptions
@@ -83,17 +80,14 @@ export function useAuthEvents(options: UseAuthEventsOptions = {}): [AuthEventsSt
     onCriticalEvent,
   } = options;
 
-  const [state, setState] = useState<AuthEventsState>({
+  // Initialize state with data from event manager (lazy initialization)
+  const [state, setState] = useState<AuthEventsState>(() => ({
     isConnected: webSocketManager.getState().isConnected,
-    subscriptions: {
-      authEvents: false,
-      sessionEvents: false,
-      securityAlerts: false,
-    },
+    subscriptions: authEventManager.getSubscriptionStatus(),
     events: {
-      auth: [],
-      session: [],
-      security: [],
+      auth: authEventManager.getAuthEventHistory(100),
+      session: authEventManager.getSessionEventHistory(100),
+      security: authEventManager.getSecurityAlertHistory(100),
     },
     unreadCounts: {
       auth: 0,
@@ -101,7 +95,7 @@ export function useAuthEvents(options: UseAuthEventsOptions = {}): [AuthEventsSt
       security: 0,
     },
     lastActivity: null,
-  });
+  }));
 
   const readEventIds = useRef(new Set<string>());
   const callbacksRef = useRef({
@@ -250,16 +244,7 @@ export function useAuthEvents(options: UseAuthEventsOptions = {}): [AuthEventsSt
     authEventManager.on('crossDeviceNotification', handleCrossDeviceNotification);
     authEventManager.on('historyCleared', handleHistoryCleared);
 
-    // Initialize state from existing history
-    setState(prev => ({
-      ...prev,
-      events: {
-        auth: authEventManager.getAuthEventHistory(100),
-        session: authEventManager.getSessionEventHistory(100),
-        security: authEventManager.getSecurityAlertHistory(100),
-      },
-      subscriptions: authEventManager.getSubscriptionStatus(),
-    }));
+    // State is already initialized in useState lazy initializer
 
     return () => {
       authEventManager.off('connectionStateChanged', handleConnectionStateChange);
@@ -399,22 +384,25 @@ export function useAuthEvents(options: UseAuthEventsOptions = {}): [AuthEventsSt
 
 // Convenience hooks for specific event types
 export function useAuthEventsOnly(options: Omit<UseAuthEventsOptions, 'sessionEventOptions' | 'securityAlertOptions'> = {}) {
+  const { authEventOptions, ...rest } = options;
   return useAuthEvents({
-    ...options,
-    authEventOptions: options.authEventOptions,
+    ...rest,
+    ...(authEventOptions !== undefined && { authEventOptions }),
   });
 }
 
 export function useSessionEventsOnly(options: Omit<UseAuthEventsOptions, 'authEventOptions' | 'securityAlertOptions'> = {}) {
+  const { sessionEventOptions, ...rest } = options;
   return useAuthEvents({
-    ...options,
-    sessionEventOptions: options.sessionEventOptions,
+    ...rest,
+    ...(sessionEventOptions !== undefined && { sessionEventOptions }),
   });
 }
 
 export function useSecurityAlertsOnly(options: Omit<UseAuthEventsOptions, 'authEventOptions' | 'sessionEventOptions'> = {}) {
+  const { securityAlertOptions, ...rest } = options;
   return useAuthEvents({
-    ...options,
-    securityAlertOptions: options.securityAlertOptions,
+    ...rest,
+    ...(securityAlertOptions !== undefined && { securityAlertOptions }),
   });
 }

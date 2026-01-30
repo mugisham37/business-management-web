@@ -8,8 +8,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useApolloClient } from '@apollo/client';
-import { BusinessTier } from '@/types/core';
+import { useApolloClient, NormalizedCacheObject, ApolloClient } from '@apollo/client';
+import { BusinessTier } from '@/types/onboarding';
 import { 
   RealTimePermissionUpdatesService,
   getRealTimePermissionUpdatesService,
@@ -75,7 +75,7 @@ export interface UseRealTimePermissionsReturn {
     eventType: SecurityEventType,
     severity: 'low' | 'medium' | 'high' | 'critical',
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     requiresAction?: boolean
   ) => Promise<{ success: boolean; affectedSessions: number; error?: string }>;
   
@@ -120,8 +120,11 @@ export function useRealTimePermissions(options: UseRealTimePermissionsOptions = 
   // Initialize service
   useEffect(() => {
     if (!serviceRef.current) {
-      serviceRef.current = getRealTimePermissionUpdatesService(apolloClient);
+      serviceRef.current = getRealTimePermissionUpdatesService(
+        apolloClient as ApolloClient<NormalizedCacheObject>
+      );
     }
+    return undefined;
   }, [apolloClient]);
 
   // Update connection status
@@ -227,7 +230,7 @@ export function useRealTimePermissions(options: UseRealTimePermissionsOptions = 
   // Auto-connect when userId is provided
   useEffect(() => {
     if (autoConnect && userId && serviceRef.current) {
-      connect(userId);
+      void connect(userId);
     }
 
     return () => {
@@ -299,7 +302,7 @@ export function useRealTimePermissions(options: UseRealTimePermissionsOptions = 
     eventType: SecurityEventType,
     severity: 'low' | 'medium' | 'high' | 'critical',
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     requiresAction = false
   ) => {
     if (!serviceRef.current) {

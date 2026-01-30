@@ -11,8 +11,7 @@ import {
   FeaturePermissionConfig,
   GraphQLOperationConfig 
 } from '@/lib/auth/PermissionValidationService';
-import { BusinessTier } from './useTierAccess';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 
 /**
  * Hook for validating feature access before rendering
@@ -88,12 +87,14 @@ export function useFeatureAccess(featureId: string, userId?: string) {
  * Hook for validating GraphQL operation access
  * Requirement 10.4: GraphQL operation permission validation
  */
-export function useGraphQLOperationAccess(operationName: string, variables?: any, userId?: string) {
+export function useGraphQLOperationAccess(operationName: string, variables?: Record<string, unknown>, userId?: string) {
   const [validationResult, setValidationResult] = useState<PermissionValidationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
   const effectiveUserId = userId || user?.id;
+  // Memoize the stringified variables for stable dependency
+  const variablesKey = useMemo(() => JSON.stringify(variables), [variables]);
 
   useEffect(() => {
     let isMounted = true;
@@ -129,7 +130,7 @@ export function useGraphQLOperationAccess(operationName: string, variables?: any
     return () => {
       isMounted = false;
     };
-  }, [operationName, effectiveUserId, JSON.stringify(variables)]);
+  }, [operationName, effectiveUserId, variablesKey, variables]);
 
   return {
     hasAccess: validationResult?.hasAccess ?? false,
@@ -178,7 +179,7 @@ export function usePermissionConflictResolution() {
     } finally {
       setIsResolving(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   return {
     resolveConflict,
@@ -195,6 +196,8 @@ export function useBatchFeatureAccess(featureIds: string[], userId?: string) {
   const { user } = useAuth();
 
   const effectiveUserId = userId || user?.id;
+  // Memoize the stringified feature IDs for stable dependency
+  const featureIdsKey = useMemo(() => featureIds.join(','), [featureIds]);
 
   useEffect(() => {
     let isMounted = true;
@@ -238,7 +241,7 @@ export function useBatchFeatureAccess(featureIds: string[], userId?: string) {
     return () => {
       isMounted = false;
     };
-  }, [featureIds.join(','), effectiveUserId]);
+  }, [featureIdsKey, featureIds, effectiveUserId]);
 
   const accessibleFeatures = useMemo(() => 
     Object.entries(validationResults)
@@ -278,8 +281,13 @@ export function usePermissionGuard(
   } = {}
 ) {
   const { user } = useAuth();
-  const permissions = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
+  const permissions = useMemo(
+    () => Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions],
+    [requiredPermissions]
+  );
   const effectiveUserId = options.userId || user?.id;
+  // Memoize the stringified permissions for stable dependency
+  const permissionsKey = useMemo(() => permissions.join(','), [permissions]);
 
   const featureAccess = useFeatureAccess(options.featureId || 'default', effectiveUserId);
   const [permissionCheck, setPermissionCheck] = useState<PermissionValidationResult | null>(null);
@@ -306,9 +314,9 @@ export function usePermissionGuard(
           if (isMounted) {
             setPermissionCheck({
               hasAccess: featureAccess.hasAccess,
-              reason: featureAccess.reason,
-              requiredTier: featureAccess.requiredTier,
-              requiredPermissions: featureAccess.requiredPermissions,
+              ...(featureAccess.reason !== undefined && { reason: featureAccess.reason }),
+              ...(featureAccess.requiredTier !== undefined && { requiredTier: featureAccess.requiredTier }),
+              ...(featureAccess.requiredPermissions !== undefined && { requiredPermissions: featureAccess.requiredPermissions }),
             });
             setIsLoading(featureAccess.isLoading);
           }
@@ -344,8 +352,8 @@ export function usePermissionGuard(
         if (isMounted) {
           setPermissionCheck({
             hasAccess,
-            reason: hasAccess ? undefined : `Missing required permissions: ${permissions.join(', ')}`,
-            requiredPermissions: hasAccess ? undefined : permissions,
+            ...(!hasAccess && { reason: `Missing required permissions: ${permissions.join(', ')}` }),
+            ...(!hasAccess && { requiredPermissions: permissions }),
           });
           setIsLoading(false);
         }
@@ -366,7 +374,7 @@ export function usePermissionGuard(
     return () => {
       isMounted = false;
     };
-  }, [effectiveUserId, permissions.join(','), options.featureId, options.requireAll, featureAccess.hasAccess, featureAccess.isLoading]);
+  }, [effectiveUserId, permissionsKey, permissions, options.featureId, options.requireAll, featureAccess.hasAccess, featureAccess.isLoading, featureAccess.reason, featureAccess.requiredPermissions, featureAccess.requiredTier]);
 
   const shouldRender = permissionCheck?.hasAccess ?? false;
   const LoadingComponent = options.loadingComponent;

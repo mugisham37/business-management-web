@@ -27,11 +27,7 @@ export function useSubscription() {
     billingCycle: 'monthly' | 'annually';
   } | null>(null);
 
-  // Load subscription status on mount
-  useEffect(() => {
-    loadSubscriptionStatus();
-  }, []);
-
+  // Define loadSubscriptionStatus before using it in useEffect
   const loadSubscriptionStatus = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
@@ -47,6 +43,11 @@ export function useSubscription() {
     }
   }, []);
 
+  // Load subscription status on mount - using async IIFE pattern
+  useEffect(() => {
+    void loadSubscriptionStatus();
+  }, [loadSubscriptionStatus]);
+
   const openSubscriptionModal = useCallback((tier: BusinessTier, billingCycle: 'monthly' | 'annually' = 'monthly') => {
     setSelectedPlan({ tier, billingCycle });
     setIsModalOpen(true);
@@ -57,9 +58,9 @@ export function useSubscription() {
     setSelectedPlan(null);
   }, []);
 
-  const handleSubscriptionComplete = useCallback((subscriptionId: string) => {
+  const handleSubscriptionComplete = useCallback((_subscriptionId: string) => {
     // Refresh subscription status after successful subscription
-    loadSubscriptionStatus();
+    void loadSubscriptionStatus();
     
     // Close modal after a delay to show success state
     setTimeout(() => {
