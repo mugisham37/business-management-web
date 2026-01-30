@@ -22,7 +22,7 @@ import {
   UPDATE_B2B_CUSTOMER_CREDIT_STATUS,
 } from '@/graphql/mutations/crm-mutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler, type ErrorType } from './useErrorHandler';
+import { useErrorHandler, type ErrorType } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for managing B2B customers with comprehensive operations

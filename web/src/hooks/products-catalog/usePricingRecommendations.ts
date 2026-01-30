@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { TierRecommendation } from '@/types/pricing';
 import { RecommendationEngine } from '@/lib/services/recommendation-engine';
-import { useOnboardingStatus } from '@/hooks/useOnboarding';
+import { useOnboardingStatus } from '@/hooks/utilities-infrastructure/useOnboarding';
 
 /**
  * Hook for getting AI-powered pricing recommendations

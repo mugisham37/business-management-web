@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useCustomers } from './useCustomers';
 import { useLoyalty } from './useLoyalty';
-import { useCampaigns } from './useCampaigns';
-import { useCustomerAnalytics } from './useCustomerAnalytics';
+import { useCampaigns } from '@/hooks/analytics-reporting/useCampaigns';
+import { useCustomerAnalytics } from '@/hooks/analytics-reporting/useCustomerAnalytics';
 import { useB2BCustomers } from './useB2BCustomers';
-import { useCommunications } from './useCommunications';
+import { useCommunications } from '@/hooks/communication-notifications/useCommunications';
 import { useSegmentation } from './useSegmentation';
 import { 
   Customer, 

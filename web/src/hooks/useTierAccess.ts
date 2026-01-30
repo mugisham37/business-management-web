@@ -22,8 +22,11 @@ export function useTierAccess() {
   return {
     getCurrentTier: () => 'free',
     getTierLimits: (): TierLimit[] => [],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     canAccessFeature: (_feature: string): boolean => true,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     upgradeRequired: (_feature: string): boolean => false,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getRemainingUsage: (_feature: string): number => 0,
     checkTierAccess: (): TierAccessState => ({
       currentTier: 'free',

@@ -27,7 +27,7 @@ export interface UseSocialAuthReturn {
 
 export function useSocialAuth(options: UseSocialAuthOptions = {}): UseSocialAuthReturn {
   const router = useRouter();
-  const { login } = useAuth();
+  useAuth(); // Hook for authentication context
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,7 +102,7 @@ export function useSocialAuth(options: UseSocialAuthOptions = {}): UseSocialAuth
     } finally {
       setIsLoading(false);
     }
-  }, [usePopup, onSuccess, onError, redirectTo, router, login]);
+  }, [usePopup, onSuccess, onError, redirectTo, router]);
 
   const loginWithGoogle = useCallback(() => handleSocialLogin('google'), [handleSocialLogin]);
   const loginWithFacebook = useCallback(() => handleSocialLogin('facebook'), [handleSocialLogin]);

@@ -19,7 +19,7 @@ import {
   COMMUNICATION_SCHEDULED,
 } from '@/graphql/subscriptions/crm-subscriptions';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from './useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for managing customer communications

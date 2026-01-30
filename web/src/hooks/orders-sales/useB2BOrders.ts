@@ -27,7 +27,7 @@ import {
   B2B_ORDER_STATUS_CHANGED_SUBSCRIPTION,
 } from '@/graphql/subscriptions/b2b-subscriptions';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from './useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 export interface B2BOrderQueryInput {
   search?: string;

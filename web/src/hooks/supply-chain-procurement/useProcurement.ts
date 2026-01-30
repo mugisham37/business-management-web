@@ -32,7 +32,7 @@ import {
   PURCHASE_ORDER_SENT_SUBSCRIPTION,
   PURCHASE_ORDER_INVOICED_SUBSCRIPTION,
 } from '@/graphql/subscriptions/supplier';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import type {
   PurchaseOrder,
   PurchaseOrderConnection,

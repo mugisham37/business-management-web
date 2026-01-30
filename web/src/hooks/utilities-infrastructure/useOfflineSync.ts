@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 import { useUnifiedCache } from '@/lib/cache';
 import {
   GET_OFFLINE_QUEUE,

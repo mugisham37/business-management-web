@@ -23,7 +23,7 @@ import {
   RECALCULATE_SEGMENT,
 } from '@/graphql/mutations/crm-mutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for managing customer segmentation

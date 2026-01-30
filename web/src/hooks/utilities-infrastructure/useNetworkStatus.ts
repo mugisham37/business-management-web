@@ -3,7 +3,7 @@
  * Provides real-time network connectivity status and retry mechanisms
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { networkChecker } from '@/lib/auth/auth-errors';
 
 export interface NetworkStatus {
@@ -26,6 +26,9 @@ export function useNetworkStatus(): UseNetworkStatusReturn {
     lastChecked: null,
     retryCount: 0,
   });
+  
+  // Track if initial check has been done
+  const hasInitialized = useRef(false);
 
   const checkConnectivity = useCallback(async (): Promise<boolean> => {
     const isConnected = await networkChecker.checkConnectivity();
@@ -73,8 +76,14 @@ export function useNetworkStatus(): UseNetworkStatusReturn {
       }
     });
 
-    // Initial connectivity check
-    checkConnectivity();
+    // Initial connectivity check - deferred to avoid synchronous setState in effect
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      // Use queueMicrotask to defer the async check outside the synchronous effect body
+      queueMicrotask(() => {
+        checkConnectivity();
+      });
+    }
 
     return unsubscribe;
   }, [checkConnectivity]);

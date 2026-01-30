@@ -21,7 +21,7 @@ import {
   EXCHANGE_RATE_UPDATED,
   CURRENCY_CONVERSION_ALERT,
 } from '@/graphql/subscriptions/financial';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 import { errorLogger } from '@/lib/error-handling';
 
 export interface CurrencyConversionInput {

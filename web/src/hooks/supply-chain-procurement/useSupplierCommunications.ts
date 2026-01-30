@@ -14,7 +14,7 @@ import {
   DELETE_SUPPLIER_COMMUNICATION,
   MARK_FOLLOW_UP_COMPLETE,
 } from '@/graphql/mutations/supplier';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import type {
   SupplierCommunication,
   CreateSupplierCommunicationInput,

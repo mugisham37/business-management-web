@@ -21,7 +21,7 @@ import {
   EMPLOYEE_UPDATED_SUBSCRIPTION, 
   EMPLOYEE_TERMINATED_SUBSCRIPTION 
 } from '@/graphql/subscriptions/employee';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
 import { 
   Employee, 

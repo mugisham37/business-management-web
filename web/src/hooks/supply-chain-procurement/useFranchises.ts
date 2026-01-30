@@ -20,8 +20,8 @@ import {
   CREATE_FRANCHISE,
   UPDATE_FRANCHISE
 } from '@/graphql/mutations/location-mutations';
-import { useTenant } from '@/hooks/useTenant';
-import { useAuth } from '@/hooks/useAuth';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
+import { useAuth } from '@/hooks/authentication/useAuth';
 
 // Types
 export interface Franchise {

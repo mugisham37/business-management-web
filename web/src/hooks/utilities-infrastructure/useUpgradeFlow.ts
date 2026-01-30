@@ -13,7 +13,8 @@ import {
   GET_UPGRADE_RECOMMENDATIONS_QUERY,
   GET_SUBSCRIPTION_STATUS_QUERY,
 } from '@/graphql/queries/auth-complete';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
+import { useTenantStore } from '@/lib/stores/tenant-store';
 
 export interface UpgradeRequest {
   targetTier: string;
@@ -88,6 +89,7 @@ const FEATURE_TIER_REQUIREMENTS: Record<string, string> = {
 
 export function useUpgradeFlow(): UseUpgradeFlowReturn {
   const { user } = useAuth();
+  const { businessTier } = useTenantStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,10 +102,48 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
     fetchPolicy: 'cache-and-network',
   });
 
-  const { data: subscriptionData } = useQuery(GET_SUBSCRIPTION_STATUS_QUERY, {
+  // Subscription status query - available for future use
+  useQuery(GET_SUBSCRIPTION_STATUS_QUERY, {
     skip: !user?.id,
     fetchPolicy: 'cache-and-network',
   });
+
+  const getPricingInfo = useCallback(async (
+    tier: string,
+    billingCycle: 'monthly' | 'yearly',
+    promoCode?: string
+  ): Promise<PricingInfo | null> => {
+    try {
+      const basePrice = TIER_PRICING[tier as keyof typeof TIER_PRICING]?.[billingCycle] || 0;
+      
+      // Calculate discount (simplified - in production, this would be server-side)
+      let discount = 0;
+      if (promoCode) {
+        // Mock promo code validation
+        if (promoCode === 'SAVE10') {
+          discount = basePrice * 0.1;
+        } else if (promoCode === 'SAVE20') {
+          discount = basePrice * 0.2;
+        }
+      }
+
+      // Calculate tax (simplified - in production, this would be based on location)
+      const tax = (basePrice - discount) * 0.08; // 8% tax rate
+
+      const total = basePrice - discount + tax;
+
+      return {
+        basePrice,
+        discount,
+        tax,
+        total,
+        currency: 'USD',
+      };
+    } catch (error) {
+      console.error('Failed to calculate pricing:', error);
+      return null;
+    }
+  }, []);
 
   const processUpgrade = useCallback(async (request: UpgradeRequest): Promise<boolean> => {
     if (!user?.id) {
@@ -168,7 +208,7 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, processPaymentMutation, updateTierMutation]);
+  }, [user?.id, processPaymentMutation, updateTierMutation, getPricingInfo]);
 
   const calculateUpgradePrice = useCallback((
     currentTier: string,
@@ -191,52 +231,15 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
 
   const shouldRecommendUpgrade = useCallback((featureId: string): boolean => {
     const requiredTier = FEATURE_TIER_REQUIREMENTS[featureId];
-    if (!requiredTier || !user?.businessTier) {
+    if (!requiredTier || !businessTier) {
       return false;
     }
 
-    const currentTierIndex = TIER_ORDER.indexOf(user.businessTier);
+    const currentTierIndex = TIER_ORDER.indexOf(businessTier);
     const requiredTierIndex = TIER_ORDER.indexOf(requiredTier);
 
     return requiredTierIndex > currentTierIndex;
-  }, [user?.businessTier]);
-
-  const getPricingInfo = useCallback(async (
-    tier: string,
-    billingCycle: 'monthly' | 'yearly',
-    promoCode?: string
-  ): Promise<PricingInfo | null> => {
-    try {
-      const basePrice = TIER_PRICING[tier as keyof typeof TIER_PRICING]?.[billingCycle] || 0;
-      
-      // Calculate discount (simplified - in production, this would be server-side)
-      let discount = 0;
-      if (promoCode) {
-        // Mock promo code validation
-        if (promoCode === 'SAVE10') {
-          discount = basePrice * 0.1;
-        } else if (promoCode === 'SAVE20') {
-          discount = basePrice * 0.2;
-        }
-      }
-
-      // Calculate tax (simplified - in production, this would be based on location)
-      const tax = (basePrice - discount) * 0.08; // 8% tax rate
-
-      const total = basePrice - discount + tax;
-
-      return {
-        basePrice,
-        discount,
-        tax,
-        total,
-        currency: 'USD',
-      };
-    } catch (error) {
-      console.error('Failed to calculate pricing:', error);
-      return null;
-    }
-  }, []);
+  }, [businessTier]);
 
   const validatePromoCode = useCallback(async (code: string): Promise<boolean> => {
     // Mock validation - in production, this would be a server call
@@ -245,15 +248,15 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
   }, []);
 
   const canDowngrade = useCallback((targetTier: string): boolean => {
-    if (!user?.businessTier) return false;
+    if (!businessTier) return false;
 
-    const currentTierIndex = TIER_ORDER.indexOf(user.businessTier);
+    const currentTierIndex = TIER_ORDER.indexOf(businessTier);
     const targetTierIndex = TIER_ORDER.indexOf(targetTier);
 
     // Allow downgrade only if not in a contract or if contract allows it
     // This is simplified - in production, you'd check subscription terms
     return targetTierIndex < currentTierIndex;
-  }, [user?.businessTier]);
+  }, [businessTier]);
 
   const getFeatureRequiredTier = useCallback((featureId: string): string | null => {
     return FEATURE_TIER_REQUIREMENTS[featureId] || null;

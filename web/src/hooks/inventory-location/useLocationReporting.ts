@@ -14,7 +14,7 @@ import {
   GET_LOCATION_PERFORMANCE_REPORT,
   COMPARE_LOCATIONS
 } from '@/graphql/queries/location-queries';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 
 // Types
 export interface LocationSalesReport {

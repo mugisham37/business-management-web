@@ -5,8 +5,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { useAuth } from './useAuth';
-import { useTenant } from '@/hooks/useTenant';
+import { useAuth } from '@/hooks/authentication/useAuth';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 import { useUnifiedCache } from '@/lib/cache';
 import {
   GET_POS_SESSION,

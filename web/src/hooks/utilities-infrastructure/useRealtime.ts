@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { useSubscriptionStatus } from '@/lib/subscriptions';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 import {
   UpdateUserStatusInput,
   SendMessageInput,

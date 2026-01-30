@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 import { useUnifiedCache } from '@/lib/cache';
 import {
   VALIDATE_PAYMENT_METHOD,

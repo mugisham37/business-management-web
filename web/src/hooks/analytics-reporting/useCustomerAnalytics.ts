@@ -17,7 +17,7 @@ import {
   GET_CUSTOMER_METRICS,
 } from '@/graphql/queries/crm-queries';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for comprehensive customer analytics operations

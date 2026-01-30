@@ -19,8 +19,8 @@ import {
   UPDATE_LOCATION_PRICING,
   APPLY_PRICING_RULE
 } from '@/graphql/mutations/location-mutations';
-import { useTenant } from '@/hooks/useTenant';
-import { useAuth } from '@/hooks/useAuth';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
+import { useAuth } from '@/hooks/authentication/useAuth';
 
 // Types
 export interface PricingCondition {

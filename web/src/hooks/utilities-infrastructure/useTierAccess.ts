@@ -4,10 +4,11 @@ import { useCallback, useMemo } from 'react';
 import { useQuery, ApolloError } from '@apollo/client';
 import {
     GET_MY_MODULE_ACCESS,
-    CAN_ACCESS_MODULE,
-    GET_MY_ACCESSIBLE_MODULES,
-    GET_MY_LOCKED_MODULES,
-    GET_MODULES_BY_CATEGORY,
+    // These queries are available for future use
+    // CAN_ACCESS_MODULE,
+    // GET_MY_ACCESSIBLE_MODULES,
+    // GET_MY_LOCKED_MODULES,
+    // GET_MODULES_BY_CATEGORY,
 } from '@/lib/graphql/queries/tier-access';
 
 /**
@@ -125,8 +126,8 @@ export function useTierAccess() {
     // Check if a specific module is accessible
     const canAccess = useCallback(
         (moduleName: string): boolean => {
-            const module = modules.find((m) => m.moduleName === moduleName);
-            return module?.isAccessible ?? false;
+            const foundModule = modules.find((m) => m.moduleName === moduleName);
+            return foundModule?.isAccessible ?? false;
         },
         [modules]
     );
@@ -142,8 +143,8 @@ export function useTierAccess() {
     // Get upgrade prompt for a module
     const getUpgradePrompt = useCallback(
         (moduleName: string): string | null => {
-            const module = modules.find((m) => m.moduleName === moduleName);
-            return module?.upgradePrompt ?? null;
+            const foundModule = modules.find((m) => m.moduleName === moduleName);
+            return foundModule?.upgradePrompt ?? null;
         },
         [modules]
     );
@@ -151,8 +152,8 @@ export function useTierAccess() {
     // Get required tier for a module
     const getRequiredTier = useCallback(
         (moduleName: string): BusinessTier | null => {
-            const module = modules.find((m) => m.moduleName === moduleName);
-            return module?.requiredTier ?? null;
+            const foundModule = modules.find((m) => m.moduleName === moduleName);
+            return foundModule?.requiredTier ?? null;
         },
         [modules]
     );

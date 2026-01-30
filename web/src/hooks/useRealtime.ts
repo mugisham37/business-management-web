@@ -19,15 +19,19 @@ export interface RealtimeState {
 /**
  * Hook for managing real-time connections
  */
-export function useRealtime(config?: RealtimeConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useRealtime(_config?: RealtimeConfig) {
   return {
     isConnected: false,
     isConnecting: false,
     connect: () => {},
     disconnect: () => {},
-    subscribe: (channel: string, callback: (data: unknown) => void) => () => {},
-    unsubscribe: (channel: string) => {},
-    emit: (channel: string, data: unknown) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    subscribe: (_channel: string, _callback: (data: unknown) => void) => () => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    unsubscribe: (_channel: string) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    emit: (_channel: string, _data: unknown) => {},
     getState: (): RealtimeState => ({
       isConnected: false,
       isConnecting: false,

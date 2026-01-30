@@ -23,7 +23,7 @@ import {
   CANCEL_BULK_OPERATION
 } from '@/graphql/mutations/location-mutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 import { CreateLocationInput, UpdateLocationInput } from './useLocations';
 
 // Types

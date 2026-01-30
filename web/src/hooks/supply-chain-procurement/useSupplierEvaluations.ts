@@ -17,7 +17,7 @@ import {
   REJECT_SUPPLIER_EVALUATION,
 } from '@/graphql/mutations/supplier';
 import { SUPPLIER_EVALUATED_SUBSCRIPTION } from '@/graphql/subscriptions/supplier';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import { useSubscription } from '@apollo/client';
 import type {
   SupplierEvaluation,

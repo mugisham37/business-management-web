@@ -29,9 +29,13 @@ export function useLocations() {
     currentLocation: undefined as LocationData | undefined,
     isLoading: false,
     getLocations: (): LocationData[] => [],
-    setCurrentLocation: (location: LocationData) => {},
-    addLocation: (location: LocationData) => {},
-    updateLocation: (id: string, updates: Partial<LocationData>) => {},
-    deleteLocation: (id: string) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setCurrentLocation: (_location: LocationData) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    addLocation: (_location: LocationData) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    updateLocation: (_id: string, _updates: Partial<LocationData>) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteLocation: (_id: string) => {},
   };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useEffect, useState } from 'react';
-import { useQuery, useMutation, ApolloError, useApolloClient } from '@apollo/client';
+import { useQuery, useMutation, ApolloError, useApolloClient, ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
     GET_ONBOARDING_STATUS,
     GET_AVAILABLE_PLANS,
@@ -9,53 +9,23 @@ import {
     COMPLETE_ONBOARDING,
 } from '@/lib/graphql/mutations/onboarding';
 import { getOnboardingService, OnboardingSession, StepResult, OnboardingResult, TierRecommendation } from '@/lib/services/onboarding.service';
+import {
+    BusinessTier,
+    OnboardingStep,
+    BusinessType,
+    OnboardingData as OnboardingDataType,
+} from '@/types/onboarding';
 
-/**
- * Business tier enum
- */
-export enum BusinessTier {
-    MICRO = 'micro',
-    SMALL = 'small',
-    MEDIUM = 'medium',
-    ENTERPRISE = 'enterprise',
-}
-
-/**
- * Onboarding step identifiers
- */
-export enum OnboardingStep {
-    BUSINESS_PROFILE = 'business_profile',
-    BUSINESS_TYPE = 'business_type',
-    USAGE_EXPECTATIONS = 'usage_expectations',
-    PLAN_SELECTION = 'plan_selection',
-    WELCOME = 'welcome',
-}
-
-/**
- * Business type categories
- */
-export enum BusinessType {
-    FREE = 'free',
-    RENEWABLES = 'renewables',
-    RETAIL = 'retail',
-    WHOLESALE = 'wholesale',
-    INDUSTRY = 'industry',
-}
+// Re-export for backward compatibility
+export { BusinessTier, OnboardingStep, BusinessType };
 
 /**
  * Onboarding data collected during the process
+ * Extended version with additional fields used by this hook
  */
-export interface OnboardingData {
-    businessName?: string;
-    businessIndustry?: string;
-    businessSize?: 'solo' | 'small' | 'medium' | 'large' | 'enterprise';
-    businessType?: BusinessType;
-    expectedEmployees?: number;
-    expectedLocations?: number;
-    expectedMonthlyTransactions?: number;
-    expectedMonthlyRevenue?: number;
-    selectedPlan?: BusinessTier;
-    recommendedPlan?: BusinessTier;
+export interface OnboardingData extends Partial<OnboardingDataType> {
+    description?: string;
+    website?: string;
 }
 
 /**
@@ -158,7 +128,7 @@ const STEP_METADATA = {
  * Hook for managing onboarding flow with complete backend integration
  */
 export function useOnboarding() {
-    const apolloClient = useApolloClient();
+    const apolloClient = useApolloClient() as unknown as ApolloClient<NormalizedCacheObject>;
     const [onboardingService] = useState(() => getOnboardingService(apolloClient));
     const [currentSession, setCurrentSession] = useState<OnboardingSession | null>(null);
     const [isInitializing, setIsInitializing] = useState(false);
@@ -179,7 +149,7 @@ export function useOnboarding() {
     } = useQuery(GET_AVAILABLE_PLANS);
 
     // Mutation for updating onboarding step
-    const [updateStepMutation, { loading: updateLoading }] = useMutation(
+    const [, { loading: updateLoading }] = useMutation(
         UPDATE_ONBOARDING_STEP,
         {
             refetchQueries: [GET_ONBOARDING_STATUS],
@@ -187,7 +157,7 @@ export function useOnboarding() {
     );
 
     // Mutation for completing onboarding
-    const [completeOnboardingMutation, { loading: completeLoading }] = useMutation(
+    const [, { loading: completeLoading }] = useMutation(
         COMPLETE_ONBOARDING,
         {
             refetchQueries: [GET_ONBOARDING_STATUS],
@@ -359,17 +329,18 @@ export function useOnboarding() {
     const calculateTierRecommendation = useCallback(
         async (businessData: Partial<OnboardingData>) => {
             try {
+                const businessSize = (businessData.businessSize || 'small') as 'solo' | 'small' | 'medium' | 'large' | 'enterprise';
                 const businessProfile = {
                     businessName: businessData.businessName || '',
                     businessIndustry: businessData.businessIndustry || '',
-                    businessSize: businessData.businessSize || 'small',
+                    businessSize,
                     businessType: businessData.businessType || BusinessType.RETAIL,
                     expectedEmployees: businessData.expectedEmployees || 1,
                     expectedLocations: businessData.expectedLocations || 1,
                     expectedMonthlyTransactions: businessData.expectedMonthlyTransactions || 0,
                     expectedMonthlyRevenue: businessData.expectedMonthlyRevenue || 0,
-                    description: businessData.description,
-                    website: businessData.website,
+                    description: businessData.description || '',
+                    website: businessData.website || '',
                 };
 
                 const recommendation: TierRecommendation = await onboardingService.calculateTierRecommendation(businessProfile);

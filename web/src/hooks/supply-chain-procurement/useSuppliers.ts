@@ -19,7 +19,7 @@ import {
   SUPPLIER_CREATED_SUBSCRIPTION,
   SUPPLIER_UPDATED_SUBSCRIPTION,
 } from '@/graphql/subscriptions/supplier';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import type {
   Supplier,
   SupplierConnection,

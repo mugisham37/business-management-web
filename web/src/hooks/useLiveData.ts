@@ -18,14 +18,18 @@ export interface LiveDataState {
 /**
  * Hook for managing live data streams
  */
-export function useLiveData<T = unknown>(resource?: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useLiveData<T = unknown>(_resource?: string) {
   return {
     data: null as T | null,
     isLoading: false,
     error: null as Error | null,
-    subscribe: (resource: string, callback: (data: T) => void) => () => {},
-    unsubscribe: (resource: string) => {},
-    update: (data: Partial<T>) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    subscribe: (_resource: string, _callback: (data: T) => void) => () => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    unsubscribe: (_resource: string) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    update: (_data: Partial<T>) => {},
     getState: (): LiveDataState => ({
       data: new Map(),
       subscriptions: [],

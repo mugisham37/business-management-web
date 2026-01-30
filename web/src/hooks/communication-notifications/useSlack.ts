@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useApolloClient } from '@apollo/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/authentication/useAuth';
 import {
   SlackMessage,
   SlackNotification,

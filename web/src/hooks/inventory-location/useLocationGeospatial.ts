@@ -16,7 +16,7 @@ import {
   CLUSTER_LOCATIONS_BY_PROXIMITY,
   SUGGEST_OPTIMAL_LOCATION
 } from '@/graphql/queries/location-queries';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 
 // Types
 export interface Coordinates {

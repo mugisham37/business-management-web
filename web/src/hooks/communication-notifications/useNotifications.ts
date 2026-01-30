@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSubscription, useApolloClient } from '@apollo/client';
-import { useTenant } from '@/hooks/useTenant';
+import { useTenant } from '@/hooks/orders-sales/useTenant';
 import {
   CommunicationEvent,
   NotificationDeliveryStatus,

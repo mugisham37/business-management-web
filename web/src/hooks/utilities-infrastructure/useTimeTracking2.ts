@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { useCreateMutation, useUpdateMutation } from '@/hooks/useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
 import { errorLogger } from '@/lib/error-handling';
 

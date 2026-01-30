@@ -20,13 +20,18 @@ export interface CacheConfig {
 /**
  * Hook for managing cache strategies
  */
-export function useCacheStrategy(config?: CacheConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useCacheStrategy(_config?: CacheConfig) {
   return {
-    set: (key: string, value: unknown, ttl?: number) => {},
-    get: (key: string) => null as unknown,
-    remove: (key: string) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    set: (_key: string, _value: unknown, _ttl?: number) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    get: (_key: string) => null as unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    remove: (_key: string) => {},
     clear: () => {},
     getStrategy: () => CacheStrategy.MEMORY,
-    updateStrategy: (strategy: CacheStrategy) => {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    updateStrategy: (_strategy: CacheStrategy) => {},
   };
 }

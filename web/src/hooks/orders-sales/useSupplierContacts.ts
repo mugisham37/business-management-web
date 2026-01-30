@@ -12,7 +12,7 @@ import {
   DELETE_SUPPLIER_CONTACT,
   SET_PRIMARY_CONTACT,
 } from '@/graphql/mutations/supplier';
-import { useCreateMutation, useUpdateMutation, useDeleteMutation } from './useGraphQLMutations';
+import { useCreateMutation, useUpdateMutation, useDeleteMutation } from '@/hooks/utilities-infrastructure/useGraphQLMutations';
 import type {
   SupplierContact,
   CreateSupplierContactInput,

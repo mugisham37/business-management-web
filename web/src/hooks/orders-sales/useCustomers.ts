@@ -21,7 +21,7 @@ import {
   UPDATE_CUSTOMER_LOYALTY_POINTS,
 } from '@/graphql/mutations/crm-mutations';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from './useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for managing customers with comprehensive CRUD operations

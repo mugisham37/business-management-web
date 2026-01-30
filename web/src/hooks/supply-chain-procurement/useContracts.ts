@@ -29,7 +29,7 @@ import {
   CONTRACT_RENEWED_SUBSCRIPTION,
 } from '@/graphql/subscriptions/b2b-subscriptions';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 /**
  * Hook for managing contracts with comprehensive operations

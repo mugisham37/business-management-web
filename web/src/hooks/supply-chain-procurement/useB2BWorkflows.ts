@@ -31,7 +31,7 @@ import {
   NEW_PENDING_APPROVAL_SUBSCRIPTION,
 } from '@/graphql/subscriptions/b2b-subscriptions';
 import { useTenantStore } from '@/lib/stores/tenant-store';
-import { useErrorHandler } from './useErrorHandler';
+import { useErrorHandler } from '@/hooks/utilities-infrastructure/useErrorHandler';
 
 export interface WorkflowQueryInput {
   workflowType?: WorkflowType;
