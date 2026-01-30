@@ -49,16 +49,9 @@ export {
 // Real-time specific hooks
 export {
   useRealtime,
-  useUserPresence,
-  useNotifications,
-  useCommunication,
 } from '@/hooks/useRealtime';
 
 export {
-  useLiveInventory,
-  useLiveSales,
-  useLiveCustomerActivity,
-  useLiveAnalytics,
   useLiveData,
 } from '@/hooks/useLiveData';
 

@@ -150,28 +150,28 @@ export class DeviceFingerprintService {
     // Add canvas fingerprint
     try {
       components.canvas = await this.getCanvasFingerprint();
-    } catch (error) {
+    } catch {
       components.canvas = 'blocked';
     }
 
     // Add WebGL fingerprint
     try {
       components.webgl = this.getWebGLFingerprint();
-    } catch (error) {
+    } catch {
       components.webgl = 'blocked';
     }
 
     // Add font detection
     try {
       components.fonts = await this.detectFonts();
-    } catch (error) {
+    } catch {
       components.fonts = [];
     }
 
     // Add plugin information
     try {
       components.plugins = this.getPluginInfo();
-    } catch (error) {
+    } catch {
       components.plugins = [];
     }
 

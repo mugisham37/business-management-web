@@ -5,9 +5,10 @@
  */
 
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/authentication/useAuth';
-import { useOnboarding } from '@/hooks/useOnboarding';
-import { useTierAccess } from '@/hooks/useTierAccess';
+// These imports are reserved for future use
+// import { useAuth } from '@/hooks/authentication/useAuth';
+// import { useOnboarding } from '@/hooks/useOnboarding';
+// import { useTierAccess } from '@/hooks/useTierAccess';
 import { PostAuthRedirectManager } from './post-auth-redirect';
 
 export interface AuthCredentials {

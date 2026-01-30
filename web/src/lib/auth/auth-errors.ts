@@ -206,7 +206,8 @@ export class AuthErrorHandler {
   /**
    * Handle 403 Forbidden errors
    */
-  private handleForbiddenError(error: unknown): AuthError {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handleForbiddenError(_error: unknown): AuthError {
     return {
       code: AuthErrorCode.ACCOUNT_DISABLED,
       message: 'Account access denied',

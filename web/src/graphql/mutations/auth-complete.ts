@@ -313,210 +313,6 @@ export const BULK_REVOKE_PERMISSIONS_MUTATION = gql`
 `;
 
 /**
- * Link social provider mutation
- */
-export const LINK_SOCIAL_PROVIDER_MUTATION = gql`
-  mutation LinkSocialProvider($input: LinkSocialProviderInput!) {
-    linkSocialProvider(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Unlink social provider mutation
- */
-export const UNLINK_SOCIAL_PROVIDER_MUTATION = gql`
-  mutation UnlinkSocialProvider($input: UnlinkSocialProviderInput!) {
-    unlinkSocialProvider(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Update security settings mutation
- */
-export const UPDATE_SECURITY_SETTINGS_MUTATION = gql`
-  mutation UpdateSecuritySettings($input: SecuritySettingsInput!) {
-    updateSecuritySettings(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Block IP address mutation
- */
-export const BLOCK_IP_ADDRESS_MUTATION = gql`
-  mutation BlockIpAddress($input: BlockIpInput!) {
-    blockIpAddress(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Unblock IP address mutation
- */
-export const UNBLOCK_IP_ADDRESS_MUTATION = gql`
-  mutation UnblockIpAddress($input: UnblockIpInput!) {
-    unblockIpAddress(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Update tier mutation
- */
-export const UPDATE_TIER_MUTATION = gql`
-  mutation UpdateTier($input: UpdateTierInput!) {
-    updateTier(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Process payment mutation
- */
-export const PROCESS_PAYMENT_MUTATION = gql`
-  mutation ProcessPayment($input: PaymentInput!) {
-    processPayment(input: $input) {
-      success
-      message
-      paymentId
-    }
-  }
-`;
-  mutation Logout {
-    logout {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Logout from all sessions mutation
- */
-export const LOGOUT_ALL_SESSIONS_MUTATION = gql`
-  mutation LogoutAllSessions {
-    logoutAllSessions {
-      success
-      message
-      terminatedSessions
-    }
-  }
-`;
-
-/**
- * Register user mutation
- */
-export const REGISTER_MUTATION = gql`
-  mutation Register($input: RegisterInput!) {
-    register(input: $input) {
-      success
-      message
-      user {
-        id
-        email
-        tenantId
-        role
-        firstName
-        lastName
-        displayName
-        createdAt
-        isActive
-        emailVerified
-        mfaEnabled
-      }
-    }
-  }
-`;
-
-/**
- * Change password mutation
- */
-export const CHANGE_PASSWORD_MUTATION = gql`
-  mutation ChangePassword($input: ChangePasswordInput!) {
-    changePassword(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Forgot password mutation
- */
-export const FORGOT_PASSWORD_MUTATION = gql`
-  mutation ForgotPassword($input: ForgotPasswordInput!) {
-    forgotPassword(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Reset password mutation
- */
-export const RESET_PASSWORD_MUTATION = gql`
-  mutation ResetPassword($input: ResetPasswordInput!) {
-    resetPassword(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Enable MFA mutation
- */
-export const ENABLE_MFA_MUTATION = gql`
-  mutation EnableMfa($input: EnableMfaInput!) {
-    enableMfa(input: $input) {
-      success
-      message
-      backupCodes
-    }
-  }
-`;
-
-/**
- * Disable MFA mutation
- */
-export const DISABLE_MFA_MUTATION = gql`
-  mutation DisableMfa($input: DisableMfaInput!) {
-    disableMfa(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Generate MFA backup codes mutation
- */
-export const GENERATE_BACKUP_CODES_MUTATION = gql`
-  mutation GenerateBackupCodes($input: GenerateBackupCodesInput!) {
-    generateBackupCodes(input: $input) {
-      success
-      message
-      backupCodes
-    }
-  }
-`;
-
-/**
  * Terminate session mutation
  */
 export const TERMINATE_SESSION_MUTATION = gql`
@@ -524,6 +320,22 @@ export const TERMINATE_SESSION_MUTATION = gql`
     terminateSession(sessionId: $sessionId) {
       success
       message
+    }
+  }
+`;
+
+/**
+ * Create role mutation
+ */
+export const CREATE_ROLE_MUTATION = gql`
+  mutation CreateRole($input: CreateRoleInput!) {
+    createRole(input: $input) {
+      success
+      message
+      role {
+        name
+        permissions
+      }
     }
   }
 `;
@@ -548,108 +360,6 @@ export const UPDATE_SECURITY_SETTINGS_MUTATION = gql`
           allowedHours
           timezone
         }
-      }
-    }
-  }
-`;
-
-/**
- * Grant permission mutation
- */
-export const GRANT_PERMISSION_MUTATION = gql`
-  mutation GrantPermission($input: GrantPermissionInput!) {
-    grantPermission(input: $input) {
-      success
-      message
-      permission {
-        id
-        userId
-        permission
-        resource
-        resourceId
-        grantedBy
-        grantedAt
-        expiresAt
-        isInherited
-      }
-    }
-  }
-`;
-
-/**
- * Revoke permission mutation
- */
-export const REVOKE_PERMISSION_MUTATION = gql`
-  mutation RevokePermission($input: RevokePermissionInput!) {
-    revokePermission(input: $input) {
-      success
-      message
-    }
-  }
-`;
-
-/**
- * Assign role mutation
- */
-export const ASSIGN_ROLE_MUTATION = gql`
-  mutation AssignRole($input: AssignRoleInput!) {
-    assignRole(input: $input) {
-      success
-      message
-      user {
-        id
-        role
-        permissions
-      }
-    }
-  }
-`;
-
-/**
- * Bulk grant permissions mutation
- */
-export const BULK_GRANT_PERMISSIONS_MUTATION = gql`
-  mutation BulkGrantPermissions($input: BulkPermissionInput!) {
-    bulkGrantPermissions(input: $input) {
-      success
-      failed
-      results {
-        userId
-        success
-        message
-      }
-    }
-  }
-`;
-
-/**
- * Bulk revoke permissions mutation
- */
-export const BULK_REVOKE_PERMISSIONS_MUTATION = gql`
-  mutation BulkRevokePermissions($input: BulkPermissionInput!) {
-    bulkRevokePermissions(input: $input) {
-      success
-      failed
-      results {
-        userId
-        success
-        message
-      }
-    }
-  }
-`;
-
-/**
- * Create role mutation
- */
-export const CREATE_ROLE_MUTATION = gql`
-  mutation CreateRole($input: CreateRoleInput!) {
-    createRole(input: $input) {
-      success
-      message
-      role {
-        name
-        permissions
       }
     }
   }

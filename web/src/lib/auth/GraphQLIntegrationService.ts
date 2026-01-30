@@ -14,9 +14,6 @@ import {
     LOGOUT_MUTATION,
     LOGOUT_ALL_SESSIONS_MUTATION,
     REFRESH_TOKEN_MUTATION,
-    CHANGE_PASSWORD_MUTATION,
-    FORGOT_PASSWORD_MUTATION,
-    RESET_PASSWORD_MUTATION,
     ENABLE_MFA_MUTATION,
     DISABLE_MFA_MUTATION,
     VERIFY_MFA_TOKEN_MUTATION,
@@ -25,9 +22,6 @@ import {
     UNLINK_SOCIAL_PROVIDER_MUTATION,
     GRANT_PERMISSION_MUTATION,
     REVOKE_PERMISSION_MUTATION,
-    ASSIGN_ROLE_MUTATION,
-    BULK_GRANT_PERMISSIONS_MUTATION,
-    BULK_REVOKE_PERMISSIONS_MUTATION,
     GENERATE_MFA_SETUP_MUTATION,
     UPDATE_TIER_MUTATION,
     TERMINATE_SESSION_MUTATION,
@@ -44,9 +38,6 @@ import {
     ME_QUERY,
     REQUIRES_MFA_QUERY,
     CHECK_PERMISSION_QUERY,
-    GET_AVAILABLE_PERMISSIONS_QUERY,
-    GET_ROLES_QUERY,
-    GET_ROLE_PERMISSIONS_QUERY,
     GET_USER_PERMISSIONS_QUERY,
     GET_MY_TIER_QUERY,
     GET_USER_FEATURES_QUERY,
@@ -583,7 +574,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }
@@ -602,7 +593,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }
@@ -621,7 +612,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }
@@ -640,7 +631,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }
@@ -659,7 +650,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }
@@ -678,7 +669,7 @@ export class GraphQLIntegrationService {
             return {
                 success: false,
                 data: { hasAccess: false },
-                error: error.message
+                error: error instanceof Error ? error.message : 'Feature check failed'
             };
         }
     }

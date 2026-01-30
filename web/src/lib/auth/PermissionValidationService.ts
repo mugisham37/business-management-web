@@ -6,8 +6,17 @@
 
 import { apolloClient } from '@/lib/apollo/client';
 import { permissionsManager } from './permissions-manager';
-import { BusinessTier } from '@/hooks/useTierAccess';
 import { GraphQLIntegrationService } from './GraphQLIntegrationService';
+
+/**
+ * Business tier enum for tier-based access
+ */
+export enum BusinessTier {
+  MICRO = 'micro',
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  ENTERPRISE = 'enterprise',
+}
 
 export interface PermissionValidationResult {
   hasAccess: boolean;
@@ -311,7 +320,7 @@ export class PermissionValidationService {
   async validateGraphQLOperation(
     operationName: string,
     userId?: string,
-    variables?: any
+    variables?: Record<string, unknown>
   ): Promise<PermissionValidationResult> {
     const operationConfig = this.operationPermissionCache.get(operationName);
     
@@ -453,7 +462,9 @@ export class PermissionValidationService {
 
     try {
       const result = await this.graphqlService.getMyTier();
-      const tier = result.data?.tier || BusinessTier.MICRO;
+      // The getMyTier query returns data with 'type' field representing the tier
+      const tierValue = (result.data as { type?: string })?.type;
+      const tier = this.parseTierValue(tierValue);
       
       this.userTierCache.set(cacheKey, {
         tier,
@@ -464,6 +475,27 @@ export class PermissionValidationService {
     } catch (error) {
       console.error('Failed to get user tier:', error);
       return BusinessTier.MICRO; // Default to lowest tier
+    }
+  }
+
+  /**
+   * Parse tier string value to BusinessTier enum
+   */
+  private parseTierValue(tierValue: string | undefined | null): BusinessTier {
+    if (!tierValue) return BusinessTier.MICRO;
+    
+    const normalizedTier = tierValue.toLowerCase();
+    switch (normalizedTier) {
+      case 'micro':
+        return BusinessTier.MICRO;
+      case 'small':
+        return BusinessTier.SMALL;
+      case 'medium':
+        return BusinessTier.MEDIUM;
+      case 'enterprise':
+        return BusinessTier.ENTERPRISE;
+      default:
+        return BusinessTier.MICRO;
     }
   }
 
@@ -510,7 +542,7 @@ export class PermissionValidationService {
       [BusinessTier.ENTERPRISE]: ['*:*'], // Enterprise has access to everything
     };
 
-    const userTierOverrides = tierOverrides[userTier];
+    const userTierOverrides = tierOverrides[userTier] ?? [];
     
     // Check if tier provides override for conflicting permissions
     const hasOverride = conflictingPermissions.some(permission => 
@@ -531,7 +563,7 @@ export class PermissionValidationService {
         conflictResolution: {
           resolvedBy: 'tier',
           originalConflict: `Missing permissions: ${conflictingPermissions.join(', ')}`,
-          resolution: `Granted via ${userTier} tier hierarchy`,
+          resolution: `Granted via ${userTier} tier hierarchy for ${requestedAction}`,
         },
       };
     }
@@ -586,6 +618,11 @@ export class PermissionValidationService {
   ): Promise<PermissionValidationResult> {
     try {
       const detailedPermissions = await permissionsManager.getDetailedPermissions(userId);
+
+      if (!detailedPermissions?.detailedPermissions) {
+        return { hasAccess: false };
+      }
+
       const inheritedPermissions = detailedPermissions.detailedPermissions
         .filter(perm => perm.isInherited)
         .map(perm => perm.permission);
@@ -598,7 +635,7 @@ export class PermissionValidationService {
           conflictResolution: {
             resolvedBy: 'hierarchy',
             originalConflict: `Missing permissions: ${conflictingPermissions.join(', ')}`,
-            resolution: `Granted via inherited permissions from role: ${detailedPermissions.role}`,
+            resolution: `Granted via inherited permissions from role: ${detailedPermissions.role || 'unknown'}`,
           },
         };
       }

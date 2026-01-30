@@ -204,7 +204,8 @@ export class SessionRenewalManager {
   /**
    * Extract token expiry from JWT token
    */
-  private extractTokenExpiry(token: string): number | null {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private extractTokenExpiry(_token: string): number | null {
     try {
       // For mock tokens, return a future timestamp
       // In real implementation, decode JWT and extract 'exp' claim
@@ -218,7 +219,8 @@ export class SessionRenewalManager {
   /**
    * Extract user ID from JWT token
    */
-  private extractUserIdFromToken(token: string): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private extractUserIdFromToken(_token: string): string | null {
     try {
       // For mock tokens, return a mock user ID
       // In real implementation, decode JWT and extract user ID

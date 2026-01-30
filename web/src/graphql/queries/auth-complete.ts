@@ -218,30 +218,6 @@ export const GET_DETAILED_PERMISSIONS_QUERY = gql`
 `;
 
 /**
- * Get social auth URL
- */
-export const GET_SOCIAL_AUTH_URL_QUERY = gql`
-  query GetSocialAuthUrl($provider: String!, $tenantId: String!) {
-    getSocialAuthUrl(provider: $provider, tenantId: $tenantId)
-  }
-`;
-
-/**
- * Get connected social providers
- */
-export const GET_CONNECTED_SOCIAL_PROVIDERS_QUERY = gql`
-  query GetConnectedSocialProviders {
-    getConnectedSocialProviders {
-      provider
-      providerId
-      email
-      displayName
-      connectedAt
-    }
-  }
-`;
-
-/**
  * Get security settings
  */
 export const GET_SECURITY_SETTINGS_QUERY = gql`
@@ -293,94 +269,6 @@ export const GET_UPGRADE_RECOMMENDATIONS_QUERY = gql`
 `;
 
 /**
- * Get subscription status
- */
-export const GET_SUBSCRIPTION_STATUS_QUERY = gql`
-  query GetSubscriptionStatus {
-    getSubscriptionStatus {
-      tier
-      billingCycle
-      status
-      nextBillingDate
-      cancelAtPeriodEnd
-      trialEndsAt
-    }
-  }
-`;
-export const GET_MY_PERMISSIONS_QUERY = gql`
-  query GetMyPermissions {
-    getMyPermissions {
-      permissions
-      role
-      detailedPermissions {
-        id
-        userId
-        permission
-        resource
-        resourceId
-        grantedBy
-        grantedAt
-        expiresAt
-        isInherited
-      }
-      includesInherited
-    }
-  }
-`;
-
-/**
- * Check permission
- */
-export const CHECK_PERMISSION_QUERY = gql`
-  query CheckPermission($input: CheckPermissionInput!) {
-    checkPermission(input: $input) {
-      hasPermission
-      source
-      grantedAt
-      expiresAt
-    }
-  }
-`;
-
-/**
- * Get available permissions
- */
-export const GET_AVAILABLE_PERMISSIONS_QUERY = gql`
-  query GetAvailablePermissions {
-    getAvailablePermissions {
-      permissions
-      resources
-      actions
-      roles {
-        name
-        permissions
-      }
-    }
-  }
-`;
-
-/**
- * Get roles
- */
-export const GET_ROLES_QUERY = gql`
-  query GetRoles {
-    getRoles {
-      name
-      permissions
-    }
-  }
-`;
-
-/**
- * Get role permissions
- */
-export const GET_ROLE_PERMISSIONS_QUERY = gql`
-  query GetRolePermissions($role: String!) {
-    getRolePermissions(role: $role)
-  }
-`;
-
-/**
  * Get active sessions
  */
 export const GET_ACTIVE_SESSIONS_QUERY = gql`
@@ -396,27 +284,6 @@ export const GET_ACTIVE_SESSIONS_QUERY = gql`
       expiresAt
       isActive
       isCurrentSession
-    }
-  }
-`;
-
-/**
- * Get security settings
- */
-export const GET_SECURITY_SETTINGS_QUERY = gql`
-  query GetSecuritySettings {
-    getSecuritySettings {
-      mfaEnabled
-      sessionTimeout
-      maxSessions
-      passwordExpiryDays
-      requirePasswordChange
-      allowedIpAddresses
-      blockedIpAddresses
-      timeBasedAccess {
-        allowedHours
-        timezone
-      }
     }
   }
 `;
@@ -769,18 +636,9 @@ export const GET_USER_FEATURES_QUERY = gql`
 `;
 
 /**
- * Get upgrade recommendations for user
+ * Check if MFA is enabled for current user (detailed)
  */
-export const GET_UPGRADE_RECOMMENDATIONS_QUERY = gql`
-  query GetUpgradeRecommendations {
-    getUpgradeRecommendations
-  }
-`;
-
-/**
- * Check if MFA is enabled for current user
- */
-export const IS_MFA_ENABLED_QUERY = gql`
+export const IS_MFA_ENABLED_DETAILED_QUERY = gql`
   query IsMfaEnabled {
     isMfaEnabled
   }

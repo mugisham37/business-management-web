@@ -132,13 +132,27 @@ export class GraphQLPermissionInterceptor extends ApolloLink {
       }
     }
 
-    return {
+    const extracted: OperationContext = {
       operationName: operationName || '',
-      operationType,
-      variables,
-      userId: context.userId,
-      skipPermissionCheck: context.skipPermissionCheck,
     };
+
+    if (operationType) {
+      extracted.operationType = operationType;
+    }
+
+    if (variables) {
+      extracted.variables = variables;
+    }
+
+    if (context.userId) {
+      extracted.userId = context.userId;
+    }
+
+    if (context.skipPermissionCheck) {
+      extracted.skipPermissionCheck = true;
+    }
+
+    return extracted;
   }
 
   /**
@@ -199,9 +213,9 @@ export function withUserId(userId: string) {
 /**
  * Higher-order function to wrap GraphQL operations with permission context
  */
-export function withPermissionContext<T extends Record<string, unknown>>(
-  context: T
-): T & { skipPermissionCheck?: boolean; userId?: string } {
+export function withPermissionContext(
+  context: Record<string, unknown>
+): Record<string, unknown> & { skipPermissionCheck?: boolean; userId?: string } {
   return context;
 }
 
@@ -218,7 +232,7 @@ export class PermissionAwareGraphQLExecutor {
   /**
    * Execute operation with permission validation
    */
-  async executeWithPermissionCheck<T = Record<string, unknown>>(
+  async executeWithPermissionCheck(
     operation: {
       operationName: string;
       operationType: 'query' | 'mutation' | 'subscription';
@@ -233,10 +247,9 @@ export class PermissionAwareGraphQLExecutor {
         operation.variables
       );
 
-      return {
-        canExecute: validationResult.hasAccess,
-        reason: validationResult.reason || undefined,
-      };
+      return validationResult.reason
+        ? { canExecute: validationResult.hasAccess, reason: validationResult.reason }
+        : { canExecute: validationResult.hasAccess };
     } catch (error) {
       console.error('Permission check failed:', error);
       return {
@@ -268,10 +281,9 @@ export class PermissionAwareGraphQLExecutor {
             operation.variables
           );
 
-          results[operation.operationName] = {
-            canExecute: validationResult.hasAccess,
-            reason: validationResult.reason || undefined,
-          };
+          results[operation.operationName] = validationResult.reason
+            ? { canExecute: validationResult.hasAccess, reason: validationResult.reason }
+            : { canExecute: validationResult.hasAccess };
         } catch (error) {
           console.error(`Permission check failed for ${operation.operationName}:`, error);
           results[operation.operationName] = {

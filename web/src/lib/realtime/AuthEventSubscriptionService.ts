@@ -12,7 +12,6 @@ import {
     USER_SESSION_EVENTS_SUBSCRIPTION,
     TENANT_ROLE_EVENTS_SUBSCRIPTION,
     USER_EVENTS_SUBSCRIPTION,
-    USER_AUTH_EVENTS_SUBSCRIPTION,
 } from '@/graphql/subscriptions/auth-subscriptions';
 
 export interface AuthEvent {
@@ -74,10 +73,12 @@ export interface EventHandler<T = Record<string, unknown>> {
     (event: T): void;
 }
 
+type GenericEventHandler = (event: Record<string, unknown>) => void;
+
 export class AuthEventSubscriptionService {
     private apolloClient: ApolloClient<Record<string, unknown>>;
     private subscriptions: Map<string, unknown> = new Map();
-    private eventHandlers: Map<string, EventHandler[]> = new Map();
+    private eventHandlers: Map<string, GenericEventHandler[]> = new Map();
     private authEventHandlers: EventHandler<AuthEvent>[] = [];
     private permissionChangeHandlers: EventHandler<PermissionChange>[] = [];
     private securityAlertHandlers: EventHandler<SecurityAlert>[] = [];
@@ -99,7 +100,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.authEvents) {
-                        this.notifyHandlers('auth_events', data.authEvents);
+                        this.notifyHandlers('auth_events', data.authEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -110,10 +111,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('auth_events', handler);
+        this.addEventHandler('auth_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('auth_events', handler);
+            this.removeEventHandler('auth_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('auth_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -132,7 +133,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.permissionChanges) {
-                        this.notifyHandlers('permission_changes', data.permissionChanges);
+                        this.notifyHandlers('permission_changes', data.permissionChanges as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -143,10 +144,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('permission_changes', handler);
+        this.addEventHandler('permission_changes', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('permission_changes', handler);
+            this.removeEventHandler('permission_changes', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('permission_changes') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -165,7 +166,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.securityAlerts) {
-                        this.notifyHandlers('security_alerts', data.securityAlerts);
+                        this.notifyHandlers('security_alerts', data.securityAlerts as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -176,10 +177,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('security_alerts', handler);
+        this.addEventHandler('security_alerts', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('security_alerts', handler);
+            this.removeEventHandler('security_alerts', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('security_alerts') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -198,7 +199,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.mfaEvents) {
-                        this.notifyHandlers('mfa_events', data.mfaEvents);
+                        this.notifyHandlers('mfa_events', data.mfaEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -209,10 +210,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('mfa_events', handler);
+        this.addEventHandler('mfa_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('mfa_events', handler);
+            this.removeEventHandler('mfa_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('mfa_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -231,7 +232,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.sessionEvents) {
-                        this.notifyHandlers('session_events', data.sessionEvents);
+                        this.notifyHandlers('session_events', data.sessionEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -242,10 +243,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('session_events', handler);
+        this.addEventHandler('session_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('session_events', handler);
+            this.removeEventHandler('session_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('session_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -264,7 +265,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.tierChanges) {
-                        this.notifyHandlers('tier_changes', data.tierChanges);
+                        this.notifyHandlers('tier_changes', data.tierChanges as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -275,10 +276,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('tier_changes', handler);
+        this.addEventHandler('tier_changes', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('tier_changes', handler);
+            this.removeEventHandler('tier_changes', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('tier_changes') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -297,7 +298,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.paymentEvents) {
-                        this.notifyHandlers('payment_events', data.paymentEvents);
+                        this.notifyHandlers('payment_events', data.paymentEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -308,10 +309,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('payment_events', handler);
+        this.addEventHandler('payment_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('payment_events', handler);
+            this.removeEventHandler('payment_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('payment_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -330,7 +331,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.deviceTrustEvents) {
-                        this.notifyHandlers('device_trust_events', data.deviceTrustEvents);
+                        this.notifyHandlers('device_trust_events', data.deviceTrustEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -341,10 +342,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('device_trust_events', handler);
+        this.addEventHandler('device_trust_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('device_trust_events', handler);
+            this.removeEventHandler('device_trust_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('device_trust_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -363,7 +364,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.onboardingProgress) {
-                        this.notifyHandlers('onboarding_progress', data.onboardingProgress);
+                        this.notifyHandlers('onboarding_progress', data.onboardingProgress as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -374,10 +375,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('onboarding_progress', handler);
+        this.addEventHandler('onboarding_progress', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('onboarding_progress', handler);
+            this.removeEventHandler('onboarding_progress', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('onboarding_progress') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -396,7 +397,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.tenantAuthEvents) {
-                        this.notifyHandlers('tenant_auth_events', data.tenantAuthEvents);
+                        this.notifyHandlers('tenant_auth_events', data.tenantAuthEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -407,10 +408,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('tenant_auth_events', handler);
+        this.addEventHandler('tenant_auth_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('tenant_auth_events', handler);
+            this.removeEventHandler('tenant_auth_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('tenant_auth_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -429,7 +430,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.roleAssignmentEvents) {
-                        this.notifyHandlers('role_assignment_events', data.roleAssignmentEvents);
+                        this.notifyHandlers('role_assignment_events', data.roleAssignmentEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -440,10 +441,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('role_assignment_events', handler);
+        this.addEventHandler('role_assignment_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('role_assignment_events', handler);
+            this.removeEventHandler('role_assignment_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('role_assignment_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -463,7 +464,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.userEvents) {
-                        this.notifyHandlers(subscriptionKey, data.userEvents);
+                        this.notifyHandlers(subscriptionKey, data.userEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -474,10 +475,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler(subscriptionKey, handler);
+        this.addEventHandler(subscriptionKey, handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler(subscriptionKey, handler);
+            this.removeEventHandler(subscriptionKey, handler as unknown as GenericEventHandler);
             if (this.getHandlerCount(subscriptionKey) === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -496,7 +497,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.ipRestrictionEvents) {
-                        this.notifyHandlers('ip_restriction_events', data.ipRestrictionEvents);
+                        this.notifyHandlers('ip_restriction_events', data.ipRestrictionEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -507,10 +508,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('ip_restriction_events', handler);
+        this.addEventHandler('ip_restriction_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('ip_restriction_events', handler);
+            this.removeEventHandler('ip_restriction_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('ip_restriction_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -529,7 +530,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.sessionLimitEvents) {
-                        this.notifyHandlers('session_limit_events', data.sessionLimitEvents);
+                        this.notifyHandlers('session_limit_events', data.sessionLimitEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -540,10 +541,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('session_limit_events', handler);
+        this.addEventHandler('session_limit_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('session_limit_events', handler);
+            this.removeEventHandler('session_limit_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('session_limit_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -562,7 +563,7 @@ export class AuthEventSubscriptionService {
             }).subscribe({
                 next: ({ data }) => {
                     if (data?.passwordPolicyEvents) {
-                        this.notifyHandlers('password_policy_events', data.passwordPolicyEvents);
+                        this.notifyHandlers('password_policy_events', data.passwordPolicyEvents as Record<string, unknown>);
                     }
                 },
                 error: (error) => {
@@ -573,10 +574,10 @@ export class AuthEventSubscriptionService {
             this.subscriptions.set(subscriptionKey, subscription);
         }
 
-        this.addEventHandler('password_policy_events', handler);
+        this.addEventHandler('password_policy_events', handler as unknown as GenericEventHandler);
 
         return () => {
-            this.removeEventHandler('password_policy_events', handler);
+            this.removeEventHandler('password_policy_events', handler as unknown as GenericEventHandler);
             if (this.getHandlerCount('password_policy_events') === 0) {
                 this.unsubscribe(subscriptionKey);
             }
@@ -602,14 +603,14 @@ export class AuthEventSubscriptionService {
     /**
      * Private helper methods
      */
-    private addEventHandler(eventType: string, handler: EventHandler): void {
+    private addEventHandler(eventType: string, handler: GenericEventHandler): void {
         // Add to event handler map
         const handlers = this.eventHandlers.get(eventType) || [];
         handlers.push(handler);
         this.eventHandlers.set(eventType, handlers);
     }
 
-    private removeEventHandler(eventType: string, handler: EventHandler): void {
+    private removeEventHandler(eventType: string, handler: GenericEventHandler): void {
         const handlers = this.eventHandlers.get(eventType) || [];
         const index = handlers.indexOf(handler);
         if (index > -1) {
@@ -623,7 +624,7 @@ export class AuthEventSubscriptionService {
     }
 
     private notifyHandlers(eventType: string, event: Record<string, unknown>): void {
-        const handlers = this.subscriptions.get(eventType) as EventHandler[] | undefined;
+        const handlers = this.eventHandlers.get(eventType);
         if (handlers) {
             handlers.forEach(handler => {
                 try {

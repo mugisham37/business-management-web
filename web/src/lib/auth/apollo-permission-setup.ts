@@ -129,13 +129,13 @@ export function createPermissionAwareQuery<TData = Record<string, unknown>, TVar
     try {
       const result = await client.query<TData, TVariables>({
         query,
-        variables,
         context: {
           ...context,
           ...(skipPermissionCheck && { skipPermissionCheck: true }),
           ...(userId && { userId }),
         },
         fetchPolicy: 'network-only',
+        ...(typeof variables !== 'undefined' ? { variables } : {}),
       });
 
       return result;
@@ -174,12 +174,12 @@ export function createPermissionAwareMutation<TData = Record<string, unknown>, T
     try {
       const result = await client.mutate<TData, TVariables>({
         mutation,
-        variables,
         context: {
           ...context,
           ...(skipPermissionCheck && { skipPermissionCheck: true }),
           ...(userId && { userId }),
         },
+        ...(typeof variables !== 'undefined' ? { variables } : {}),
       });
 
       return result;

@@ -12,6 +12,7 @@ export interface AuthEvent {
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   message: string;
+  userId: string;
   metadata?: Record<string, unknown>;
   timestamp: Date;
   ipAddress?: string;
@@ -71,6 +72,7 @@ export interface SecurityAlert {
   id: string;
   type: SecurityAlertType;
   severity: 'low' | 'medium' | 'high' | 'critical';
+  userId: string;
   title: string;
   message: string;
   actionRequired?: boolean;
@@ -85,6 +87,7 @@ export enum SecurityAlertType {
   SUSPICIOUS_LOGIN = 'suspicious_login',
   MULTIPLE_FAILED_LOGINS = 'multiple_failed_logins',
   UNUSUAL_LOCATION = 'unusual_location',
+  UNUSUAL_LOGIN = 'unusual_login',
   NEW_DEVICE_DETECTED = 'new_device_detected',
   ACCOUNT_COMPROMISE_SUSPECTED = 'account_compromise_suspected',
   SECURITY_POLICY_VIOLATION = 'security_policy_violation'
@@ -302,11 +305,21 @@ export class AuthEventManager extends EventEmitter {
         severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
         title: String(data.title || ''),
         message: String(data.message || ''),
-        metadata: (data.metadata as Record<string, unknown>) || undefined,
+        userId: String(data.userId || ''),
         timestamp: new Date(String(data.timestamp || new Date())),
-        ...((data.ipAddress) && { ipAddress: String(data.ipAddress) }),
-        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
-        targetUserId: data.targetUserId as string | undefined,        userId: String(data.userId || ''),      };
+      };
+      if (data.metadata) {
+        authEvent.metadata = data.metadata as Record<string, unknown>;
+      }
+      if (data.ipAddress) {
+        authEvent.ipAddress = String(data.ipAddress);
+      }
+      if (data.deviceInfo) {
+        authEvent.deviceInfo = data.deviceInfo as DeviceInfo;
+      }
+      if (data.targetUserId) {
+        authEvent.targetUserId = String(data.targetUserId);
+      }
       this.handleAuthEvent(authEvent);
     });
 
@@ -317,10 +330,16 @@ export class AuthEventManager extends EventEmitter {
         type: (data.type as SessionEventType) || SessionEventType.SESSION_CREATED,
         sessionId: String(data.sessionId || ''),
         timestamp: new Date(String(data.timestamp || new Date())),
-        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
-        reason: data.reason as string | undefined,
-        targetUserId: data.targetUserId as string | undefined,
       };
+      if (data.deviceInfo) {
+        sessionEvent.deviceInfo = data.deviceInfo as DeviceInfo;
+      }
+      if (data.reason) {
+        sessionEvent.reason = String(data.reason);
+      }
+      if (data.targetUserId) {
+        sessionEvent.targetUserId = String(data.targetUserId);
+      }
       this.handleSessionEvent(sessionEvent);
     });
 
@@ -328,17 +347,23 @@ export class AuthEventManager extends EventEmitter {
     webSocketManager.on('message:security_alert', (data: Record<string, unknown>) => {
       const securityAlert: SecurityAlert = {
         id: String(data.id || ''),
-        type: (data.type as SecurityAlertType) || SecurityAlertType.UNUSUAL_LOGIN,
+        type: (data.type as SecurityAlertType) || SecurityAlertType.UNUSUAL_LOCATION,
         severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
         userId: String(data.userId || ''),
         title: String(data.title || ''),
         message: String(data.message || ''),
         timestamp: new Date(String(data.timestamp || new Date())),
         metadata: (data.metadata as Record<string, unknown>) || {},
-        actionRequired: data.actionRequired as boolean | undefined,
-        actionUrl: data.actionUrl as string | undefined,
-        actionLabel: data.actionLabel as string | undefined,
       };
+      if (data.actionRequired !== undefined) {
+        securityAlert.actionRequired = Boolean(data.actionRequired);
+      }
+      if (data.actionUrl) {
+        securityAlert.actionUrl = String(data.actionUrl);
+      }
+      if (data.actionLabel) {
+        securityAlert.actionLabel = String(data.actionLabel);
+      }
       this.handleSecurityAlert(securityAlert);
     });
 
@@ -350,11 +375,17 @@ export class AuthEventManager extends EventEmitter {
         title: String(data.title || ''),
         message: String(data.message || ''),
         severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
-        sourceDevice: (data.sourceDevice as DeviceInfo) || {} as DeviceInfo,
-        metadata: (data.metadata as Record<string, unknown>) || {},
         timestamp: new Date(String(data.timestamp || new Date())),
-        excludeDevices: (data.excludeDevices as string[]) || [],
       };
+      if (data.sourceDevice) {
+        notification.sourceDevice = data.sourceDevice as DeviceInfo;
+      }
+      if (data.metadata) {
+        notification.metadata = data.metadata as Record<string, unknown>;
+      }
+      if (data.excludeDevices) {
+        notification.excludeDevices = data.excludeDevices as string[];
+      }
       this.handleCrossDeviceNotification(notification);
     });
 
@@ -366,11 +397,21 @@ export class AuthEventManager extends EventEmitter {
         severity: (data.severity as 'low' | 'medium' | 'high' | 'critical') || 'low',
         title: String(data.title || ''),
         message: String(data.message || ''),
-        metadata: (data.metadata as Record<string, unknown>) || undefined,
+        userId: String(data.userId || ''),
         timestamp: new Date(String(data.timestamp || new Date())),
-        ...((data.ipAddress) && { ipAddress: String(data.ipAddress) }),
-        deviceInfo: data.deviceInfo as DeviceInfo | undefined,
-        targetUserId: data.targetUserId as string | undefined,        userId: String(data.userId || ''),      };
+      };
+      if (data.metadata) {
+        securityEvent.metadata = data.metadata as Record<string, unknown>;
+      }
+      if (data.ipAddress) {
+        securityEvent.ipAddress = String(data.ipAddress);
+      }
+      if (data.deviceInfo) {
+        securityEvent.deviceInfo = data.deviceInfo as DeviceInfo;
+      }
+      if (data.targetUserId) {
+        securityEvent.targetUserId = String(data.targetUserId);
+      }
       this.handleAuthEvent(securityEvent);
     });
 
@@ -444,11 +485,13 @@ export class AuthEventManager extends EventEmitter {
       severity: notification.severity,
       title: notification.title,
       message: notification.message,
+      userId: '',
       metadata: notification.metadata || {},
       timestamp: notification.timestamp,
-      deviceInfo: notification.sourceDevice || undefined,
-      userId: '',
     };
+    if (notification.sourceDevice) {
+      authEvent.deviceInfo = notification.sourceDevice;
+    }
 
     this.handleAuthEvent(authEvent);
   }

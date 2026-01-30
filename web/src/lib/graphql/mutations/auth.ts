@@ -230,3 +230,145 @@ export const BULK_REVOKE_PERMISSIONS_MUTATION = gql`
     }
   }
 `;
+
+// Social Provider Mutations
+export const LINK_SOCIAL_PROVIDER_MUTATION = gql`
+  mutation LinkSocialProvider($input: LinkSocialProviderInput!) {
+    linkSocialProvider(input: $input) {
+      success
+      message
+      provider {
+        provider
+        providerId
+        email
+        displayName
+        connectedAt
+      }
+    }
+  }
+`;
+
+export const UNLINK_SOCIAL_PROVIDER_MUTATION = gql`
+  mutation UnlinkSocialProvider($input: UnlinkSocialProviderInput!) {
+    unlinkSocialProvider(input: $input) {
+      success
+      message
+    }
+  }
+`;
+
+// Tier Mutations
+export const UPDATE_TIER_MUTATION = gql`
+  mutation UpdateTier($input: UpdateTierInput!) {
+    updateTier(input: $input) {
+      success
+      message
+      newTier
+      activatedFeatures
+      deactivatedFeatures
+    }
+  }
+`;
+
+// Session Mutations
+export const TERMINATE_SESSION_MUTATION = gql`
+  mutation TerminateSession($sessionId: String!) {
+    terminateSession(sessionId: $sessionId) {
+      success
+      message
+    }
+  }
+`;
+
+// Device Trust Mutations
+export const TRUST_DEVICE_MUTATION = gql`
+  mutation TrustDevice($deviceId: String!) {
+    trustDevice(deviceId: $deviceId) {
+      success
+      message
+    }
+  }
+`;
+
+export const UNTRUST_DEVICE_MUTATION = gql`
+  mutation UntrustDevice($deviceId: String!) {
+    untrustDevice(deviceId: $deviceId) {
+      success
+      message
+    }
+  }
+`;
+
+// Onboarding Mutations
+export const START_ONBOARDING_MUTATION = gql`
+  mutation StartOnboarding($input: StartOnboardingInput!) {
+    startOnboarding(input: $input) {
+      success
+      message
+      sessionId
+      currentStep
+      totalSteps
+    }
+  }
+`;
+
+export const SUBMIT_ONBOARDING_STEP_MUTATION = gql`
+  mutation SubmitOnboardingStep($input: SubmitOnboardingStepInput!) {
+    submitOnboardingStep(input: $input) {
+      success
+      message
+      nextStep
+      isCompleted
+      recommendedTier
+    }
+  }
+`;
+
+export const COMPLETE_ONBOARDING_MUTATION = gql`
+  mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
+    completeOnboarding(input: $input) {
+      success
+      message
+      selectedTier
+      activatedFeatures
+      redirectUrl
+    }
+  }
+`;
+
+// Payment Mutations
+export const PROCESS_PAYMENT_MUTATION = gql`
+  mutation ProcessPayment($input: ProcessPaymentInput!) {
+    processPayment(input: $input) {
+      success
+      message
+      paymentId
+      subscriptionId
+      status
+      nextBillingDate
+    }
+  }
+`;
+
+// Security Settings Mutations
+export const UPDATE_SECURITY_SETTINGS_MUTATION = gql`
+  mutation UpdateSecuritySettings($input: UpdateSecuritySettingsInput!) {
+    updateSecuritySettings(input: $input) {
+      success
+      message
+      settings {
+        mfaEnabled
+        sessionTimeout
+        maxSessions
+        passwordExpiryDays
+        requirePasswordChange
+        allowedIpAddresses
+        blockedIpAddresses
+        timeBasedAccess {
+          allowedHours
+          timezone
+        }
+      }
+    }
+  }
+`;
