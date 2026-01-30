@@ -92,7 +92,7 @@ export function BusinessTypeStep({
             </motion.p>
 
             <motion.div className="grid gap-4" variants={containerVariants}>
-                {BUSINESS_TYPES.map((type, index) => {
+                {BUSINESS_TYPES.map((type) => {
                     const Icon = type.icon;
                     const isSelected = data.businessType === type.value;
 
@@ -116,7 +116,7 @@ export function BusinessTypeStep({
                         >
                             <motion.div
                                 className={cn(
-                                    'w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg',
+                                    'w-14 h-14 rounded-xl flex items-center justify-center bg-linear-to-br shadow-lg',
                                     type.color
                                 )}
                                 whileHover={{ rotate: 5 }}

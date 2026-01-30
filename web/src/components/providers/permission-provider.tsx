@@ -15,9 +15,8 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
     const { user } = useAuth();
 
     // Get permissions and roles from user object
-    // Adjust these based on your actual auth structure
-    const permissions = (user as any)?.permissions || [];
-    const roles = (user as any)?.roles || [];
+    const permissions = user?.permissions || [];
+    const roles = user?.roles || [];
 
     const hasPermission = (permission: string | string[]): boolean => {
         if (!user) return false;

@@ -10,7 +10,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -131,7 +131,7 @@ export function TierDemoPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Access Mode
               </label>
-              <Select value={selectedMode} onValueChange={(value) => setSelectedMode(value as any)}>
+              <Select value={selectedMode} onValueChange={(value) => setSelectedMode(value as 'hide' | 'disable' | 'overlay' | 'prompt')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessTier } from "@/hooks/useTierAccess";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -314,7 +313,7 @@ export function UpgradePromptModal({
             <div className="space-y-3">
               <h4 className="font-medium flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                What you'll unlock
+                What you&apos;ll unlock
               </h4>
               <div className="grid grid-cols-1 gap-2">
                 {newFeatures.slice(0, 3).map((feature, index) => (

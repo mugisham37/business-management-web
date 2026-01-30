@@ -103,7 +103,7 @@ export function InlineUpgradePrompt({
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20"
+        className="relative flex items-center gap-4 p-4 rounded-lg bg-linear-to-r from-primary/10 to-primary/5 border border-primary/20"
       >
         {showDismiss && (
           <Button

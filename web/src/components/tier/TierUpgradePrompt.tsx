@@ -18,13 +18,13 @@ import {
   RiCloseLine,
   RiSparklingLine
 } from '@remixicon/react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierManager } from '@/lib/services/tier-manager.service';
-import { useApolloClient } from '@apollo/client';
+import { useApolloClient, NormalizedCacheObject, ApolloClient } from '@apollo/client';
 
 export interface TierUpgradePromptProps {
   requiredTier?: BusinessTier;
@@ -91,13 +91,12 @@ export function TierUpgradePrompt({
   };
 
   // Get upgrade options
-  const tierManager = getTierManager(apolloClient);
+  const tierManager = getTierManager(apolloClient as ApolloClient<NormalizedCacheObject>);
   const upgradeOptions = tierManager.getUpgradeOptions(currentTier);
-  const targetTier = requiredTier || upgradeOptions[0];
+  const targetTier = requiredTier ?? upgradeOptions[0] ?? BusinessTier.SMALL;
 
   // Get tier comparison data
   const tierComparison = tierManager.getTierComparison();
-  const currentTierData = tierComparison.find(t => t.tier === currentTier);
   const targetTierData = tierComparison.find(t => t.tier === targetTier);
 
   if (compact) {
@@ -105,7 +104,7 @@ export function TierUpgradePrompt({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={`inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg ${className}`}
+        className={`inline-flex items-center gap-2 px-3 py-2 bg-linear-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg ${className}`}
       >
         <RiLockLine className="w-4 h-4 text-indigo-600" />
         <span className="text-sm text-indigo-800">
@@ -136,7 +135,7 @@ export function TierUpgradePrompt({
       animate={{ opacity: 1, y: 0 }}
       className={className}
     >
-      <Card className="border-2 border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
+      <Card className="border-2 border-dashed border-indigo-200 bg-linear-to-br from-indigo-50/50 to-purple-50/50">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -190,12 +189,12 @@ export function TierUpgradePrompt({
             <div className="space-y-3">
               <h4 className="font-medium text-gray-900 flex items-center gap-2">
                 <RiSparklingLine className="w-4 h-4 text-indigo-600" />
-                What you'll get with {tierNames[targetTier]}:
+                What you&apos;ll get with {tierNames[targetTier]}:
               </h4>
               <div className="grid gap-2">
                 {targetTierData.features.slice(0, 4).map((feature, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                    <RiCheckLine className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <RiCheckLine className="w-4 h-4 text-green-500 shrink-0" />
                     <span>{feature}</span>
                   </div>
                 ))}
@@ -239,7 +238,7 @@ export function TierUpgradePrompt({
           <div className="flex gap-3">
             <Button
               onClick={() => handleUpgrade(targetTier)}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+              className="flex-1 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
             >
               <RiStarLine className="w-4 h-4 mr-2" />
               Upgrade to {tierNames[targetTier]}
@@ -247,7 +246,10 @@ export function TierUpgradePrompt({
             {upgradeOptions.length > 1 && (
               <Button
                 variant="outline"
-                onClick={() => handleUpgrade(upgradeOptions[upgradeOptions.length - 1])}
+                onClick={() => {
+                  const lastOption = upgradeOptions[upgradeOptions.length - 1];
+                  if (lastOption) handleUpgrade(lastOption);
+                }}
                 className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
               >
                 View All Plans

@@ -10,7 +10,7 @@
 'use client';
 
 import React, { ReactNode } from 'react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { useBusinessTier, useTierGate, useFeatureGate } from '@/hooks/useTenant';
 import { TierUpgradePrompt } from './TierUpgradePrompt';
 import { FeatureLockedOverlay } from './FeatureLockedOverlay';
@@ -87,12 +87,12 @@ export function TierGate({
             {children}
           </div>
           <FeatureLockedOverlay
-            requiredTier={requiredTier}
-            requiredFeature={requiredFeature}
+            {...(requiredTier !== undefined && { requiredTier })}
+            {...(requiredFeature !== undefined && { requiredFeature })}
             currentTier={businessTier}
             showUpgradePrompt={showUpgradePrompt}
-            title={upgradePromptTitle}
-            description={upgradePromptDescription}
+            {...(upgradePromptTitle !== undefined && { title: upgradePromptTitle })}
+            {...(upgradePromptDescription !== undefined && { description: upgradePromptDescription })}
           />
         </div>
       );
@@ -100,12 +100,12 @@ export function TierGate({
     case 'prompt':
       return (
         <TierUpgradePrompt
-          requiredTier={requiredTier}
-          requiredFeature={requiredFeature}
+          {...(requiredTier !== undefined && { requiredTier })}
+          {...(requiredFeature !== undefined && { requiredFeature })}
           currentTier={businessTier}
-          title={upgradePromptTitle}
-          description={upgradePromptDescription}
-          className={className}
+          {...(upgradePromptTitle !== undefined && { title: upgradePromptTitle })}
+          {...(upgradePromptDescription !== undefined && { description: upgradePromptDescription })}
+          {...(className !== undefined && { className })}
         />
       );
 

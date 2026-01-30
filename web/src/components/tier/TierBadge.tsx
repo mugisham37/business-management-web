@@ -9,7 +9,7 @@
 'use client';
 
 import React from 'react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { Badge } from '@/components/ui/badge';
 import { 
   RiVipCrownLine, 

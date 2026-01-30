@@ -38,10 +38,10 @@ export function RecommendationBanner({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 lg:p-8 text-white ${className}`}
+      className={`relative overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 lg:p-8 text-white ${className}`}
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/90 to-purple-600/90" />
+      <div className="absolute inset-0 bg-linear-to-r from-indigo-600/90 to-purple-600/90" />
       <div className="absolute -top-4 -right-4 h-16 w-16 sm:h-24 sm:w-24 rounded-full bg-white/10" />
       <div className="absolute -bottom-8 -left-8 h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-white/5" />
       
@@ -75,7 +75,7 @@ export function RecommendationBanner({
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   className="flex items-start gap-2 text-xs sm:text-sm text-white/90"
                 >
-                  <RiArrowRightLine className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 flex-shrink-0 text-yellow-300" />
+                  <RiArrowRightLine className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 shrink-0 text-yellow-300" />
                   <span className="leading-relaxed">{reason}</span>
                 </motion.li>
               ))}

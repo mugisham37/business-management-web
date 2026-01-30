@@ -6,17 +6,18 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface RealtimeContextValue {
     isConnected: boolean;
-    subscribe: (channel: string, callback: (data: any) => void) => () => void;
+    subscribe: (channel: string, callback: (data: unknown) => void) => () => void;
     unsubscribe: (channel: string) => void;
-    emit: (channel: string, data: any) => void;
+    emit: (channel: string, data: unknown) => void;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     const [isConnected, setIsConnected] = useState(false);
-    const [subscriptions, setSubscriptions] = useState<Map<string, Set<Function>>>(new Map());
-    const client = useApolloClient();
+    const [subscriptions, setSubscriptions] = useState<Map<string, Set<(data: unknown) => void>>>(new Map());
+    // Apollo client is available for future GraphQL subscription integration
+    useApolloClient();
     const { user } = useAuth();
 
     useEffect(() => {
@@ -30,9 +31,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
             setIsConnected(false);
             subscriptions.clear();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
-    const subscribe = (channel: string, callback: (data: any) => void) => {
+    const subscribe = (channel: string, callback: (data: unknown) => void) => {
         setSubscriptions((prev) => {
             const newSubs = new Map(prev);
             if (!newSubs.has(channel)) {
@@ -66,7 +68,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    const emit = (channel: string, data: any) => {
+    const emit = (channel: string, data: unknown) => {
         const channelSubs = subscriptions.get(channel);
         if (channelSubs) {
             channelSubs.forEach((callback) => callback(data));
@@ -94,7 +96,7 @@ export function useRealtime() {
 // Convenience hook for subscribing to a channel
 export function useRealtimeChannel(
     channel: string,
-    callback: (data: any) => void,
+    callback: (data: unknown) => void,
     deps: React.DependencyList = []
 ) {
     const { subscribe } = useRealtime();

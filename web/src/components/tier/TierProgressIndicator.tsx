@@ -16,14 +16,14 @@ import {
   RiCheckLine,
   RiInformationLine
 } from '@remixicon/react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierManager } from '@/lib/services/tier-manager.service';
-import { useApolloClient } from '@apollo/client';
+import { useApolloClient, NormalizedCacheObject, ApolloClient } from '@apollo/client';
 
 export interface TierProgressIndicatorProps {
   currentTier: BusinessTier;
@@ -56,10 +56,10 @@ export function TierProgressIndicator({
 }: TierProgressIndicatorProps) {
   const { openSubscriptionModal } = useSubscription();
   const apolloClient = useApolloClient();
-  const tierManager = getTierManager(apolloClient);
+  const tierManager = getTierManager(apolloClient as ApolloClient<NormalizedCacheObject>);
 
-  // Get current tier limits
-  const tierFeatures = tierManager.getTierFeatures(currentTier);
+  // Get current tier limits (synchronous for immediate rendering)
+  const tierFeatures = tierManager.getTierFeaturesSync(currentTier);
   const limits = tierFeatures.limits;
   
   // Get upgrade options
@@ -222,7 +222,7 @@ export function TierProgressIndicator({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg"
+            className="mt-6 p-4 bg-linear-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg"
           >
             <div className="flex items-start gap-3">
               <div className="p-2 bg-indigo-100 rounded-lg">
@@ -253,7 +253,7 @@ export function TierProgressIndicator({
         {/* Enterprise unlimited message */}
         {currentTier === BusinessTier.ENTERPRISE && (
           <div className="text-center py-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
               <span className="text-2xl">👑</span>
               <div className="text-left">
                 <p className="font-medium text-yellow-800">Enterprise Plan</p>

@@ -17,7 +17,7 @@ import {
   RiStarLine,
   RiSparklingLine
 } from '@remixicon/react';
-import { BusinessTier } from '@/types/core';
+import { BusinessTier } from '@/types/onboarding';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -76,7 +76,7 @@ export function FeatureLockedOverlay({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="mx-auto w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-4"
+          className="mx-auto w-16 h-16 bg-linear-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-4"
         >
           <RiLockLine className="w-8 h-8 text-indigo-600" />
         </motion.div>
@@ -122,7 +122,7 @@ export function FeatureLockedOverlay({
           >
             <Button
               onClick={handleUpgrade}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2"
+              className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2"
             >
               <RiStarLine className="w-4 h-4 mr-2" />
               Upgrade Now

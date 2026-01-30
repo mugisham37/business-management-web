@@ -183,12 +183,12 @@ export function SubscriptionModal({
                   {/* Features */}
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-gray-50 mb-2 sm:mb-3 text-sm sm:text-base">
-                      What's included:
+                      What&apos;s included:
                     </h4>
                     <ul className="space-y-1 sm:space-y-2">
                       {tierConfig.features.slice(0, isMobile ? 3 : 5).map((feature) => (
                         <li key={feature.id} className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          <RiCheckLine className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                          <RiCheckLine className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0" />
                           {feature.name}
                         </li>
                       ))}
@@ -204,7 +204,7 @@ export function SubscriptionModal({
                   {hasFreeTrial && (
                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 sm:p-4">
                       <div className="flex items-start gap-2 sm:gap-3">
-                        <RiShieldCheckLine className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                        <RiShieldCheckLine className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-medium text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">
                             Free Trial
@@ -220,7 +220,7 @@ export function SubscriptionModal({
                   {/* Action Button */}
                   <Button
                     onClick={handleSubscribe}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-sm sm:text-base py-2 sm:py-3"
+                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-sm sm:text-base py-2 sm:py-3"
                   >
                     {hasFreeTrial ? 'Start Free Trial' : 'Subscribe Now'}
                     <RiArrowRightLine className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
@@ -275,7 +275,7 @@ export function SubscriptionModal({
 
                   <Button
                     onClick={() => window.location.href = '/dashboard'}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-sm sm:text-base py-2 sm:py-3"
+                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-sm sm:text-base py-2 sm:py-3"
                   >
                     Go to Dashboard
                     <RiArrowRightLine className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />

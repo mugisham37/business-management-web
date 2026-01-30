@@ -45,7 +45,7 @@ export function WelcomeStep({ data, selectedPlan }: WelcomeStepProps) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', duration: 0.6 }}
-                className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center"
+                className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-green-400 to-emerald-600 flex items-center justify-center"
             >
                 <Check className="w-12 h-12 text-white" />
             </motion.div>
@@ -66,7 +66,7 @@ export function WelcomeStep({ data, selectedPlan }: WelcomeStepProps) {
                     {data.businessName && (
                         <>
                             {' '}
-                            Let's get <span className="font-semibold">{data.businessName}</span>{' '}
+                            Let&apos;s get <span className="font-semibold">{data.businessName}</span>{' '}
                             up and running!
                         </>
                     )}
@@ -117,7 +117,7 @@ export function WelcomeStep({ data, selectedPlan }: WelcomeStepProps) {
                 className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400"
             >
                 <Sparkles className="w-4 h-4 text-yellow-500" />
-                <span>You're all set to grow your business!</span>
+                <span>You&apos;re all set to grow your business!</span>
                 <Sparkles className="w-4 h-4 text-yellow-500" />
             </motion.div>
         </div>

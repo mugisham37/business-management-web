@@ -3,6 +3,9 @@
  * Manages tier-based feature access and validation
  */
 
+// Re-export BusinessTier for components that import from this file
+export { BusinessTier } from '@/types/onboarding';
+
 export interface TierLimit {
   feature: string;
   limit: number;

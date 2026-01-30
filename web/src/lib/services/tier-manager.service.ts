@@ -652,6 +652,14 @@ export class TierManager {
   }
 
   /**
+   * Get features for a specific tier synchronously (from cache)
+   * Use this for immediate UI rendering, use getTierFeatures for server-validated data
+   */
+  getTierFeaturesSync(tier: BusinessTier): FeatureSet {
+    return this.tierFeatures[tier];
+  }
+
+  /**
    * Check if a permission is granted for a specific tier
    */
   hasPermission(tier: BusinessTier, permission: string): boolean {

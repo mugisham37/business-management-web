@@ -8,7 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X,
   Check,
   Star,
   Zap,
@@ -24,7 +23,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -170,19 +168,17 @@ export function UpgradeFlowModal({
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { currentUserTier, hasFeatureAccess } = useTierAccess();
+  // useTierAccess hook is available for feature gating
+  useTierAccess();
   const { 
     processUpgrade, 
-    calculateUpgradePrice, 
-    getUpgradeRecommendations,
-    isLoading 
+    calculateUpgradePrice,
   } = useUpgradeFlow();
 
   const selectedTierData = BUSINESS_TIERS.find(tier => tier.id === selectedTier);
   const currentTierData = BUSINESS_TIERS.find(tier => tier.id === currentTier);
 
   const upgradePrice = calculateUpgradePrice(currentTier, selectedTier, billingCycle);
-  const recommendations = getUpgradeRecommendations();
 
   useEffect(() => {
     if (targetTier) {
@@ -350,7 +346,7 @@ export function UpgradeFlowModal({
                         <div className="space-y-2">
                           {tier.features.slice(0, 4).map((feature, index) => (
                             <div key={index} className="flex items-center space-x-2">
-                              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              <Check className="h-4 w-4 text-green-500 shrink-0" />
                               <span className="text-sm">{feature}</span>
                             </div>
                           ))}
@@ -433,7 +429,7 @@ export function UpgradeFlowModal({
 
               <Card>
                 <CardContent className="p-6">
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'card' | 'paypal')}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="card" id="card" />
                       <Label htmlFor="card" className="flex items-center space-x-2">

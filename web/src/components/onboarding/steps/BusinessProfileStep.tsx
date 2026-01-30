@@ -4,15 +4,8 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Building2, Globe, Users, Search, AlertCircle } from 'lucide-react';
-import { OnboardingData } from '@/hooks/useOnboarding';
+import { OnboardingData, BusinessSize } from '@/hooks/useOnboarding';
 import { cn } from '@/lib/utils/cn';
 
 interface BusinessProfileStepProps {
@@ -214,7 +207,7 @@ export function BusinessProfileStep({
                 {filteredIndustries.length === 0 && (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No industries found matching "{industrySearch}"</p>
+                        <p className="text-sm">No industries found matching &quot;{industrySearch}&quot;</p>
                     </div>
                 )}
 
@@ -261,7 +254,7 @@ export function BusinessProfileStep({
                                 name="businessSize"
                                 value={size.value}
                                 checked={data.businessSize === size.value}
-                                onChange={() => onChange({ businessSize: size.value as any })}
+                                onChange={() => onChange({ businessSize: size.value as BusinessSize })}
                                 className="w-4 h-4 text-indigo-600"
                             />
                             <div className="text-2xl">{size.icon}</div>

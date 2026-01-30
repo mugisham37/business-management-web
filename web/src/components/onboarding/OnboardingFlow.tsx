@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useOnboarding, OnboardingStep, BusinessType, BusinessTier } from '@/hooks/useOnboarding';
+import { useOnboarding, OnboardingStep, BusinessTier, OnboardingData } from '@/hooks/useOnboarding';
 import { cn } from '@/lib/utils/cn';
 import { BusinessProfileStep } from './steps/BusinessProfileStep';
 import { BusinessTypeStep } from './steps/BusinessTypeStep';
@@ -40,10 +40,9 @@ export function OnboardingFlow() {
         onboardingData,
         recommendedPlan,
         plans,
-        error,
     } = useOnboarding();
 
-    const [stepData, setStepData] = useState<Record<string, any>>({});
+    const [stepData, setStepData] = useState<Partial<OnboardingData>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
     const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
@@ -55,7 +54,7 @@ export function OnboardingFlow() {
     }, [currentStep]);
 
     // Handle step data updates
-    const handleStepDataChange = useCallback((data: Record<string, any>) => {
+    const handleStepDataChange = useCallback((data: Partial<OnboardingData>) => {
         setStepData((prev) => ({ ...prev, ...data }));
         
         // Clear validation errors for updated fields
@@ -222,16 +221,16 @@ export function OnboardingFlow() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
             {/* Header */}
             <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                 <div className="container mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-white" />
                             </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <span className="text-xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 BizManager
                             </span>
                         </div>
@@ -357,7 +356,7 @@ export function OnboardingFlow() {
                                 <Button
                                     onClick={handleComplete}
                                     disabled={isSubmitting}
-                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                    className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -385,7 +384,7 @@ export function OnboardingFlow() {
                                 <Button
                                     onClick={handleNext}
                                     disabled={isSubmitting}
-                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                    className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
                                 >
                                     {isSubmitting ? (
                                         <>

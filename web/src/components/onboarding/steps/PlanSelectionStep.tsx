@@ -16,7 +16,6 @@ import {
     X
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { OnboardingData, BusinessTier, PlanFeatures } from '@/hooks/useOnboarding';
 import { cn } from '@/lib/utils/cn';
@@ -93,7 +92,7 @@ export function PlanSelectionStep({
     hasAttemptedSubmit = false,
 }: PlanSelectionStepProps) {
     const [isAnnual, setIsAnnual] = useState(true);
-    const [showComparison, setShowComparison] = useState(false);
+    const [, setShowComparison] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<BusinessTier | null>(null);
     
@@ -148,11 +147,11 @@ export function PlanSelectionStep({
             {/* AI Recommendation Banner */}
             {recommendedPlan && (
                 <motion.div 
-                    className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-6 rounded-xl border border-indigo-200 dark:border-indigo-800"
+                    className="bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-6 rounded-xl border border-indigo-200 dark:border-indigo-800"
                     variants={itemVariants}
                 >
                     <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
                             <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1">
@@ -225,7 +224,7 @@ export function PlanSelectionStep({
                     const Icon = PLAN_ICONS[plan.tier] || Zap;
                     const isSelected = selectedPlan === plan.tier;
                     const isRecommended = recommendedPlan === plan.tier;
-                    const price = isAnnual ? plan.price.annually : plan.price.monthly;
+                    const price = isAnnual ? plan.yearlyPrice : plan.monthlyPrice;
 
                     return (
                         <motion.button
@@ -246,11 +245,11 @@ export function PlanSelectionStep({
                             )}
                         >
                             {/* Recommended Badge */}
-                            {isRecommended && (
+            {isRecommended && (
                                 <motion.div 
                                     initial={{ scale: 0, y: 10 }}
                                     animate={{ scale: 1, y: 0 }}
-                                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg"
+                                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-linear-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg"
                                 >
                                     ✨ Recommended
                                 </motion.div>
@@ -260,7 +259,7 @@ export function PlanSelectionStep({
                             <div className="flex items-start justify-between mb-4">
                                 <motion.div
                                     className={cn(
-                                        'w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br shadow-lg',
+                                        'w-12 h-12 rounded-lg flex items-center justify-center bg-linear-to-br shadow-lg',
                                         PLAN_COLORS[plan.tier]
                                     )}
                                     whileHover={{ rotate: 5 }}
@@ -402,7 +401,7 @@ export function PlanSelectionStep({
                             
                             <div className="mb-6">
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                    You're selecting a different plan than our AI recommendation. 
+                                    You&apos;re selecting a different plan than our AI recommendation. 
                                     Are you sure this is the right choice for your business?
                                 </p>
                                 
@@ -432,7 +431,7 @@ export function PlanSelectionStep({
                                 </Button>
                                 <Button
                                     onClick={confirmPlanSelection}
-                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                                    className="flex-1 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                                 >
                                     Confirm Selection
                                     <ArrowRight className="w-4 h-4 ml-2" />

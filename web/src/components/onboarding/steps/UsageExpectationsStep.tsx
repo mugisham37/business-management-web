@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Users, MapPin, ShoppingCart, DollarSign, HelpCircle, AlertCircle, TrendingUp } from 'lucide-react';
@@ -77,7 +76,7 @@ export function UsageExpectationsStep({
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-indigo-600 dark:text-indigo-400">
                     <TrendingUp className="w-4 h-4" />
-                    <span>Don't worry, you can always upgrade or downgrade later</span>
+                    <span>Don&apos;t worry, you can always upgrade or downgrade later</span>
                 </div>
             </motion.div>
 
