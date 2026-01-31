@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Authentication Hook with Retry Logic
  * Enhanced authentication hook with comprehensive error handling and retry mechanisms

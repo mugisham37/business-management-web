@@ -122,8 +122,8 @@ export function useOnboarding() {
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === totalSteps - 1;
 
-  const currentStepMeta: OnboardingStepConfig = useMemo(() => {
-    return ONBOARDING_STEPS[currentStepIndex] || ONBOARDING_STEPS[0];
+  const currentStepMeta = useMemo((): OnboardingStepConfig => {
+    return ONBOARDING_STEPS[currentStepIndex] ?? ONBOARDING_STEPS[0]!;
   }, [currentStepIndex]);
 
   // Calculate recommended plan based on onboarding data

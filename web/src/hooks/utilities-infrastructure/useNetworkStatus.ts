@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Network Status Hook
  * Provides real-time network connectivity status and retry mechanisms

@@ -3,7 +3,7 @@
  * Helper functions for location management operations
  */
 
-import { Location } from '@/hooks/useLocations';
+import { Location } from '@/hooks/inventory-location/useLocations';
 
 // Location status utilities
 export const LOCATION_STATUSES = {

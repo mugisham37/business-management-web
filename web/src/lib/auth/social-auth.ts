@@ -38,15 +38,22 @@ export interface SocialAuthError {
 export class SocialAuthManager {
   private providers: Map<string, SocialAuthProvider> = new Map();
   private popupWindow: Window | null = null;
+  private initialized = false;
 
   constructor() {
-    this.initializeProviders();
+    // Defer initialization until first use (client-side only)
   }
 
   /**
-   * Initialize social auth providers
+   * Initialize social auth providers (lazy initialization)
    */
   private initializeProviders(): void {
+    if (this.initialized || typeof window === 'undefined') {
+      return;
+    }
+    
+    this.initialized = true;
+    
     // Google OAuth configuration
     this.providers.set('google', {
       id: 'google',
@@ -76,9 +83,19 @@ export class SocialAuthManager {
   }
 
   /**
+   * Ensure providers are initialized before use
+   */
+  private ensureInitialized(): void {
+    if (!this.initialized) {
+      this.initializeProviders();
+    }
+  }
+
+  /**
    * Get OAuth authorization URL for a provider
    */
   private getAuthUrl(providerId: string): string {
+    this.ensureInitialized();
     const provider = this.providers.get(providerId);
     if (!provider) {
       throw new Error(`Provider ${providerId} not configured`);
@@ -223,6 +240,7 @@ export class SocialAuthManager {
    * Exchange authorization code for access tokens
    */
   private async exchangeCodeForTokens(providerId: string, code: string): Promise<SocialAuthResult> {
+    this.ensureInitialized();
     const provider = this.providers.get(providerId);
     if (!provider) {
       throw new Error(`Provider ${providerId} not configured`);
@@ -297,6 +315,7 @@ export class SocialAuthManager {
    * Check if provider is configured
    */
   isProviderConfigured(providerId: string): boolean {
+    this.ensureInitialized();
     const provider = this.providers.get(providerId);
     return !!(provider && provider.clientId);
   }
@@ -305,6 +324,7 @@ export class SocialAuthManager {
    * Get available providers
    */
   getAvailableProviders(): SocialAuthProvider[] {
+    this.ensureInitialized();
     return Array.from(this.providers.values()).filter(provider => 
       this.isProviderConfigured(provider.id)
     );

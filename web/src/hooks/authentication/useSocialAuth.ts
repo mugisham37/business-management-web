@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Social Authentication Hook
  * Provides social login functionality with error handling and loading states
