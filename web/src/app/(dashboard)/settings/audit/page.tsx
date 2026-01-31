@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataTable, DataTableColumnHeader } from "@/components/common";
-import { Download, FileText, User, Settings, ShoppingCart, DollarSign, Filter, Search, Calendar, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
+import { Download, FileText, User, Settings, ShoppingCart, DollarSign, Filter, Search, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
 import { GET_AUDIT_LOGS_QUERY } from "@/graphql/queries/auth-complete";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
@@ -26,7 +26,7 @@ interface AuditLog {
   ipAddress: string;
   userAgent: string;
   timestamp: string; 
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   severity: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -53,7 +53,9 @@ const severityIcons = {
   critical: AlertTriangle
 };
 
-const actionIcons: Record<string, any> = {
+type LucideIcon = typeof User;
+
+const actionIcons: Record<string, LucideIcon> = {
   "User Login": User,
   "User Logout": User,
   "Settings Changed": Settings,
@@ -75,7 +77,7 @@ export default function AuditLogsPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 50 });
 
   // GraphQL query for audit logs
-  const { data, loading, error, refetch } = useQuery(GET_AUDIT_LOGS_QUERY, {
+  const { data, loading, error } = useQuery(GET_AUDIT_LOGS_QUERY, {
     variables: {
       filter: {
         ...filter,
@@ -189,7 +191,7 @@ export default function AuditLogsPage() {
     }
   ];
 
-  const handleFilterChange = (key: keyof AuditLogFilter, value: any) => {
+  const handleFilterChange = (key: keyof AuditLogFilter, value: string | DateRange | undefined) => {
     setFilter(prev => ({
       ...prev,
       [key]: value === "all" ? undefined : value
@@ -202,7 +204,7 @@ export default function AuditLogsPage() {
       // In a real implementation, this would call an export API
       const csvContent = [
         "Timestamp,Action,User,Resource,Severity,IP Address",
-        ...displayLogs.map(log => 
+        ...displayLogs.map((log: AuditLog) => 
           `${log.timestamp},${log.action},${log.userId},${log.resource},${log.severity},${log.ipAddress}`
         )
       ].join("\n");
@@ -216,7 +218,7 @@ export default function AuditLogsPage() {
       window.URL.revokeObjectURL(url);
       
       toast.success("Audit logs exported successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to export audit logs");
     }
   };
@@ -229,23 +231,23 @@ export default function AuditLogsPage() {
 
   // Calculate statistics
   const stats = {
-    today: displayLogs.filter(log => {
+    today: displayLogs.filter((log: AuditLog) => {
       const logDate = new Date(log.timestamp);
       const today = new Date();
       return logDate.toDateString() === today.toDateString();
     }).length,
-    thisWeek: displayLogs.filter(log => {
+    thisWeek: displayLogs.filter((log: AuditLog) => {
       const logDate = new Date(log.timestamp);
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return logDate >= weekAgo;
     }).length,
-    uniqueUsers: new Set(displayLogs.map(log => log.userId)).size,
-    criticalEvents: displayLogs.filter(log => log.severity === 'critical').length
+    uniqueUsers: new Set(displayLogs.map((log: AuditLog) => log.userId)).size,
+    criticalEvents: displayLogs.filter((log: AuditLog) => log.severity === 'critical').length
   };
 
   if (error) {
-    console.error("Error loading audit logs:", error);
+    console.error("Error loading audit logs:", error.message);
   }
 
   return (
@@ -409,12 +411,17 @@ export default function AuditLogsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable 
-            columns={columns} 
-            data={displayLogs} 
-            searchKey="action"
-            loading={loading}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <DataTable 
+              columns={columns} 
+              data={displayLogs} 
+              searchKey="action"
+            />
+          )}
         </CardContent>
       </Card>
     </div>

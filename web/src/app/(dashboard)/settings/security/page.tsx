@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/layout/page-header";
-import { Shield, Key, Smartphone, AlertTriangle, Save, Clock, Globe, Plus, X, CheckCircle } from "lucide-react";
+import { Shield, Key, AlertTriangle, Save, Clock, Globe, Plus, X, CheckCircle } from "lucide-react";
 import { GET_SECURITY_SETTINGS_QUERY, GET_IP_RESTRICTIONS_QUERY, GET_TIME_BASED_ACCESS_QUERY } from "@/graphql/queries/auth-complete";
 import { UPDATE_SECURITY_SETTINGS_MUTATION } from "@/graphql/mutations/auth-complete";
 import { toast } from "sonner";
@@ -50,6 +49,7 @@ interface TimeBasedAccess {
 }
 
 export default function SecuritySettingsPage() {
+  // Initialize state with query data
   const [settings, setSettings] = useState<SecuritySettings | null>(null);
   const [ipRestrictions, setIpRestrictions] = useState<IpRestrictions | null>(null);
   const [timeBasedAccess, setTimeBasedAccess] = useState<TimeBasedAccess | null>(null);
@@ -57,34 +57,33 @@ export default function SecuritySettingsPage() {
   const [newBlockedIp, setNewBlockedIp] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
-  // GraphQL queries
-  const { data: securityData, loading: securityLoading, refetch: refetchSecurity } = useQuery(GET_SECURITY_SETTINGS_QUERY);
-  const { data: ipData, loading: ipLoading, refetch: refetchIp } = useQuery(GET_IP_RESTRICTIONS_QUERY);
-  const { data: timeData, loading: timeLoading, refetch: refetchTime } = useQuery(GET_TIME_BASED_ACCESS_QUERY);
+  // GraphQL queries - use onCompleted to initialize state once
+  const { loading: securityLoading, refetch: refetchSecurity } = useQuery(GET_SECURITY_SETTINGS_QUERY, {
+    onCompleted: (data) => {
+      if (data?.getSecuritySettings && !settings) {
+        setSettings(data.getSecuritySettings);
+      }
+    }
+  });
+  const { loading: ipLoading, refetch: refetchIp } = useQuery(GET_IP_RESTRICTIONS_QUERY, {
+    onCompleted: (data) => {
+      if (data?.getIpRestrictions && !ipRestrictions) {
+        setIpRestrictions(data.getIpRestrictions);
+      }
+    }
+  });
+  const { loading: timeLoading, refetch: refetchTime } = useQuery(GET_TIME_BASED_ACCESS_QUERY, {
+    onCompleted: (data) => {
+      if (data?.getTimeBasedAccess && !timeBasedAccess) {
+        setTimeBasedAccess(data.getTimeBasedAccess);
+      }
+    }
+  });
 
   // GraphQL mutations
   const [updateSecuritySettings, { loading: updating }] = useMutation(UPDATE_SECURITY_SETTINGS_MUTATION);
 
-  // Initialize state from GraphQL data
-  useEffect(() => {
-    if (securityData?.getSecuritySettings) {
-      setSettings(securityData.getSecuritySettings);
-    }
-  }, [securityData]);
-
-  useEffect(() => {
-    if (ipData?.getIpRestrictions) {
-      setIpRestrictions(ipData.getIpRestrictions);
-    }
-  }, [ipData]);
-
-  useEffect(() => {
-    if (timeData?.getTimeBasedAccess) {
-      setTimeBasedAccess(timeData.getTimeBasedAccess);
-    }
-  }, [timeData]);
-
-  const handleSettingChange = (key: keyof SecuritySettings, value: any) => {
+  const handleSettingChange = <K extends keyof SecuritySettings>(key: K, value: SecuritySettings[K]) => {
     if (!settings) return;
     
     setSettings(prev => ({
@@ -94,7 +93,7 @@ export default function SecuritySettingsPage() {
     setHasChanges(true);
   };
 
-  const handleTimeBasedAccessChange = (key: keyof TimeBasedAccess, value: any) => {
+  const handleTimeBasedAccessChange = <K extends keyof TimeBasedAccess>(key: K, value: TimeBasedAccess[K]) => {
     if (!timeBasedAccess) return;
     
     setTimeBasedAccess(prev => ({
@@ -237,7 +236,7 @@ export default function SecuritySettingsPage() {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            You have unsaved changes. Click "Save Changes" to apply your security settings.
+            You have unsaved changes. Click &quot;Save Changes&quot; to apply your security settings.
           </AlertDescription>
         </Alert>
       )}

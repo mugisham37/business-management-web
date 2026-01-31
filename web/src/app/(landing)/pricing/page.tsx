@@ -18,7 +18,6 @@ import {
   RiUserLine,
   RiStarFill,
 } from "@remixicon/react"
-import Link from "next/link"
 import React, { Fragment, useState, useMemo, useCallback } from "react"
 import { TIER_CONFIGS, formatLimit } from "@/lib/config/pricing-config"
 import { BusinessTier } from "@/types/pricing"
@@ -35,7 +34,6 @@ export default function Pricing() {
     openSubscriptionModal,
     closeSubscriptionModal,
     handleSubscriptionComplete,
-    hasSubscription,
   } = useSubscription()
   
   // Handle plan selection from recommendation
@@ -148,7 +146,7 @@ export default function Pricing() {
         transition={{ duration: 0.6 }}
       >
         <Badge>Pricing</Badge>
-        <h1 className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300">
+        <h1 className="mt-2 inline-block bg-linear-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300">
           Choose the perfect plan for your business
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-gray-700 dark:text-gray-400">

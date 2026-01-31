@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { 
@@ -13,10 +12,8 @@ import {
   Smartphone, 
   Tablet, 
   Globe, 
-  MapPin, 
   Clock, 
   Shield, 
-  AlertTriangle, 
   X, 
   CheckCircle,
   XCircle,
@@ -69,24 +66,26 @@ interface SessionInfo {
   isCurrentSession: boolean;
 }
 
+type PlatformType = 'web' | 'ios' | 'android' | 'tablet';
+
 interface TrustedDevice {
   deviceId: string;
   deviceName: string;
-  platform: 'web' | 'ios' | 'android';
+  platform: PlatformType;
   fingerprint: string;
   trustedAt: string;
   lastUsed: string;
   isActive: boolean;
 }
 
-const platformIcons = {
+const platformIcons: Record<PlatformType, typeof Monitor> = {
   web: Monitor,
   ios: Smartphone,
   android: Smartphone,
   tablet: Tablet
 };
 
-const platformColors = {
+const platformColors: Record<PlatformType, string> = {
   web: "bg-blue-100 text-blue-800",
   ios: "bg-gray-100 text-gray-800", 
   android: "bg-green-100 text-green-800",
@@ -101,18 +100,17 @@ export default function SessionManagementPage() {
 
   // GraphQL queries
   const { data: sessionsData, loading: sessionsLoading, refetch: refetchSessions } = useQuery(GET_ACTIVE_SESSIONS_QUERY);
-  const { data: devicesData, loading: devicesLoading, refetch: refetchDevices } = useQuery(GET_DEVICE_SESSIONS_QUERY);
+  const { loading: devicesLoading, refetch: refetchDevices } = useQuery(GET_DEVICE_SESSIONS_QUERY);
   const { data: trustedData, loading: trustedLoading, refetch: refetchTrusted } = useQuery(GET_TRUSTED_DEVICES_QUERY);
 
   // GraphQL mutations
   const [terminateSession, { loading: terminating }] = useMutation(TERMINATE_SESSION_MUTATION);
   const [logoutAllSessions, { loading: terminatingAll }] = useMutation(LOGOUT_ALL_SESSIONS_MUTATION);
-  const [trustDevice, { loading: trusting }] = useMutation(TRUST_DEVICE_MUTATION);
+  const [trustDevice] = useMutation(TRUST_DEVICE_MUTATION);
   const [untrustDevice, { loading: untrusting }] = useMutation(UNTRUST_DEVICE_MUTATION);
 
-  const sessions = sessionsData?.getActiveSessions || [];
-  const deviceSessions = devicesData?.getDeviceSessions || [];
-  const trustedDevices = trustedData?.getTrustedDevices || [];
+  const sessions: SessionInfo[] = sessionsData?.getActiveSessions || [];
+  const trustedDevices: TrustedDevice[] = trustedData?.getTrustedDevices || [];
 
   // Fallback data for development/demo
   const fallbackSessions: SessionInfo[] = [
@@ -185,9 +183,8 @@ export default function SessionManagementPage() {
     }
   ];
 
-  const displaySessions = sessions.length > 0 ? sessions : fallbackSessions;
-  const activeSessions = displaySessions.filter(s => s.isActive);
-  const currentSession = displaySessions.find(s => s.isCurrentSession);
+  const displaySessions: SessionInfo[] = sessions.length > 0 ? sessions : fallbackSessions;
+  const activeSessions = displaySessions.filter((s: SessionInfo) => s.isActive);
 
   const handleTerminateSession = async (sessionId: string) => {
     try {
@@ -243,9 +240,12 @@ export default function SessionManagementPage() {
     return "Unknown Location";
   };
 
+  // Calculate threshold time once at component mount - stored in state to avoid impure function during render
+  const [suspiciousThreshold] = useState(() => Date.now() - 24 * 60 * 60 * 1000);
+
   const isSessionSuspicious = (session: SessionInfo) => {
     const suspiciousIPs = ["203.0.113.45", "198.51.100.1"];
-    const oldSession = new Date(session.lastActivity) < new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const oldSession = new Date(session.lastActivity).getTime() < suspiciousThreshold;
     return suspiciousIPs.includes(session.ipAddress) || (!session.deviceInfo.trusted && oldSession);
   };
 
@@ -346,8 +346,8 @@ export default function SessionManagementPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {activeSessions.map((session) => {
-              const PlatformIcon = platformIcons[session.deviceInfo.platform] || Monitor;
+            {activeSessions.map((session: SessionInfo) => {
+              const PlatformIcon = platformIcons[session.deviceInfo.platform as PlatformType] || Monitor;
               const isSuspicious = isSessionSuspicious(session);
               
               return (
@@ -456,7 +456,7 @@ export default function SessionManagementPage() {
                 <p className="text-sm">Trust devices you use regularly for faster sign-in</p>
               </div>
             ) : (
-              trustedDevices.map((device) => {
+              trustedDevices.map((device: TrustedDevice) => {
                 const PlatformIcon = platformIcons[device.platform] || Monitor;
                 
                 return (

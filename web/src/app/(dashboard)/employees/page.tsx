@@ -16,7 +16,6 @@ import {
     Clock,
     DollarSign,
     Briefcase,
-    TrendingUp,
     Award,
 } from "lucide-react";
 import Link from "next/link";
@@ -111,7 +110,7 @@ export default function EmployeesDashboardPage() {
                     title="Employees by Department"
                     description="Staff distribution across teams"
                 >
-                    <div className="h-[300px]">
+                    <div className="h-75">
                         <PieChartComponent
                             data={departmentData}
                             donut
@@ -126,7 +125,7 @@ export default function EmployeesDashboardPage() {
                     title="Weekly Attendance"
                     description="This week's attendance breakdown"
                 >
-                    <div className="h-[300px]">
+                    <div className="h-75">
                         <BarChartComponent
                             data={attendanceData}
                             xKey="day"
@@ -185,7 +184,7 @@ export default function EmployeesDashboardPage() {
                             <Award className="h-5 w-5 text-yellow-500" />
                             Top Performers
                         </CardTitle>
-                        <CardDescription>This month's stars</CardDescription>
+                        <CardDescription>This month&apos;s stars</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { MetricCard } from "@/components/common/metric-card";
 import { ChartWrapper } from "@/components/common/charts/chart-wrapper";
@@ -19,12 +18,10 @@ import {
     Users,
     Package,
     ArrowUpRight,
-    ArrowDownRight,
     AlertTriangle,
     RefreshCw,
     Calendar,
 } from "lucide-react";
-import Link from "next/link";
 
 // Mock data for revenue trend
 const revenueTrendData = [
@@ -63,9 +60,24 @@ const recentActivities = [
     { id: "5", type: "order", message: "Order #12451 shipped", amount: 189.99, time: "2 hours ago", icon: Package },
 ];
 
+interface UserSessionData {
+    isAuthenticated: boolean;
+    user?: {
+        id?: string;
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+        tier?: string;
+        createdAt?: string;
+        hasCompletedOnboarding?: boolean;
+        permissions?: string[];
+    };
+    requiresOnboarding?: boolean;
+}
+
 export default function MainDashboardPage() {
     const { getCurrentSession } = useAuthGateway();
-    const [userSession, setUserSession] = useState<any>(null);
+    const [userSession, setUserSession] = useState<UserSessionData | null>(null);
     const [isNewUser, setIsNewUser] = useState(false);
     
     const totalRevenue = 198000;
@@ -77,13 +89,15 @@ export default function MainDashboardPage() {
         const loadUserSession = async () => {
             try {
                 const session = await getCurrentSession();
-                setUserSession(session);
+                setUserSession(session as UserSessionData);
                 
                 // Check if user is new (created within last 24 hours)
                 // This would typically come from the user data
-                const isNew = session.user?.createdAt && 
-                    new Date().getTime() - new Date(session.user.createdAt).getTime() < 24 * 60 * 60 * 1000;
-                setIsNewUser(isNew || false);
+                const createdAt = session.user?.createdAt;
+                const isNew = createdAt && typeof createdAt === 'string'
+                    ? new Date().getTime() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000
+                    : false;
+                setIsNewUser(isNew);
             } catch (error) {
                 console.error('Failed to load user session:', error);
             }
@@ -119,7 +133,7 @@ export default function MainDashboardPage() {
             {/* Tier Guidance for new users or tier-specific recommendations */}
             {userSession?.user && (
                 <TierGuidance
-                    userTier={userSession.user.tier || 'micro'}
+                    userTier={(userSession.user.tier || 'micro') as 'micro' | 'small' | 'medium' | 'enterprise'}
                     isNewUser={isNewUser}
                     onUpgrade={handleUpgrade}
                 />
@@ -161,7 +175,7 @@ export default function MainDashboardPage() {
                         title="Revenue Trend"
                         description="Monthly revenue and orders over time"
                     >
-                        <div className="h-[350px]">
+                        <div className="h-87.5">
                             <AreaChartComponent
                                 data={revenueTrendData}
                                 xKey="month"
@@ -178,7 +192,7 @@ export default function MainDashboardPage() {
                     title="Order Status"
                     description="Current order distribution"
                 >
-                    <div className="h-[350px]">
+                    <div className="h-87.5">
                         <PieChartComponent
                             data={orderStatusData}
                             donut
@@ -194,7 +208,7 @@ export default function MainDashboardPage() {
                 title="Category Performance"
                 description="Sales by product category"
             >
-                <div className="h-[300px]">
+                <div className="h-75">
                     <BarChartComponent
                         data={categoryPerformanceData}
                         xKey="category"

@@ -9,16 +9,63 @@ interface TokenExchangeRequest {
 interface TokenExchangeResponse {
   provider: string;
   accessToken: string;
-  refreshToken?: string;
+  refreshToken: string | undefined;
   user: {
     id: string;
     email: string;
     name: string;
-    firstName?: string;
-    lastName?: string;
-    avatar?: string;
+    firstName: string | undefined;
+    lastName: string | undefined;
+    avatar: string | undefined;
   };
 }
+
+// OAuth token response interfaces
+interface OAuthTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  scope?: string;
+}
+
+interface GoogleUserProfile {
+  id: string;
+  email: string;
+  name: string;
+  given_name?: string;
+  family_name?: string;
+  picture?: string;
+}
+
+interface FacebookUserProfile {
+  id: string;
+  email: string;
+  name: string;
+  first_name?: string;
+  last_name?: string;
+  picture?: {
+    data?: {
+      url?: string;
+    };
+  };
+}
+
+interface GitHubUserProfile {
+  id: number;
+  email: string;
+  name?: string;
+  login: string;
+  avatar_url?: string;
+}
+
+interface GitHubEmail {
+  email: string;
+  primary: boolean;
+  verified: boolean;
+}
+
+type UserProfile = GoogleUserProfile | FacebookUserProfile | GitHubUserProfile;
 
 /**
  * Exchange OAuth authorization code for access tokens
@@ -35,8 +82,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let tokenResponse: any;
-    let userProfile: any;
+    let tokenResponse: OAuthTokenResponse;
+    let userProfile: UserProfile;
 
     switch (provider) {
       case 'google':
@@ -89,7 +136,7 @@ export async function POST(request: NextRequest) {
 /**
  * Exchange Google authorization code for tokens
  */
-async function exchangeGoogleCode(code: string, redirectUri: string) {
+async function exchangeGoogleCode(code: string, redirectUri: string): Promise<OAuthTokenResponse> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -114,7 +161,7 @@ async function exchangeGoogleCode(code: string, redirectUri: string) {
 /**
  * Get Google user profile
  */
-async function getGoogleUserProfile(accessToken: string) {
+async function getGoogleUserProfile(accessToken: string): Promise<GoogleUserProfile> {
   const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -131,7 +178,7 @@ async function getGoogleUserProfile(accessToken: string) {
 /**
  * Exchange Facebook authorization code for tokens
  */
-async function exchangeFacebookCode(code: string, redirectUri: string) {
+async function exchangeFacebookCode(code: string, redirectUri: string): Promise<OAuthTokenResponse> {
   const response = await fetch('https://graph.facebook.com/v18.0/oauth/access_token', {
     method: 'POST',
     headers: {
@@ -155,7 +202,7 @@ async function exchangeFacebookCode(code: string, redirectUri: string) {
 /**
  * Get Facebook user profile
  */
-async function getFacebookUserProfile(accessToken: string) {
+async function getFacebookUserProfile(accessToken: string): Promise<FacebookUserProfile> {
   const response = await fetch(
     'https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,picture',
     {
@@ -175,7 +222,7 @@ async function getFacebookUserProfile(accessToken: string) {
 /**
  * Exchange GitHub authorization code for tokens
  */
-async function exchangeGithubCode(code: string, redirectUri: string) {
+async function exchangeGithubCode(code: string, redirectUri: string): Promise<OAuthTokenResponse> {
   const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: {
@@ -200,7 +247,7 @@ async function exchangeGithubCode(code: string, redirectUri: string) {
 /**
  * Get GitHub user profile
  */
-async function getGithubUserProfile(accessToken: string) {
+async function getGithubUserProfile(accessToken: string): Promise<GitHubUserProfile> {
   const [userResponse, emailResponse] = await Promise.all([
     fetch('https://api.github.com/user', {
       headers: {
@@ -220,11 +267,11 @@ async function getGithubUserProfile(accessToken: string) {
     throw new Error('Failed to get GitHub user profile');
   }
 
-  const user = await userResponse.json();
-  const emails = emailResponse.ok ? await emailResponse.json() : [];
+  const user: GitHubUserProfile = await userResponse.json();
+  const emails: GitHubEmail[] = emailResponse.ok ? await emailResponse.json() : [];
   
   // Find primary email
-  const primaryEmail = emails.find((email: any) => email.primary)?.email || user.email;
+  const primaryEmail = emails.find((email: GitHubEmail) => email.primary)?.email || user.email;
 
   return {
     ...user,
@@ -232,41 +279,56 @@ async function getGithubUserProfile(accessToken: string) {
   };
 }
 
+interface NormalizedUser {
+  id: string;
+  email: string;
+  name: string;
+  firstName: string | undefined;
+  lastName: string | undefined;
+  avatar: string | undefined;
+}
+
 /**
  * Normalize user data across different providers
  */
-function normalizeUserData(provider: string, profile: any) {
+function normalizeUserData(provider: string, profile: UserProfile): NormalizedUser {
   switch (provider) {
-    case 'google':
+    case 'google': {
+      const googleProfile = profile as GoogleUserProfile;
       return {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        firstName: profile.given_name,
-        lastName: profile.family_name,
-        avatar: profile.picture,
+        id: googleProfile.id,
+        email: googleProfile.email,
+        name: googleProfile.name,
+        firstName: googleProfile.given_name,
+        lastName: googleProfile.family_name,
+        avatar: googleProfile.picture,
       };
+    }
 
-    case 'facebook':
+    case 'facebook': {
+      const fbProfile = profile as FacebookUserProfile;
       return {
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        firstName: profile.first_name,
-        lastName: profile.last_name,
-        avatar: profile.picture?.data?.url,
+        id: fbProfile.id,
+        email: fbProfile.email,
+        name: fbProfile.name,
+        firstName: fbProfile.first_name,
+        lastName: fbProfile.last_name,
+        avatar: fbProfile.picture?.data?.url,
       };
+    }
 
-    case 'github':
-      const nameParts = (profile.name || '').split(' ');
+    case 'github': {
+      const ghProfile = profile as GitHubUserProfile;
+      const nameParts = (ghProfile.name || '').split(' ');
       return {
-        id: profile.id.toString(),
-        email: profile.email,
-        name: profile.name || profile.login,
+        id: ghProfile.id.toString(),
+        email: ghProfile.email,
+        name: ghProfile.name || ghProfile.login,
         firstName: nameParts[0] || '',
         lastName: nameParts.slice(1).join(' ') || '',
-        avatar: profile.avatar_url,
+        avatar: ghProfile.avatar_url,
       };
+    }
 
     default:
       throw new Error(`Unsupported provider: ${provider}`);
