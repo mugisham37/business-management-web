@@ -220,7 +220,7 @@ export default function Pricing() {
             >
               {plan.isRecommended && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                  <div className="bg-linear-to-r from-indigo-600 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                     <RiStarFill className="w-3 h-3" />
                     {hasPersonalizedRecommendation ? 'Recommended for You' : 'Recommended'}
                   </div>
@@ -282,7 +282,7 @@ export default function Pricing() {
                     variant={plan.isStarter ? "secondary" : "primary"} 
                     className={cx(
                       "w-full group",
-                      plan.isRecommended && "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                      plan.isRecommended && "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                     )}
                   >
                     {plan.buttonText}

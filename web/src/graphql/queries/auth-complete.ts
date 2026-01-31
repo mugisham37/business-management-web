@@ -1,6 +1,7 @@
 /**
  * Complete Authentication GraphQL Queries
  * All authentication-related queries for the AuthGateway
+ * @module queries/auth-complete
  */
 
 import { gql } from '@apollo/client';

@@ -6,21 +6,26 @@
 import { useState, useCallback } from 'react';
 import { BusinessTier } from '@/types/pricing';
 
+interface SelectedPlanInfo {
+  tier: BusinessTier;
+  billingCycle: 'monthly' | 'annually';
+}
+
 interface SubscriptionState {
   isModalOpen: boolean;
-  selectedPlan: BusinessTier | null;
+  selectedPlan: SelectedPlanInfo | null;
   billingFrequency: 'monthly' | 'annually';
 }
 
 interface UseSubscriptionReturn {
   isModalOpen: boolean;
-  selectedPlan: BusinessTier | null;
+  selectedPlan: SelectedPlanInfo | null;
   hasSubscription: boolean;
   currentSubscription: SubscriptionInfo | null;
   isLoading: boolean;
   openSubscriptionModal: (tier: BusinessTier, billingFrequency: 'monthly' | 'annually') => void;
   closeSubscriptionModal: () => void;
-  handleSubscriptionComplete: (tier: BusinessTier) => Promise<void>;
+  handleSubscriptionComplete: (subscriptionId: string) => void;
 }
 
 interface SubscriptionInfo {
@@ -50,7 +55,7 @@ export function useSubscription(): UseSubscriptionReturn {
   const openSubscriptionModal = useCallback((tier: BusinessTier, billingFrequency: 'monthly' | 'annually') => {
     setState({
       isModalOpen: true,
-      selectedPlan: tier,
+      selectedPlan: { tier, billingCycle: billingFrequency },
       billingFrequency,
     });
   }, []);
@@ -63,30 +68,25 @@ export function useSubscription(): UseSubscriptionReturn {
     }));
   }, []);
 
-  const handleSubscriptionComplete = useCallback(async (tier: BusinessTier) => {
-    try {
-      setIsLoading(true);
-      
-      // TODO: Replace with actual subscription completion logic
-      // This would typically call a GraphQL mutation or API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update local subscription state
-      setCurrentSubscription({
-        tier,
-        status: 'trialing',
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        cancelAtPeriodEnd: false,
-      });
-
-      closeSubscriptionModal();
-    } catch (error) {
-      console.error('Failed to complete subscription:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+  const handleSubscriptionComplete = useCallback((subscriptionId: string) => {
+    // Get the tier from the current selected plan
+    const tier = state.selectedPlan?.tier;
+    if (!tier) {
+      console.error('No selected plan tier found');
+      return;
     }
-  }, [closeSubscriptionModal]);
+    
+    // Update local subscription state
+    setCurrentSubscription({
+      tier,
+      status: 'trialing',
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      cancelAtPeriodEnd: false,
+    });
+
+    closeSubscriptionModal();
+    console.log('Subscription completed with ID:', subscriptionId);
+  }, [state.selectedPlan, closeSubscriptionModal]);
 
   return {
     isModalOpen: state.isModalOpen,

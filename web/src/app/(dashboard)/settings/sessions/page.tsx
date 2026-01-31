@@ -21,10 +21,10 @@ import {
   Eye,
   MoreHorizontal
 } from "lucide-react";
-import { 
-  GET_ACTIVE_SESSIONS_QUERY, 
-  GET_DEVICE_SESSIONS_QUERY, 
-  GET_TRUSTED_DEVICES_QUERY 
+import {
+  GET_ACTIVE_SESSIONS_QUERY,
+  GET_DEVICE_SESSIONS_QUERY,
+  GET_TRUSTED_DEVICES_QUERY,
 } from "@/graphql/queries/auth-complete";
 import { 
   TERMINATE_SESSION_MUTATION, 

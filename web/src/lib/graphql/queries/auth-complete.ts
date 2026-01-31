@@ -36,6 +36,7 @@ export {
   // Session Queries
   GET_ACTIVE_SESSIONS_QUERY,
   GET_DEVICE_SESSIONS_QUERY,
+  GET_TRUSTED_DEVICES_QUERY,
   // Onboarding Queries
   GET_ONBOARDING_STATUS_QUERY,
   // Subscription Queries
@@ -43,4 +44,6 @@ export {
   // Security Queries
   GET_SECURITY_SETTINGS_QUERY,
   GET_AUDIT_LOGS_QUERY,
+  GET_IP_RESTRICTIONS_QUERY,
+  GET_TIME_BASED_ACCESS_QUERY,
 } from './auth';

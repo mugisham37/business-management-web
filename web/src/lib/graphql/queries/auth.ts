@@ -383,3 +383,46 @@ export const GET_AUDIT_LOGS_QUERY = gql`
     }
   }
 `;
+
+// IP Restrictions Queries
+export const GET_IP_RESTRICTIONS_QUERY = gql`
+  query GetIpRestrictions {
+    getIpRestrictions {
+      allowedIps
+      blockedIps
+      isEnabled
+      lastUpdated
+    }
+  }
+`;
+
+// Time-Based Access Queries
+export const GET_TIME_BASED_ACCESS_QUERY = gql`
+  query GetTimeBasedAccess {
+    getTimeBasedAccess {
+      isEnabled
+      allowedHours
+      timezone
+      exceptions {
+        date
+        allowedHours
+        reason
+      }
+    }
+  }
+`;
+
+// Trusted Devices Queries
+export const GET_TRUSTED_DEVICES_QUERY = gql`
+  query GetTrustedDevices {
+    getTrustedDevices {
+      deviceId
+      deviceName
+      platform
+      fingerprint
+      trustedAt
+      lastUsed
+      isActive
+    }
+  }
+`;

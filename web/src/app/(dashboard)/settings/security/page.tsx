@@ -12,7 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/layout/page-header";
 import { Shield, Key, AlertTriangle, Save, Clock, Globe, Plus, X, CheckCircle } from "lucide-react";
-import { GET_SECURITY_SETTINGS_QUERY, GET_IP_RESTRICTIONS_QUERY, GET_TIME_BASED_ACCESS_QUERY } from "@/graphql/queries/auth-complete";
+import { 
+  GET_SECURITY_SETTINGS_QUERY, 
+  GET_IP_RESTRICTIONS_QUERY, 
+  GET_TIME_BASED_ACCESS_QUERY 
+} from "@/graphql/queries/auth-complete";
 import { UPDATE_SECURITY_SETTINGS_MUTATION } from "@/graphql/mutations/auth-complete";
 import { toast } from "sonner";
 
