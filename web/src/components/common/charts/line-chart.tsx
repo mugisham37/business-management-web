@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { Line, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface LineChartProps {

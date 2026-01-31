@@ -10,7 +10,7 @@ import { BusinessTier } from '@/hooks/utilities-infrastructure/useTierAccess';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, AlertTriangle, Zap } from 'lucide-react';
+import { Lock, Zap } from 'lucide-react';
 
 interface PermissionGuardProps {
   children: React.ReactNode;
@@ -125,8 +125,8 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     requiredPermissions: missingPermissions,
     requiredTier,
   } = usePermissionGuard(requiredPermissions || [], {
-    featureId,
-    userId,
+    ...(featureId !== undefined && { featureId }),
+    ...(userId !== undefined && { userId }),
     requireAll,
   });
 
@@ -137,11 +137,11 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   if (!hasAccess) {
     return (
       <FallbackComponent
-        reason={reason}
-        requiredPermissions={missingPermissions}
-        requiredTier={requiredTier}
+        {...(reason !== undefined && { reason })}
+        {...(missingPermissions !== undefined && { requiredPermissions: missingPermissions })}
+        {...(requiredTier !== undefined && { requiredTier })}
         showUpgradePrompt={showUpgradePrompt}
-        onUpgrade={onUpgrade}
+        {...(onUpgrade !== undefined && { onUpgrade })}
       />
     );
   }
@@ -187,11 +187,11 @@ export const FeatureGuard: React.FC<FeatureGuardProps> = ({
   if (!hasAccess) {
     return (
       <FallbackComponent
-        reason={reason}
-        requiredPermissions={requiredPermissions}
-        requiredTier={requiredTier}
+        {...(reason !== undefined && { reason })}
+        {...(requiredPermissions !== undefined && { requiredPermissions })}
+        {...(requiredTier !== undefined && { requiredTier })}
         showUpgradePrompt={showUpgradePrompt}
-        onUpgrade={onUpgrade}
+        {...(onUpgrade !== undefined && { onUpgrade })}
       />
     );
   }
@@ -226,8 +226,8 @@ export const ConditionalRender: React.FC<ConditionalRenderProps> = ({
     hasAccess,
     isLoading,
   } = usePermissionGuard(requiredPermissions || [], {
-    featureId,
-    userId,
+    ...(featureId !== undefined && { featureId }),
+    ...(userId !== undefined && { userId }),
     requireAll,
   });
 
@@ -264,8 +264,8 @@ export const PermissionStatus: React.FC<PermissionStatusProps> = ({
     requiredPermissions: missingPermissions,
     requiredTier,
   } = usePermissionGuard(requiredPermissions || [], {
-    featureId,
-    userId,
+    ...(featureId !== undefined && { featureId }),
+    ...(userId !== undefined && { userId }),
     requireAll,
   });
 

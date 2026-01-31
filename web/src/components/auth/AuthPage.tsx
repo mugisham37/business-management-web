@@ -156,8 +156,8 @@ export function AuthPage({
                                 // Handle successful social authentication
                                 // The AuthGateway will handle routing based on user state
                                 const authResult = await authGateway.handleSocialAuthAndRedirect(
-                                    result.provider || 'google', 
-                                    result.code || 'mock-code'
+                                    result.provider, 
+                                    result.accessToken
                                 );
                                 if (!authResult.success) {
                                     setError(authResult.error || 'Social authentication failed');

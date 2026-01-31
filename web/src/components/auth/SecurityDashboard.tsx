@@ -10,18 +10,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield,
   AlertTriangle,
-  Eye,
-  Clock,
   MapPin,
-  Smartphone,
   Monitor,
   Ban,
   CheckCircle,
   XCircle,
   RefreshCw,
   Download,
-  Filter,
-  Search,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,10 +66,19 @@ export function SecurityDashboard() {
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [timeRange, setTimeRange] = useState('24h');
 
-  const [authEventsState, { getEventsByType, getCriticalAlerts }] = useAuthEvents();
+  const [authEventsState, authEventsActions] = useAuthEvents();
   const { settings, updateSettings, isLoading: settingsLoading } = useSecuritySettings();
-  const { auditLogs, fetchAuditLogs } = useAuditLogs();
+  const { fetchAuditLogs } = useAuditLogs();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Helper functions to filter events by type
+  const getEventsByType = (eventType: string) => {
+    return authEventsActions.filterEvents('auth', { eventType: [eventType] });
+  };
+
+  const getCriticalAlerts = () => {
+    return authEventsActions.filterEvents('security', { severity: ['critical'] });
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -94,8 +98,11 @@ export function SecurityDashboard() {
     trustedDevices: 0,
   });
 
-  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
-  const [ipRestrictions, setIpRestrictions] = useState<IPRestriction[]>([]);
+  // Security events and IP restrictions state - used by child components
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [securityEvents, _setSecurityEvents] = useState<SecurityEvent[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [ipRestrictions, _setIpRestrictions] = useState<IPRestriction[]>([]);
 
   useEffect(() => {
     // Update metrics based on auth events
@@ -112,7 +119,8 @@ export function SecurityDashboard() {
       failedLogins,
       suspiciousActivity: suspiciousActivity + criticalAlerts,
     }));
-  }, [authEventsState.events, getEventsByType, getCriticalAlerts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authEventsState.events, authEventsActions]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -121,15 +129,6 @@ export function SecurityDashboard() {
       case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'low': return 'text-blue-600 bg-blue-50 border-blue-200';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'text-red-600 bg-red-50';
-      case 'resolved': return 'text-green-600 bg-green-50';
-      case 'investigating': return 'text-yellow-600 bg-yellow-50';
-      default: return 'text-gray-600 bg-gray-50';
     }
   };
 

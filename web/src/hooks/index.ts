@@ -9,7 +9,7 @@
 export { useCacheStrategy } from './useCacheStrategy';
 export { useLiveData } from './useLiveData';
 export { useLocations } from './useLocations';
-export { useOnboarding, useOnboardingStatus, useAvailablePlans } from './useOnboarding';
+export { useOnboarding } from './useOnboarding';
 export { useRealtime } from './useRealtime';
 
 // ============================================================================
@@ -59,13 +59,6 @@ export {
 } from './utilities-infrastructure/useLiveData';
 export { useRealTimePermissions } from './utilities-infrastructure/useRealTimePermissions';
 export { 
-  useRealtimeData, 
-  useUserPresence, 
-  useNotifications as useRealtimeNotifications, 
-  useLiveUpdates, 
-  useCommunication as useRealtimeCommunication 
-} from './utilities-infrastructure/useRealtimeData';
-export { 
   useTierAccess, 
   useModuleAccess, 
   useSidebarModules,
@@ -73,8 +66,7 @@ export {
   type ModuleCategory,
   type ModuleAccess,
 } from './utilities-infrastructure/useTierAccess';
-export { useEmployeeSchedules, useTimeEntries } from './utilities-infrastructure/useTimeManagement';
-export { useTimeTracking } from './utilities-infrastructure/useTimeTracking';
+export { useEmployeeSchedules, useTimeEntries } from './utilities-infrastructure/useTimeTracking';
 export { 
   useUpgradeFlow,
   type UpgradeRequest,
@@ -82,7 +74,6 @@ export {
   type PricingInfo,
   type UseUpgradeFlowReturn,
 } from './utilities-infrastructure/useUpgradeFlow';
-export { useOnboardingFlow } from './utilities-infrastructure/useOnboardingFlow';
 
 // ============================================================================
 // AUTHENTICATION HOOKS

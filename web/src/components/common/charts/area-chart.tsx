@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface AreaChartProps {
