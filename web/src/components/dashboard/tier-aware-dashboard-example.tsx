@@ -16,7 +16,6 @@ import {
   Package,
   BarChart3,
   Crown,
-  Lock,
   Calendar,
   RefreshCw,
 } from "lucide-react";

@@ -15,7 +15,6 @@ import {
   Home,
   Sparkles,
   CheckCircle,
-  AlertTriangle,
   Wifi,
   WifiOff,
   RefreshCw,
@@ -69,10 +68,11 @@ export function RealtimeDashboardWrapper({
   } | null>(null);
 
   const { isAnimating, animationType, animateTierChange } = useTierChangeAnimations();
-  const { openUpgradeModal } = useUpgradeFlow();
+  // useUpgradeFlow hook is available if upgrade modal needs to be triggered
+  useUpgradeFlow();
 
   // Handle tier change events
-  const handleTierChange = useCallback((event: any) => {
+  const handleTierChange = useCallback((event: { previousTier?: BusinessTier; newTier: BusinessTier }) => {
     const { previousTier, newTier } = event;
     
     // Animate the tier change
@@ -96,7 +96,7 @@ export function RealtimeDashboardWrapper({
   }, [animateTierChange, onTierChange]);
 
   // Handle feature access updates
-  const handleFeatureAccessUpdate = useCallback((event: any) => {
+  const handleFeatureAccessUpdate = useCallback((event: { features: string[]; tier: BusinessTier }) => {
     // Trigger a refresh of feature flags or permissions
     console.log("Feature access updated:", event);
     
@@ -105,7 +105,7 @@ export function RealtimeDashboardWrapper({
   }, []);
 
   // Handle subscription updates
-  const handleSubscriptionUpdate = useCallback((event: any) => {
+  const handleSubscriptionUpdate = useCallback((event: { type: string }) => {
     console.log("Subscription updated:", event);
     
     // Handle different subscription events
@@ -132,7 +132,7 @@ export function RealtimeDashboardWrapper({
   }, []);
 
   // Set up real-time updates
-  const { isConnected, connectionError, reconnect } = useRealtimeTierUpdates({
+  const { isConnected, reconnect } = useRealtimeTierUpdates({
     onTierChange: handleTierChange,
     onFeatureAccessUpdate: handleFeatureAccessUpdate,
     onSubscriptionUpdate: handleSubscriptionUpdate,

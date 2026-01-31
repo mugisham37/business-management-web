@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,15 +20,15 @@ import {
   Settings, 
   ArrowRight,
   Sparkles,
-  Lock,
-  Info
+  Info,
+  LucideIcon
 } from 'lucide-react';
 import Link from 'next/link';
 
 interface TierFeature {
   name: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: LucideIcon;
   available: boolean;
   route?: string;
   comingSoon?: boolean;
@@ -40,7 +40,7 @@ interface TierGuidanceProps {
   onUpgrade?: () => void;
 }
 
-const tierFeatures = {
+const tierFeatures: Record<string, TierFeature[]> = {
   micro: [
     {
       name: 'Basic POS',
@@ -184,16 +184,11 @@ const tierInfo = {
 };
 
 export function TierGuidance({ userTier, isNewUser = false, onUpgrade }: TierGuidanceProps) {
+  // Initialize showGuidance based on isNewUser. We use the prop directly for initial state.
+  // If isNewUser changes, we rely on React re-rendering with the new prop value.
   const [showGuidance, setShowGuidance] = useState(isNewUser);
   const currentTierInfo = tierInfo[userTier];
-  const features = tierFeatures[userTier];
-
-  useEffect(() => {
-    // Show guidance for new users or when tier changes
-    if (isNewUser) {
-      setShowGuidance(true);
-    }
-  }, [isNewUser, userTier]);
+  const features = tierFeatures[userTier] || [];
 
   if (!showGuidance) {
     return null;
@@ -206,8 +201,8 @@ export function TierGuidance({ userTier, isNewUser = false, onUpgrade }: TierGui
         <Alert>
           <Sparkles className="h-4 w-4" />
           <AlertDescription>
-            Welcome to BizManager! You're on the <strong>{currentTierInfo.name}</strong> plan. 
-            Here's what you can do to get started.
+            Welcome to BizManager! You&apos;re on the <strong>{currentTierInfo.name}</strong> plan. 
+            Here&apos;s what you can do to get started.
           </AlertDescription>
         </Alert>
       )}

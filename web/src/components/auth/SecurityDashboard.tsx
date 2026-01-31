@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuthEvents } from '@/hooks/authentication/useAuthEvents';
 import { useSecuritySettings } from '@/hooks/authentication/useSecuritySettings';
 import { useAuditLogs } from '@/hooks/utilities-infrastructure/useAuditLogs';
+import { SecurityAlert } from '@/lib/realtime/auth-event-manager';
 import { cn } from '@/lib/utils/cn';
 
 interface SecurityMetrics {
@@ -76,8 +77,8 @@ export function SecurityDashboard() {
     return authEventsActions.filterEvents('auth', { eventType: [eventType] });
   };
 
-  const getCriticalAlerts = () => {
-    return authEventsActions.filterEvents('security', { severity: ['critical'] });
+  const getCriticalAlerts = (): SecurityAlert[] => {
+    return authEventsActions.filterEvents('security', { severity: ['critical'] }) as SecurityAlert[];
   };
 
   const handleRefresh = async () => {
@@ -267,7 +268,7 @@ export function SecurityDashboard() {
                       </div>
                     </div>
                     <Badge variant="outline">
-                      {event.metadata?.severity || 'info'}
+                      {String(event.metadata?.severity || 'info')}
                     </Badge>
                   </motion.div>
                 ))}
@@ -500,8 +501,8 @@ export function SecurityDashboard() {
                 </div>
 
                 <Button
-                  onClick={() => updateSettings(settings)}
-                  disabled={settingsLoading}
+                  onClick={() => settings && updateSettings(settings)}
+                  disabled={settingsLoading || !settings}
                 >
                   {settingsLoading ? 'Saving...' : 'Save Settings'}
                 </Button>

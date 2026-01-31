@@ -44,6 +44,11 @@ export interface UseUpgradeFlowReturn {
   isLoading: boolean;
   error: string | null;
   
+  // Modal control
+  isUpgradeModalOpen: boolean;
+  openUpgradeModal: (targetTier?: string, featureId?: string) => void;
+  closeUpgradeModal: () => void;
+  
   // Upgrade process
   processUpgrade: (request: UpgradeRequest) => Promise<boolean>;
   calculateUpgradePrice: (currentTier: string, targetTier: string, billingCycle: 'monthly' | 'yearly') => number;
@@ -92,6 +97,9 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
   const { businessTier } = useTenantStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [_selectedTargetTier, setSelectedTargetTier] = useState<string | null>(null);
+  const [_selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
 
   // GraphQL operations
   const [updateTierMutation] = useMutation(UPDATE_TIER_MUTATION);
@@ -262,9 +270,24 @@ export function useUpgradeFlow(): UseUpgradeFlowReturn {
     return FEATURE_TIER_REQUIREMENTS[featureId] || null;
   }, []);
 
+  const openUpgradeModal = useCallback((targetTier?: string, featureId?: string) => {
+    setSelectedTargetTier(targetTier || null);
+    setSelectedFeatureId(featureId || null);
+    setIsUpgradeModalOpen(true);
+  }, []);
+
+  const closeUpgradeModal = useCallback(() => {
+    setIsUpgradeModalOpen(false);
+    setSelectedTargetTier(null);
+    setSelectedFeatureId(null);
+  }, []);
+
   return {
     isLoading,
     error,
+    isUpgradeModalOpen,
+    openUpgradeModal,
+    closeUpgradeModal,
     processUpgrade,
     calculateUpgradePrice,
     getUpgradeRecommendations,

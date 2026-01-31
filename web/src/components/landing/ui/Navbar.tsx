@@ -66,7 +66,7 @@ export function Navigation() {
             </div>
           </nav>
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="outline" asChild className="h-10 font-semibold">
+            <Button variant="secondary" asChild className="h-10 font-semibold">
               <Link href="/auth">Sign In</Link>
             </Button>
             <Button asChild className="h-10 font-semibold">
