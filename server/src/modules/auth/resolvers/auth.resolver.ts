@@ -1,6 +1,7 @@
 import { Resolver, Mutation, Query, Args, Context } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
+import { SocialAuthService } from '../services/social-auth.service';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -16,6 +17,7 @@ import {
   ChangePasswordInput,
   ForgotPasswordInput,
   ResetPasswordInput,
+  OAuthLoginInput,
 } from '../inputs/auth.input';
 import {
   LoginResponse,
@@ -33,6 +35,7 @@ export class AuthResolver extends BaseResolver {
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,
     private readonly authService: AuthService,
+    private readonly socialAuthService: SocialAuthService,
   ) {
     super(dataLoaderService);
   }
@@ -117,6 +120,38 @@ export class AuthResolver extends BaseResolver {
       return result;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to check MFA requirement');
+    }
+  }
+
+  /**
+   * OAuth login mutation
+   * Authenticates user with OAuth provider code
+   * Public endpoint, rate limited
+   */
+  @Public()
+  @Mutation(() => LoginResponse, {
+    description: 'Login with OAuth provider authorization code',
+  })
+  async oauthLogin(
+    @Args('input') input: OAuthLoginInput,
+    @Context() context: any,
+  ): Promise<LoginResponse> {
+    try {
+      const ipAddress = context.req.ip;
+      const userAgent = context.req.headers['user-agent'];
+
+      const result = await this.socialAuthService.handleOAuthLogin(
+        input.provider,
+        input.code,
+        input.state,
+        input.tenantId,
+        ipAddress,
+        userAgent,
+      );
+
+      return result;
+    } catch (error: any) {
+      throw new Error(error.message || 'OAuth login failed');
     }
   }
 

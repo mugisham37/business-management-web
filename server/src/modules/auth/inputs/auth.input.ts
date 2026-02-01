@@ -155,3 +155,31 @@ export class ResetPasswordInput {
   @MaxLength(128)
   newPassword!: string;
 }
+
+/**
+ * OAuth login input
+ * Authenticates user with OAuth provider authorization code
+ */
+@InputType()
+export class OAuthLoginInput {
+  @Field()
+  @ApiProperty({ description: 'OAuth provider name (google, facebook, github)' })
+  @IsString()
+  provider!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Authorization code from OAuth provider' })
+  @IsString()
+  code!: string;
+
+  @Field()
+  @ApiProperty({ description: 'State parameter for CSRF protection' })
+  @IsString()
+  state!: string;
+
+  @Field()
+  @ApiProperty({ description: 'Tenant ID for multi-tenant authentication' })
+  @IsString()
+  @IsUUID()
+  tenantId!: string;
+}

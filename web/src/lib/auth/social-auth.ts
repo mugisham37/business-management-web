@@ -23,6 +23,7 @@ export interface SocialAuthResult {
     lastName?: string;
     avatar?: string;
   };
+  requiresOnboarding?: boolean;
 }
 
 export interface SocialAuthError {
@@ -247,26 +248,46 @@ export class SocialAuthManager {
     }
 
     try {
-      // Call backend API to exchange code for tokens
-      const response = await fetch('/api/auth/social/exchange', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Import Apollo Client and mutation dynamically to avoid SSR issues
+      const { apolloClient } = await import('@/lib/apollo/client');
+      const { OAUTH_LOGIN_MUTATION } = await import('@/lib/graphql/mutations/auth');
+
+      // Get tenant ID (you might want to get this from context or config)
+      const tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT || 'default-tenant';
+
+      // Call GraphQL mutation to exchange code for tokens
+      const { data } = await apolloClient.mutate({
+        mutation: OAUTH_LOGIN_MUTATION,
+        variables: {
+          input: {
+            provider: providerId,
+            code,
+            state: sessionStorage.getItem(`oauth_state_${providerId}`) || '',
+            tenantId,
+          },
         },
-        body: JSON.stringify({
-          provider: providerId,
-          code,
-          redirectUri: provider.redirectUri,
-        }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Token exchange failed');
+      if (!data?.oauthLogin) {
+        throw new Error('OAuth login failed');
       }
 
-      const result = await response.json();
-      return result;
+      const { user, accessToken, refreshToken, requiresOnboarding } = data.oauthLogin;
+
+      return {
+        provider: providerId,
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.displayName || `${user.firstName} ${user.lastName}`.trim(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar,
+        },
+        requiresOnboarding,
+      };
     } catch (error) {
       console.error(`Failed to exchange code for tokens (${providerId}):`, error);
       throw error;

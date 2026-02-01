@@ -19,6 +19,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FacebookStrategy } from './strategies/facebook.strategy';
+import { GitHubStrategy } from './strategies/github.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { TierAuthGuard } from './guards/tier-auth.guard';
@@ -104,6 +105,7 @@ import { TenantModule } from '../tenant/tenant.module';
     LocalStrategy,
     GoogleStrategy,
     FacebookStrategy,
+    GitHubStrategy,
     
     // Guards
     JwtAuthGuard,

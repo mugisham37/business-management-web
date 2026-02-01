@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { SocialAuthService, SocialProfile } from '../services/social-auth.service';
 import { GoogleProfile } from '../strategies/google.strategy';
 import { FacebookProfile } from '../strategies/facebook.strategy';
+import { GitHubProfile } from '../strategies/github.strategy';
 
 @ApiTags('Social Authentication')
 @Controller('auth')
@@ -128,6 +129,59 @@ export class SocialAuthController {
       success: false,
       error: message || 'Authentication failed',
     });
+  }
+
+  /**
+   * Initiate GitHub OAuth flow
+   */
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  @ApiOperation({ summary: 'Initiate GitHub OAuth authentication' })
+  async githubAuth(@Req() req: Request) {
+    // This endpoint initiates the OAuth flow
+    // The actual redirect is handled by Passport
+  }
+
+  /**
+   * Handle GitHub OAuth callback
+   */
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  @ApiOperation({ summary: 'Handle GitHub OAuth callback' })
+  @ApiResponse({ status: 200, description: 'Authentication successful' })
+  @ApiResponse({ status: 401, description: 'Authentication failed' })
+  async githubCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('state') state: string,
+  ) {
+    try {
+      const profile = req.user as GitHubProfile;
+      const tenantId = this.extractTenantIdFromState(state);
+      
+      if (!tenantId) {
+        return res.redirect('/auth/error?message=Invalid_state_parameter');
+      }
+
+      const loginResponse = await this.socialAuthService.authenticateWithSocial(
+        profile,
+        tenantId,
+        req.ip,
+        req.get('User-Agent'),
+      );
+
+      // In a real application, you would redirect to your frontend with the tokens
+      // For now, we'll return JSON (in production, use secure cookies or redirect)
+      return res.json({
+        success: true,
+        user: loginResponse.user,
+        accessToken: loginResponse.accessToken,
+        refreshToken: loginResponse.refreshToken,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      return res.redirect(`/auth/error?message=${encodeURIComponent(errorMessage)}`);
+    }
   }
 
   /**

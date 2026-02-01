@@ -257,6 +257,31 @@ export const UNLINK_SOCIAL_PROVIDER_MUTATION = gql`
   }
 `;
 
+// OAuth Login Mutation
+export const OAUTH_LOGIN_MUTATION = gql`
+  mutation OAuthLogin($input: OAuthLoginInput!) {
+    oauthLogin(input: $input) {
+      user {
+        id
+        email
+        tenantId
+        role
+        permissions
+        firstName
+        lastName
+        displayName
+        avatar
+        lastLoginAt
+      }
+      accessToken
+      refreshToken
+      expiresIn
+      tokenType
+      requiresOnboarding
+    }
+  }
+`;
+
 // Tier Mutations
 export const UPDATE_TIER_MUTATION = gql`
   mutation UpdateTier($input: UpdateTierInput!) {

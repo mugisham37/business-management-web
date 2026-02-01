@@ -18,8 +18,9 @@ import {
 } from '../interfaces/auth.interface';
 import { GoogleProfile } from '../strategies/google.strategy';
 import { FacebookProfile } from '../strategies/facebook.strategy';
+import { GitHubProfile } from '../strategies/github.strategy';
 
-export type SocialProfile = GoogleProfile | FacebookProfile;
+export type SocialProfile = GoogleProfile | FacebookProfile | GitHubProfile;
 
 @Injectable()
 export class SocialAuthService {
@@ -387,6 +388,45 @@ export class SocialAuthService {
       connectedAt: provider.connectedAt,
       lastUsedAt: provider.lastUsedAt,
     }));
+  }
+
+  /**
+   * Handle OAuth login with authorization code
+   * Exchanges code for profile and authenticates user
+   */
+  async handleOAuthLogin(
+    provider: string,
+    code: string,
+    state: string,
+    tenantId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<LoginResponse> {
+    // Validate state parameter (in production, you'd verify this against stored state)
+    if (!state) {
+      throw new BadRequestException('Invalid state parameter');
+    }
+
+    // Exchange authorization code for user profile
+    const profile = await this.exchangeCodeForProfile(provider, code);
+    
+    // Authenticate user with the profile
+    return this.authenticateWithSocial(profile, tenantId, ipAddress, userAgent);
+  }
+
+  /**
+   * Exchange authorization code for user profile
+   * This would typically call the OAuth provider's token endpoint
+   */
+  private async exchangeCodeForProfile(provider: string, code: string): Promise<SocialProfile> {
+    // In a real implementation, you would:
+    // 1. Exchange the code for an access token with the OAuth provider
+    // 2. Use the access token to fetch the user's profile
+    // 3. Return a standardized profile object
+    
+    // For now, this is a placeholder that would need to be implemented
+    // with actual OAuth provider API calls
+    throw new BadRequestException('OAuth code exchange not yet implemented. Please configure OAuth provider integration.');
   }
 
   /**
