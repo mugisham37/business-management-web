@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@/lib/error-handling/error-boundary.css";
 import { Providers } from "./providers";
-import { PerformanceMetrics } from "@/components/performance/PerformanceMetrics";
+
 import { ErrorInitializer } from "./error-initializer";
 
 const geistSans = Geist({
@@ -42,11 +42,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const performanceMetrics = [
-    { label: 'Response Time', value: '245ms', unit: 'ms' },
-    { label: 'Memory', value: '45', unit: 'MB' },
-  ];
-
   return (
     <html lang="en">
       <body
@@ -55,7 +50,6 @@ export default function RootLayout({
         <ErrorInitializer />
         <Providers>
           {children}
-          <PerformanceMetrics items={performanceMetrics} />
         </Providers>
       </body>
     </html>

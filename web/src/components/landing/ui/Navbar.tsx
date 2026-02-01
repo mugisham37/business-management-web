@@ -6,12 +6,46 @@ import { cx } from "@/lib/utils/cn"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
 import React from "react"
+import { usePathname, useSearchParams } from "next/navigation"
 import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import { Button } from "@/components/landing/Button"
 
 export function Navigation() {
   const scrolled = useScroll(15)
   const [open, setOpen] = React.useState(false)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  // Check if we're on the auth page and determine the current mode
+  const isAuthPage = pathname === '/auth'
+  const currentMode = searchParams?.get('mode') || 'login' // default to login if no mode specified
+  
+  // Determine button text and links based on current auth mode
+  const getAuthButtons = () => {
+    if (!isAuthPage) {
+      // Default buttons for non-auth pages
+      return {
+        signIn: { text: "Sign In", href: "/auth" },
+        getStarted: { text: "Get Started", href: "/auth" }
+      }
+    }
+    
+    // On auth page, show opposite mode
+    if (currentMode === 'register') {
+      return {
+        signIn: { text: "Sign In", href: "/auth?mode=login" },
+        getStarted: { text: "Sign In", href: "/auth?mode=login" }
+      }
+    } else {
+      // Default to login mode, show register option
+      return {
+        signIn: { text: "Sign Up", href: "/auth?mode=register" },
+        getStarted: { text: "Get Started", href: "/auth?mode=register" }
+      }
+    }
+  }
+
+  const authButtons = getAuthButtons()
 
   React.useEffect(() => {
     const mediaQuery: MediaQueryList = window.matchMedia("(min-width: 768px)")
@@ -67,14 +101,14 @@ export function Navigation() {
           </nav>
           <div className="hidden md:flex items-center gap-2">
             <Button variant="secondary" asChild className="h-10 font-semibold">
-              <Link href="/auth">Sign In</Link>
+              <Link href={authButtons.signIn.href}>{authButtons.signIn.text}</Link>
             </Button>
             <Button asChild className="h-10 font-semibold">
-              <Link href="/auth">Get Started</Link>
+              <Link href={authButtons.getStarted.href}>{authButtons.getStarted.text}</Link>
             </Button>
           </div>
           <div className="flex gap-x-2 md:hidden">
-            <Button asChild><Link href="/auth">Sign In</Link></Button>
+            <Button asChild><Link href={authButtons.signIn.href}>{authButtons.signIn.text}</Link></Button>
             <Button
               onClick={() => setOpen(!open)}
               variant="light"

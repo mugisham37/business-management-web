@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { SocialLoginButtons } from './SocialLoginButtons';
@@ -26,10 +24,34 @@ export function AuthPage({
     redirectTo,
 }: AuthPageProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const authGateway = useAuthGateway();
-    const [mode, setMode] = useState<AuthMode>(defaultMode);
+    
+    // Get mode from URL params or use default
+    const urlMode = searchParams?.get('mode') as AuthMode;
+    const initialMode = urlMode && ['login', 'register'].includes(urlMode) ? urlMode : defaultMode;
+    
+    const [mode, setMode] = useState<AuthMode>(initialMode);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Update mode when URL params change
+    useEffect(() => {
+        const urlMode = searchParams?.get('mode') as AuthMode;
+        if (urlMode && ['login', 'register'].includes(urlMode) && urlMode !== mode) {
+            setMode(urlMode);
+            setError(null); // Clear any existing errors when switching modes
+        }
+    }, [searchParams, mode]);
+
+    // Function to update URL when mode changes
+    const updateModeInUrl = useCallback((newMode: AuthMode) => {
+        const params = new URLSearchParams(searchParams?.toString());
+        params.set('mode', newMode);
+        router.replace(`/auth?${params.toString()}`, { scroll: false });
+        setMode(newMode);
+        setError(null);
+    }, [router, searchParams]);
 
     const handleLogin = useCallback(
         async (data: { email: string; password: string; rememberMe: boolean }) => {
@@ -98,28 +120,6 @@ export function AuthPage({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
-            {/* Header */}
-            <header className="absolute top-0 left-0 right-0 z-10">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-white" />
-                            </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                BizManager
-                            </span>
-                        </Link>
-                        <Link
-                            href="/"
-                            className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-                        >
-                            Back to home
-                        </Link>
-                    </div>
-                </div>
-            </header>
-
             {/* Main Content */}
             <main className="flex min-h-screen">
                 {/* Left Panel - Form */}
@@ -218,10 +218,7 @@ export function AuthPage({
                                 <>
                                     Don&apos;t have an account?{' '}
                                     <button
-                                        onClick={() => {
-                                            setMode('register');
-                                            setError(null);
-                                        }}
+                                        onClick={() => updateModeInUrl('register')}
                                         className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                                     >
                                         Sign up
@@ -231,10 +228,7 @@ export function AuthPage({
                                 <>
                                     Already have an account?{' '}
                                     <button
-                                        onClick={() => {
-                                            setMode('login');
-                                            setError(null);
-                                        }}
+                                        onClick={() => updateModeInUrl('login')}
                                         className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                                     >
                                         Sign in

@@ -54,7 +54,7 @@ export default function Pricing() {
   const handleSubscribeClick = useCallback((tier: BusinessTier) => {
     if (tier === BusinessTier.MICRO) {
       // Free tier - redirect to registration
-      window.location.href = '/auth/register'
+      window.location.href = '/auth?mode=register'
     } else {
       // Paid tier - open subscription modal
       openSubscriptionModal(tier, billingFrequency)
@@ -84,7 +84,7 @@ export default function Pricing() {
       isRecommended: config.isRecommended || config.tier === recommendation?.recommendedTier,
       isPopular: config.isPopular || false,
       buttonText: config.tier === BusinessTier.MICRO ? "Get started" : "Start 30-day trial",
-      buttonLink: config.tier === BusinessTier.MICRO ? "/auth/register" : `/subscribe/${config.tier}`,
+      buttonLink: config.tier === BusinessTier.MICRO ? "/auth?mode=register" : `/subscribe/${config.tier}`,
       trialDays: config.trialDays,
       limits: config.limits
     }))
