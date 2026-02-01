@@ -190,7 +190,7 @@ export function MfaVerificationScreen({
         >
           {isBackupMode ? (
             <TextInput
-              style={styles.backupCodeInput}
+              style={[styles.backupCodeInput, { fontFamily: 'monospace', textAlign: 'center' }]}
               value={backupCode}
               onChangeText={setBackupCode}
               placeholder="XXXXXXXX"
@@ -198,22 +198,19 @@ export function MfaVerificationScreen({
               autoCapitalize="characters"
               maxLength={8}
               autoFocus
-              textAlign="center"
-              fontFamily="monospace"
             />
           ) : (
             <View style={styles.codeInputContainer}>
               {code.map((digit, index) => (
                 <TextInput
                   key={index}
-                  ref={(ref) => (inputRefs.current[index] = ref)}
-                  style={styles.codeInput}
+                  ref={(ref) => { inputRefs.current[index] = ref; }}
+                  style={[styles.codeInput, { textAlign: 'center' }]}
                   value={digit}
                   onChangeText={(value) => handleCodeChange(value, index)}
                   onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
                   keyboardType="numeric"
                   maxLength={1}
-                  textAlign="center"
                   autoFocus={index === 0}
                 />
               ))}
@@ -232,12 +229,13 @@ export function MfaVerificationScreen({
 
         {/* Verify Button */}
         <Button
-          title={`Verify ${isBackupMode ? 'Backup Code' : 'Code'}`}
           onPress={() => handleVerify()}
           loading={loading}
           disabled={isBackupMode ? backupCode.length !== 8 : code.some(digit => !digit)}
           style={styles.verifyButton}
-        />
+        >
+          {`Verify ${isBackupMode ? 'Backup Code' : 'Code'}`}
+        </Button>
 
         {/* Toggle Mode */}
         <TouchableOpacity onPress={toggleBackupMode} style={styles.toggleButton}>

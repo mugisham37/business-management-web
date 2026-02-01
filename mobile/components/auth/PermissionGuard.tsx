@@ -89,11 +89,12 @@ const DefaultFallback: React.FC<PermissionGuardFallbackProps> = ({
             Upgrade your account to access this feature
           </Text>
           <Button
-            title="Upgrade Now"
             onPress={onUpgrade}
             style={styles.upgradeButton}
             variant="primary"
-          />
+          >
+            Upgrade Now
+          </Button>
         </View>
       )}
     </Card>

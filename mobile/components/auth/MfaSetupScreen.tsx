@@ -144,7 +144,7 @@ export function MfaSetupScreen({ onComplete, onCancel }: MfaSetupScreenProps) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>No access to camera</Text>
-        <Button title="Grant Permission" onPress={getCameraPermissions} />
+        <Button onPress={getCameraPermissions}>Grant Permission</Button>
       </View>
     );
   }
@@ -201,10 +201,11 @@ export function MfaSetupScreen({ onComplete, onCancel }: MfaSetupScreenProps) {
           </TouchableOpacity>
 
           <Button
-            title="I've Added the Account"
             onPress={() => setStep('scan')}
             style={styles.nextButton}
-          />
+          >
+            I've Added the Account
+          </Button>
         </View>
       )}
 
@@ -231,11 +232,12 @@ export function MfaSetupScreen({ onComplete, onCancel }: MfaSetupScreenProps) {
           </View>
 
           <Button
-            title="Skip Scanning - Enter Code Manually"
             onPress={() => setStep('verify')}
             variant="outline"
             style={styles.skipButton}
-          />
+          >
+            Skip Scanning - Enter Code Manually
+          </Button>
         </View>
       )}
 
@@ -252,18 +254,17 @@ export function MfaSetupScreen({ onComplete, onCancel }: MfaSetupScreenProps) {
             onChangeText={setVerificationCode}
             keyboardType="numeric"
             maxLength={6}
-            style={styles.codeInput}
-            textAlign="center"
-            fontSize={24}
+            style={[styles.codeInput, { fontSize: 24, textAlign: 'center' }]}
           />
 
           <Button
-            title="Verify & Enable MFA"
             onPress={handleVerifyCode}
             loading={enabling}
             disabled={verificationCode.length !== 6}
             style={styles.verifyButton}
-          />
+          >
+            Verify & Enable MFA
+          </Button>
         </View>
       )}
 
@@ -289,10 +290,11 @@ export function MfaSetupScreen({ onComplete, onCancel }: MfaSetupScreenProps) {
           </View>
 
           <Button
-            title="I've Saved My Backup Codes"
             onPress={handleComplete}
             style={styles.completeButton}
-          />
+          >
+            I've Saved My Backup Codes
+          </Button>
         </View>
       )}
     </ScrollView>

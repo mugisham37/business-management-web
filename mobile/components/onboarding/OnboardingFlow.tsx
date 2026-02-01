@@ -4,21 +4,18 @@
  * Progressive onboarding with swipe gestures, mobile-friendly forms,
  * and optimized progress indicators for small screens.
  */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   View, 
   Text, 
   ScrollView, 
   Dimensions, 
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-  State
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeScreen } from '@/components/layout';
 import { Button, Card, Input } from '@/components/core';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -52,6 +49,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
   });
 
   const translateX = useSharedValue(0);
+  const startX = useSharedValue(0);
   const gestureRef = useRef(null);
 
   const steps: OnboardingStep[] = [
@@ -87,28 +85,39 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
     },
   ];
 
-  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
-    onStart: (_, context) => {
-      context.startX = translateX.value;
-    },
-    onActive: (event, context) => {
-      translateX.value = context.startX + event.translationX;
-    },
-    onEnd: (event) => {
+  const goToNextStep = useCallback(() => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  }, [currentStep, steps.length]);
+
+  const goToPrevStep = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  }, [currentStep]);
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+    })
+    .onUpdate((event) => {
+      translateX.value = startX.value + event.translationX;
+    })
+    .onEnd((event) => {
       const shouldGoNext = event.translationX < -screenWidth * 0.3 && currentStep < steps.length - 1;
       const shouldGoPrev = event.translationX > screenWidth * 0.3 && currentStep > 0;
 
       if (shouldGoNext) {
         translateX.value = withSpring(-screenWidth);
-        runOnJS(setCurrentStep)(currentStep + 1);
+        runOnJS(goToNextStep)();
       } else if (shouldGoPrev) {
         translateX.value = withSpring(screenWidth);
-        runOnJS(setCurrentStep)(currentStep - 1);
+        runOnJS(goToPrevStep)();
       } else {
         translateX.value = withSpring(0);
       }
-    },
-  });
+    });
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -193,7 +202,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
       </View>
 
       {/* Content Area with Swipe Gesture */}
-      <PanGestureHandler ref={gestureRef} onGestureEvent={gestureHandler}>
+      <GestureDetector gesture={panGesture}>
         <Animated.View style={[{ flex: 1 }, animatedStyle]}>
           <ScrollView 
             className="flex-1 px-4"
@@ -228,7 +237,7 @@ export function OnboardingFlow({ onComplete, onSkip }: OnboardingFlowProps) {
             </View>
           </ScrollView>
         </Animated.View>
-      </PanGestureHandler>
+      </GestureDetector>
 
       {/* Navigation Buttons */}
       <View className="px-4 pb-4 pt-2 border-t border-border">

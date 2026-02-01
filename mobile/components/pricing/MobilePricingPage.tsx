@@ -4,21 +4,18 @@
  * Optimized pricing page for mobile devices with swipe navigation,
  * vertical tier stacking, and mobile-friendly subscription flow.
  */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   View, 
   Text, 
   ScrollView, 
   Dimensions, 
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-  State
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeScreen } from '@/components/layout';
 import { Button, Card } from '@/components/core';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -120,30 +117,42 @@ export function MobilePricingPage({ onSelectPlan, recommendation }: MobilePricin
   const [currentTierIndex, setCurrentTierIndex] = useState(0);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const translateX = useSharedValue(0);
+  const startX = useSharedValue(0);
   const gestureRef = useRef(null);
 
-  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
-    onStart: (_, context) => {
-      context.startX = translateX.value;
-    },
-    onActive: (event, context) => {
-      translateX.value = context.startX + event.translationX;
-    },
-    onEnd: (event) => {
+  const goToNextTier = useCallback(() => {
+    if (currentTierIndex < pricingTiers.length - 1) {
+      setCurrentTierIndex(currentTierIndex + 1);
+    }
+  }, [currentTierIndex]);
+
+  const goToPrevTier = useCallback(() => {
+    if (currentTierIndex > 0) {
+      setCurrentTierIndex(currentTierIndex - 1);
+    }
+  }, [currentTierIndex]);
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+    })
+    .onUpdate((event) => {
+      translateX.value = startX.value + event.translationX;
+    })
+    .onEnd((event) => {
       const shouldGoNext = event.translationX < -screenWidth * 0.3 && currentTierIndex < pricingTiers.length - 1;
       const shouldGoPrev = event.translationX > screenWidth * 0.3 && currentTierIndex > 0;
 
       if (shouldGoNext) {
         translateX.value = withSpring(-screenWidth);
-        runOnJS(setCurrentTierIndex)(currentTierIndex + 1);
+        runOnJS(goToNextTier)();
       } else if (shouldGoPrev) {
         translateX.value = withSpring(screenWidth);
-        runOnJS(setCurrentTierIndex)(currentTierIndex - 1);
+        runOnJS(goToPrevTier)();
       } else {
         translateX.value = withSpring(0);
       }
-    },
-  });
+    });
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -220,7 +229,7 @@ export function MobilePricingPage({ onSelectPlan, recommendation }: MobilePricin
       )}
 
       {/* Pricing Card with Swipe Gesture */}
-      <PanGestureHandler ref={gestureRef} onGestureEvent={gestureHandler}>
+      <GestureDetector gesture={panGesture}>
         <Animated.View style={[{ flex: 1 }, animatedStyle]} className="px-4">
           <Card className="mb-4">
             {/* Popular Badge */}
@@ -310,7 +319,7 @@ export function MobilePricingPage({ onSelectPlan, recommendation }: MobilePricin
             </View>
           </Card>
         </Animated.View>
-      </PanGestureHandler>
+      </GestureDetector>
 
       {/* Navigation Hints */}
       <View className="px-4 pb-4">

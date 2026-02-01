@@ -72,6 +72,8 @@ export interface User {
     tenantId: string;
     avatarUrl?: string;
     permissions?: string[];
+    featureFlags?: string[];
+    tier?: string;
 }
 
 export interface AuthState {

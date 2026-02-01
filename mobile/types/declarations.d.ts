@@ -3,6 +3,44 @@
  * These provide type safety until packages are properly installed
  */
 
+// CSS/Style imports
+declare module '*.css' {
+  const content: { [className: string]: string };
+  export default content;
+}
+
+declare module '*.scss' {
+  const content: { [className: string]: string };
+  export default content;
+}
+
+// React Native QRCode SVG
+declare module 'react-native-qrcode-svg' {
+  import { Component } from 'react';
+  import { ViewStyle } from 'react-native';
+
+  export interface QRCodeProps {
+    value: string;
+    size?: number;
+    color?: string;
+    backgroundColor?: string;
+    logo?: { uri: string } | number;
+    logoSize?: number;
+    logoBackgroundColor?: string;
+    logoMargin?: number;
+    logoBorderRadius?: number;
+    quietZone?: number;
+    enableLinearGradient?: boolean;
+    gradientDirection?: string[];
+    linearGradient?: string[];
+    ecl?: 'L' | 'M' | 'Q' | 'H';
+    getRef?: (ref: any) => void;
+    onError?: (error: Error) => void;
+  }
+
+  export default class QRCode extends Component<QRCodeProps> {}
+}
+
 // React Native MMKV
 declare module 'react-native-mmkv' {
     export interface MMKVConfiguration {
@@ -144,6 +182,7 @@ declare module 'expo-auth-session' {
 // Apollo Client (supplemental for generic types when not properly resolved)
 declare module '@apollo/client' {
     import { DocumentNode } from 'graphql';
+    import { ReactNode } from 'react';
 
     export interface NormalizedCacheObject {
         [key: string]: any;
@@ -177,6 +216,16 @@ declare module '@apollo/client' {
 
     export function createHttpLink(options: any): any;
     export function from(links: any[]): any;
+
+    // React Components
+    export interface ApolloProviderProps<TCache = NormalizedCacheObject> {
+        client: ApolloClient<TCache>;
+        children?: ReactNode;
+    }
+
+    export function ApolloProvider<TCache = NormalizedCacheObject>(
+        props: ApolloProviderProps<TCache>
+    ): JSX.Element;
 
     export function useMutation<TData = any, TVariables = any>(
         mutation: DocumentNode,

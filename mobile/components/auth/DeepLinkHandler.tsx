@@ -7,7 +7,8 @@
  * Requirements: 3.5
  */
 import React, { useEffect, useCallback } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useMobileAuth, useSessionSync } from '@/hooks/auth';
 import { usePushNotifications } from '@/hooks/notifications';
