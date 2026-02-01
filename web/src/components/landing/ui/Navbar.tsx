@@ -1,6 +1,5 @@
 "use client"
 
-import { siteConfig } from "@/app/siteConfig"
 import useScroll from "@/lib/use-scroll"
 import { cx } from "@/lib/utils/cn"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
@@ -73,7 +72,7 @@ export function Navigation() {
     >
       <div className="w-full md:my-auto">
         <div className="relative flex items-center justify-between">
-          <Link href={siteConfig.baseLinks.home} aria-label="Home">
+          <Link href="/" aria-label="Home">
             <span className="sr-only">Company logo</span>
             <DatabaseLogo className="w-28 md:w-32" />
           </Link>
@@ -81,13 +80,13 @@ export function Navigation() {
             <div className="flex items-center gap-10 font-medium">
               <Link
                 className="px-2 py-1 text-gray-900 dark:text-gray-50"
-                href={siteConfig.baseLinks.about}
+                href="/about"
               >
                 About
               </Link>
               <Link
                 className="px-2 py-1 text-gray-900 dark:text-gray-50"
-                href={siteConfig.baseLinks.pricing}
+                href="/pricing"
               >
                 Pricing
               </Link>
@@ -121,13 +120,13 @@ export function Navigation() {
         >
           <ul className="space-y-4 font-medium">
             <li onClick={() => setOpen(false)}>
-              <Link href={siteConfig.baseLinks.about}>About</Link>
+              <Link href="/about">About</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href={siteConfig.baseLinks.pricing}>Pricing</Link>
+              <Link href="/pricing">Pricing</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href={siteConfig.baseLinks.changelog}>Changelog</Link>
+              <Link href="/changelog">Changelog</Link>
             </li>
           </ul>
         </nav>

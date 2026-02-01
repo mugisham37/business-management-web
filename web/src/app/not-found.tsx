@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { siteConfig } from "@/app/siteConfig"
+
 import { Button } from "@/components/landing/Button"
 import { DatabaseLogo } from "../../public/DatabaseLogo"
 import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
@@ -7,7 +7,7 @@ import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
 export default function NotFound() {
   return (
     <div className="flex h-screen flex-col items-center justify-center">
-      <Link href={siteConfig.baseLinks.home}>
+      <Link href="/">
         <DatabaseLogo className="mt-6 h-10" />
       </Link>
       <p className="mt-6 text-4xl font-semibold text-indigo-600 sm:text-5xl dark:text-indigo-500">
@@ -20,7 +20,7 @@ export default function NotFound() {
         Sorry, we couldn’t find the page you’re looking for.
       </p>
       <Button asChild className="group mt-8" variant="light">
-        <Link href={siteConfig.baseLinks.home}>
+        <Link href="/">
           Go to the home page
           <ArrowAnimated
             className="stroke-gray-900 dark:stroke-gray-50"
