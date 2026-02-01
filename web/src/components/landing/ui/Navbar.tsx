@@ -94,9 +94,6 @@ export function Navigation() {
             </div>
           </nav>
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="secondary" asChild className="h-10 font-semibold">
-              <Link href={authButtons.signIn.href}>{authButtons.signIn.text}</Link>
-            </Button>
             <Button asChild className="h-10 font-semibold">
               <Link href={authButtons.getStarted.href}>{authButtons.getStarted.text}</Link>
             </Button>
