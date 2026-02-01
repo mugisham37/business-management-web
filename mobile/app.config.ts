@@ -78,14 +78,15 @@ export default {
                     "Allow $(PRODUCT_NAME) to use Face ID for secure login.",
             },
         ],
-        [
-            "@sentry/react-native/expo",
-            {
-                organization: process.env.SENTRY_ORG,
-                project: process.env.SENTRY_PROJECT,
-            },
-        ],
-        "expo-haptics",
+        // Uncomment after installing: npm install @sentry/react-native expo-haptics --legacy-peer-deps
+        // [
+        //     "@sentry/react-native/expo",
+        //     {
+        //         organization: process.env.SENTRY_ORG,
+        //         project: process.env.SENTRY_PROJECT,
+        //     },
+        // ],
+        // "expo-haptics",
     ],
     experiments: {
         typedRoutes: true,
