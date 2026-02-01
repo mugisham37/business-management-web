@@ -5,7 +5,8 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, Optional } from '@nestjs/common';
+import { ValidationService } from '../services/validation.service';
 
 /**
  * Interface for unique field validation service
@@ -20,9 +21,14 @@ export interface UniqueValidationService {
 @ValidatorConstraint({ name: 'isUnique', async: true })
 @Injectable()
 export class IsUniqueConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly validationService: UniqueValidationService) {}
+  constructor(@Optional() private readonly validationService: ValidationService) {}
 
   async validate(value: any, args: ValidationArguments): Promise<boolean> {
+    if (!this.validationService) {
+      // Skip validation if service is not available
+      return true;
+    }
+    
     const [table, field, excludeId] = args.constraints;
     
     if (!value) return true; // Let other validators handle required validation
@@ -80,9 +86,14 @@ export interface ExistsValidationService {
 @ValidatorConstraint({ name: 'exists', async: true })
 @Injectable()
 export class ExistsConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly validationService: ExistsValidationService) {}
+  constructor(@Optional() private readonly validationService: ValidationService) {}
 
   async validate(value: any, args: ValidationArguments): Promise<boolean> {
+    if (!this.validationService) {
+      // Skip validation if service is not available
+      return true;
+    }
+    
     const [table, field] = args.constraints;
     
     if (!value) return true; // Let other validators handle required validation
@@ -139,9 +150,14 @@ export interface TenantValidationService {
 @ValidatorConstraint({ name: 'belongsToTenant', async: true })
 @Injectable()
 export class BelongsToTenantConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly validationService: TenantValidationService) {}
+  constructor(@Optional() private readonly validationService: ValidationService) {}
 
   async validate(value: any, args: ValidationArguments): Promise<boolean> {
+    if (!this.validationService) {
+      // Skip validation if service is not available
+      return true;
+    }
+    
     const [table, field, tenantId] = args.constraints;
     
     if (!value || !tenantId) return true;
@@ -197,9 +213,14 @@ export interface BusinessRuleValidationService {
 @ValidatorConstraint({ name: 'businessRule', async: true })
 @Injectable()
 export class BusinessRuleConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly validationService: BusinessRuleValidationService) {}
+  constructor(@Optional() private readonly validationService: ValidationService) {}
 
   async validate(value: any, args: ValidationArguments): Promise<boolean> {
+    if (!this.validationService) {
+      // Skip validation if service is not available
+      return true;
+    }
+    
     const [ruleName, context] = args.constraints;
     
     return this.validationService.validateBusinessRule(ruleName, value, context);

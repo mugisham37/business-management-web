@@ -9,7 +9,6 @@ import {
 } from '../graphql/inputs';
 import { JournalEntry } from '../graphql/types';
 import { JournalEntryStatus } from '../graphql/enums';
-import { AccountingService } from './accounting.service';
 import { isDebitAccount } from '../utils/type-transformers';
 
 @Injectable()
@@ -17,7 +16,6 @@ export class JournalEntryService {
   constructor(
     private readonly journalEntryRepository: JournalEntryRepository,
     private readonly chartOfAccountsService: ChartOfAccountsService,
-    private readonly accountingService: AccountingService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PubSub } from 'graphql-subscriptions';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 
 @Injectable()
 export class CrmSubscriptionService {
   private readonly logger = new Logger(CrmSubscriptionService.name);
 
-  constructor(private readonly pubSub: PubSub) {}
+  constructor(@Inject('PUB_SUB') private readonly pubSub: RedisPubSub) {}
 
   // Customer events
   @OnEvent('customer.created')

@@ -141,6 +141,15 @@ import { DatabaseModule } from '../database/database.module';
           timeout: 300000, // 5 minutes
         },
       },
+      { 
+        name: 'segmentation',
+        defaultJobOptions: {
+          removeOnComplete: 50,
+          removeOnFail: 25,
+          attempts: 3,
+          timeout: 300000, // 5 minutes
+        },
+      },
     ),
   ],
   providers: [
@@ -194,6 +203,9 @@ import { DatabaseModule } from '../database/database.module';
     },
   ],
   exports: [
+    // Export BullModule so other modules can access registered queues
+    BullModule,
+    
     // Core Services
     QueueService,
     QueueManagementService,

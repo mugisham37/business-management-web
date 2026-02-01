@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { QueueModule } from '../queue/queue.module';
+import { PubSubModule } from '../../common/graphql/pubsub.module';
 
 // Services
 import { CustomerService } from './services/customer.service';
@@ -36,6 +37,7 @@ import { CustomerEventHandler } from './handlers/customer-event.handler';
     DatabaseModule,
     CacheModule,
     QueueModule,
+    PubSubModule,
   ],
   providers: [
     // Services
