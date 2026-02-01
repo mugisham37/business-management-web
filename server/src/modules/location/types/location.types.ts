@@ -1,4 +1,5 @@
 import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/graphql';
+import { forwardRef } from '@nestjs/common';
 import { BaseEntity, Edge, Connection } from '../../../common/graphql/base.types';
 import { 
   LocationType, 
@@ -332,18 +333,18 @@ export class FranchiseGQLType extends BaseEntity {
   @Field()
   isActive!: boolean;
 
-  // Relationships
-  @Field(() => TerritoryGQLType, { nullable: true })
-  primaryTerritory?: TerritoryGQLType;
+  // Relationships - use forwardRef for circular dependencies
+  @Field(() => forwardRef(() => TerritoryGQLType), { nullable: true })
+  primaryTerritory?: any; // TerritoryGQLType
 
-  @Field(() => FranchiseGQLType, { nullable: true })
-  parentFranchise?: FranchiseGQLType;
+  @Field(() => forwardRef(() => FranchiseGQLType), { nullable: true })
+  parentFranchise?: any; // FranchiseGQLType
 
-  @Field(() => [FranchiseGQLType], { nullable: true })
-  childFranchises?: FranchiseGQLType[];
+  @Field(() => [forwardRef(() => FranchiseGQLType)], { nullable: true })
+  childFranchises?: any[]; // FranchiseGQLType[]
 
-  @Field(() => [LocationGQLType], { nullable: true })
-  locations?: LocationGQLType[];
+  @Field(() => [forwardRef(() => LocationGQLType)], { nullable: true })
+  locations?: any[]; // LocationGQLType[]
 }
 
 // Territory types
@@ -373,15 +374,15 @@ export class TerritoryGQLType extends BaseEntity {
   @Field()
   isActive!: boolean;
 
-  // Relationships
-  @Field(() => TerritoryGQLType, { nullable: true })
-  parentTerritory?: TerritoryGQLType;
+  // Relationships - use forwardRef for circular dependencies
+  @Field(() => forwardRef(() => TerritoryGQLType), { nullable: true })
+  parentTerritory?: any; // TerritoryGQLType
 
-  @Field(() => [TerritoryGQLType], { nullable: true })
-  childTerritories?: TerritoryGQLType[];
+  @Field(() => [forwardRef(() => TerritoryGQLType)], { nullable: true })
+  childTerritories?: any[]; // TerritoryGQLType[]
 
-  @Field(() => FranchiseGQLType, { nullable: true })
-  assignedFranchise?: FranchiseGQLType;
+  @Field(() => forwardRef(() => FranchiseGQLType), { nullable: true })
+  assignedFranchise?: any; // FranchiseGQLType
 }
 
 // Pricing types
@@ -545,6 +546,36 @@ export class LocationPromotionType extends BaseEntity {
   isActive!: boolean;
 }
 
+@ObjectType('PromotionInfo')
+export class PromotionInfoType {
+  @Field()
+  id!: string;
+
+  @Field()
+  name!: string;
+
+  @Field(() => PromotionType)
+  type!: PromotionType;
+}
+
+@ObjectType('PromotionApplicationDetail')
+export class PromotionApplicationDetailType {
+  @Field()
+  itemId!: string;
+
+  @Field(() => Float)
+  originalPrice!: number;
+
+  @Field(() => Float)
+  discountedPrice!: number;
+
+  @Field(() => Float)
+  discount!: number;
+
+  @Field({ nullable: true })
+  reason?: string;
+}
+
 @ObjectType('PromotionApplicationResult')
 export class PromotionApplicationResultType {
   @Field()
@@ -573,33 +604,6 @@ export class PromotionApplicationResultType {
 
   @Field({ nullable: true })
   reason?: string;
-}
-
-@ObjectType('PromotionInfo')
-export class PromotionInfoType {
-  @Field()
-  id!: string;
-
-  @Field()
-  name!: string;
-
-  @Field(() => PromotionType)
-  type!: PromotionType;
-}
-
-@ObjectType('PromotionApplicationDetail')
-export class PromotionApplicationDetailType {
-  @Field()
-  itemId!: string;
-
-  @Field(() => Float)
-  originalPrice!: number;
-
-  @Field(() => Float)
-  discountedPrice!: number;
-
-  @Field(() => Float)
-  discountAmount!: number;
 }
 
 // Inventory Policy types
@@ -808,36 +812,6 @@ export class LocationPerformanceMetricsType {
   rankAmongLocations?: number;
 }
 
-@ObjectType('ConsolidatedReport')
-export class ConsolidatedReportType {
-  @Field()
-  reportId!: string;
-
-  @Field()
-  tenantId!: string;
-
-  @Field(() => ReportType)
-  reportType!: ReportType;
-
-  @Field()
-  generatedAt!: Date;
-
-  @Field(() => Int)
-  totalLocations!: number;
-
-  @Field(() => ReportPeriodType)
-  reportPeriod!: ReportPeriodType;
-
-  @Field(() => AggregatedMetricsType)
-  aggregatedMetrics!: AggregatedMetricsType;
-
-  @Field(() => [LocationPerformanceMetricsType])
-  locationMetrics!: LocationPerformanceMetricsType[];
-
-  @Field(() => ComparativeAnalysisType, { nullable: true })
-  comparativeAnalysis?: ComparativeAnalysisType;
-}
-
 @ObjectType('ReportPeriod')
 export class ReportPeriodType {
   @Field()
@@ -874,6 +848,18 @@ export class AggregatedMetricsType {
   lowestPerformingLocationId!: string;
 }
 
+@ObjectType('BenchmarkAnalysis')
+export class BenchmarkAnalysisType {
+  @Field(() => Int)
+  aboveAverage!: number;
+
+  @Field(() => Int)
+  belowAverage!: number;
+
+  @Field(() => LocationPerformanceMetricsType)
+  averagePerformance!: LocationPerformanceMetricsType;
+}
+
 @ObjectType('ComparativeAnalysis')
 export class ComparativeAnalysisType {
   @Field(() => Float)
@@ -889,16 +875,34 @@ export class ComparativeAnalysisType {
   benchmarkAnalysis?: BenchmarkAnalysisType;
 }
 
-@ObjectType('BenchmarkAnalysis')
-export class BenchmarkAnalysisType {
-  @Field(() => Int)
-  aboveAverage!: number;
+@ObjectType('ConsolidatedReport')
+export class ConsolidatedReportType {
+  @Field()
+  reportId!: string;
+
+  @Field()
+  tenantId!: string;
+
+  @Field(() => ReportType)
+  reportType!: ReportType;
+
+  @Field()
+  generatedAt!: Date;
 
   @Field(() => Int)
-  belowAverage!: number;
+  totalLocations!: number;
 
-  @Field(() => LocationPerformanceMetricsType)
-  averagePerformance!: LocationPerformanceMetricsType;
+  @Field(() => ReportPeriodType)
+  reportPeriod!: ReportPeriodType;
+
+  @Field(() => AggregatedMetricsType)
+  aggregatedMetrics!: AggregatedMetricsType;
+
+  @Field(() => [LocationPerformanceMetricsType])
+  locationMetrics!: LocationPerformanceMetricsType[];
+
+  @Field(() => ComparativeAnalysisType, { nullable: true })
+  comparativeAnalysis?: ComparativeAnalysisType;
 }
 
 // Placeholder types for relationships

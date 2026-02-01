@@ -1,6 +1,27 @@
 import { ObjectType, Field, Float, Int, ID } from '@nestjs/graphql';
 
 @ObjectType()
+export class B2BAddress {
+  @Field({ nullable: true })
+  line1?: string;
+
+  @Field({ nullable: true })
+  line2?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  state?: string;
+
+  @Field({ nullable: true })
+  postalCode?: string;
+
+  @Field({ nullable: true })
+  country?: string;
+}
+
+@ObjectType()
 export class B2BCustomer {
   @Field(() => ID)
   id!: string;
@@ -109,27 +130,6 @@ export class B2BCustomer {
 
   @Field()
   updatedAt!: Date;
-}
-
-@ObjectType()
-export class B2BAddress {
-  @Field({ nullable: true })
-  line1?: string;
-
-  @Field({ nullable: true })
-  line2?: string;
-
-  @Field({ nullable: true })
-  city?: string;
-
-  @Field({ nullable: true })
-  state?: string;
-
-  @Field({ nullable: true })
-  postalCode?: string;
-
-  @Field({ nullable: true })
-  country?: string;
 }
 
 @ObjectType()

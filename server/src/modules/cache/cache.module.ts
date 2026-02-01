@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
@@ -39,7 +39,7 @@ import { DatabaseModule } from '../database/database.module';
 @Module({
   imports: [
     ConfigModule,
-    LoggerModule,
+    forwardRef(() => LoggerModule),
     DatabaseModule,
     NestCacheModule.register({
       ttl: 300000, // 5 minutes default TTL in milliseconds

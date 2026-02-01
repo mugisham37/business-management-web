@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PubSub } from 'graphql-subscriptions';
@@ -20,7 +20,7 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
   imports: [
     ConfigModule,
     EventEmitterModule.forRoot(),
-    CacheModule,
+    forwardRef(() => CacheModule),
     GraphQLCommonModule,
   ],
   providers: [

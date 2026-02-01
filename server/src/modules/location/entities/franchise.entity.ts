@@ -126,22 +126,22 @@ export class Franchise {
   operator?: any; // User entity
 
   @ApiPropertyOptional({ description: 'Primary territory' })
-  primaryTerritory?: Territory;
+  primaryTerritory?: any; // Territory entity - use any to avoid circular reference at runtime
 
   @ApiPropertyOptional({ description: 'Parent franchise' })
-  parentFranchise?: Franchise;
+  parentFranchise?: any; // Franchise entity - self reference
 
   @ApiPropertyOptional({ description: 'Child franchises' })
-  childFranchises?: Franchise[];
+  childFranchises?: any[]; // Franchise[] - self reference
 
   @ApiPropertyOptional({ description: 'Franchise locations' })
-  locations?: FranchiseLocation[];
+  locations?: any[]; // FranchiseLocation[] - avoid forward reference
 
   @ApiPropertyOptional({ description: 'Franchise permissions' })
-  permissions?: FranchisePermission[];
+  permissions?: any[]; // FranchisePermission[] - avoid forward reference
 
   @ApiPropertyOptional({ description: 'Franchise metrics' })
-  metrics?: FranchiseMetric[];
+  metrics?: any[]; // FranchiseMetric[] - avoid forward reference
 }
 
 export class Territory {
@@ -207,19 +207,19 @@ export class Territory {
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Assigned franchise' })
-  assignedFranchise?: Franchise;
+  assignedFranchise?: any; // Franchise entity - avoid circular reference
 
   @ApiPropertyOptional({ description: 'Assigned user' })
   assignedUser?: any; // User entity
 
   @ApiPropertyOptional({ description: 'Parent territory' })
-  parentTerritory?: Territory;
+  parentTerritory?: any; // Territory - self reference
 
   @ApiPropertyOptional({ description: 'Child territories' })
-  childTerritories?: Territory[];
+  childTerritories?: any[]; // Territory[] - self reference
 
   @ApiPropertyOptional({ description: 'Territory assignments' })
-  assignments?: TerritoryAssignment[];
+  assignments?: any[]; // TerritoryAssignment[] - avoid forward reference
 }
 
 export class FranchiseLocation {
@@ -267,7 +267,7 @@ export class FranchiseLocation {
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
-  franchise?: Franchise;
+  franchise?: any; // Franchise entity - avoid backward reference
 
   @ApiPropertyOptional({ description: 'Location' })
   location?: any; // Location entity
@@ -318,7 +318,7 @@ export class FranchisePermission {
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
-  franchise?: Franchise;
+  franchise?: any; // Franchise entity - avoid backward reference
 
   @ApiPropertyOptional({ description: 'User' })
   user?: any; // User entity
@@ -378,7 +378,7 @@ export class FranchiseMetric {
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Franchise' })
-  franchise?: Franchise;
+  franchise?: any; // Franchise entity - avoid backward reference
 }
 
 export class TerritoryAssignment {
@@ -432,10 +432,10 @@ export class TerritoryAssignment {
 
   // Virtual properties for relations
   @ApiPropertyOptional({ description: 'Territory' })
-  territory?: Territory;
+  territory?: any; // Territory entity - avoid backward reference
 
   @ApiPropertyOptional({ description: 'Franchise' })
-  franchise?: Franchise;
+  franchise?: any; // Franchise entity - avoid backward reference
 
   @ApiPropertyOptional({ description: 'User' })
   user?: any; // User entity
