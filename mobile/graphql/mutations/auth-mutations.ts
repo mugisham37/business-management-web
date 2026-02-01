@@ -626,3 +626,70 @@ export const ASSIGN_ROLE_MUTATION = gql`
     }
   }
 `;
+
+/**
+ * Generate MFA setup mutation (alias for SETUP_MFA_MUTATION for compatibility)
+ */
+export const GENERATE_MFA_SETUP_MUTATION = gql`
+  mutation GenerateMfaSetup {
+    generateMfaSetup {
+      success
+      message
+      secret
+      qrCodeUrl
+      backupCodes
+      manualEntryKey
+    }
+  }
+`;
+
+/**
+ * Verify MFA token mutation (alias for VERIFY_MFA_MUTATION for compatibility)
+ */
+export const VERIFY_MFA_TOKEN_MUTATION = gql`
+  mutation VerifyMfaToken($input: VerifyMfaInput!) {
+    verifyMfaToken(input: $input) {
+      success
+      message
+      isValid
+      remainingAttempts
+    }
+  }
+`;
+
+/**
+ * Bulk grant permissions mutation
+ */
+export const BULK_GRANT_PERMISSIONS_MUTATION = gql`
+  mutation BulkGrantPermissions($input: BulkGrantPermissionsInput!) {
+    bulkGrantPermissions(input: $input) {
+      success
+      message
+      grantedCount
+      permissions {
+        id
+        userId
+        permission
+        resource
+        resourceId
+        grantedBy
+        grantedAt
+        expiresAt
+        isInherited
+      }
+    }
+  }
+`;
+
+/**
+ * Bulk revoke permissions mutation
+ */
+export const BULK_REVOKE_PERMISSIONS_MUTATION = gql`
+  mutation BulkRevokePermissions($input: BulkRevokePermissionsInput!) {
+    bulkRevokePermissions(input: $input) {
+      success
+      message
+      revokedCount
+    }
+  }
+`;

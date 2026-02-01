@@ -24,7 +24,7 @@ interface PushNotificationState {
 }
 
 interface NotificationEvent {
-  type: 'security_alert' | 'auth_request' | 'session_sync' | 'device_verification';
+  type: 'SECURITY_ALERT' | 'AUTH_REQUEST' | 'SESSION_SYNC' | 'DEVICE_VERIFICATION';
   notification: any;
   data: Record<string, any>;
   action?: string;
@@ -133,7 +133,7 @@ export function usePushNotifications() {
   /**
    * Send test notification
    */
-  const sendTestNotification = useCallback(async (type: SecurityNotification['type'] = 'security_alert') => {
+  const sendTestNotification = useCallback(async (type: SecurityNotification['type'] = 'SECURITY_ALERT') => {
     try {
       const testNotification: SecurityNotification = {
         id: `test_${Date.now()}`,

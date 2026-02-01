@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useLazyQuery, useMutation, useSubscription } from '@apollo/client';
+import { useLazyQuery, useMutation, useSubscription, ApolloError } from '@apollo/client';
 import {
   GET_MY_PERMISSIONS_QUERY,
   CHECK_PERMISSION_QUERY,
@@ -21,6 +21,23 @@ import {
 import { USER_PERMISSION_EVENTS_SUBSCRIPTION } from '@/graphql/subscriptions/auth-subscriptions';
 import { appStorage, STORAGE_KEYS } from '@/lib/storage';
 import { useAuth } from './useAuth';
+
+// Internal type definitions for permission data
+interface PermissionsData {
+  permissions: string[];
+  detailedPermissions: Permission[];
+}
+
+interface PermissionEvent {
+  type: string;
+  userId: string;
+  permission: string;
+  resource?: string;
+  resourceId?: string;
+  grantedBy?: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
 
 export interface Permission {
   id: string;
@@ -119,7 +136,7 @@ export function usePermissions(): UsePermissionsReturn {
   // Real-time permission updates
   useSubscription(USER_PERMISSION_EVENTS_SUBSCRIPTION, {
     skip: !user?.id,
-    onSubscriptionData: ({ subscriptionData }) => {
+    onData: ({ data: subscriptionData }: { data: { data?: { userPermissionEvents: PermissionEvent } } }) => {
       if (subscriptionData.data?.userPermissionEvents) {
         const event = subscriptionData.data.userPermissionEvents;
         handlePermissionEvent(event);
@@ -134,7 +151,7 @@ export function usePermissions(): UsePermissionsReturn {
     }
   }, [user?.id]);
 
-  const updatePermissionsState = useCallback((permissionsData: any) => {
+  const updatePermissionsState = useCallback((permissionsData: PermissionsData) => {
     setState(prev => ({
       ...prev,
       permissions: permissionsData.permissions || [],

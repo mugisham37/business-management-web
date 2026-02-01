@@ -91,12 +91,12 @@ export class MobileWebSocketManager {
     this.updateState({ isConnecting: true, lastError: undefined });
 
     try {
-      const token = await secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      if (!token) {
+      const tokens = await secureStorage.getTokens();
+      if (!tokens?.accessToken) {
         throw new Error('No access token available');
       }
 
-      const wsUrl = `${this.config.url}?token=${token}&platform=${Platform.OS}`;
+      const wsUrl = `${this.config.url}?token=${tokens.accessToken}&platform=${Platform.OS}`;
       
       this.ws = new WebSocket(wsUrl, this.config.protocols);
       

@@ -36,7 +36,7 @@ export interface NotificationPermissions {
 
 export interface SecurityNotification {
   id: string;
-  type: keyof typeof NOTIFICATION_CATEGORIES;
+  type: 'SECURITY_ALERT' | 'AUTH_REQUEST' | 'SESSION_SYNC' | 'DEVICE_VERIFICATION';
   title: string;
   body: string;
   data: Record<string, any>;
@@ -88,7 +88,7 @@ export class PushNotificationService extends EventEmitter {
       await this.requestPermissions();
 
       // Get push token
-      await this.getPushToken();
+      await this.fetchPushToken();
 
       // Setup notification handlers
       this.setupNotificationHandlers();
@@ -139,7 +139,7 @@ export class PushNotificationService extends EventEmitter {
   /**
    * Get push notification token
    */
-  private async getPushToken(): Promise<string | null> {
+  private async fetchPushToken(): Promise<string | null> {
     try {
       if (!this.permissions?.granted) {
         console.warn('Push notification permissions not granted');
@@ -154,6 +154,27 @@ export class PushNotificationService extends EventEmitter {
       console.error('Failed to get push token:', error);
       return null;
     }
+  }
+
+  /**
+   * Get the current push token (synchronous)
+   */
+  public getPushToken(): string | null {
+    return this.pushToken;
+  }
+
+  /**
+   * Check if service is initialized
+   */
+  public isServiceInitialized(): boolean {
+    return this.isInitialized;
+  }
+
+  /**
+   * Get current permissions
+   */
+  public getPermissions(): NotificationPermissions | null {
+    return this.permissions;
   }
 
   /**

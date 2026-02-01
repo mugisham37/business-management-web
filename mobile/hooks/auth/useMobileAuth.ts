@@ -274,9 +274,9 @@ export function useMobileAuth() {
    * Show authentication options with mobile-specific providers
    */
   const showAuthOptions = useCallback(() => {
-    const options = state.availableProviders.map(provider => ({
+    const options: Array<{ text: string; onPress?: () => void; style?: 'cancel' | 'destructive' | 'default' }> = state.availableProviders.map(provider => ({
       text: `Continue with ${provider.displayName}`,
-      onPress: () => authenticateWithOAuth(provider.name),
+      onPress: () => { authenticateWithOAuth(provider.name); },
     }));
 
     options.push(

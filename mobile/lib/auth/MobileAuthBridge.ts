@@ -10,8 +10,6 @@ import { gql } from '@apollo/client';
 import { apolloClient } from '@/lib/apollo';
 import { secureStorage, appStorage, STORAGE_KEYS } from '@/lib/storage';
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -244,7 +242,9 @@ export class MobileAuthBridge {
    * Setup deep link handling for OAuth callbacks and other auth flows
    */
   private setupDeepLinkHandling(): void {
-    Linking.addEventListener('url', this.handleDeepLink.bind(this));
+    Linking.addEventListener('url', (event: { url: string }) => {
+      this.handleDeepLink(event.url);
+    });
   }
 
   /**
@@ -263,7 +263,7 @@ export class MobileAuthBridge {
           return {
             success: true,
             action: 'oauth_callback',
-            data: { provider, ...queryParams },
+            data: queryParams ?? undefined,
           };
         }
       }
@@ -273,7 +273,7 @@ export class MobileAuthBridge {
         return {
           success: true,
           action: 'password_reset',
-          data: queryParams,
+          data: queryParams ?? undefined,
         };
       }
 
@@ -282,7 +282,7 @@ export class MobileAuthBridge {
         return {
           success: true,
           action: 'verification',
-          data: queryParams,
+          data: queryParams ?? undefined,
         };
       }
 
@@ -584,10 +584,12 @@ export class MobileAuthBridge {
         }
       }
 
+      // Type guard for result with error property
+      const errorMessage = !result.success && 'error' in result ? result.error : undefined;
       return {
         success: false,
-        fallbackToPassword: result.error === 'user_fallback',
-        error: result.error || 'Biometric authentication failed',
+        fallbackToPassword: errorMessage === 'user_fallback',
+        error: errorMessage || 'Biometric authentication failed',
       };
     } catch (error) {
       return {
@@ -703,6 +705,9 @@ export class MobileAuthBridge {
     }
   }
 }
+
+// Export singleton instance
+export const mobileAuthBridge = MobileAuthBridge.getInstance();
 
 // Export singleton instance
 export const mobileAuthBridge = MobileAuthBridge.getInstance();

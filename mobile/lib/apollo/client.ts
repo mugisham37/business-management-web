@@ -12,10 +12,12 @@ import {
     InMemoryCache,
     createHttpLink,
     from,
+    NormalizedCacheObject,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import { onError } from "@apollo/client/link/error";
+import { onError, ErrorResponse } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
+import { GraphQLError } from "graphql";
 import Constants from "expo-constants";
 import { secureStorage, appStorage, STORAGE_KEYS } from "../storage";
 
@@ -58,9 +60,9 @@ const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link - Handles GraphQL and network errors
  */
-const errorLink = onError(({ graphQLErrors, networkError }) => {
+const errorLink = onError(({ graphQLErrors, networkError }: ErrorResponse) => {
     if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path, extensions }) => {
+        graphQLErrors.forEach(({ message, locations, path, extensions }: GraphQLError) => {
             console.error(
                 `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
                     locations

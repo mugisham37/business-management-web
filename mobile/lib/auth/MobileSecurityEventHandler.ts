@@ -4,10 +4,10 @@
  */
 
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import PushNotification from 'react-native-push-notification';
 import { Linking } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { appStorage } from '@/lib/storage';
 
 export interface MobileSecurityEvent {
   id: string;
@@ -300,28 +300,32 @@ export class MobileSecurityEventHandler extends EventEmitter {
    */
   async registerForPushNotifications(): Promise<string | null> {
     try {
-      return new Promise((resolve, reject) => {
-        PushNotification.configure({
-          onRegister: (token) => {
-            console.log('Push notification token:', token);
-            resolve(token.token);
-          },
-          onNotification: (notification) => {
-            this.handlePushNotificationTap(notification);
-          },
-          onRegistrationError: (error) => {
-            console.error('Push notification registration error:', error);
-            reject(error);
-          },
-          permissions: {
-            alert: true,
-            badge: true,
-            sound: true,
-          },
-          popInitialNotification: true,
-          requestPermissions: true,
-        });
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.warn('Push notification permissions not granted');
+        return null;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      console.log('Push notification token:', tokenData.data);
+      
+      // Setup notification handlers
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
       });
+
+      // Handle notification tap
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        this.handlePushNotificationTap(response.notification.request.content.data);
+      });
+
+      return tokenData.data;
     } catch (error) {
       console.error('Failed to register for push notifications:', error);
       return null;
@@ -334,7 +338,7 @@ export class MobileSecurityEventHandler extends EventEmitter {
 
   private async loadConfiguration(): Promise<void> {
     try {
-      const configJson = await AsyncStorage.getItem(this.configStorageKey);
+      const configJson = appStorage.getItem(this.configStorageKey);
       if (configJson) {
         const savedConfig = JSON.parse(configJson);
         this.config = { ...this.config, ...savedConfig };
@@ -346,7 +350,7 @@ export class MobileSecurityEventHandler extends EventEmitter {
 
   private async saveConfiguration(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.configStorageKey, JSON.stringify(this.config));
+      appStorage.setItem(this.configStorageKey, JSON.stringify(this.config));
     } catch (error) {
       console.error('Failed to save configuration:', error);
     }
@@ -354,10 +358,10 @@ export class MobileSecurityEventHandler extends EventEmitter {
 
   private async loadEventHistory(): Promise<void> {
     try {
-      const historyJson = await AsyncStorage.getItem(this.storageKey);
+      const historyJson = appStorage.getItem(this.storageKey);
       if (historyJson) {
         const history = JSON.parse(historyJson);
-        this.eventHistory = history.map((event: any) => ({
+        this.eventHistory = history.map((event: MobileSecurityEvent) => ({
           ...event,
           timestamp: new Date(event.timestamp),
         }));
@@ -369,7 +373,7 @@ export class MobileSecurityEventHandler extends EventEmitter {
 
   private async saveEventHistory(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.storageKey, JSON.stringify(this.eventHistory));
+      appStorage.setItem(this.storageKey, JSON.stringify(this.eventHistory));
     } catch (error) {
       console.error('Failed to save event history:', error);
     }
@@ -407,32 +411,29 @@ export class MobileSecurityEventHandler extends EventEmitter {
 
   private async showPushNotification(event: MobileSecurityEvent): Promise<void> {
     try {
-      const notificationConfig: any = {
-        title: event.title,
-        message: event.message,
-        playSound: this.config.soundEnabled,
-        vibrate: this.config.vibrationEnabled,
-        userInfo: {
-          eventId: event.id,
-          eventType: event.type,
-          actionUrl: event.actionUrl,
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: event.title,
+          body: event.message,
+          sound: this.config.soundEnabled ? 'default' : undefined,
+          badge: this.config.badgeEnabled ? this.getUnreadCount() : undefined,
+          data: {
+            eventId: event.id,
+            eventType: event.type,
+            actionUrl: event.actionUrl,
+          },
         },
-      };
-
-      if (this.config.badgeEnabled) {
-        notificationConfig.number = this.getUnreadCount();
-      }
-
-      PushNotification.localNotification(notificationConfig);
+        trigger: null, // Show immediately
+      });
     } catch (error) {
       console.error('Failed to show push notification:', error);
     }
   }
 
-  private handlePushNotificationTap(notification: any): void {
-    const { eventId, eventType, actionUrl } = notification.userInfo || {};
+  private handlePushNotificationTap(notificationData: Record<string, unknown>): void {
+    const { eventId, eventType, actionUrl } = notificationData || {};
     
-    if (actionUrl) {
+    if (typeof actionUrl === 'string') {
       Linking.openURL(actionUrl).catch(error => {
         console.error('Failed to open action URL:', error);
       });
@@ -442,7 +443,7 @@ export class MobileSecurityEventHandler extends EventEmitter {
       eventId,
       eventType,
       actionUrl,
-      notification,
+      notification: notificationData,
     });
   }
 
@@ -460,18 +461,14 @@ export class MobileSecurityEventHandler extends EventEmitter {
   private configurePushNotifications(): void {
     // Configure push notification channels for Android
     if (Platform.OS === 'android') {
-      PushNotification.createChannel(
-        {
-          channelId: 'security-events',
-          channelName: 'Security Events',
-          channelDescription: 'Authentication and security notifications',
-          playSound: this.config.soundEnabled,
-          soundName: 'default',
-          importance: 4,
-          vibrate: this.config.vibrationEnabled,
-        },
-        (created) => console.log(`Security events channel created: ${created}`)
-      );
+      Notifications.setNotificationChannelAsync('security-events', {
+        name: 'Security Events',
+        description: 'Authentication and security notifications',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: this.config.vibrationEnabled ? [0, 250, 250, 250] : undefined,
+        lightColor: '#FF231F7C',
+        sound: this.config.soundEnabled ? 'default' : undefined,
+      });
     }
   }
 

@@ -122,6 +122,52 @@ export const secureStorage = {
             return false;
         }
     },
+
+    /**
+     * Store a single item securely (alias for generic secure storage)
+     */
+    async setItem(key: string, value: string): Promise<boolean> {
+        try {
+            await Keychain.setGenericPassword(key, value, {
+                service: `enterprise-bms-secure-${key}`,
+                accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+            });
+            return true;
+        } catch (error) {
+            console.error("Failed to store secure item:", error);
+            return false;
+        }
+    },
+
+    /**
+     * Get a single item from secure storage
+     */
+    async getItem(key: string): Promise<string | null> {
+        try {
+            const credentials = await Keychain.getGenericPassword({
+                service: `enterprise-bms-secure-${key}`,
+            });
+            if (credentials && credentials.password) {
+                return credentials.password;
+            }
+            return null;
+        } catch (error) {
+            console.error("Failed to retrieve secure item:", error);
+            return null;
+        }
+    },
+
+    /**
+     * Remove a single item from secure storage
+     */
+    async removeItem(key: string): Promise<boolean> {
+        try {
+            await Keychain.resetGenericPassword({ service: `enterprise-bms-secure-${key}` });
+            return true;
+        } catch (error) {
+            console.error("Failed to remove secure item:", error);
+        }
+    },
 };
 
 /**
@@ -190,6 +236,19 @@ export const appStorage = {
     // Get all keys
     getAllKeys(): string[] {
         return storage.getAllKeys();
+    },
+
+    // Alias methods for compatibility with AsyncStorage-like API
+    setItem(key: string, value: string): void {
+        storage.set(key, value);
+    },
+
+    getItem(key: string): string | undefined {
+        return storage.getString(key);
+    },
+
+    removeItem(key: string): void {
+        storage.delete(key);
     },
 };
 

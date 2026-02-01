@@ -3,7 +3,7 @@
  * Manages real-time authentication events using GraphQL subscriptions for mobile
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import * as Notifications from 'expo-notifications';
 import {
     SECURITY_EVENTS_SUBSCRIPTION,
@@ -34,7 +34,7 @@ export interface MobileAuthEvent {
     };
     ipAddress?: string;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -43,7 +43,7 @@ export interface PushNotificationEvent {
     userId: string;
     title: string;
     body: string;
-    data?: any;
+    data?: Record<string, unknown>;
     timestamp: string;
     priority: 'low' | 'normal' | 'high';
     category?: string;
@@ -56,7 +56,7 @@ export interface BiometricAuthEvent {
     biometricType: 'fingerprint' | 'face' | 'voice';
     success: boolean;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 export interface DeepLinkEvent {
@@ -65,20 +65,37 @@ export interface DeepLinkEvent {
     url: string;
     handled: boolean;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 export interface MobileEventHandler<T> {
     (event: T): void;
 }
 
+// Subscription callback data types
+interface SubscriptionCallbackData<T> {
+    data?: T;
+}
+
+interface SecurityEventsData {
+    securityEvents: MobileAuthEvent;
+}
+
+interface AuthEventsData {
+    authEvents: MobileAuthEvent;
+}
+
+interface PermissionChangesData {
+    permissionChanges: Record<string, unknown>;
+}
+
 export class MobileAuthEventService {
-    private apolloClient: ApolloClient<any>;
-    private subscriptions: Map<string, any> = new Map();
-    private eventHandlers: Map<string, MobileEventHandler<any>[]> = new Map();
+    private apolloClient: ApolloClient<NormalizedCacheObject>;
+    private subscriptions: Map<string, { unsubscribe: () => void }> = new Map();
+    private eventHandlers: Map<string, MobileEventHandler<unknown>[]> = new Map();
     private userId: string | null = null;
 
-    constructor(apolloClient: ApolloClient<any>) {
+    constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
         this.apolloClient = apolloClient;
         this.setupNotificationHandlers();
     }
@@ -100,12 +117,14 @@ export class MobileAuthEventService {
                 shouldShowAlert: true,
                 shouldPlaySound: true,
                 shouldSetBadge: true,
+                shouldShowBanner: true,
+                shouldShowList: true,
             }),
         });
 
         // Handle notification responses
         Notifications.addNotificationResponseReceivedListener(response => {
-            const data = response.notification.request.content.data;
+            const data = response.notification.request.content.data as Record<string, unknown> | undefined;
             if (data?.type === 'auth_event') {
                 this.handleAuthNotification(data);
             }
@@ -121,17 +140,17 @@ export class MobileAuthEventService {
         const subscriptionKey = 'security_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<SecurityEventsData>({
                 query: SECURITY_EVENTS_SUBSCRIPTION,
                 variables: { userId: this.userId }
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<SecurityEventsData>) => {
                     if (data?.securityEvents) {
                         this.notifyHandlers('security_events', data.securityEvents);
                         this.handleSecurityEvent(data.securityEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Security events subscription error:', error);
                 }
             });
@@ -147,15 +166,15 @@ export class MobileAuthEventService {
         const subscriptionKey = 'auth_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<AuthEventsData>({
                 query: AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<AuthEventsData>) => {
                     if (data?.authEvents) {
                         this.notifyHandlers('auth_events', data.authEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Auth events subscription error:', error);
                 }
             });
@@ -176,20 +195,20 @@ export class MobileAuthEventService {
     /**
      * Subscribe to permission changes
      */
-    subscribeToPermissionChanges(handler: MobileEventHandler<any>): () => void {
+    subscribeToPermissionChanges(handler: MobileEventHandler<Record<string, unknown>>): () => void {
         const subscriptionKey = 'permission_changes';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<PermissionChangesData>({
                 query: PERMISSION_CHANGES_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<PermissionChangesData>) => {
                     if (data?.permissionChanges) {
                         this.notifyHandlers('permission_changes', data.permissionChanges);
                         this.handlePermissionChange(data.permissionChanges);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Permission changes subscription error:', error);
                 }
             });

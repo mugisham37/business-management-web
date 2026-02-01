@@ -3,7 +3,7 @@
  * Integrates all GraphQL authentication operations for complete parity with web
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
@@ -98,10 +98,10 @@ export interface OAuthProvider {
 }
 
 export class ComprehensiveAuthService {
-    private apolloClient: ApolloClient<any>;
+    private apolloClient: ApolloClient<NormalizedCacheObject>;
     private deviceInfo: DeviceInfo | null = null;
 
-    constructor(apolloClient: ApolloClient<any>) {
+    constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
         this.apolloClient = apolloClient;
         this.initializeDeviceInfo();
     }

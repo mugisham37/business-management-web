@@ -291,3 +291,21 @@ export const DEEP_LINK_EVENTS_SUBSCRIPTION = gql`
     }
   }
 `;
+
+/**
+ * Subscribe to user permission events
+ */
+export const USER_PERMISSION_EVENTS_SUBSCRIPTION = gql`
+  subscription UserPermissionEvents {
+    userPermissionEvents {
+      type
+      userId
+      permission
+      resource
+      resourceId
+      grantedBy
+      timestamp
+      metadata
+    }
+  }
+`;

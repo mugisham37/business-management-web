@@ -226,10 +226,11 @@ export class SessionSyncService extends EventEmitter {
       // Configure notification handling
       Notifications.setNotificationHandler({
         handleNotification: async (notification) => {
-          const data = notification.request.content.data as PushNotificationData;
+          const rawData = notification.request.content.data;
+          const data = rawData as unknown as PushNotificationData | undefined;
           
           // Handle security-related notifications
-          if (data.type === 'security_alert') {
+          if (data?.type === 'security_alert') {
             this.emit('securityAlert', {
               title: notification.request.content.title,
               body: notification.request.content.body,
@@ -240,8 +241,10 @@ export class SessionSyncService extends EventEmitter {
 
           return {
             shouldShowAlert: true,
-            shouldPlaySound: data.type === 'security_alert',
+            shouldPlaySound: data?.type === 'security_alert',
             shouldSetBadge: true,
+            shouldShowBanner: true,
+            shouldShowList: true,
           };
         },
       });
@@ -284,14 +287,20 @@ export class SessionSyncService extends EventEmitter {
   private setupNotificationHandlers(): void {
     // Handle notification received while app is in foreground
     Notifications.addNotificationReceivedListener((notification) => {
-      const data = notification.request.content.data as PushNotificationData;
-      this.handleNotificationReceived(data);
+      const rawData = notification.request.content.data;
+      const data = rawData as unknown as PushNotificationData | undefined;
+      if (data) {
+        this.handleNotificationReceived(data);
+      }
     });
 
     // Handle notification tapped
     Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as PushNotificationData;
-      this.handleNotificationTapped(data);
+      const rawData = response.notification.request.content.data;
+      const data = rawData as unknown as PushNotificationData | undefined;
+      if (data) {
+        this.handleNotificationTapped(data);
+      }
     });
   }
 

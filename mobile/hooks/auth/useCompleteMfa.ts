@@ -18,7 +18,7 @@ import {
   GET_MFA_STATUS_QUERY,
   IS_MFA_ENABLED_QUERY,
 } from '@/graphql/queries/auth-queries';
-import { secureStorage, STORAGE_KEYS } from '@/lib/storage';
+import { secureStorage, appStorage, STORAGE_KEYS } from '@/lib/storage';
 
 export interface MfaSetupData {
   secret: string;
