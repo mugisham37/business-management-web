@@ -23,7 +23,11 @@ import { appStorage, STORAGE_KEYS } from '@/lib/storage';
 import { useAuth } from './useAuth';
 
 // Internal type definitions for permission data
-interface PermissionsData {
+interface PermissionsQueryData {
+  getMyPermissions?: PermissionsResponseData;
+}
+
+interface PermissionsResponseData {
   permissions: string[];
   detailedPermissions: Permission[];
 }
@@ -113,13 +117,13 @@ export function usePermissions(): UsePermissionsReturn {
   // GraphQL operations
   const [getMyPermissions, { loading: loadingMyPermissions }] = useLazyQuery(GET_MY_PERMISSIONS_QUERY, {
     fetchPolicy: 'cache-first',
-    onCompleted: (data) => {
+    onCompleted: (data: PermissionsQueryData) => {
       if (data?.getMyPermissions) {
         updatePermissionsState(data.getMyPermissions);
         cachePermissions(data.getMyPermissions);
       }
     },
-    onError: (error) => {
+    onError: (error: ApolloError) => {
       setState(prev => ({ ...prev, error: error.message }));
     },
   });
@@ -151,7 +155,7 @@ export function usePermissions(): UsePermissionsReturn {
     }
   }, [user?.id]);
 
-  const updatePermissionsState = useCallback((permissionsData: PermissionsData) => {
+  const updatePermissionsState = useCallback((permissionsData: PermissionsResponseData) => {
     setState(prev => ({
       ...prev,
       permissions: permissionsData.permissions || [],

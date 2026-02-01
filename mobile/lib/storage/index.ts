@@ -166,6 +166,7 @@ export const secureStorage = {
             return true;
         } catch (error) {
             console.error("Failed to remove secure item:", error);
+            return false;
         }
     },
 };

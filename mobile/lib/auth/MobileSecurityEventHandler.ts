@@ -264,7 +264,7 @@ export class MobileSecurityEventHandler extends EventEmitter {
   async clearEventHistory(): Promise<void> {
     try {
       this.eventHistory = [];
-      await AsyncStorage.removeItem(this.storageKey);
+      appStorage.removeItem(this.storageKey);
       this.emit('historyCleared');
     } catch (error) {
       console.error('Failed to clear event history:', error);

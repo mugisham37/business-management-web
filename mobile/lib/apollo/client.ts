@@ -15,9 +15,8 @@ import {
     NormalizedCacheObject,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import { onError, ErrorResponse } from "@apollo/client/link/error";
+import { onError } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
-import { GraphQLError } from "graphql";
 import Constants from "expo-constants";
 import { secureStorage, appStorage, STORAGE_KEYS } from "../storage";
 
@@ -60,9 +59,20 @@ const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link - Handles GraphQL and network errors
  */
-const errorLink = onError(({ graphQLErrors, networkError }: ErrorResponse) => {
+const errorLink = onError((errorResponse) => {
+    const { graphQLErrors, networkError } = errorResponse as {
+        graphQLErrors?: ReadonlyArray<{ 
+            message: string; 
+            locations?: ReadonlyArray<{ line: number; column: number }>; 
+            path?: ReadonlyArray<string | number>;
+            extensions?: Record<string, unknown>;
+        }>;
+        networkError?: Error & { statusCode?: number };
+    };
+    
     if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path, extensions }: GraphQLError) => {
+        graphQLErrors.forEach((error) => {
+            const { message, locations, path, extensions } = error;
             console.error(
                 `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
                     locations
@@ -121,6 +131,11 @@ async function handleAuthError() {
 /**
  * Cache Configuration with type policies
  */
+interface PaginatedList {
+    nodes: unknown[];
+    [key: string]: unknown;
+}
+
 const cache = new InMemoryCache({
     typePolicies: {
         Query: {
@@ -128,7 +143,7 @@ const cache = new InMemoryCache({
                 // Pagination policies for lists
                 products: {
                     keyArgs: ["where", "orderBy"],
-                    merge(existing = { nodes: [] }, incoming) {
+                    merge(existing: PaginatedList = { nodes: [] }, incoming: PaginatedList) {
                         return {
                             ...incoming,
                             nodes: [...existing.nodes, ...incoming.nodes],
@@ -137,7 +152,7 @@ const cache = new InMemoryCache({
                 },
                 customers: {
                     keyArgs: ["where", "orderBy"],
-                    merge(existing = { nodes: [] }, incoming) {
+                    merge(existing: PaginatedList = { nodes: [] }, incoming: PaginatedList) {
                         return {
                             ...incoming,
                             nodes: [...existing.nodes, ...incoming.nodes],
@@ -146,7 +161,7 @@ const cache = new InMemoryCache({
                 },
                 orders: {
                     keyArgs: ["where", "orderBy"],
-                    merge(existing = { nodes: [] }, incoming) {
+                    merge(existing: PaginatedList = { nodes: [] }, incoming: PaginatedList) {
                         return {
                             ...incoming,
                             nodes: [...existing.nodes, ...incoming.nodes],
@@ -155,7 +170,7 @@ const cache = new InMemoryCache({
                 },
                 employees: {
                     keyArgs: ["where", "orderBy"],
-                    merge(existing = { nodes: [] }, incoming) {
+                    merge(existing: PaginatedList = { nodes: [] }, incoming: PaginatedList) {
                         return {
                             ...incoming,
                             nodes: [...existing.nodes, ...incoming.nodes],

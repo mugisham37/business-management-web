@@ -153,6 +153,70 @@ export interface DeepLinkResult {
   error?: string;
 }
 
+// Mutation response types
+interface OAuthLoginResponse {
+  oauthLogin?: {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      tenantId: string;
+      tier: string;
+      permissions: string[];
+      onboardingCompleted: boolean;
+    };
+    requiresOnboarding: boolean;
+  };
+}
+
+interface GitHubOAuthResponse {
+  githubOAuth?: {
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      tenantId: string;
+      tier: string;
+      permissions: string[];
+      onboardingCompleted: boolean;
+    };
+    requiresOnboarding: boolean;
+  };
+}
+
+interface RegisterDeviceResponse {
+  registerDevice?: {
+    deviceId: string;
+    trusted: boolean;
+    requiresVerification: boolean;
+  };
+}
+
+interface BiometricLoginResponse {
+  biometricLogin?: {
+    accessToken: string;
+    refreshToken: string;
+    user?: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      tenantId: string;
+      tier: string;
+      permissions: string[];
+    };
+  };
+}
+
 /**
  * Mobile Authentication Bridge Service
  */
@@ -217,7 +281,7 @@ export class MobileAuthBridge {
     if (!this.deviceInfo) return;
 
     try {
-      const { data } = await apolloClient.mutate({
+      const { data } = await apolloClient.mutate<RegisterDeviceResponse>({
         mutation: REGISTER_DEVICE_MUTATION,
         variables: {
           input: {
@@ -325,7 +389,7 @@ export class MobileAuthBridge {
         const { code } = result.params;
         
         // Exchange code for tokens via backend
-        const { data } = await apolloClient.mutate({
+        const { data } = await apolloClient.mutate<OAuthLoginResponse>({
           mutation: OAUTH_LOGIN_MUTATION,
           variables: {
             input: {
@@ -400,7 +464,7 @@ export class MobileAuthBridge {
         const { code } = result.params;
         
         // Exchange code for tokens via backend
-        const { data } = await apolloClient.mutate({
+        const { data } = await apolloClient.mutate<OAuthLoginResponse>({
           mutation: OAUTH_LOGIN_MUTATION,
           variables: {
             input: {
@@ -475,7 +539,7 @@ export class MobileAuthBridge {
         const { code } = result.params;
         
         // Exchange code for tokens via backend
-        const { data } = await apolloClient.mutate({
+        const { data } = await apolloClient.mutate<GitHubOAuthResponse>({
           mutation: GITHUB_OAUTH_MUTATION,
           variables: {
             input: {
@@ -561,7 +625,7 @@ export class MobileAuthBridge {
 
       if (result.success) {
         // Verify with backend and get fresh tokens
-        const { data } = await apolloClient.mutate({
+        const { data } = await apolloClient.mutate<BiometricLoginResponse>({
           mutation: BIOMETRIC_LOGIN_MUTATION,
           variables: {
             input: {
@@ -705,9 +769,6 @@ export class MobileAuthBridge {
     }
   }
 }
-
-// Export singleton instance
-export const mobileAuthBridge = MobileAuthBridge.getInstance();
 
 // Export singleton instance
 export const mobileAuthBridge = MobileAuthBridge.getInstance();

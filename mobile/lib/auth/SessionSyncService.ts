@@ -130,6 +130,48 @@ export interface DeepLinkAuthFlow {
   error?: string;
 }
 
+// Response types for GraphQL operations
+interface UserSessionsResponse {
+  userSessions?: Array<{
+    id: string;
+    deviceId: string;
+    deviceName: string;
+    platform: string;
+    ipAddress: string;
+    userAgent: string;
+    lastActivity: string;
+    isActive: boolean;
+    trusted: boolean;
+    location?: {
+      city: string;
+      country: string;
+    };
+  }>;
+}
+
+interface TerminateSessionResponse {
+  terminateSession?: {
+    success: boolean;
+    terminatedAt: string;
+  };
+}
+
+interface SecurityEventsData {
+  securityEvents: {
+    id: string;
+    type: 'login' | 'logout' | 'new_device' | 'suspicious_activity' | 'mfa_challenge' | 'session_expired';
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    message: string;
+    deviceInfo: {
+      deviceId: string;
+      deviceName: string;
+      platform: string;
+    };
+    timestamp: string;
+    requiresAction: boolean;
+  };
+}
+
 /**
  * Session Synchronization Service
  */
@@ -434,13 +476,13 @@ export class SessionSyncService extends EventEmitter {
 
     try {
       // Get current sessions from backend
-      const { data } = await apolloClient.query({
+      const { data } = await apolloClient.query<UserSessionsResponse>({
         query: GET_USER_SESSIONS_QUERY,
         variables: { userId: this.currentUserId },
         fetchPolicy: 'network-only',
       });
 
-      const sessions: UserSession[] = data?.userSessions?.map((session: any) => ({
+      const sessions: UserSession[] = data?.userSessions?.map((session) => ({
         ...session,
         lastActivity: new Date(session.lastActivity),
       })) || [];
@@ -488,7 +530,7 @@ export class SessionSyncService extends EventEmitter {
    */
   public async terminateSession(sessionId: string): Promise<boolean> {
     try {
-      const { data } = await apolloClient.mutate({
+      const { data } = await apolloClient.mutate<TerminateSessionResponse>({
         mutation: TERMINATE_SESSION_MUTATION,
         variables: { sessionId },
       });
@@ -516,11 +558,12 @@ export class SessionSyncService extends EventEmitter {
     if (!this.currentUserId) return;
 
     try {
-      this.securitySubscription = apolloClient.subscribe({
+      this.securitySubscription = apolloClient.subscribe<SecurityEventsData>({
         query: SECURITY_EVENT_SUBSCRIPTION,
         variables: { userId: this.currentUserId },
       }).subscribe({
         next: ({ data }) => {
+          if (!data) return;
           const event: SecurityEvent = {
             ...data.securityEvents,
             timestamp: new Date(data.securityEvents.timestamp),
@@ -528,7 +571,7 @@ export class SessionSyncService extends EventEmitter {
           
           this.handleSecurityEvent(event);
         },
-        error: (error) => {
+        error: (error: Error) => {
           console.error('Security events subscription error:', error);
           this.emit('error', { error, context: 'security_subscription' });
         },

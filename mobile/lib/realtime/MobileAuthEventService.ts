@@ -3,7 +3,7 @@
  * Manages real-time authentication events using GraphQL subscriptions for mobile
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import type { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import * as Notifications from 'expo-notifications';
 import {
     SECURITY_EVENTS_SUBSCRIPTION,
@@ -89,13 +89,60 @@ interface PermissionChangesData {
     permissionChanges: Record<string, unknown>;
 }
 
+interface SecurityAlertsData {
+    securityAlerts: MobileAuthEvent;
+}
+
+interface MfaEventsData {
+    mfaEvents: MobileAuthEvent;
+}
+
+interface SessionEventsData {
+    sessionEvents: MobileAuthEvent;
+}
+
+interface TierChangesData {
+    tierChanges: Record<string, unknown>;
+}
+
+interface PaymentEventsData {
+    paymentEvents: Record<string, unknown>;
+}
+
+interface DeviceTrustEventsData {
+    deviceTrustEvents: Record<string, unknown>;
+}
+
+interface PushNotificationEventsData {
+    pushNotificationEvents: PushNotificationEvent;
+}
+
+interface BiometricAuthEventsData {
+    biometricAuthEvents: BiometricAuthEvent;
+}
+
+interface DeepLinkEventsData {
+    deepLinkEvents: DeepLinkEvent;
+}
+
+interface OnboardingProgressData {
+    onboardingProgress: Record<string, unknown>;
+}
+
+interface SessionLimitEventsData {
+    sessionLimitEvents: Record<string, unknown>;
+}
+
+// Type alias for Apollo Client to handle generic resolution issues
+type ApolloClientInstance = ApolloClient<NormalizedCacheObject>;
+
 export class MobileAuthEventService {
-    private apolloClient: ApolloClient<NormalizedCacheObject>;
+    private apolloClient: ApolloClientInstance;
     private subscriptions: Map<string, { unsubscribe: () => void }> = new Map();
     private eventHandlers: Map<string, MobileEventHandler<unknown>[]> = new Map();
     private userId: string | null = null;
 
-    constructor(apolloClient: ApolloClient<NormalizedCacheObject>) {
+    constructor(apolloClient: ApolloClientInstance) {
         this.apolloClient = apolloClient;
         this.setupNotificationHandlers();
     }
@@ -233,16 +280,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'security_alerts';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<SecurityAlertsData>({
                 query: SECURITY_ALERTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<SecurityAlertsData>) => {
                     if (data?.securityAlerts) {
                         this.notifyHandlers('security_alerts', data.securityAlerts);
                         this.handleSecurityAlert(data.securityAlerts);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Security alerts subscription error:', error);
                 }
             });
@@ -267,16 +314,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'mfa_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<MfaEventsData>({
                 query: MFA_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<MfaEventsData>) => {
                     if (data?.mfaEvents) {
                         this.notifyHandlers('mfa_events', data.mfaEvents);
                         this.handleMfaEvent(data.mfaEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('MFA events subscription error:', error);
                 }
             });
@@ -301,16 +348,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'session_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<SessionEventsData>({
                 query: SESSION_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<SessionEventsData>) => {
                     if (data?.sessionEvents) {
                         this.notifyHandlers('session_events', data.sessionEvents);
                         this.handleSessionEvent(data.sessionEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Session events subscription error:', error);
                 }
             });
@@ -335,16 +382,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'tier_changes';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<TierChangesData>({
                 query: TIER_CHANGES_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<TierChangesData>) => {
                     if (data?.tierChanges) {
                         this.notifyHandlers('tier_changes', data.tierChanges);
                         this.handleTierChange(data.tierChanges);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Tier changes subscription error:', error);
                 }
             });
@@ -369,16 +416,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'payment_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<PaymentEventsData>({
                 query: PAYMENT_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<PaymentEventsData>) => {
                     if (data?.paymentEvents) {
                         this.notifyHandlers('payment_events', data.paymentEvents);
                         this.handlePaymentEvent(data.paymentEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Payment events subscription error:', error);
                 }
             });
@@ -403,16 +450,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'device_trust_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<DeviceTrustEventsData>({
                 query: DEVICE_TRUST_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<DeviceTrustEventsData>) => {
                     if (data?.deviceTrustEvents) {
                         this.notifyHandlers('device_trust_events', data.deviceTrustEvents);
                         this.handleDeviceTrustEvent(data.deviceTrustEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Device trust events subscription error:', error);
                 }
             });
@@ -437,16 +484,16 @@ export class MobileAuthEventService {
         const subscriptionKey = 'push_notification_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<PushNotificationEventsData>({
                 query: PUSH_NOTIFICATION_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<PushNotificationEventsData>) => {
                     if (data?.pushNotificationEvents) {
                         this.notifyHandlers('push_notification_events', data.pushNotificationEvents);
                         this.handlePushNotificationEvent(data.pushNotificationEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Push notification events subscription error:', error);
                 }
             });
@@ -471,15 +518,15 @@ export class MobileAuthEventService {
         const subscriptionKey = 'biometric_auth_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<BiometricAuthEventsData>({
                 query: BIOMETRIC_AUTH_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<BiometricAuthEventsData>) => {
                     if (data?.biometricAuthEvents) {
                         this.notifyHandlers('biometric_auth_events', data.biometricAuthEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Biometric auth events subscription error:', error);
                 }
             });
@@ -504,15 +551,15 @@ export class MobileAuthEventService {
         const subscriptionKey = 'deep_link_events';
         
         if (!this.subscriptions.has(subscriptionKey)) {
-            const subscription = this.apolloClient.subscribe({
+            const subscription = this.apolloClient.subscribe<DeepLinkEventsData>({
                 query: DEEP_LINK_EVENTS_SUBSCRIPTION
             }).subscribe({
-                next: ({ data }) => {
+                next: ({ data }: SubscriptionCallbackData<DeepLinkEventsData>) => {
                     if (data?.deepLinkEvents) {
                         this.notifyHandlers('deep_link_events', data.deepLinkEvents);
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     console.error('Deep link events subscription error:', error);
                 }
             });
