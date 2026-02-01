@@ -190,27 +190,6 @@ export class LogAnalyticsType {
   tenantActivity!: TenantActivityType[];
 }
 
-@ObjectType('LogConnection')
-export class LogConnectionType {
-  @Field(() => [LogEntryEdge])
-  edges!: LogEntryEdge[];
-
-  @Field(() => PageInfo)
-  pageInfo!: PageInfo;
-
-  @Field(() => Int)
-  totalCount!: number;
-}
-
-@ObjectType('LogEntryEdge')
-export class LogEntryEdge {
-  @Field()
-  cursor!: string;
-
-  @Field(() => LogEntryType)
-  node!: LogEntryType;
-}
-
 @ObjectType('PageInfo')
 export class PageInfo {
   @Field()
@@ -224,6 +203,27 @@ export class PageInfo {
 
   @Field({ nullable: true })
   endCursor?: string | null;
+}
+
+@ObjectType('LogEntryEdge')
+export class LogEntryEdge {
+  @Field()
+  cursor!: string;
+
+  @Field(() => LogEntryType)
+  node!: LogEntryType;
+}
+
+@ObjectType('LogConnection')
+export class LogConnectionType {
+  @Field(() => [LogEntryEdge])
+  edges!: LogEntryEdge[];
+
+  @Field(() => PageInfo)
+  pageInfo!: PageInfo;
+
+  @Field(() => Int)
+  totalCount!: number;
 }
 
 @ObjectType('LogSearchResult')

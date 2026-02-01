@@ -95,7 +95,9 @@ export const integrations = pgTable('integrations', {
   syncInterval: integer('sync_interval'), // in minutes
   lastSyncAt: timestamp('last_sync_at'),
   nextSyncAt: timestamp('next_sync_at'),
-});
+}, (table) => ({
+  tenantStatusIdx: index('idx_integrations_tenant_status').on(table.tenantId, table.status),
+}));
 
 // API Keys for integration authentication
 export const apiKeys = pgTable('api_keys', {
@@ -126,7 +128,9 @@ export const apiKeys = pgTable('api_keys', {
   description: text('description'),
   ipWhitelist: jsonb('ip_whitelist').default([]),
   userAgent: varchar('user_agent', { length: 500 }),
-});
+}, (table) => ({
+  tenantActiveIdx: index('idx_api_keys_tenant_active').on(table.tenantId, table.isActive),
+}));
 
 // Webhook configurations
 export const webhooks = pgTable('webhooks', {
@@ -163,7 +167,9 @@ export const webhooks = pgTable('webhooks', {
   lastSuccessAt: timestamp('last_success_at'),
   lastFailureAt: timestamp('last_failure_at'),
   lastError: text('last_error'),
-});
+}, (table) => ({
+  integrationStatusIdx: index('idx_webhooks_integration_status').on(table.integrationId, table.status),
+}));
 
 // Webhook delivery logs
 export const webhookDeliveries = pgTable('webhook_deliveries', {
@@ -220,7 +226,9 @@ export const syncLogs = pgTable('sync_logs', {
   // Metadata
   triggeredBy: varchar('triggered_by', { length: 100 }), // 'schedule', 'manual', 'webhook'
   triggerData: jsonb('trigger_data').default({}),
-});
+}, (table) => ({
+  integrationStatusIdx: index('idx_sync_logs_integration_status').on(table.integrationId, table.status),
+}));
 
 // OAuth2 tokens and configurations
 export const oauth2Tokens = pgTable('oauth2_tokens', {
@@ -263,7 +271,9 @@ export const rateLimits = pgTable('rate_limits', {
   // Metadata
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  identifierWindowIdx: index('idx_rate_limits_identifier_window').on(table.identifier, table.windowStart),
+}));
 
 // Connector configurations and metadata
 export const connectors = pgTable('connectors', {
@@ -301,19 +311,3 @@ export const connectors = pgTable('connectors', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
-// Indexes for performance
-export const integrationTenantIndex = index('idx_integrations_tenant_status')
-  .on(integrations.tenantId, integrations.status);
-
-export const apiKeyTenantIndex = index('idx_api_keys_tenant_active')
-  .on(apiKeys.tenantId, apiKeys.isActive);
-
-export const webhookIntegrationIndex = index('idx_webhooks_integration_status')
-  .on(webhooks.integrationId, webhooks.status);
-
-export const syncLogIntegrationIndex = index('idx_sync_logs_integration_status')
-  .on(syncLogs.integrationId, syncLogs.status);
-
-export const rateLimitIdentifierIndex = index('idx_rate_limits_identifier_window')
-  .on(rateLimits.identifier, rateLimits.windowStart);

@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int, ID, InputType, registerEnumType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import { BusinessTier } from '../entities/tenant.entity';
-import { OnboardingStep, BusinessType } from '../services/onboarding.service';
+import { OnboardingStep, BusinessType } from '../enums/onboarding.enums';
 import { IndustryType, BusinessSize, RevenueRange, TransactionVolumeRange } from '../entities/business-profile.entity';
 
 // Register enums for GraphQL
@@ -85,6 +85,33 @@ export class OnboardingDataType {
 
     @Field(() => [String], { nullable: true })
     businessGoals?: string[];
+}
+
+/**
+ * Workflow state type
+ */
+@ObjectType()
+export class WorkflowStateType {
+    @Field(() => OnboardingStep)
+    currentStep!: OnboardingStep;
+
+    @Field(() => [OnboardingStep])
+    completedSteps!: OnboardingStep[];
+
+    @Field(() => [OnboardingStep])
+    availableSteps!: OnboardingStep[];
+
+    @Field()
+    canProceed!: boolean;
+
+    @Field(() => GraphQLJSON)
+    validationErrors!: Record<string, string[]>;
+
+    @Field()
+    lastUpdated!: Date;
+
+    @Field()
+    sessionId!: string;
 }
 
 /**
@@ -244,33 +271,6 @@ export class UpdateOnboardingStepInput {
 
     @Field(() => [String], { nullable: true })
     businessGoals?: string[];
-}
-
-/**
- * Workflow state type
- */
-@ObjectType()
-export class WorkflowStateType {
-    @Field(() => OnboardingStep)
-    currentStep!: OnboardingStep;
-
-    @Field(() => [OnboardingStep])
-    completedSteps!: OnboardingStep[];
-
-    @Field(() => [OnboardingStep])
-    availableSteps!: OnboardingStep[];
-
-    @Field()
-    canProceed!: boolean;
-
-    @Field(() => GraphQLJSON)
-    validationErrors!: Record<string, string[]>;
-
-    @Field()
-    lastUpdated!: Date;
-
-    @Field()
-    sessionId!: string;
 }
 
 /**

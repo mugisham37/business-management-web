@@ -7,17 +7,10 @@ import { CustomLoggerService } from '../../logger/logger.service';
 import { BusinessTier, BusinessMetrics } from '../entities/tenant.entity';
 import { BusinessProfileService } from './business-profile.service';
 import { IndustryType, BusinessSize, RevenueRange, TransactionVolumeRange } from '../entities/business-profile.entity';
+import { OnboardingStep, BusinessType } from '../enums/onboarding.enums';
 
-/**
- * Onboarding step identifiers
- */
-export enum OnboardingStep {
-    BUSINESS_PROFILE = 'business_profile',
-    BUSINESS_TYPE = 'business_type',
-    USAGE_EXPECTATIONS = 'usage_expectations',
-    PLAN_SELECTION = 'plan_selection',
-    WELCOME = 'welcome',
-}
+// Re-export for backward compatibility
+export { OnboardingStep, BusinessType } from '../enums/onboarding.enums';
 
 /**
  * Workflow step configuration
@@ -62,17 +55,6 @@ export interface WorkflowState {
     validationErrors: Record<string, string[]>;
     lastUpdated: Date;
     sessionId: string;
-}
-
-/**
- * Business type categories for plan recommendation
- */
-export enum BusinessType {
-    FREE = 'free',
-    RENEWABLES = 'renewables',
-    RETAIL = 'retail',
-    WHOLESALE = 'wholesale',
-    INDUSTRY = 'industry',
 }
 
 /**

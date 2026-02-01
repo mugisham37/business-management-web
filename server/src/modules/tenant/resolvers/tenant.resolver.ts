@@ -80,6 +80,42 @@ class TenantAnalyticsResponse {
   readiness!: string;
 }
 
+@ObjectType()
+class TierBenefitsResponse {
+  @Field()
+  tier!: string;
+
+  @Field()
+  description!: string;
+
+  @Field(() => [String])
+  features!: string[];
+
+  @Field()
+  limits!: any;
+}
+
+@ObjectType()
+class MetricsValidationResponse {
+  @Field()
+  isValid!: boolean;
+
+  @Field(() => [String])
+  errors!: string[];
+}
+
+@ObjectType()
+class TenantContextResponse {
+  @Field(() => Tenant)
+  tenant!: Tenant;
+
+  @Field()
+  businessTier!: string;
+
+  @Field()
+  isActive!: boolean;
+}
+
 @Resolver(() => Tenant)
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(TenantInterceptor)
@@ -459,40 +495,4 @@ export class TenantResolver {
       isActive: context.isActive,
     };
   }
-}
-
-@ObjectType()
-class TierBenefitsResponse {
-  @Field()
-  tier!: string;
-
-  @Field()
-  description!: string;
-
-  @Field(() => [String])
-  features!: string[];
-
-  @Field()
-  limits!: any;
-}
-
-@ObjectType()
-class MetricsValidationResponse {
-  @Field()
-  isValid!: boolean;
-
-  @Field(() => [String])
-  errors!: string[];
-}
-
-@ObjectType()
-class TenantContextResponse {
-  @Field(() => Tenant)
-  tenant!: Tenant;
-
-  @Field()
-  businessTier!: string;
-
-  @Field()
-  isActive!: boolean;
 }

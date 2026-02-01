@@ -14,6 +14,80 @@ import { FeatureFlag, FeatureDefinition, FeatureFlagStatus, FeatureRule, FEATURE
 import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from '../dto/feature-flag.dto';
 import { BusinessTier } from '../entities/tenant.entity';
 
+// Define UpgradePromptType first since it has no dependencies
+@ObjectType()
+class UpgradePromptType {
+  @Field()
+  title!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  ctaText!: string;
+}
+
+// Define FeatureDependencyStatus - no dependencies
+@ObjectType()
+class FeatureDependencyStatus {
+  @Field()
+  name!: string;
+
+  @Field()
+  hasAccess!: boolean;
+}
+
+// Now define FeatureDefinitionType which depends on UpgradePromptType
+@ObjectType()
+class FeatureDefinitionType {
+  @Field()
+  name!: string;
+
+  @Field()
+  displayName!: string;
+
+  @Field()
+  description!: string;
+
+  @Field()
+  requiredTier!: string;
+
+  @Field()
+  category!: string;
+
+  @Field(() => [String], { nullable: true })
+  dependencies?: string[];
+
+  @Field({ nullable: true })
+  isProgressive?: boolean;
+
+  @Field(() => UpgradePromptType, { nullable: true })
+  upgradePrompt?: UpgradePromptType;
+}
+
+// Define FeatureAccessResponse which depends on UpgradePromptType and FeatureDependencyStatus
+@ObjectType()
+class FeatureAccessResponse {
+  @Field()
+  featureName!: string;
+
+  @Field()
+  hasAccess!: boolean;
+
+  @Field({ nullable: true })
+  reason?: string;
+
+  @Field({ nullable: true })
+  requiredTier?: string;
+
+  @Field(() => UpgradePromptType, { nullable: true })
+  upgradePrompt?: UpgradePromptType;
+
+  @Field(() => [FeatureDependencyStatus], { nullable: true })
+  dependencies?: FeatureDependencyStatus[];
+}
+
+// Now the helper function can use the defined types
 const buildFeatureAccessResponse = (
   featureName: string,
   details: {
@@ -49,45 +123,6 @@ const buildFeatureAccessResponse = (
 };
 
 @ObjectType()
-class FeatureDefinitionType {
-  @Field()
-  name!: string;
-
-  @Field()
-  displayName!: string;
-
-  @Field()
-  description!: string;
-
-  @Field()
-  requiredTier!: string;
-
-  @Field()
-  category!: string;
-
-  @Field(() => [String], { nullable: true })
-  dependencies?: string[];
-
-  @Field({ nullable: true })
-  isProgressive?: boolean;
-
-  @Field(() => UpgradePromptType, { nullable: true })
-  upgradePrompt?: UpgradePromptType;
-}
-
-@ObjectType()
-class UpgradePromptType {
-  @Field()
-  title!: string;
-
-  @Field()
-  description!: string;
-
-  @Field()
-  ctaText!: string;
-}
-
-@ObjectType()
 class AvailableFeaturesResponse {
   @Field(() => [FeatureDefinitionType])
   available!: FeatureDefinition[];
@@ -97,36 +132,6 @@ class AvailableFeaturesResponse {
 
   @Field(() => [FeatureDefinitionType])
   upgradeRequired!: FeatureDefinition[];
-}
-
-@ObjectType()
-class FeatureAccessResponse {
-  @Field()
-  featureName!: string;
-
-  @Field()
-  hasAccess!: boolean;
-
-  @Field({ nullable: true })
-  reason?: string;
-
-  @Field({ nullable: true })
-  requiredTier?: string;
-
-  @Field(() => UpgradePromptType, { nullable: true })
-  upgradePrompt?: UpgradePromptType;
-
-  @Field(() => [FeatureDependencyStatus], { nullable: true })
-  dependencies?: FeatureDependencyStatus[];
-}
-
-@ObjectType()
-class FeatureDependencyStatus {
-  @Field()
-  name!: string;
-
-  @Field()
-  hasAccess!: boolean;
 }
 
 @ObjectType()
@@ -197,6 +202,7 @@ class FeatureDependenciesResponse {
   @Field(() => [FeatureAccessResponse])
   dependenciesStatus!: FeatureAccessResponse[];
 }
+
 
 @Resolver(() => FeatureFlag)
 @UseGuards(JwtAuthGuard, TenantGuard)

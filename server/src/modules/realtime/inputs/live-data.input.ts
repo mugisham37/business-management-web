@@ -76,6 +76,18 @@ export class LiveAnalyticsQueryInput {
 }
 
 @InputType()
+export class ThresholdInput {
+  @Field()
+  metric!: string;
+
+  @Field(() => Int)
+  value!: number;
+
+  @Field()
+  operator!: string;
+}
+
+@InputType()
 export class CreateAnalyticsAlertInput {
   @Field()
   type!: string;
@@ -97,18 +109,6 @@ export class CreateAnalyticsAlertInput {
 
   @Field({ nullable: true })
   threshold?: ThresholdInput;
-}
-
-@InputType()
-export class ThresholdInput {
-  @Field()
-  metric!: string;
-
-  @Field(() => Int)
-  value!: number;
-
-  @Field()
-  operator!: string;
 }
 
 @InputType()

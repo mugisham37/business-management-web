@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min, Max, IsUrl, IsEmail, IsPhoneNumber, Length, IsArray, ArrayMaxSize } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { IndustryType, BusinessSize, BusinessType, RevenueRange, TransactionVolumeRange } from '../entities/business-profile.entity';
-import { OnboardingStep } from '../services/onboarding.service';
+import { IndustryType, BusinessSize, RevenueRange, TransactionVolumeRange } from '../entities/business-profile.entity';
+import { OnboardingStep, BusinessType } from '../enums/onboarding.enums';
 
 /**
  * Base validation schema for onboarding steps
