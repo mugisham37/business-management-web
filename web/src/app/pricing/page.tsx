@@ -7,7 +7,6 @@ import { Tooltip } from "@/components/landing/Tooltip"
 import { ArrowAnimated } from "@/components/landing/ui/ArrowAnimated"
 import { Faqs } from "@/components/landing/ui/Faqs"
 import Testimonial from "@/components/landing/ui/Testimonial"
-import { RecommendationBanner } from "@/components/pricing/RecommendationBanner"
 import { SubscriptionModal } from "@/components/pricing/SubscriptionModal"
 import { cx } from "@/lib/utils/cn"
 import {
@@ -22,12 +21,10 @@ import React, { Fragment, useState, useMemo, useCallback } from "react"
 import { TIER_CONFIGS, formatLimit } from "@/lib/config/pricing-config"
 import { BusinessTier } from "@/types/pricing"
 import { motion } from "framer-motion"
-import { usePricingRecommendations } from "@/hooks/usePricingRecommendations"
 import { useSubscription } from "@/hooks/useSubscription"
 
 export default function Pricing() {
   const [billingFrequency, setBillingFrequency] = useState<"monthly" | "annually">("monthly")
-  const { recommendation, hasPersonalizedRecommendation, isLoading } = usePricingRecommendations()
   const {
     isModalOpen,
     selectedPlan,
@@ -35,20 +32,6 @@ export default function Pricing() {
     closeSubscriptionModal,
     handleSubscriptionComplete,
   } = useSubscription()
-  
-  // Handle plan selection from recommendation
-  const handlePlanSelect = useCallback((tier: BusinessTier) => {
-    // Scroll to the selected plan
-    const planElement = document.getElementById(`plan-${tier}`)
-    if (planElement) {
-      planElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      // Add a highlight effect
-      planElement.classList.add('ring-4', 'ring-indigo-500', 'ring-opacity-50')
-      setTimeout(() => {
-        planElement.classList.remove('ring-4', 'ring-indigo-500', 'ring-opacity-50')
-      }, 2000)
-    }
-  }, [])
 
   // Handle subscription button click
   const handleSubscribeClick = useCallback((tier: BusinessTier) => {
@@ -81,14 +64,14 @@ export default function Pricing() {
       features: config.features.slice(0, 4).map(f => f.name), // Show first 4 features
       allFeatures: config.features,
       isStarter: config.tier === BusinessTier.MICRO,
-      isRecommended: config.isRecommended || config.tier === recommendation?.recommendedTier,
+      isRecommended: config.isRecommended || false,
       isPopular: config.isPopular || false,
       buttonText: config.tier === BusinessTier.MICRO ? "Get started" : "Start 30-day trial",
       buttonLink: config.tier === BusinessTier.MICRO ? "/auth?mode=register" : `/subscribe/${config.tier}`,
       trialDays: config.trialDays,
       limits: config.limits
     }))
-  }, [recommendation])
+  }, [])
 
   // Feature comparison sections
   const sections = useMemo(() => {
@@ -155,26 +138,6 @@ export default function Pricing() {
         </p>
       </motion.section>
 
-      {/* AI Recommendation Banner */}
-      {!isLoading && recommendation && (
-        <motion.section
-          className="mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <RecommendationBanner
-            recommendation={recommendation}
-            onSelectPlan={handlePlanSelect}
-          />
-          {hasPersonalizedRecommendation && (
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-              Based on your business profile from onboarding
-            </p>
-          )}
-        </motion.section>
-      )}
-
       <motion.section
         id="pricing-overview"
         className="mt-20"
@@ -222,7 +185,7 @@ export default function Pricing() {
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                   <div className="bg-linear-to-r from-indigo-600 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                     <RiStarFill className="w-3 h-3" />
-                    {hasPersonalizedRecommendation ? 'Recommended for You' : 'Recommended'}
+                    Recommended
                   </div>
                 </div>
               )}

@@ -222,34 +222,8 @@ export function OnboardingFlow() {
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
-            {/* Header */}
-            <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-white" />
-                            </div>
-                            <span className="text-xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                BizManager
-                            </span>
-                        </div>
-
-                        {/* Progress Indicator */}
-                        <div className="hidden sm:flex items-center gap-4">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                Step {currentStepIndex + 1} of {totalSteps}
-                            </span>
-                            <div className="w-32">
-                                <Progress value={progress} className="h-2" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             {/* Main Content */}
-            <main className="container mx-auto px-6 py-12">
+            <main className="container mx-auto px-6 pt-26 pb-16">
                 <div className="max-w-2xl mx-auto">
                     {/* Step Header */}
                     <motion.div
@@ -333,81 +307,88 @@ export function OnboardingFlow() {
                         </motion.div>
                     </AnimatePresence>
 
-                    {/* Navigation */}
-                    <div className="flex justify-between mt-8">
-                        <Button
-                            variant="outline"
-                            onClick={handleBack}
-                            disabled={isSubmitting}
-                            className={cn(
-                                'transition-all duration-200',
-                                isFirstStep && 'invisible'
-                            )}
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back
-                        </Button>
-
-                        {isLastStep ? (
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                <Button
-                                    onClick={handleComplete}
-                                    disabled={isSubmitting}
-                                    className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <motion.div
-                                                animate={{ rotate: 360 }}
-                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                            >
-                                                <Loader2 className="w-4 h-4 mr-2" />
-                                            </motion.div>
-                                            Finishing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Get Started
-                                            <Check className="w-4 h-4 ml-2" />
-                                        </>
-                                    )}
-                                </Button>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                <Button
-                                    onClick={handleNext}
-                                    disabled={isSubmitting}
-                                    className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <motion.div
-                                                animate={{ rotate: 360 }}
-                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                            >
-                                                <Loader2 className="w-4 h-4 mr-2" />
-                                            </motion.div>
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Continue
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </>
-                                    )}
-                                </Button>
-                            </motion.div>
-                        )}
-                    </div>
+                    {/* Spacer for sticky navigation */}
+                    <div className="h-32" />
                 </div>
             </main>
+
+            {/* Sticky Navigation */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-t">
+                <div className="container mx-auto px-6 py-4">
+                    <div className="max-w-2xl mx-auto">
+                        {/* Progress Indicator */}
+                        <div className="flex items-center justify-center gap-4 mb-4">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                Step {currentStepIndex + 1} of {totalSteps}
+                            </span>
+                            <div className="w-32">
+                                <Progress value={progress} className="h-2" />
+                            </div>
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="flex justify-center">
+                            {isLastStep ? (
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Button
+                                        onClick={handleComplete}
+                                        disabled={isSubmitting}
+                                        className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                >
+                                                    <Loader2 className="w-4 h-4 mr-2" />
+                                                </motion.div>
+                                                Finishing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Get Started
+                                                <Check className="w-4 h-4 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Button
+                                        onClick={handleNext}
+                                        disabled={isSubmitting}
+                                        className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <motion.div
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                >
+                                                    <Loader2 className="w-4 h-4 mr-2" />
+                                                </motion.div>
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Continue
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
