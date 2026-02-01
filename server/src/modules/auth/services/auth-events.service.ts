@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PubSubService } from '../../../common/graphql/pubsub.service';
-import { AuthEventType, AuthEvent } from '../resolvers/auth-subscriptions.resolver';
+import { AuthEventType, AuthEvent } from '../types/auth-events.types';
 
 /**
  * Auth Events Service

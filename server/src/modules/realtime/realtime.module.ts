@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RealtimeGateway } from './gateways/realtime.gateway';
@@ -38,7 +38,7 @@ import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module'
     TenantModule,
     LoggerModule,
     DatabaseModule,
-    QueueModule,
+    forwardRef(() => QueueModule),
     CacheModule,
     GraphQLCommonModule,
     JwtModule.registerAsync({

@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PubSub } from 'graphql-subscriptions';
@@ -64,7 +64,7 @@ import { DatabaseModule } from '../database/database.module';
     CommunicationModule,
     CacheModule,
     LoggerModule,
-    RealtimeModule,
+    forwardRef(() => RealtimeModule),
     DatabaseModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],

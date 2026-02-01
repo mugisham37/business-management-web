@@ -141,6 +141,19 @@ import { CacheModule } from '../cache/cache.module';
     CommunicationTemplateGuard,
     CommunicationRateLimitGuard,
     DeliveryTrackingGuard,
+    CommunicationQuotaGuard,
+    CommunicationPermissionGuard,
+    CommunicationContentGuard,
+    CommunicationSchedulingGuard,
+
+    // Interceptors (for export availability)
+    CommunicationLoggingInterceptor,
+    CommunicationMetricsInterceptor,
+    CommunicationRetryInterceptor,
+    CommunicationValidationInterceptor,
+    CommunicationCacheInterceptor,
+    CommunicationTransformInterceptor,
+    CommunicationSecurityInterceptor,
 
     // PubSub for real-time subscriptions
     {
