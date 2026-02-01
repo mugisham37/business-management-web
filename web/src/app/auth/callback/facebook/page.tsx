@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { socialAuthManager } from '@/lib/auth/social-auth';
 
-export default function FacebookCallbackPage() {
+function FacebookCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -139,5 +139,29 @@ export default function FacebookCallbackPage() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+function FacebookCallbackLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div className="w-16 h-16 mx-auto mb-6 animate-spin">
+          <Loader2 className="w-full h-full text-indigo-600" />
+        </div>
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          Authenticating with Facebook
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">Processing...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function FacebookCallbackPage() {
+  return (
+    <Suspense fallback={<FacebookCallbackLoading />}>
+      <FacebookCallbackContent />
+    </Suspense>
   );
 }
