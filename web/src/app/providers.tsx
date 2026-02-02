@@ -3,15 +3,11 @@
 import React from 'react';
 import { ApolloProvider } from '@/lib/apollo';
 import { AuthProvider } from '@/components/providers/auth-provider';
-import { TenantProvider } from '@/components/tenant/tenant-provider';
-import { StoreProvider } from '@/lib/stores';
-import { DevToolsProvider } from '@/lib/dev-tools';
-import { setupErrorBoundaryHierarchy } from '@/lib/error-handling';
-import { ThemeProvider } from '@/components/providers/theme-provider';
-import { NotificationProvider } from '@/components/providers/notification-provider';
-import { RealtimeProvider } from '@/components/providers/realtime-provider';
-import { PermissionProvider } from '@/components/providers/permission-provider';
-import { LayoutProvider } from '@/components/providers/layout-provider';
+import { ThemeProvider } from '@/src/lib/providers/theme-provider';
+import { NotificationProvider } from '@/src/lib/providers/notification-provider';
+import { RealtimeProvider } from '@/src/lib/providers/realtime-provider';
+import { PermissionProvider } from '@/src/lib/providers/permission-provider';
+import { LayoutProvider } from '@/src/lib/providers/layout-provider';
 import { SessionManager } from '@/components/auth/SessionManager';
 
 interface ProvidersProps {
@@ -43,27 +39,21 @@ export function Providers({ children }: ProvidersProps) {
     <ErrorBoundaries.App>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <ApolloProvider>
-          <StoreProvider enableDebug={process.env.NODE_ENV === 'development'}>
             <AuthProvider>
               <SessionManager>
-                <TenantProvider>
                   <PermissionProvider>
                     <RealtimeProvider>
                       <LayoutProvider>
                         <NotificationProvider>
-                          <DevToolsProvider>
                             <ErrorBoundaries.Page>
                               {children}
                             </ErrorBoundaries.Page>
-                          </DevToolsProvider>
                         </NotificationProvider>
                       </LayoutProvider>
                     </RealtimeProvider>
                   </PermissionProvider>
-                </TenantProvider>
               </SessionManager>
             </AuthProvider>
-          </StoreProvider>
         </ApolloProvider>
       </ThemeProvider>
     </ErrorBoundaries.App>
