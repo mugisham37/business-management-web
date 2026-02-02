@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { DataLoaderService } from './dataloader.service';
-import { DateTimeScalar, JSONScalar, UUIDScalar, DecimalScalar } from './scalars';
+import { UUIDScalar, DecimalScalar, DateTimeScalar } from './scalars';
 import { PubSubModule } from './pubsub.module';
 import { PubSubService } from './pubsub.service';
 
@@ -14,18 +14,16 @@ import { PubSubService } from './pubsub.service';
   providers: [
     DataLoaderService,
     PubSubService,
-    DateTimeScalar,
-    JSONScalar,
     UUIDScalar,
     DecimalScalar,
+    DateTimeScalar,
   ],
   exports: [
     DataLoaderService,
     PubSubService,
-    DateTimeScalar,
-    JSONScalar,
     UUIDScalar,
     DecimalScalar,
+    DateTimeScalar,
   ],
 })
 export class GraphQLCommonModule {}

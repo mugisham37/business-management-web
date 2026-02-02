@@ -1,5 +1,5 @@
 import { InputType, Field, Int, ArgsType } from '@nestjs/graphql';
-import { GraphQLJSON, GraphQLDateTime } from 'graphql-scalars';
+import { GraphQLJSON } from 'graphql-scalars';
 import { IsOptional, IsString, IsInt, IsEnum, IsDateString, Min, Max } from 'class-validator';
 import { LogLevel, LogCategory } from '../logger.service';
 
@@ -50,12 +50,12 @@ export class LogFilterInput {
   @IsString()
   graphqlOperationType?: string;
 
-  @Field(() => GraphQLDateTime, { nullable: true })
+  @Field(() => Date, { nullable: true })
   @IsOptional()
   @IsDateString()
   startTime?: Date;
 
-  @Field(() => GraphQLDateTime, { nullable: true })
+  @Field(() => Date, { nullable: true })
   @IsOptional()
   @IsDateString()
   endTime?: Date;
@@ -89,11 +89,11 @@ export class LogFilterInput {
 
 @InputType('TimeRangeInput')
 export class TimeRangeInput {
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   @IsDateString()
   start!: Date;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   @IsDateString()
   end!: Date;
 }

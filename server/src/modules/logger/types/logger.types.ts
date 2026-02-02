@@ -1,6 +1,7 @@
 import { ObjectType, Field, Int, Float, registerEnumType } from '@nestjs/graphql';
-import { GraphQLJSON, GraphQLDateTime } from 'graphql-scalars';
+import { GraphQLJSON } from 'graphql-scalars';
 import { LogLevel, LogCategory } from '../logger.service';
+import { PageInfo } from '../../../common/graphql/base.types';
 
 // Register enums for GraphQL
 registerEnumType(LogLevel, {
@@ -18,7 +19,7 @@ export class LogEntryType {
   @Field()
   id!: string;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 
   @Field(() => LogLevel)
@@ -132,13 +133,13 @@ export class ErrorPatternType {
   @Field(() => Int)
   count!: number;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   lastOccurrence!: Date;
 }
 
 @ObjectType('PerformanceTrend')
 export class PerformanceTrendType {
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 
   @Field(() => Float)
@@ -190,21 +191,6 @@ export class LogAnalyticsType {
   tenantActivity!: TenantActivityType[];
 }
 
-@ObjectType('PageInfo')
-export class PageInfo {
-  @Field()
-  hasNextPage!: boolean;
-
-  @Field()
-  hasPreviousPage!: boolean;
-
-  @Field({ nullable: true })
-  startCursor?: string | null;
-
-  @Field({ nullable: true })
-  endCursor?: string | null;
-}
-
 @ObjectType('LogEntryEdge')
 export class LogEntryEdge {
   @Field()
@@ -246,7 +232,7 @@ export class LogStreamEventType {
   @Field(() => LogEntryType)
   log!: LogEntryType;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 
   @Field()
@@ -364,7 +350,7 @@ export class LogErrorType {
   @Field(() => [String], { nullable: true })
   path?: string[];
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 }
 
@@ -377,7 +363,7 @@ export class LogSubscriptionPayloadType {
   @Field()
   subscriptionId!: string;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 }
 
@@ -389,7 +375,7 @@ export class MetricsSubscriptionPayloadType {
   @Field({ nullable: true })
   tenantId?: string;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 }
 
@@ -407,6 +393,6 @@ export class AlertSubscriptionPayloadType {
   @Field(() => GraphQLJSON)
   details!: Record<string, unknown>;
 
-  @Field(() => GraphQLDateTime)
+  @Field(() => Date)
   timestamp!: Date;
 }

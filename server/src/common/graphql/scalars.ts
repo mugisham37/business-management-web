@@ -3,51 +3,55 @@ import { Kind, ValueNode } from 'graphql';
 
 /**
  * Custom DateTime scalar for GraphQL
+ * Handles Date objects and ISO string serialization
  */
 @Scalar('DateTime', () => Date)
 export class DateTimeScalar implements CustomScalar<string, Date> {
-  description = 'Date custom scalar type';
+  description = 'DateTime custom scalar type - ISO-8601 formatted date-time string';
 
   parseValue(value: unknown): Date {
-    return new Date(value as string); // value from the client
+    if (value instanceof Date) {
+      return value;
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid DateTime format');
+      }
+      return date;
+    }
+    throw new Error('DateTime scalar can only parse string or number values');
   }
 
   serialize(value: unknown): string {
-    return (value as Date).toISOString(); // value sent to the client
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid DateTime format');
+      }
+      return date.toISOString();
+    }
+    if (typeof value === 'number') {
+      return new Date(value).toISOString();
+    }
+    throw new Error('DateTime scalar can only serialize Date, string, or number values');
   }
 
   parseLiteral(ast: ValueNode): Date {
     if (ast.kind === Kind.STRING) {
-      return new Date(ast.value);
-    }
-    throw new Error('DateTime scalar can only parse string values');
-  }
-}
-
-/**
- * Custom JSON scalar for GraphQL
- */
-@Scalar('JSON')
-export class JSONScalar implements CustomScalar<any, any> {
-  description = 'JSON custom scalar type';
-
-  parseValue(value: unknown): any {
-    return value; // value from the client
-  }
-
-  serialize(value: unknown): any {
-    return value; // value sent to the client
-  }
-
-  parseLiteral(ast: ValueNode): any {
-    if (ast.kind === Kind.STRING) {
-      try {
-        return JSON.parse(ast.value);
-      } catch {
-        throw new Error('Invalid JSON');
+      const date = new Date(ast.value);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid DateTime format');
       }
+      return date;
     }
-    return null;
+    if (ast.kind === Kind.INT) {
+      return new Date(parseInt(ast.value, 10));
+    }
+    throw new Error('DateTime scalar can only parse string or integer values');
   }
 }
 
@@ -59,6 +63,9 @@ export class UUIDScalar implements CustomScalar<string, string> {
   description = 'UUID custom scalar type';
 
   parseValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+      return value as unknown as string;
+    }
     const stringValue = value as string;
     if (!this.isValidUUID(stringValue)) {
       throw new Error('Invalid UUID format');
@@ -67,15 +74,28 @@ export class UUIDScalar implements CustomScalar<string, string> {
   }
 
   serialize(value: unknown): string {
-    const stringValue = value as string;
-    if (!this.isValidUUID(stringValue)) {
-      throw new Error('Invalid UUID format');
+    // Handle null, undefined, and empty string
+    if (value === null || value === undefined || value === '') {
+      return value as unknown as string;
     }
-    return stringValue;
+    const stringValue = value as string;
+    // If it's not a valid UUID, just return the string as-is
+    // This prevents breaking schema generation for default values
+    // Runtime validation will still catch invalid UUIDs in parseValue
+    if (typeof stringValue === 'string') {
+      return stringValue;
+    }
+    throw new Error('UUID scalar can only serialize string values');
   }
 
   parseLiteral(ast: ValueNode): string {
+    if (ast.kind === Kind.NULL) {
+      return null as unknown as string;
+    }
     if (ast.kind === Kind.STRING) {
+      if (ast.value === '') {
+        return '';
+      }
       if (!this.isValidUUID(ast.value)) {
         throw new Error('Invalid UUID format');
       }

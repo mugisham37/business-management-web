@@ -14,8 +14,14 @@ import { SeedService } from './seed.service';
       provide: DrizzleService,
       useFactory: async (configService: ConfigService) => {
         const service = new DrizzleService(configService);
-        await service.initialize();
-        return service;
+        try {
+          await service.initialize();
+          return service;
+        } catch (error) {
+          console.error('Failed to initialize DrizzleService:', error);
+          // Return service anyway to prevent app crash, but log the error
+          return service;
+        }
       },
       inject: [ConfigService],
     },

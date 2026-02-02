@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CustomLoggerService } from '../logger/logger.service';
 import { RedisService } from './redis.service';
@@ -39,7 +39,7 @@ interface SessionConfig {
 }
 
 @Injectable()
-export class HorizontalScalingService {
+export class HorizontalScalingService implements OnModuleInit {
   private readonly logger = new Logger(HorizontalScalingService.name);
   
   // Node management
@@ -86,8 +86,10 @@ export class HorizontalScalingService {
   ) {
     this.customLogger.setContext('HorizontalScalingService');
     this.nodeId = this.generateNodeId();
-    
-    this.initializeScaling();
+  }
+
+  async onModuleInit(): Promise<void> {
+    await this.initializeScaling();
     this.startHealthChecks();
     this.startMetricsCollection();
     this.startAutoScaling();
@@ -96,7 +98,7 @@ export class HorizontalScalingService {
   /**
    * Initialize horizontal scaling configuration
    */
-  private initializeScaling(): void {
+  private async initializeScaling(): Promise<void> {
     // Load configuration from environment
     this.loadBalancingConfig = {
       strategy: (this.configService.get('LOAD_BALANCING_STRATEGY') as any) || 'round-robin',
@@ -116,7 +118,7 @@ export class HorizontalScalingService {
     };
 
     // Register this node
-    this.registerNode();
+    await this.registerNode();
 
     this.customLogger.log('Horizontal scaling initialized', {
       nodeId: this.nodeId,

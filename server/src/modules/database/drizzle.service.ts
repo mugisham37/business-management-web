@@ -35,6 +35,12 @@ export class DrizzleService implements OnModuleDestroy {
         throw new Error('Database configuration not found');
       }
 
+      this.logger.log('Initializing database connections...', {
+        host: this.databaseConfig.host,
+        database: this.databaseConfig.database,
+        ssl: this.databaseConfig.ssl,
+      });
+
       // Initialize primary connection pool
       await this.initializePrimaryPool();
       
@@ -43,7 +49,7 @@ export class DrizzleService implements OnModuleDestroy {
         await this.initializeReadReplicaPools();
       }
 
-      // Test connections
+      // Test connections with timeout
       await this.testConnections();
 
       this.logger.log('Database connections established successfully', {
@@ -52,7 +58,15 @@ export class DrizzleService implements OnModuleDestroy {
         readReplicasEnabled: this.databaseConfig.readReplicas.enabled,
       });
     } catch (error) {
-      this.logger.error('Failed to initialize database connections', error);
+      this.logger.error('Failed to initialize database connections', {
+        error: error.message,
+        stack: error.stack,
+        config: {
+          host: this.databaseConfig?.host,
+          database: this.databaseConfig?.database,
+          ssl: this.databaseConfig?.ssl,
+        }
+      });
       throw error;
     }
   }
@@ -67,10 +81,14 @@ export class DrizzleService implements OnModuleDestroy {
       acquireTimeoutMillis: this.databaseConfig.connectionPool.acquireTimeoutMillis,
       maxUses: this.databaseConfig.connectionPool.maxUses,
       allowExitOnIdle: this.databaseConfig.connectionPool.allowExitOnIdle,
-      // Additional optimizations
+      // Additional optimizations for Neon
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
       application_name: 'unified-business-platform-primary',
+      // Neon-specific SSL settings
+      ssl: this.databaseConfig.ssl ? {
+        rejectUnauthorized: false,
+      } : false,
     };
 
     this.primaryPool = new Pool(poolConfig);
@@ -207,18 +225,26 @@ export class DrizzleService implements OnModuleDestroy {
   }
 
   async testConnections(): Promise<void> {
-    // Test primary connection
+    // Test primary connection with timeout
     if (this.primaryPool) {
-      const client = await this.primaryPool.connect();
-      try {
-        const result = await client.query('SELECT NOW() as now, version() as version');
-        this.logger.log(`Primary database connection test successful`, {
-          timestamp: result.rows[0]?.now,
-          version: result.rows[0]?.version?.substring(0, 50),
-        });
-      } finally {
-        client.release();
-      }
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection test timeout')), 30000)
+      );
+      
+      const connectionPromise = (async () => {
+        const client = await this.primaryPool!.connect();
+        try {
+          const result = await client.query('SELECT NOW() as now, version() as version');
+          this.logger.log(`Primary database connection test successful`, {
+            timestamp: result.rows[0]?.now,
+            version: result.rows[0]?.version?.substring(0, 50),
+          });
+        } finally {
+          client.release();
+        }
+      })();
+
+      await Promise.race([connectionPromise, timeoutPromise]);
     }
 
     // Test read replica connections
@@ -246,6 +272,25 @@ export class DrizzleService implements OnModuleDestroy {
     }
 
     try {
+      // Check if migrations folder exists and has files
+      const fs = require('fs');
+      const path = require('path');
+      const migrationsPath = './drizzle';
+      
+      if (!fs.existsSync(migrationsPath)) {
+        this.logger.log('No migrations folder found, skipping migrations');
+        return;
+      }
+
+      const migrationFiles = fs.readdirSync(migrationsPath).filter((file: string) => 
+        file.endsWith('.sql') || file.endsWith('.js')
+      );
+
+      if (migrationFiles.length === 0) {
+        this.logger.log('No migration files found, skipping migrations');
+        return;
+      }
+
       this.logger.log('Running database migrations...');
       await migrate(this.db, { migrationsFolder: './drizzle' });
       this.logger.log('Database migrations completed successfully');

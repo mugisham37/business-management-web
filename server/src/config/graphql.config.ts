@@ -190,15 +190,6 @@ export class GraphQLConfigService implements GqlOptionsFactory {
 
       // Include stack traces in development
       debug: isDevelopment,
-      
-      // Built-in scalars
-      resolvers: {
-        DateTime: {
-          serialize: (date: Date) => date.toISOString(),
-          parseValue: (value: string) => new Date(value),
-          parseLiteral: (ast: any) => new Date(ast.value),
-        },
-      },
     };
   }
 }

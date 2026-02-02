@@ -1,4 +1,4 @@
-import { Injectable, LoggerService, Scope } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -61,7 +61,7 @@ export enum LogCategory {
   INTEGRATION = 'integration',
 }
 
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable()
 export class CustomLoggerService implements LoggerService {
   private context?: string;
   private readonly logLevel: string;
