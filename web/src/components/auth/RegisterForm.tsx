@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Building2, Loader2, Check, X, WifiOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Building2, Loader2, Check, X, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AuthErrorDisplay } from './AuthErrorDisplay';
-import { AuthErrorCode } from '@/lib/auth/auth-errors';
-import { useAuthWithRetry } from '@/hooks/authentication/useAuthWithRetry';
-import { useNetworkStatus } from '@/hooks/utilities-infrastructure/useNetworkStatus';
-import { cn } from '@/lib/utils/cn';
+import { useAuth } from '@/lib/hooks/auth/useAuth';
+import { useSecurity } from '@/lib/hooks/auth/useSecurity';
+import { usePermissions } from '@/lib/hooks/auth/usePermissions';
+import { AuthEventEmitter } from '@/lib/auth/auth-events';
+import { cn } from '@/lib/utils';
 
 interface RegisterFormProps {
     onSubmit?: (data: {
@@ -22,9 +23,10 @@ interface RegisterFormProps {
         businessName: string;
         acceptTerms: boolean;
     }) => Promise<void>;
+    onRegistrationSuccess?: (user: any) => void;
     isLoading?: boolean;
     error?: string | null;
-    useRetryLogic?: boolean;
+    className?: string;
 }
 
 interface PasswordStrength {
@@ -64,9 +66,10 @@ function calculatePasswordStrength(password: string): PasswordStrength {
 
 export function RegisterForm({
     onSubmit,
+    onRegistrationSuccess,
     isLoading: externalLoading = false,
     error: externalError = null,
-    useRetryLogic = true,
+    className,
 }: RegisterFormProps) {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -77,22 +80,42 @@ export function RegisterForm({
     const [acceptTerms, setAcceptTerms] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-    const networkStatus = useNetworkStatus();
-    const authWithRetry = useAuthWithRetry({
-        onError: (error) => {
-            console.error('Registration error:', error);
-        },
-        onRetry: (attempt) => {
-            console.log('Retrying registration, attempt:', attempt);
-        },
-    });
+    // Use foundation layer hooks
+    const { register, isLoading: authLoading, error: authError, clearError } = useAuth();
+    const { riskScore, riskLevel, logSecurityEvent } = useSecurity();
+    const { availableRoles } = usePermissions();
 
-    // Use retry logic if enabled, otherwise use external props
-    const isLoading = useRetryLogic ? authWithRetry.isLoading : externalLoading;
-    const error = useRetryLogic ? authWithRetry.error : 
-        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: AuthErrorCode.UNKNOWN_ERROR } : null);
+    // Determine loading and error states
+    const isLoading = externalLoading || authLoading;
+    const error = externalError || (authError ? authError.message : null);
 
     const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
+
+    // Listen for registration success events
+    useEffect(() => {
+        const handleRegistrationSuccess = (user: any) => {
+            if (onRegistrationSuccess) {
+                onRegistrationSuccess(user);
+            }
+        };
+
+        AuthEventEmitter.on('auth:register', handleRegistrationSuccess);
+        return () => {
+            AuthEventEmitter.off('auth:register', handleRegistrationSuccess);
+        };
+    }, [onRegistrationSuccess]);
+
+    // Log security events
+    useEffect(() => {
+        if (error) {
+            logSecurityEvent('registration_failed', `Registration attempt failed: ${error}`, {
+                email,
+                businessName,
+                riskScore,
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }, [error, email, businessName, riskScore, logSecurityEvent]);
 
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
@@ -134,6 +157,8 @@ export function RegisterForm({
 
         if (!validateForm()) return;
 
+        clearError();
+
         const registrationData = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
@@ -144,27 +169,35 @@ export function RegisterForm({
         };
 
         try {
-            if (useRetryLogic) {
-                await authWithRetry.register(registrationData);
-            } else if (onSubmit) {
+            // Log security event for registration attempt
+            await logSecurityEvent('registration_attempt', 'User attempting to register', {
+                email,
+                businessName: businessName.trim(),
+                riskScore,
+                riskLevel,
+                timestamp: new Date().toISOString(),
+            });
+
+            if (onSubmit) {
+                // Use external submit handler
                 await onSubmit(registrationData);
+            } else {
+                // Use foundation layer register
+                await register(registrationData);
             }
         } catch (error) {
-            // Error is handled by the retry logic or parent component
             console.error('Registration submission error:', error);
+            // Error is handled by the foundation layer
         }
     };
 
     const handleRetry = async () => {
-        if (useRetryLogic) {
-            await authWithRetry.retry();
-        }
+        clearError();
+        await handleSubmit(new Event('submit') as any);
     };
 
     const handleDismissError = () => {
-        if (useRetryLogic) {
-            authWithRetry.clearError();
-        }
+        clearError();
     };
 
     const handleErrorAction = (action: string) => {
@@ -193,28 +226,51 @@ export function RegisterForm({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             onSubmit={handleSubmit}
-            className="space-y-5"
+            className={cn("space-y-5", className)}
         >
-            {/* Network Status Warning */}
-            {!networkStatus.isOnline && (
+            {/* Security Risk Indicator */}
+            {(riskLevel === 'high' || riskLevel === 'critical') && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900"
                 >
-                    <WifiOff className="w-5 h-5 text-orange-500 shrink-0" />
-                    <p className="text-sm text-orange-700 dark:text-orange-400">
-                        You&apos;re currently offline. Please check your internet connection.
-                    </p>
+                    <Shield className="w-5 h-5 text-amber-500 shrink-0" />
+                    <div>
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                            Enhanced Security Check
+                        </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-500">
+                            Additional verification may be required during registration
+                        </p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Available Roles Info */}
+            {availableRoles.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900"
+                >
+                    <User className="w-5 h-5 text-blue-500 shrink-0" />
+                    <div>
+                        <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                            Account Setup
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-500">
+                            Your account will be configured with appropriate permissions after registration
+                        </p>
+                    </div>
                 </motion.div>
             )}
 
             {/* Enhanced Error Display */}
             <AuthErrorDisplay
-                error={error}
-                canRetry={useRetryLogic ? authWithRetry.canRetry : false}
+                error={authError}
+                canRetry={true}
                 isRetrying={isLoading}
-                retryCount={useRetryLogic ? authWithRetry.retryCount : 0}
                 onRetry={handleRetry}
                 onDismiss={handleDismissError}
                 onAction={handleErrorAction}

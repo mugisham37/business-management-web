@@ -6,9 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { SocialLoginButtons } from './SocialLoginButtons';
-import { useAuthGateway } from '@/lib/auth/auth-gateway';
+import { useAuth } from '@/lib/hooks/auth/useAuth';
+import { useMFA } from '@/lib/hooks/auth/useMFA';
+import { useSecurity } from '@/lib/hooks/auth/useSecurity';
+import { AuthEventEmitter } from '@/lib/auth/auth-events';
+import { MFAVerificationModal } from './MFAVerificationModal';
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register' | 'mfa';
 
 interface AuthPageProps {
     defaultMode?: AuthMode;
@@ -21,102 +25,112 @@ export function AuthPage({
     defaultMode = 'login',
     onLoginSuccess,
     onRegisterSuccess,
-    redirectTo,
+    redirectTo = '/dashboard',
 }: AuthPageProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const authGateway = useAuthGateway();
     
     // Get mode from URL params or use default
     const urlMode = searchParams?.get('mode') as AuthMode;
     const initialMode = urlMode && ['login', 'register'].includes(urlMode) ? urlMode : defaultMode;
     
     const [mode, setMode] = useState<AuthMode>(initialMode);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [mfaToken, setMfaToken] = useState<string | null>(null);
+    const [showMfaModal, setShowMfaModal] = useState(false);
+
+    // Use foundation layer hooks
+    const { user, isAuthenticated, isLoading, error } = useAuth();
+    const { verifyToken: verifyMfaToken } = useMFA();
+    const { logSecurityEvent } = useSecurity();
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            router.push(redirectTo);
+        }
+    }, [isAuthenticated, user, router, redirectTo]);
 
     // Update mode when URL params change
     useEffect(() => {
         const urlMode = searchParams?.get('mode') as AuthMode;
         if (urlMode && ['login', 'register'].includes(urlMode) && urlMode !== mode) {
             setMode(urlMode);
-            setError(null); // Clear any existing errors when switching modes
         }
     }, [searchParams, mode]);
 
+    // Listen for auth events
+    useEffect(() => {
+        const handleLoginSuccess = (user: any) => {
+            logSecurityEvent('login_success', 'User successfully logged in', {
+                userId: user.id,
+                email: user.email,
+                timestamp: new Date().toISOString(),
+            });
+            onLoginSuccess?.();
+        };
+
+        const handleRegisterSuccess = (user: any) => {
+            logSecurityEvent('registration_success', 'User successfully registered', {
+                userId: user.id,
+                email: user.email,
+                timestamp: new Date().toISOString(),
+            });
+            onRegisterSuccess?.();
+        };
+
+        const handleMfaRequired = (data: { mfaToken?: string }) => {
+            if (data.mfaToken) {
+                setMfaToken(data.mfaToken);
+                setShowMfaModal(true);
+                setMode('mfa');
+            }
+        };
+
+        AuthEventEmitter.on('auth:login', handleLoginSuccess);
+        AuthEventEmitter.on('auth:register', handleRegisterSuccess);
+        AuthEventEmitter.on('auth:mfa_required', handleMfaRequired);
+
+        return () => {
+            AuthEventEmitter.off('auth:login', handleLoginSuccess);
+            AuthEventEmitter.off('auth:register', handleRegisterSuccess);
+            AuthEventEmitter.off('auth:mfa_required', handleMfaRequired);
+        };
+    }, [onLoginSuccess, onRegisterSuccess, logSecurityEvent]);
+
     // Function to update URL when mode changes
     const updateModeInUrl = useCallback((newMode: AuthMode) => {
+        if (newMode === 'mfa') return; // Don't update URL for MFA mode
+        
         const params = new URLSearchParams(searchParams?.toString());
         params.set('mode', newMode);
         router.replace(`/auth?${params.toString()}`, { scroll: false });
         setMode(newMode);
-        setError(null);
     }, [router, searchParams]);
 
-    const handleLogin = useCallback(
-        async (data: { email: string; password: string; rememberMe: boolean }) => {
-            setIsLoading(true);
-            setError(null);
+    const handleMfaRequired = useCallback((token: string) => {
+        setMfaToken(token);
+        setShowMfaModal(true);
+        setMode('mfa');
+    }, []);
 
-            try {
-                const result = await authGateway.authenticateAndRedirect({
-                    email: data.email,
-                    password: data.password,
-                    rememberMe: data.rememberMe
-                });
-
-                if (!result.success) {
-                    setError(result.error || 'Login failed. Please try again.');
-                    return;
-                }
-
-                onLoginSuccess?.();
-                // Redirect is handled by authGateway.authenticateAndRedirect
-            } catch (err: unknown) {
-                const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-                setError(errorMessage);
-            } finally {
-                setIsLoading(false);
+    const handleMfaVerification = useCallback(async (token: string) => {
+        try {
+            const success = await verifyMfaToken(token);
+            if (success) {
+                setShowMfaModal(false);
+                setMfaToken(null);
+                // Auth success will be handled by the auth event listener
             }
-        },
-        [authGateway, onLoginSuccess]
-    );
+        } catch (error) {
+            console.error('MFA verification failed:', error);
+        }
+    }, [verifyMfaToken]);
 
-    const handleRegister = useCallback(
-        async (data: {
-            firstName: string;
-            lastName: string;
-            email: string;
-            password: string;
-            businessName: string;
-            acceptTerms: boolean;
-        }) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                const result = await authGateway.registerAndRedirect(data);
-
-                if (!result.success) {
-                    setError(result.error || 'Registration failed. Please try again.');
-                    return;
-                }
-
-                onRegisterSuccess?.();
-                // Redirect is handled by authGateway.registerAndRedirect
-            } catch (err: unknown) {
-                const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
-                setError(errorMessage);
-            } finally {
-                setIsLoading(false);
-            }
-        },
-        [authGateway, onRegisterSuccess]
-    );
-
-    const handleForgotPassword = useCallback(() => {
-        router.push('/forgot-password');
-    }, [router]);
+    const handleMfaCancel = useCallback(() => {
+        setShowMfaModal(false);
+        setMfaToken(null);
+        setMode('login');
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
@@ -149,23 +163,13 @@ export function AuthPage({
 
                         {/* Social Login */}
                         <SocialLoginButtons
-                            usePopup={true}
-                            redirectTo={redirectTo || '/dashboard'}
+                            redirectTo={redirectTo}
                             onSuccess={async (result) => {
                                 console.log('Social auth success:', result);
-                                // Handle successful social authentication
-                                // The AuthGateway will handle routing based on user state
-                                const authResult = await authGateway.handleSocialAuthAndRedirect(
-                                    result.provider, 
-                                    result.accessToken
-                                );
-                                if (!authResult.success) {
-                                    setError(authResult.error || 'Social authentication failed');
-                                }
+                                // Success is handled by auth event listeners
                             }}
                             onError={(error) => {
                                 console.error('Social auth error:', error);
-                                setError(error.message);
                             }}
                         />
 
@@ -189,13 +193,11 @@ export function AuthPage({
                                     transition={{ duration: 0.2 }}
                                 >
                                     <LoginForm
-                                        onSubmit={handleLogin}
-                                        onForgotPassword={handleForgotPassword}
-                                        isLoading={isLoading}
-                                        error={error}
+                                        onMfaRequired={handleMfaRequired}
+                                        onForgotPassword={() => router.push('/forgot-password')}
                                     />
                                 </motion.div>
-                            ) : (
+                            ) : mode === 'register' ? (
                                 <motion.div
                                     key="register"
                                     initial={{ opacity: 0, x: 20 }}
@@ -203,41 +205,49 @@ export function AuthPage({
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <RegisterForm
-                                        onSubmit={handleRegister}
-                                        isLoading={isLoading}
-                                        error={error}
-                                    />
+                                    <RegisterForm />
                                 </motion.div>
-                            )}
+                            ) : null}
                         </AnimatePresence>
 
                         {/* Toggle Mode */}
-                        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                            {mode === 'login' ? (
-                                <>
-                                    Don&apos;t have an account?{' '}
-                                    <button
-                                        onClick={() => updateModeInUrl('register')}
-                                        className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-                                    >
-                                        Sign up
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    Already have an account?{' '}
-                                    <button
-                                        onClick={() => updateModeInUrl('login')}
-                                        className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-                                    >
-                                        Sign in
-                                    </button>
-                                </>
-                            )}
-                        </p>
+                        {mode !== 'mfa' && (
+                            <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                                {mode === 'login' ? (
+                                    <>
+                                        Don&apos;t have an account?{' '}
+                                        <button
+                                            onClick={() => updateModeInUrl('register')}
+                                            className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+                                        >
+                                            Sign up
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        Already have an account?{' '}
+                                        <button
+                                            onClick={() => updateModeInUrl('login')}
+                                            className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+                                        >
+                                            Sign in
+                                        </button>
+                                    </>
+                                )}
+                            </p>
+                        )}
                     </motion.div>
                 </div>
+
+                {/* MFA Verification Modal */}
+                {showMfaModal && mfaToken && (
+                    <MFAVerificationModal
+                        isOpen={showMfaModal}
+                        mfaToken={mfaToken}
+                        onVerify={handleMfaVerification}
+                        onCancel={handleMfaCancel}
+                    />
+                )}
 
                 {/* Right Panel - Decorative */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">

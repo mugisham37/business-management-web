@@ -1,32 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, Loader2, WifiOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2, WifiOff, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AuthErrorDisplay } from './AuthErrorDisplay';
-import { AuthErrorCode } from '@/lib/auth/auth-errors';
-import { useAuthWithRetry } from '@/hooks/authentication/useAuthWithRetry';
-import { useNetworkStatus } from '@/hooks/utilities-infrastructure/useNetworkStatus';
-import { cn } from '@/lib/utils/cn';
+import { useAuth } from '@/lib/hooks/auth/useAuth';
+import { useSecurity } from '@/lib/hooks/auth/useSecurity';
+import { useMFA } from '@/lib/hooks/auth/useMFA';
+import { AuthEventEmitter } from '@/lib/auth/auth-events';
+import { cn } from '@/lib/utils';
 
 interface LoginFormProps {
     onSubmit?: (data: { email: string; password: string; rememberMe: boolean }) => Promise<void>;
     onForgotPassword?: () => void;
+    onMfaRequired?: (mfaToken: string) => void;
     isLoading?: boolean;
     error?: string | null;
-    useRetryLogic?: boolean;
+    className?: string;
 }
 
 export function LoginForm({
     onSubmit,
     onForgotPassword,
+    onMfaRequired,
     isLoading: externalLoading = false,
     error: externalError = null,
-    useRetryLogic = true,
+    className,
 }: LoginFormProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -37,20 +40,39 @@ export function LoginForm({
         password?: string;
     }>({});
 
-    const networkStatus = useNetworkStatus();
-    const authWithRetry = useAuthWithRetry({
-        onError: (error) => {
-            console.error('Login error:', error);
-        },
-        onRetry: (attempt) => {
-            console.log('Retrying login, attempt:', attempt);
-        },
-    });
+    // Use foundation layer hooks
+    const { login, isLoading: authLoading, error: authError, clearError } = useAuth();
+    const { riskScore, riskLevel, logSecurityEvent } = useSecurity();
+    const { isEnabled: mfaEnabled } = useMFA();
 
-    // Use retry logic if enabled, otherwise use external props
-    const isLoading = useRetryLogic ? authWithRetry.isLoading : externalLoading;
-    const error = useRetryLogic ? authWithRetry.error : 
-        (externalError ? { message: externalError, userMessage: externalError, retryable: false, code: AuthErrorCode.UNKNOWN_ERROR } : null);
+    // Determine loading and error states
+    const isLoading = externalLoading || authLoading;
+    const error = externalError || (authError ? authError.message : null);
+
+    // Listen for MFA required events
+    useEffect(() => {
+        const handleMfaRequired = (data: { mfaToken?: string; userId?: string }) => {
+            if (data.mfaToken && onMfaRequired) {
+                onMfaRequired(data.mfaToken);
+            }
+        };
+
+        AuthEventEmitter.on('auth:mfa_required', handleMfaRequired);
+        return () => {
+            AuthEventEmitter.off('auth:mfa_required', handleMfaRequired);
+        };
+    }, [onMfaRequired]);
+
+    // Log security events
+    useEffect(() => {
+        if (error) {
+            logSecurityEvent('login_failed', `Login attempt failed: ${error}`, {
+                email,
+                riskScore,
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }, [error, email, riskScore, logSecurityEvent]);
 
     const validateForm = (): boolean => {
         const errors: { email?: string; password?: string } = {};
@@ -76,28 +98,45 @@ export function LoginForm({
 
         if (!validateForm()) return;
 
+        clearError();
+
         try {
-            if (useRetryLogic) {
-                await authWithRetry.login(email, password);
-            } else if (onSubmit) {
+            // Log security event for login attempt
+            await logSecurityEvent('login_attempt', 'User attempting to log in', {
+                email,
+                riskScore,
+                riskLevel,
+                timestamp: new Date().toISOString(),
+            });
+
+            if (onSubmit) {
+                // Use external submit handler
                 await onSubmit({ email, password, rememberMe });
+            } else {
+                // Use foundation layer login
+                const result = await login({
+                    email,
+                    password,
+                    rememberMe,
+                });
+
+                if (result.requiresMfa && result.mfaToken && onMfaRequired) {
+                    onMfaRequired(result.mfaToken);
+                }
             }
         } catch (error) {
-            // Error is handled by the retry logic or parent component
             console.error('Login submission error:', error);
+            // Error is handled by the foundation layer
         }
     };
 
     const handleRetry = async () => {
-        if (useRetryLogic) {
-            await authWithRetry.retry();
-        }
+        clearError();
+        await handleSubmit(new Event('submit') as any);
     };
 
     const handleDismissError = () => {
-        if (useRetryLogic) {
-            authWithRetry.clearError();
-        }
+        clearError();
     };
 
     const handleErrorAction = (action: string) => {
@@ -119,28 +158,46 @@ export function LoginForm({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             onSubmit={handleSubmit}
-            className="space-y-5"
+            className={cn("space-y-5", className)}
         >
-            {/* Network Status Warning */}
-            {!networkStatus.isOnline && (
+            {/* Security Risk Indicator */}
+            {riskLevel === 'high' || riskLevel === 'critical' && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900"
                 >
-                    <WifiOff className="w-5 h-5 text-orange-500 shrink-0" />
-                    <p className="text-sm text-orange-700 dark:text-orange-400">
-                        You&apos;re currently offline. Please check your internet connection.
+                    <Shield className="w-5 h-5 text-amber-500 shrink-0" />
+                    <div>
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                            Enhanced Security Check
+                        </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-500">
+                            Additional verification may be required due to security assessment
+                        </p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* MFA Status Indicator */}
+            {mfaEnabled && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900"
+                >
+                    <Shield className="w-5 h-5 text-green-500 shrink-0" />
+                    <p className="text-sm text-green-700 dark:text-green-400">
+                        Multi-factor authentication is enabled for enhanced security
                     </p>
                 </motion.div>
             )}
 
             {/* Enhanced Error Display */}
             <AuthErrorDisplay
-                error={error}
-                canRetry={useRetryLogic ? authWithRetry.canRetry : false}
+                error={authError}
+                canRetry={true}
                 isRetrying={isLoading}
-                retryCount={useRetryLogic ? authWithRetry.retryCount : 0}
                 onRetry={handleRetry}
                 onDismiss={handleDismissError}
                 onAction={handleErrorAction}

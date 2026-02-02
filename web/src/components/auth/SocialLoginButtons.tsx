@@ -1,77 +1,98 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils/cn';
-import { useSocialAuth } from '@/hooks/authentication/useSocialAuth';
-import { SocialAuthResult, SocialAuthError } from '@/lib/auth/social-auth';
+import { cn } from '@/lib/utils';
+import { useSocialAuth } from '@/lib/hooks/auth/useSocialAuth';
+import { useSecurity } from '@/lib/hooks/auth/useSecurity';
+import { AuthEventEmitter } from '@/lib/auth/auth-events';
 
 interface SocialLoginButtonsProps {
-    onGoogleClick?: () => void;
-    onFacebookClick?: () => void;
-    onGithubClick?: () => void;
+    onSuccess?: (result: any) => void;
+    onError?: (error: any) => void;
     isLoading?: boolean;
     className?: string;
-    usePopup?: boolean;
     redirectTo?: string;
-    onSuccess?: (result: SocialAuthResult) => void;
-    onError?: (error: SocialAuthError) => void;
 }
 
 export function SocialLoginButtons({
-    onGoogleClick,
-    onFacebookClick,
-    onGithubClick,
-    isLoading: externalLoading = false,
-    className,
-    usePopup = true,
-    redirectTo,
     onSuccess,
     onError,
+    isLoading: externalLoading = false,
+    className,
+    redirectTo = '/dashboard',
 }: SocialLoginButtonsProps) {
     const {
+        connectedProviders,
+        supportedProviders,
         isLoading: socialLoading,
         error,
-        loginWithGoogle,
-        loginWithFacebook,
-        loginWithGithub,
+        generateAuthUrl,
         clearError,
-        isProviderAvailable,
-    } = useSocialAuth({
-        usePopup,
-        redirectTo: redirectTo || '/dashboard',
-        ...(onSuccess && { onSuccess }),
-        ...(onError && { onError }),
-    });
+    } = useSocialAuth();
+
+    const { logSecurityEvent, riskScore } = useSecurity();
 
     const isLoading = externalLoading || socialLoading;
 
-    const handleGoogleClick = async () => {
+    // Listen for social auth events
+    useEffect(() => {
+        const handleProviderLinked = (provider: string) => {
+            logSecurityEvent('social_provider_linked', `Social provider ${provider} linked`, {
+                provider,
+                timestamp: new Date().toISOString(),
+            });
+        };
+
+        const handleProviderUnlinked = (provider: string) => {
+            logSecurityEvent('social_provider_unlinked', `Social provider ${provider} unlinked`, {
+                provider,
+                timestamp: new Date().toISOString(),
+            });
+        };
+
+        AuthEventEmitter.on('social:provider_linked', handleProviderLinked);
+        AuthEventEmitter.on('social:provider_unlinked', handleProviderUnlinked);
+
+        return () => {
+            AuthEventEmitter.off('social:provider_linked', handleProviderLinked);
+            AuthEventEmitter.off('social:provider_unlinked', handleProviderUnlinked);
+        };
+    }, [logSecurityEvent]);
+
+    const handleSocialLogin = async (provider: string) => {
         clearError();
-        if (onGoogleClick) {
-            onGoogleClick();
-        } else {
-            await loginWithGoogle();
+        
+        try {
+            // Log security event for social login attempt
+            await logSecurityEvent('social_login_attempt', `User attempting social login with ${provider}`, {
+                provider,
+                riskScore,
+                timestamp: new Date().toISOString(),
+            });
+
+            const result = await generateAuthUrl(provider);
+            
+            if (result.authUrl) {
+                // Redirect to social provider
+                window.location.href = result.authUrl;
+            }
+        } catch (error: any) {
+            console.error(`${provider} login error:`, error);
+            if (onError) {
+                onError(error);
+            }
         }
     };
 
-    const handleFacebookClick = async () => {
-        clearError();
-        if (onFacebookClick) {
-            onFacebookClick();
-        } else {
-            await loginWithFacebook();
-        }
+    const isProviderSupported = (provider: string) => {
+        return supportedProviders.includes(provider);
     };
 
-    const handleGithubClick = async () => {
-        clearError();
-        if (onGithubClick) {
-            onGithubClick();
-        } else {
-            await loginWithGithub();
-        }
+    const isProviderConnected = (provider: string) => {
+        return connectedProviders.some(p => p.provider === provider);
     };
     return (
         <div className={cn('space-y-3', className)}>
@@ -91,7 +112,7 @@ export function SocialLoginButtons({
             </AnimatePresence>
 
             {/* Google */}
-            {isProviderAvailable('google') && (
+            {isProviderSupported('google') && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -101,7 +122,7 @@ export function SocialLoginButtons({
                         type="button"
                         variant="outline"
                         className="w-full h-12 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
-                        onClick={handleGoogleClick}
+                        onClick={() => handleSocialLogin('google')}
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -132,12 +153,15 @@ export function SocialLoginButtons({
                             </motion.svg>
                         )}
                         Continue with Google
+                        {isProviderConnected('google') && (
+                            <span className="ml-2 text-xs text-green-600">✓</span>
+                        )}
                     </Button>
                 </motion.div>
             )}
 
             {/* Facebook */}
-            {isProviderAvailable('facebook') && (
+            {isProviderSupported('facebook') && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -147,7 +171,7 @@ export function SocialLoginButtons({
                         type="button"
                         variant="outline"
                         className="w-full h-12 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
-                        onClick={handleFacebookClick}
+                        onClick={() => handleSocialLogin('facebook')}
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -164,12 +188,15 @@ export function SocialLoginButtons({
                             </motion.svg>
                         )}
                         Continue with Facebook
+                        {isProviderConnected('facebook') && (
+                            <span className="ml-2 text-xs text-green-600">✓</span>
+                        )}
                     </Button>
                 </motion.div>
             )}
 
             {/* GitHub */}
-            {isProviderAvailable('github') && (
+            {isProviderSupported('github') && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -179,7 +206,7 @@ export function SocialLoginButtons({
                         type="button"
                         variant="outline"
                         className="w-full h-12 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
-                        onClick={handleGithubClick}
+                        onClick={() => handleSocialLogin('github')}
                         disabled={isLoading}
                     >
                         {isLoading ? (
@@ -196,6 +223,9 @@ export function SocialLoginButtons({
                             </motion.svg>
                         )}
                         Continue with GitHub
+                        {isProviderConnected('github') && (
+                            <span className="ml-2 text-xs text-green-600">✓</span>
+                        )}
                     </Button>
                 </motion.div>
             )}
