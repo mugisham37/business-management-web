@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { useAuth } from "@/hooks/authentication/useAuth";
-import { UserRole } from "@/types/auth";
+import { useAuth } from "../hooks/auth/useAuth";
+import { UserRole } from "../graphql/generated/types";
 
 interface PermissionContextValue {
     hasPermission: (permission: string | string[]) => boolean;

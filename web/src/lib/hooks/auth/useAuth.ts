@@ -149,11 +149,11 @@ export function useAuth(): UseAuthReturn {
         const error = result.errors[0];
         
         // Handle MFA required
-        if (error.extensions?.code === 'MFA_REQUIRED') {
+        if (error?.extensions?.code === 'MFA_REQUIRED') {
           throw new Error('MFA_REQUIRED');
         }
         
-        throw new Error(error.message);
+        throw new Error(error?.message || 'Login failed');
       }
 
       const loginData = result.data?.login;
@@ -230,7 +230,7 @@ export function useAuth(): UseAuthReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Registration failed');
       }
 
       const registerData = result.data?.register;

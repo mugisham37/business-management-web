@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
@@ -11,7 +11,7 @@ import {
   ENTERPRISE_FEATURE,
   STANDARD_FEATURE,
 } from '../../graphql/operations/tier';
-import type { BusinessTier } from '../../graphql/generated/types';
+import { BusinessTier } from '../../graphql/generated/types';
 
 /**
  * Tier-based Feature Access Hook
@@ -98,6 +98,21 @@ export function useTier(): UseTierReturn {
     featureCache: new Map(),
   });
 
+  // Feature access utilities (defined early to avoid hoisting issues)
+  const hasFeature = useCallback((feature: string): boolean => {
+    return tierState.tierInfo?.features.includes(feature) || false;
+  }, [tierState.tierInfo]);
+
+  const canAccessTier = useCallback((tier: BusinessTier): boolean => {
+    if (!tierState.tierInfo) return false;
+    
+    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.BASIC, BusinessTier.STANDARD, BusinessTier.PREMIUM, BusinessTier.ENTERPRISE];
+    const currentIndex = tierHierarchy.indexOf(tierState.tierInfo.currentTier);
+    const requiredIndex = tierHierarchy.indexOf(tier);
+    
+    return currentIndex >= requiredIndex;
+  }, [tierState.tierInfo]);
+
   // GraphQL operations
   const { data: tierInfoData, loading: tierInfoLoading, refetch: refetchTierInfo } = useQuery(
     MY_TIER_INFO,
@@ -123,24 +138,24 @@ export function useTier(): UseTierReturn {
   });
 
   // Feature access queries (for demonstration)
-  const { data: basicFeatureData } = useQuery(BASIC_FEATURE, {
+  useQuery(BASIC_FEATURE, {
     errorPolicy: 'all',
     skip: !tierState.tierInfo,
   });
 
-  const { data: premiumFeatureData } = useQuery(PREMIUM_FEATURE, {
+  useQuery(PREMIUM_FEATURE, {
     errorPolicy: 'all',
-    skip: !tierState.tierInfo || !canAccessTier('premium'),
+    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.PREMIUM),
   });
 
-  const { data: enterpriseFeatureData } = useQuery(ENTERPRISE_FEATURE, {
+  useQuery(ENTERPRISE_FEATURE, {
     errorPolicy: 'all',
-    skip: !tierState.tierInfo || !canAccessTier('enterprise'),
+    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.ENTERPRISE),
   });
 
-  const { data: standardFeatureData } = useQuery(STANDARD_FEATURE, {
+  useQuery(STANDARD_FEATURE, {
     errorPolicy: 'all',
-    skip: !tierState.tierInfo || !canAccessTier('standard'),
+    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.STANDARD),
   });
 
   // Refresh tier information
@@ -216,7 +231,7 @@ export function useTier(): UseTierReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.simulateTierUpgrade;
@@ -251,21 +266,6 @@ export function useTier(): UseTierReturn {
     setTierState(prev => ({ ...prev, featureCache: new Map() }));
   }, []);
 
-  // Feature access utilities
-  const hasFeature = useCallback((feature: string): boolean => {
-    return tierState.tierInfo?.features.includes(feature) || false;
-  }, [tierState.tierInfo]);
-
-  const canAccessTier = useCallback((tier: BusinessTier): boolean => {
-    if (!tierState.tierInfo) return false;
-    
-    const tierHierarchy: BusinessTier[] = ['free', 'basic', 'standard', 'premium', 'enterprise'];
-    const currentIndex = tierHierarchy.indexOf(tierState.tierInfo.currentTier);
-    const requiredIndex = tierHierarchy.indexOf(tier);
-    
-    return currentIndex >= requiredIndex;
-  }, [tierState.tierInfo]);
-
   const isFeatureLocked = useCallback((feature: string): boolean => {
     return !hasFeature(feature);
   }, [hasFeature]);
@@ -278,33 +278,33 @@ export function useTier(): UseTierReturn {
   // Tier utilities
   const getTierDisplayName = useCallback((tier: BusinessTier): string => {
     const displayNames: Record<BusinessTier, string> = {
-      free: 'Free',
-      basic: 'Basic',
-      standard: 'Standard',
-      premium: 'Premium',
-      enterprise: 'Enterprise',
+      [BusinessTier.FREE]: 'Free',
+      [BusinessTier.BASIC]: 'Basic',
+      [BusinessTier.STANDARD]: 'Standard',
+      [BusinessTier.PREMIUM]: 'Premium',
+      [BusinessTier.ENTERPRISE]: 'Enterprise',
     };
     return displayNames[tier] || tier;
   }, []);
 
   const getTierColor = useCallback((tier: BusinessTier): string => {
     const colors: Record<BusinessTier, string> = {
-      free: 'gray',
-      basic: 'blue',
-      standard: 'green',
-      premium: 'purple',
-      enterprise: 'gold',
+      [BusinessTier.FREE]: 'gray',
+      [BusinessTier.BASIC]: 'blue',
+      [BusinessTier.STANDARD]: 'green',
+      [BusinessTier.PREMIUM]: 'purple',
+      [BusinessTier.ENTERPRISE]: 'gold',
     };
     return colors[tier] || 'gray';
   }, []);
 
   const getTierIcon = useCallback((tier: BusinessTier): string => {
     const icons: Record<BusinessTier, string> = {
-      free: '🆓',
-      basic: '📦',
-      standard: '⭐',
-      premium: '💎',
-      enterprise: '👑',
+      [BusinessTier.FREE]: '🆓',
+      [BusinessTier.BASIC]: '📦',
+      [BusinessTier.STANDARD]: '⭐',
+      [BusinessTier.PREMIUM]: '💎',
+      [BusinessTier.ENTERPRISE]: '👑',
     };
     return icons[tier] || '📦';
   }, []);
@@ -316,7 +316,7 @@ export function useTier(): UseTierReturn {
   const canUpgradeTo = useCallback((tier: BusinessTier): boolean => {
     if (!tierState.tierInfo) return false;
     
-    const tierHierarchy: BusinessTier[] = ['free', 'basic', 'standard', 'premium', 'enterprise'];
+    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.BASIC, BusinessTier.STANDARD, BusinessTier.PREMIUM, BusinessTier.ENTERPRISE];
     const currentIndex = tierHierarchy.indexOf(tierState.tierInfo.currentTier);
     const targetIndex = tierHierarchy.indexOf(tier);
     
@@ -341,7 +341,7 @@ export function useTier(): UseTierReturn {
   }, [getUsagePercentage]);
 
   // Computed properties
-  const isFreeTier = tierState.tierInfo?.currentTier === 'free';
+  const isFreeTier = tierState.tierInfo?.currentTier === BusinessTier.FREE;
   const isPaidTier = !isFreeTier && tierState.tierInfo?.currentTier !== undefined;
   const isTrialActive = tierState.tierInfo?.expiresAt ? new Date() < tierState.tierInfo.expiresAt : false;
   const needsUpgrade = isFreeTier || (tierState.tierInfo?.isTrialExpired || false);
@@ -356,7 +356,7 @@ export function useTier(): UseTierReturn {
           currentTier: parsed.currentTier,
           features: parsed.features || [],
           limits: parsed.limits || {},
-          expiresAt: parsed.expiresAt ? new Date(parsed.expiresAt) : undefined,
+          ...(parsed.expiresAt && { expiresAt: new Date(parsed.expiresAt) }),
           isActive: parsed.isActive || false,
           isTrialExpired: parsed.isTrialExpired || false,
           daysUntilExpiration: parsed.daysUntilExpiration,

@@ -221,26 +221,26 @@ export function hasAllPermissions(userPermissions: string[], requiredPermissions
  * User display utilities
  */
 export function getUserDisplayName(user: AuthUser): string {
-  if (user.displayName) {
+  if (user?.displayName) {
     return user.displayName;
   }
   
-  if (user.firstName && user.lastName) {
+  if (user?.firstName && user?.lastName) {
     return `${user.firstName} ${user.lastName}`;
   }
   
-  if (user.firstName) {
+  if (user?.firstName) {
     return user.firstName;
   }
   
-  return user.email;
+  return user?.email || 'Unknown User';
 }
 
 export function getUserInitials(user: AuthUser): string {
   const displayName = getUserDisplayName(user);
   
   const parts = displayName.split(' ');
-  if (parts.length >= 2) {
+  if (parts.length >= 2 && parts[0] && parts[1]) {
     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
   }
   
@@ -276,6 +276,10 @@ export function generateSecurePassword(length: number = 16): string {
 
 export function maskEmail(email: string): string {
   const [username, domain] = email.split('@');
+  
+  if (!username || !domain) {
+    return email; // Return original if invalid format
+  }
   
   if (username.length <= 2) {
     return `${username[0]}*@${domain}`;

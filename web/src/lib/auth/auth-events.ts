@@ -81,9 +81,43 @@ class AuthEventEmitterClass extends EventEmitter {
     return AuthEventEmitterClass.instance;
   }
 
-  // Type-safe event emission
-  emit<K extends keyof AuthEvents>(event: K, ...args: Parameters<AuthEvents[K]>): boolean {
-    return super.emit(event, ...args);
+  // Type-safe event emission with proper overloads
+  emit(event: 'tokens:updated', tokens: any): boolean;
+  emit(event: 'tokens:refreshed', tokens: any): boolean;
+  emit(event: 'tokens:refresh_failed', error: any): boolean;
+  emit(event: 'tokens:cleared'): boolean;
+  emit(event: 'tokens:synced', tokens: any): boolean;
+  emit(event: 'auth:login', user: any): boolean;
+  emit(event: 'auth:logout', reason?: { reason: string }): boolean;
+  emit(event: 'auth:register', user: any): boolean;
+  emit(event: 'auth:session_expired'): boolean;
+  emit(event: 'auth:permission_denied', data: { operation?: string; error: string }): boolean;
+  emit(event: 'auth:mfa_required', data: { mfaToken?: string; userId?: string }): boolean;
+  emit(event: 'auth:mfa_enabled'): boolean;
+  emit(event: 'auth:mfa_disabled'): boolean;
+  emit(event: 'auth:mfa_verified'): boolean;
+  emit(event: 'security:risk_score_changed', data: { score: number; level: string }): boolean;
+  emit(event: 'security:device_trust_changed', data: { trusted: boolean; score: number }): boolean;
+  emit(event: 'security:suspicious_activity', data: any): boolean;
+  emit(event: 'security:account_locked'): boolean;
+  emit(event: 'security:account_unlocked'): boolean;
+  emit(event: 'permissions:updated', permissions: string[]): boolean;
+  emit(event: 'permissions:granted', permission: string): boolean;
+  emit(event: 'permissions:revoked', permission: string): boolean;
+  emit(event: 'role:assigned', role: string): boolean;
+  emit(event: 'social:provider_linked', provider: string): boolean;
+  emit(event: 'social:provider_unlinked', provider: string): boolean;
+  emit(event: 'session:created', sessionId: string): boolean;
+  emit(event: 'session:expired', sessionId: string): boolean;
+  emit(event: 'session:revoked', sessionId: string): boolean;
+  emit(event: 'tier:upgraded', newTier: string): boolean;
+  emit(event: 'tier:downgraded', newTier: string): boolean;
+  emit(event: 'tier:feature_locked', feature: string): boolean;
+  emit(event: 'network:online'): boolean;
+  emit(event: 'network:offline'): boolean;
+  emit(event: 'network:reconnected'): boolean;
+  emit<K extends keyof AuthEvents>(event: K, ...args: any[]): boolean {
+    return super.emit(event as string, ...args);
   }
 
   // Type-safe event listening
@@ -181,11 +215,11 @@ class AuthEventEmitterClass extends EventEmitter {
    * Debug helper to log all events
    */
   enableDebugMode(): void {
-    const originalEmit = this.emit;
+    const originalEmit = this.emit.bind(this);
     
-    this.emit = function<K extends keyof AuthEvents>(event: K, ...args: Parameters<AuthEvents[K]>): boolean {
-      console.log(`[AuthEvent] ${event}:`, ...args);
-      return originalEmit.call(this, event, ...args);
+    this.emit = function(event: string, ...args: any[]): boolean {
+      console.log(`[AuthEvent] ${event}:`, args.length > 0 ? args : '(no args)');
+      return originalEmit(event as any, ...args);
     };
   }
 

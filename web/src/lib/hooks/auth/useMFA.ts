@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
@@ -143,7 +143,7 @@ export function useMFA(): UseMfaReturn {
       const result = await generateSetupMutation();
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const setupData = result.data?.generateMfaSetup;
@@ -179,7 +179,7 @@ export function useMFA(): UseMfaReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.enableMfa;
@@ -224,7 +224,7 @@ export function useMFA(): UseMfaReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.disableMfa;
@@ -265,7 +265,7 @@ export function useMFA(): UseMfaReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.verifyMfaToken;
@@ -303,7 +303,7 @@ export function useMFA(): UseMfaReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const backupCodes = result.data?.generateBackupCodes;
@@ -374,7 +374,7 @@ export function useMFA(): UseMfaReturn {
   // Computed properties
   const hasBackupCodes = (mfaState.status?.backupCodesCount || 0) > 0;
   const backupCodesCount = mfaState.status?.backupCodesCount || 0;
-  const canDisableMfa = mfaState.isEnabled && (hasBackupCodes || mfaState.status?.hasSecret);
+  const canDisableMfa = Boolean(mfaState.isEnabled && (hasBackupCodes || mfaState.status?.hasSecret));
 
   return {
     // State

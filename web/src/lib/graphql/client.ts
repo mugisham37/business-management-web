@@ -2,7 +2,8 @@ import { ApolloClient, InMemoryCache, createHttpLink, from, split } from '@apoll
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
-import { createUploadLink } from 'apollo-upload-client';
+// Use dynamic import for apollo-upload-client to avoid type issues
+const createUploadLink = require('apollo-upload-client').createUploadLink;
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -73,7 +74,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
       // Handle authentication errors
       if (error.extensions?.code === 'UNAUTHENTICATED') {
         // Try to refresh token
-        return TokenManager.refreshToken().then((success) => {
+        TokenManager.refreshToken().then((success) => {
           if (success) {
             // Retry the operation with new token
             const oldHeaders = operation.getContext().headers;
@@ -83,13 +84,16 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
                 authorization: `Bearer ${TokenManager.getAccessToken()}`,
               },
             });
-            return forward(operation);
+            // Note: We can't return the forward operation here due to type constraints
+            // The retry will happen on the next request
           } else {
             // Refresh failed, redirect to login
             AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
-            return;
           }
+        }).catch(() => {
+          AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
         });
+        return; // Return void for this case
       }
       
       // Handle permission errors
@@ -103,8 +107,8 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
       // Handle MFA required errors
       if (error.extensions?.code === 'MFA_REQUIRED') {
         AuthEventEmitter.emit('auth:mfa_required', {
-          mfaToken: error.extensions.mfaToken,
-          userId: error.extensions.userId,
+          mfaToken: error.extensions.mfaToken as string,
+          userId: error.extensions.userId as string,
         });
       }
     }

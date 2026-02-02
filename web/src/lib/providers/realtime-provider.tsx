@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useApolloClient } from "@apollo/client";
-import { useAuth } from "@/hooks/authentication/useAuth";
+import { useAuth } from "../hooks/auth/useAuth";
 
 interface RealtimeContextValue {
     isConnected: boolean;

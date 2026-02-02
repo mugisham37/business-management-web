@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
@@ -232,7 +232,7 @@ export function useSecurity(): UseSecurityReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.logSecurityEvent;

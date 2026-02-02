@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
@@ -229,7 +229,7 @@ export function usePermissions(): UsePermissionsReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.grantPermission;
@@ -268,7 +268,7 @@ export function usePermissions(): UsePermissionsReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.revokePermission;
@@ -307,7 +307,7 @@ export function usePermissions(): UsePermissionsReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.assignRole;
@@ -346,7 +346,7 @@ export function usePermissions(): UsePermissionsReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.bulkGrantPermissions;
@@ -386,7 +386,7 @@ export function usePermissions(): UsePermissionsReturn {
       });
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0].message);
+        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
       }
 
       const response = result.data?.bulkRevokePermissions;
