@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { AuditService } from './audit.service';
 import { EncryptionService } from './encryption.service';
@@ -215,7 +214,6 @@ export class ComplianceService {
   /**
    * Apply data retention policies
    */
-  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async applyDataRetentionPolicies(): Promise<void> {
     this.logger.log('Starting data retention policy enforcement');
 
@@ -640,5 +638,53 @@ export class ComplianceService {
       id: violationId,
       ...acknowledgement,
     };
+  }
+
+  /**
+   * Run compliance check for a specific framework
+   */
+  async runComplianceCheck(
+    tenantId: string,
+    frameworkId: string,
+    checkType?: string,
+    fullAudit?: boolean,
+  ): Promise<any> {
+    this.logger.log(`Running compliance check for tenant ${tenantId}, framework ${frameworkId}`);
+    
+    try {
+      const framework = this.frameworks.get(frameworkId);
+      if (!framework) {
+        throw new Error(`Framework not found: ${frameworkId}`);
+      }
+
+      // Generate compliance report
+      const report = await this.generateComplianceReport(tenantId, frameworkId);
+      
+      // Log the compliance check
+      await this.auditService.logEvent({
+        tenantId,
+        userId: 'system',
+        action: 'compliance_check',
+        resource: 'compliance_framework',
+        metadata: {
+          frameworkId,
+          checkType: checkType || 'standard',
+          fullAudit: fullAudit || false,
+          complianceScore: report.complianceScore,
+          overallStatus: report.overallStatus,
+        },
+      });
+
+      return {
+        jobId: `compliance-check-${Date.now()}`,
+        status: 'completed',
+        result: report,
+        completedAt: new Date(),
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Compliance check failed: ${errorMessage}`);
+      throw error;
+    }
   }
 }

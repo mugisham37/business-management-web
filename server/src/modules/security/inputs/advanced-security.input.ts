@@ -7,21 +7,13 @@ import {
   IsArray,
   IsEnum,
   IsDate,
-  IsEmail,
   Min,
   Max,
   MinLength,
-  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
-  ThreatSeverity,
-  ThreatStatus,
-  ComplianceStatus,
-} from '../types/security.types';
-import {
   KeyStatus,
-  SSOProvider,
   TestStatus,
   DeletionStatus,
   DeletionReason,

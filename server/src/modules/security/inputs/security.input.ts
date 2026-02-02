@@ -1,7 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsOptional, IsString, IsBoolean, IsNumber, IsArray, IsEnum, IsDate, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
-import { SecurityEventType, ThreatSeverity, ThreatStatus, ComplianceStatus } from '../types/security.types';
+import { SecurityEventType, ThreatSeverity, ThreatStatus } from '../types/security.types';
 
 // Security Settings Input
 @InputType()

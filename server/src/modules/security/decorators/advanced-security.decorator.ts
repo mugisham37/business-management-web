@@ -118,8 +118,10 @@ export const LogSecurityEvent = (eventType: string) => {
  * Marks operations as high-risk for additional monitoring
  */
 export const HighRiskOperation = (risk: 'medium' | 'high' | 'critical' = 'high') => {
-  return SetMetadata('highRiskOperation', true);
-  SetMetadata('riskLevel', risk);
+  return applyDecorators(
+    SetMetadata('highRiskOperation', true),
+    SetMetadata('riskLevel', risk),
+  );
 };
 
 /**

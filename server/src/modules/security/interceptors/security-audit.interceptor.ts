@@ -42,7 +42,7 @@ export class SecurityAuditInterceptor implements NestInterceptor {
     const tenantId = request?.headers['x-tenant-id'] || user?.tenantId;
 
     // Check if audit is required for this operation
-    const auditRequired = this.reflector.get<any>('auditRequired', context.getHandler());
+    const auditRequired = this.reflector.get<{ action: string; category: string }>('auditRequired', context.getHandler());
     const securityLevel = this.reflector.get<string>('securityLevel', context.getHandler());
     const isHighRisk = this.reflector.get<boolean>('highRiskOperation', context.getHandler());
 
@@ -82,7 +82,7 @@ export class SecurityAuditInterceptor implements NestInterceptor {
             userAgent: request?.headers['user-agent'],
             requestId: request?.id,
             severity: this.mapSecurityLevelToSeverity(securityLevel),
-            category: auditRequired?.category || 'security',
+            category: (auditRequired?.category as 'security' | 'data' | 'system' | 'user' | 'compliance') || 'security',
           });
         } catch (error) {
           this.logger.error('Failed to log audit event', error);
@@ -113,7 +113,7 @@ export class SecurityAuditInterceptor implements NestInterceptor {
             userAgent: request?.headers['user-agent'],
             requestId: request?.id,
             severity: 'high', // Errors are always high severity
-            category: auditRequired?.category || 'security',
+            category: (auditRequired?.category as 'security' | 'data' | 'system' | 'user' | 'compliance') || 'security',
           });
         } catch (auditError) {
           this.logger.error('Failed to log audit event for error', auditError);

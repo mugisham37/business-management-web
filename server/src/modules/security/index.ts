@@ -12,7 +12,17 @@ export { SecurityModule } from './security.module';
 export { SecurityFacade } from './facades/security.facade';
 
 // Easy-to-use Decorators
-export * from './decorators/security.decorators';
+export {
+  SecureOperation,
+  DataProtection,
+  ComplianceRequired,
+  ThreatMonitoring,
+  RequireEncryption,
+  SecurityRateLimit,
+  GeoRestricted,
+  RequireVerification,
+  TenantIsolated,
+} from './decorators/security.decorators';
 
 // ============================================================================
 // 🔧 CORE SERVICES (DIRECT ACCESS WHEN NEEDED)
@@ -88,18 +98,72 @@ export { DataDeletionResolver } from './resolvers/data-deletion.resolver';
 // ============================================================================
 
 // Core Types
-export * from './types/security.types';
+export {
+  SecuritySettings,
+  SecurityEvent,
+  SecurityThreat,
+  AuditLog,
+  ComplianceFramework,
+  ComplianceRequirement,
+  ComplianceReport,
+  ComplianceViolation,
+  SecurityDashboard,
+  SecurityMetrics,
+  AccessPattern,
+  SecurityEventType,
+  ThreatSeverity,
+  ThreatStatus,
+  ComplianceStatus,
+} from './types/security.types';
 export * from './types/advanced-security.types';
 
 // Input Types
-export * from './inputs/security.input';
+export {
+  UpdateSecuritySettingsInput,
+  SecurityEventFilterInput,
+  InvestigateEventInput,
+  AuditLogFilterInput,
+  ExportAuditLogsInput,
+  RunComplianceCheckInput,
+  AcknowledgeViolationInput,
+  SecurityMetricsFilterInput,
+  ThreatAnalysisFilterInput,
+} from './inputs/security.input';
 export * from './inputs/advanced-security.input';
 
 // ============================================================================
 // 🎨 ADVANCED DECORATORS (FINE-GRAINED CONTROL)
 // ============================================================================
 
-export * from './decorators/advanced-security.decorator';
+export {
+  RequiresMFA,
+  SecurityLevel,
+  RateLimitSecurity,
+  AuditRequired as AuditRequiredAdvanced,
+  EncryptionRequired,
+  ThreatAnalysis as ThreatAnalysisAdvanced,
+  ComplianceCheck,
+  DataClassification,
+  DataAccessControl,
+  RequiresEnhancedVerification,
+  LogSecurityEvent,
+  HighRiskOperation as HighRiskOperationAdvanced,
+  RequiresSecurityContext,
+  EnforceTenantIsolation,
+  RequireSignedRequest,
+  EncryptResponse,
+  NotifySecurityEvent,
+  EnforcePolicyCompliance,
+  EnableAnomalyDetection,
+  RequiresApproval,
+  GeoFence,
+  DetailedAuditTrail,
+  EnforceImmutability,
+  NotifyOnChange,
+  MinimumSessionAge,
+  MaxDataVolume,
+  StepUpAuthentication,
+} from './decorators/advanced-security.decorator';
 
 // ============================================================================
 // 📋 MODULE METADATA & USAGE GUIDE

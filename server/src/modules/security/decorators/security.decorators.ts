@@ -1,4 +1,4 @@
-import { SetMetadata, applyDecorators, UseGuards, UseInterceptors } from '@nestjs/common';
+import { SetMetadata, applyDecorators, UseInterceptors } from '@nestjs/common';
 import { SecurityAuditInterceptor } from '../interceptors/security-audit.interceptor';
 import { ThreatDetectionInterceptor } from '../interceptors/threat-detection.interceptor';
 

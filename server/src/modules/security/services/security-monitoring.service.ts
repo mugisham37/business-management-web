@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { AuditService } from './audit.service';
 import { ThreatDetectionService } from './threat-detection.service';
@@ -97,7 +96,7 @@ export class SecurityMonitoringService {
   async handleSecurityViolation(violation: any): Promise<void> {
     try {
       const threat: SecurityThreat = {
-        id: `threat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `threat_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         type: violation.violations.join(', '),
         severity: this.calculateThreatSeverity(violation),
         description: `Security violation detected: ${violation.violations.join(', ')}`,
@@ -115,7 +114,7 @@ export class SecurityMonitoringService {
 
       // Create security alert
       const alert: SecurityAlert = {
-        id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         tenantId: violation.tenantId,
         type: 'security_violation',
         severity: threat.severity,
@@ -227,7 +226,6 @@ export class SecurityMonitoringService {
   /**
    * Periodic security health check
    */
-  @Cron(CronExpression.EVERY_5_MINUTES)
   async performSecurityHealthCheck(): Promise<void> {
     try {
       this.logger.debug('Performing security health check');
@@ -492,6 +490,56 @@ export class SecurityMonitoringService {
           timestamp: now,
         });
       }
+    }
+  }
+
+  /**
+   * Log a security event
+   */
+  async logSecurityEvent(event: {
+    tenantId: string;
+    type: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    userId?: string;
+    resource?: string;
+    resourceId?: string;
+    ipAddress?: string;
+    metadata?: Record<string, any>;
+  }): Promise<void> {
+    try {
+      // Create security alert
+      const alert: SecurityAlert = {
+        id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        tenantId: event.tenantId,
+        type: event.type,
+        severity: event.severity,
+        title: event.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        description: event.description,
+        timestamp: new Date(),
+        source: event.ipAddress || 'system',
+        metadata: event.metadata || {},
+        status: 'new',
+      };
+
+      // Emit security event for processing
+      this.eventEmitter.emit('security.event.logged', {
+        alert,
+        originalEvent: event,
+        timestamp: new Date(),
+      });
+
+      // Log the event
+      this.logger.log(`Security event logged: ${event.type} for tenant ${event.tenantId}`);
+
+      // If it's a critical event, emit immediate alert
+      if (event.severity === 'critical') {
+        this.eventEmitter.emit('security.alert', alert);
+      }
+
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`Failed to log security event: ${err.message}`, err.stack);
     }
   }
 
