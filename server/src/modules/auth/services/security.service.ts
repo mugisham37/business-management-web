@@ -120,11 +120,7 @@ export class SecurityService {
 
       return securityEvent;
     } catch (error) {
-      this.logger.error('Failed to log security event', {
-        error: error.message,
-        eventType: eventInput.type,
-        userId: eventInput.userId,
-      });
+      this.logger.error(`Failed to log security event ${eventInput.type} for user ${eventInput.userId}: ${error.message}`);
       throw error;
     }
   }
@@ -448,7 +444,7 @@ export class SecurityService {
     const key = `blocked_ip:${ipAddress}`;
     const blockDuration = 24 * 60 * 60; // 24 hours
     
-    await this.cacheService.set(key, { reason, blockedAt: new Date() }, blockDuration);
+    await this.cacheService.set(key, { reason, blockedAt: new Date() }, { ttl: blockDuration });
     
     this.logger.warn(`IP address blocked: ${ipAddress}`, { reason });
   }
@@ -504,7 +500,7 @@ export class SecurityService {
       events.splice(100);
     }
 
-    await this.cacheService.set(key, events, 60 * 60); // 1 hour
+    await this.cacheService.set(key, events, { ttl: 60 * 60 }); // 1 hour
   }
 
   private async getRecentSecurityEvents(

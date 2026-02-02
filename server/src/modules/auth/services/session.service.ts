@@ -179,10 +179,7 @@ export class SessionService {
         networkTrust: this.calculateNetworkTrust(input.ipAddress),
       };
     } catch (error) {
-      this.logger.error('Failed to create session', {
-        userId: input.userId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to create session for user ${input.userId}: ${error.message}`);
       throw error;
     }
   }
@@ -236,10 +233,7 @@ export class SessionService {
 
       return sessionInfo;
     } catch (error) {
-      this.logger.error('Failed to get session info', {
-        sessionId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to get session info for ${sessionId}: ${error.message}`);
       return null;
     }
   }
@@ -323,10 +317,7 @@ export class SessionService {
         requiresReauth: riskScore > 60,
       };
     } catch (error) {
-      this.logger.error('Session security validation failed', {
-        sessionId,
-        error: error.message,
-      });
+      this.logger.error(`Session security validation failed for ${sessionId}: ${error.message}`);
       
       return {
         isValid: false,
@@ -358,10 +349,7 @@ export class SessionService {
         await this.cacheSession(sessionId, cached);
       }
     } catch (error) {
-      this.logger.error('Failed to update session activity', {
-        sessionId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to update session activity for ${sessionId}: ${error.message}`);
     }
   }
 
@@ -395,11 +383,7 @@ export class SessionService {
         timestamp: new Date(),
       });
     } catch (error) {
-      this.logger.error('Failed to revoke session', {
-        sessionId,
-        reason,
-        error: error.message,
-      });
+      this.logger.error(`Failed to revoke session ${sessionId} with reason ${reason}: ${error.message}`);
       throw error;
     }
   }
@@ -452,11 +436,7 @@ export class SessionService {
         timestamp: new Date(),
       });
     } catch (error) {
-      this.logger.error('Failed to revoke all user sessions', {
-        userId,
-        reason,
-        error: error.message,
-      });
+      this.logger.error(`Failed to revoke all user sessions for ${userId} with reason ${reason}: ${error.message}`);
       throw error;
     }
   }
@@ -495,10 +475,7 @@ export class SessionService {
         networkTrust: this.calculateNetworkTrust(session.ipAddress),
       }));
     } catch (error) {
-      this.logger.error('Failed to get user active sessions', {
-        userId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to get user active sessions for ${userId}: ${error.message}`);
       return [];
     }
   }
@@ -545,9 +522,7 @@ export class SessionService {
 
       return expiredSessions.length;
     } catch (error) {
-      this.logger.error('Failed to cleanup expired sessions', {
-        error: error.message,
-      });
+      this.logger.error(`Failed to cleanup expired sessions: ${error.message}`);
       return 0;
     }
   }
@@ -643,7 +618,7 @@ export class SessionService {
 
   private async cacheSession(sessionId: string, session: SessionInfo): Promise<void> {
     const key = `session:${sessionId}`;
-    await this.cacheService.set(key, session, 60 * 60); // 1 hour cache
+    await this.cacheService.set(key, session, { ttl: 60 * 60 }); // 1 hour cache
   }
 
   private async getCachedSession(sessionId: string): Promise<SessionInfo | null> {
@@ -687,7 +662,7 @@ export class SessionService {
           this.logger.log(`Session cleanup completed: ${cleaned} sessions cleaned`);
         }
       } catch (error) {
-        this.logger.error('Session cleanup failed', { error: error.message });
+        this.logger.error(`Session cleanup failed: ${error.message}`);
       }
     }, this.sessionConfig.cleanupInterval);
   }

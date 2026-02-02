@@ -87,12 +87,7 @@ export class RateLimitMiddleware implements NestMiddleware {
         throw error;
       }
 
-      this.logger.error('Rate limit middleware error', {
-        error: error.message,
-        path: req.path,
-        method: req.method,
-        ip: this.getClientIp(req),
-      });
+      this.logger.error(`Rate limit middleware error on ${req.method} ${path} from ${this.getClientIp(req)}: ${error.message}`);
 
       // Don't block the request on middleware errors
       next();
@@ -159,11 +154,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
       return true;
     } catch (error) {
-      this.logger.error('Rate limit check error', {
-        error: error.message,
-        clientIp,
-        path,
-      });
+      this.logger.error(`Rate limit check error for ${clientIp} on ${path}: ${error.message}`);
 
       // Allow request on error (fail open)
       return true;

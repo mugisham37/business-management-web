@@ -166,7 +166,7 @@ export class PermissionsService {
       // Remove duplicates and return
       return [...new Set(allPermissions)];
     } catch (error) {
-      this.logger.error('Failed to get user permissions', { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to get user permissions for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return [];
     }
   }
@@ -308,7 +308,7 @@ export class PermissionsService {
 
       this.logger.log('Permission granted', { userId, tenantId, permission, resource, resourceId });
     } catch (error) {
-      this.logger.error('Failed to grant permission', { userId, tenantId, permission, error: error.message });
+      this.logger.error(`Failed to grant permission ${permission} to user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -352,7 +352,7 @@ export class PermissionsService {
 
       this.logger.log('Permission revoked', { userId, tenantId, permission, resource, resourceId });
     } catch (error) {
-      this.logger.error('Failed to revoke permission', { userId, tenantId, permission, error: error.message });
+      this.logger.error(`Failed to revoke permission ${permission} from user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -468,7 +468,7 @@ export class PermissionsService {
 
       return [...new Set(allUserIds)];
     } catch (error) {
-      this.logger.error('Failed to get users with permission', { tenantId, permission, error: error.message });
+      this.logger.error(`Failed to get users with permission ${permission} in tenant ${tenantId}: ${error.message}`);
       return [];
     }
   }
@@ -505,7 +505,7 @@ export class PermissionsService {
         return result;
       });
     } catch (error) {
-      this.logger.error('Failed to get detailed user permissions', { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to get detailed user permissions for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return [];
     }
   }
@@ -529,7 +529,7 @@ export class PermissionsService {
 
       return user?.role || 'readonly';
     } catch (error) {
-      this.logger.error('Failed to get user role', { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to get user role for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return 'readonly';
     }
   }

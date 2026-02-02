@@ -99,7 +99,7 @@ export class TierAuthorizationService {
       const tenantTier = await this.getTenantTier(user.tenantId);
 
       // Check tier requirement
-      if (tier && !this.checkTierAccess(tenantTier, tier)) {
+      if (tier && !this.checkTierAccessLevel(tenantTier, tier)) {
         return {
           allowed: false,
           reason: `Insufficient tier access. Required: ${tier}, Current: ${tenantTier}`,
@@ -149,12 +149,7 @@ export class TierAuthorizationService {
 
       return { allowed: true };
     } catch (error) {
-      this.logger.error('Authorization check failed', {
-        userId: user.id,
-        tenantId: user.tenantId,
-        requirements,
-        error: error.message,
-      });
+      this.logger.error(`Authorization check failed for user ${user.id} in tenant ${user.tenantId}: ${error.message}`);
 
       return {
         allowed: false,
@@ -218,7 +213,7 @@ export class TierAuthorizationService {
 
       return hasAccess;
     } catch (error) {
-      this.logger.error('Feature access check failed', { tenantId, featureName, error: error.message });
+      this.logger.error(`Feature access check failed for tenant ${tenantId}, feature ${featureName}: ${error.message}`);
       return false;
     }
   }
@@ -249,7 +244,7 @@ export class TierAuthorizationService {
 
       return tier;
     } catch (error) {
-      this.logger.error('Failed to get tenant tier', { tenantId, error: error.message });
+      this.logger.error(`Failed to get tenant tier for ${tenantId}: ${error.message}`);
       return 'free';
     }
   }
@@ -270,7 +265,7 @@ export class TierAuthorizationService {
         isActive: true, // Would check subscription status in real implementation
       };
     } catch (error) {
-      this.logger.error('Failed to get tenant tier info', { tenantId, error: error.message });
+      this.logger.error(`Failed to get tenant tier info for ${tenantId}: ${error.message}`);
       return {
         tier: 'free',
         features: this.tierFeatures.free,
@@ -307,7 +302,7 @@ export class TierAuthorizationService {
         estimatedBenefit: this.calculateEstimatedBenefit(additionalFeatures),
       };
     } catch (error) {
-      this.logger.error('Failed to get upgrade recommendations', { tenantId, error: error.message });
+      this.logger.error(`Failed to get upgrade recommendations for ${tenantId}: ${error.message}`);
       return {
         currentTier: 'free',
         recommendedTier: 'basic',
@@ -405,7 +400,7 @@ export class TierAuthorizationService {
         percentage: Math.min(percentage, 100),
       };
     } catch (error) {
-      this.logger.error('Usage limit check failed', { tenantId, limitType, error: error.message });
+      this.logger.error(`Usage limit check failed for tenant ${tenantId}, limit type ${limitType}: ${error.message}`);
       return {
         withinLimit: false,
         limit: 0,

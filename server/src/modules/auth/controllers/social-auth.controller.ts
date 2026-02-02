@@ -62,7 +62,7 @@ export class SocialAuthController {
       // Redirect to frontend with tokens
       return this.handleAuthSuccess(res, tokens, user);
     } catch (error) {
-      this.logger.error('Google OAuth callback error', { error: error.message });
+      this.logger.error(`Google OAuth callback error: ${error.message}`);
       return this.handleAuthError(res, 'Google authentication failed');
     }
   }
@@ -101,7 +101,7 @@ export class SocialAuthController {
       // Redirect to frontend with tokens
       return this.handleAuthSuccess(res, tokens, user);
     } catch (error) {
-      this.logger.error('Facebook OAuth callback error', { error: error.message });
+      this.logger.error(`Facebook OAuth callback error: ${error.message}`);
       return this.handleAuthError(res, 'Facebook authentication failed');
     }
   }
@@ -140,7 +140,7 @@ export class SocialAuthController {
       // Redirect to frontend with tokens
       return this.handleAuthSuccess(res, tokens, user);
     } catch (error) {
-      this.logger.error('GitHub OAuth callback error', { error: error.message });
+      this.logger.error(`GitHub OAuth callback error: ${error.message}`);
       return this.handleAuthError(res, 'GitHub authentication failed');
     }
   }

@@ -221,11 +221,7 @@ export class SocialAuthService {
 
       return this.mapUserToAuthenticatedUser(newUser);
     } catch (error) {
-      this.logger.error('Social authentication failed', {
-        provider: socialAuthData.provider,
-        email: socialAuthData.email,
-        error: error.message,
-      });
+      this.logger.error(`Social authentication failed for ${socialAuthData.provider} with email ${socialAuthData.email}: ${error.message}`);
       throw error;
     }
   }
@@ -384,12 +380,7 @@ export class SocialAuthService {
 
       this.logger.log('Social provider unlinked', { userId, provider, tenantId });
     } catch (error) {
-      this.logger.error('Failed to unlink social provider', {
-        userId,
-        provider,
-        tenantId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to unlink social provider ${provider} for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -422,11 +413,7 @@ export class SocialAuthService {
         lastUsedAt: provider.lastUsedAt,
       }));
     } catch (error) {
-      this.logger.error('Failed to get user social providers', {
-        userId,
-        tenantId,
-        error: error.message,
-      });
+      this.logger.error(`Failed to get user social providers for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return [];
     }
   }

@@ -171,12 +171,7 @@ export class AuthService {
       // Create session and return login response
       return this.createUserSession(newUser, ipAddress, userAgent, false, deviceFingerprint);
     } catch (error) {
-      this.logger.error('Registration failed', { 
-        email: registerDto.email, 
-        tenantId: registerDto.tenantId,
-        error: error.message,
-        ipAddress,
-      });
+      this.logger.error(`Registration failed for ${registerDto.email} in tenant ${registerDto.tenantId} from ${ipAddress}: ${error.message}`);
       throw error;
     }
   }
@@ -350,11 +345,7 @@ export class AuthService {
         riskAssessment,
       };
     } catch (error) {
-      this.logger.error('Login failed', { 
-        email: loginDto.email, 
-        error: error.message,
-        ipAddress,
-      });
+      this.logger.error(`Login failed for ${loginDto.email} from ${ipAddress}: ${error.message}`);
       throw error;
     }
   }
@@ -473,11 +464,7 @@ export class AuthService {
         riskAssessment,
       };
     } catch (error) {
-      this.logger.error('MFA login failed', { 
-        email, 
-        error: error.message,
-        ipAddress,
-      });
+      this.logger.error(`MFA login failed for ${email} from ${ipAddress}: ${error.message}`);
       throw error;
     }
   }
@@ -586,10 +573,7 @@ export class AuthService {
         riskAssessment,
       };
     } catch (error) {
-      this.logger.error('Token refresh failed', { 
-        error: error.message,
-        ipAddress,
-      });
+      this.logger.error(`Token refresh failed from ${ipAddress}: ${error.message}`);
       throw new UnauthorizedException('Invalid refresh token');
     }
   }

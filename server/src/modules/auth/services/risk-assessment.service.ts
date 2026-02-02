@@ -134,10 +134,7 @@ export class RiskAssessmentService {
 
       return assessment;
     } catch (error) {
-      this.logger.error('Risk assessment failed', {
-        userId: context.userId,
-        error: error.message,
-      });
+      this.logger.error(`Risk assessment failed for user ${context.userId}: ${error.message}`);
       
       // Return medium risk on error to be safe
       return this.createMediumRiskAssessment();
@@ -190,11 +187,7 @@ export class RiskAssessmentService {
         timestamp: new Date(),
       };
     } catch (error) {
-      this.logger.error('Token refresh risk assessment failed', {
-        userId: context.userId,
-        sessionId: context.sessionId,
-        error: error.message,
-      });
+      this.logger.error(`Token refresh risk assessment failed for user ${context.userId}, session ${context.sessionId}: ${error.message}`);
       
       return this.createMediumRiskAssessment();
     }
@@ -222,7 +215,7 @@ export class RiskAssessmentService {
     profile.lastUpdate = new Date();
     profile.behaviorData = { ...profile.behaviorData, ...behaviorData };
     
-    await this.cacheService.set(key, profile, 30 * 24 * 60 * 60); // 30 days
+    await this.cacheService.set(key, profile, { ttl: 30 * 24 * 60 * 60 }); // 30 days
   }
 
   // Private helper methods
@@ -530,7 +523,7 @@ export class RiskAssessmentService {
       history.splice(50);
     }
 
-    await this.cacheService.set(key, history, 30 * 24 * 60 * 60); // 30 days
+    await this.cacheService.set(key, history, { ttl: 30 * 24 * 60 * 60 }); // 30 days
   }
 
   private createLowRiskAssessment(): RiskAssessment {

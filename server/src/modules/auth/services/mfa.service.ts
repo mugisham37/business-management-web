@@ -101,7 +101,7 @@ export class MfaService {
         manualEntryKey: secret.base32!,
       };
     } catch (error) {
-      this.logger.error(`Failed to generate MFA setup`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to generate MFA setup for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -162,7 +162,7 @@ export class MfaService {
 
       this.logger.log(`MFA enabled for user`, { userId, tenantId });
     } catch (error) {
-      this.logger.error(`Failed to enable MFA`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to enable MFA for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -232,7 +232,7 @@ export class MfaService {
 
       this.logger.log(`MFA disabled for user`, { userId, tenantId });
     } catch (error) {
-      this.logger.error(`Failed to disable MFA`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to disable MFA for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -302,7 +302,7 @@ export class MfaService {
 
       return { isValid: false };
     } catch (error) {
-      this.logger.error(`Failed to verify MFA token`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to verify MFA token for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -344,7 +344,7 @@ export class MfaService {
 
       return newBackupCodes;
     } catch (error) {
-      this.logger.error(`Failed to generate new backup codes`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to generate new backup codes for user ${userId} in tenant ${tenantId}: ${error.message}`);
       throw error;
     }
   }
@@ -368,7 +368,7 @@ export class MfaService {
 
       return user?.mfaEnabled || false;
     } catch (error) {
-      this.logger.error(`Failed to check MFA status`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to check MFA status for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return false;
     }
   }
@@ -406,7 +406,7 @@ export class MfaService {
         hasSecret: !!user.mfaSecret,
       };
     } catch (error) {
-      this.logger.error(`Failed to get MFA status`, { userId, tenantId, error: error.message });
+      this.logger.error(`Failed to get MFA status for user ${userId} in tenant ${tenantId}: ${error.message}`);
       return { enabled: false, backupCodesCount: 0, hasSecret: false };
     }
   }
