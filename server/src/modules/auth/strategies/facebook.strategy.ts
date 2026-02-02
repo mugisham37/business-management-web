@@ -66,7 +66,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
         email,
         firstName: name?.givenName || '',
         lastName: name?.familyName || '',
-        displayName: name?.displayName || `${name?.givenName || ''} ${name?.familyName || ''}`.trim(),
+        displayName: `${name?.givenName || ''} ${name?.familyName || ''}`.trim() || 'Facebook User',
         avatar: photos?.[0]?.value || null,
         accessToken,
         refreshToken,

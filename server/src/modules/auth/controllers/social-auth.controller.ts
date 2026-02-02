@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards, Req, Res, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import * as crypto from 'crypto';
 import { SocialAuthService } from '../services/social-auth.service';
 import { AuthService } from '../services/auth.service';
 import { CustomLoggerService } from '../../logger/logger.service';
@@ -50,8 +51,9 @@ export class SocialAuthController {
       // Extract tenant ID from state parameter
       const tenantId = this.extractTenantFromState(state);
       
-      // Generate JWT tokens for the authenticated user
-      const tokens = await this.authService.generateTokens(user);
+      // Generate session ID and JWT tokens for the authenticated user
+      const sessionId = crypto.randomUUID();
+      const tokens = await this.authService.generateTokens(user, sessionId);
       
       this.logger.log('Google OAuth login successful', {
         userId: user.id,
@@ -89,8 +91,9 @@ export class SocialAuthController {
       // Extract tenant ID from state parameter
       const tenantId = this.extractTenantFromState(state);
       
-      // Generate JWT tokens for the authenticated user
-      const tokens = await this.authService.generateTokens(user);
+      // Generate session ID and JWT tokens for the authenticated user
+      const sessionId = crypto.randomUUID();
+      const tokens = await this.authService.generateTokens(user, sessionId);
       
       this.logger.log('Facebook OAuth login successful', {
         userId: user.id,
@@ -128,8 +131,9 @@ export class SocialAuthController {
       // Extract tenant ID from state parameter
       const tenantId = this.extractTenantFromState(state);
       
-      // Generate JWT tokens for the authenticated user
-      const tokens = await this.authService.generateTokens(user);
+      // Generate session ID and JWT tokens for the authenticated user
+      const sessionId = crypto.randomUUID();
+      const tokens = await this.authService.generateTokens(user, sessionId);
       
       this.logger.log('GitHub OAuth login successful', {
         userId: user.id,

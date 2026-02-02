@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DrizzleService } from '../../database/drizzle.service';
 import { CacheService } from '../../cache/cache.service';
 import { CustomLoggerService } from '../../logger/logger.service';
-import { auditLogs } from '../../database/schema';
+import { auditLogs, users } from '../../database/schema';
 import { 
   SecurityEvent, 
   SecurityEventType, 
@@ -355,10 +355,10 @@ export class SecurityService {
     const metrics = {
       totalEvents: events.length,
       securityEvents: events.filter(e => e.action === 'security_event').length,
-      failedLogins: events.filter(e => e.metadata?.eventType === 'failed_login').length,
-      successfulLogins: events.filter(e => e.metadata?.eventType === 'successful_login').length,
-      accountLockouts: events.filter(e => e.metadata?.eventType === 'account_locked').length,
-      suspiciousActivities: events.filter(e => e.metadata?.severity === 'high' || e.metadata?.severity === 'critical').length,
+      failedLogins: events.filter(e => (e.metadata as Record<string, any>)?.eventType === 'failed_login').length,
+      successfulLogins: events.filter(e => (e.metadata as Record<string, any>)?.eventType === 'successful_login').length,
+      accountLockouts: events.filter(e => (e.metadata as Record<string, any>)?.eventType === 'account_locked').length,
+      suspiciousActivities: events.filter(e => (e.metadata as Record<string, any>)?.severity === 'high' || (e.metadata as Record<string, any>)?.severity === 'critical').length,
       riskScore: this.calculateOverallRiskScore(events),
       topThreats: this.getTopThreats(events),
       complianceScore: this.calculateComplianceScore(events, []),
@@ -588,5 +588,159 @@ export class SecurityService {
       { type: 'suspicious_activity', count: 8 },
       { type: 'account_locked', count: 3 },
     ];
+  }
+
+  /**
+   * Check if MFA is enabled for a user
+   */
+  async isMfaEnabled(userId: string): Promise<boolean> {
+    const db = this.drizzleService.getDb();
+    
+    try {
+      const [user] = await db
+        .select({ mfaEnabled: users.mfaEnabled })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      
+      return user?.mfaEnabled || false;
+    } catch (error) {
+      this.logger.error(`Failed to check MFA status for user ${userId}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if MFA was recently verified for a user session
+   */
+  async isMfaRecentlyVerified(userId: string, sessionId?: string): Promise<boolean> {
+    const key = `mfa_verified:${userId}:${sessionId || 'default'}`;
+    const gracePeriod = 30 * 60 * 1000; // 30 minutes
+    
+    try {
+      const verificationData = await this.cacheService.get<{ verifiedAt: number }>(key);
+      
+      if (!verificationData) {
+        return false;
+      }
+      
+      const timeSinceVerification = Date.now() - verificationData.verifiedAt;
+      return timeSinceVerification < gracePeriod;
+    } catch (error) {
+      this.logger.error(`Failed to check MFA verification status for user ${userId}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a device is trusted for a user
+   */
+  async isDeviceTrusted(userId: string, deviceFingerprint?: string): Promise<boolean> {
+    if (!deviceFingerprint) {
+      return false;
+    }
+    
+    const key = `trusted_device:${userId}:${deviceFingerprint}`;
+    
+    try {
+      const trustedDevice = await this.cacheService.get<{ trustedAt: number; trustScore: number }>(key);
+      
+      if (!trustedDevice) {
+        return false;
+      }
+      
+      // Device is trusted if trust score is above threshold and was trusted within last 30 days
+      const trustThreshold = 80;
+      const maxTrustAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+      const trustAge = Date.now() - trustedDevice.trustedAt;
+      
+      return trustedDevice.trustScore >= trustThreshold && trustAge < maxTrustAge;
+    } catch (error) {
+      this.logger.error(`Failed to check device trust for user ${userId}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a location/IP is allowed for a user
+   */
+  async isLocationAllowed(userId: string, ipAddress?: string): Promise<boolean> {
+    if (!ipAddress) {
+      return true; // Allow if no IP provided
+    }
+    
+    try {
+      // Check if IP is in blocked list
+      const blockedKey = `blocked_ip:${ipAddress}`;
+      const isBlocked = await this.cacheService.get(blockedKey);
+      
+      if (isBlocked) {
+        return false;
+      }
+      
+      // Check if location is in user's allowed locations
+      const allowedLocationsKey = `allowed_locations:${userId}`;
+      const allowedLocations = await this.cacheService.get<string[]>(allowedLocationsKey);
+      
+      if (!allowedLocations || allowedLocations.length === 0) {
+        return true; // Allow if no restrictions set
+      }
+      
+      // Simple IP prefix matching for allowed locations
+      // In production, this would use proper geolocation services
+      const isAllowed = allowedLocations.some(allowedIp => 
+        ipAddress.startsWith(allowedIp.split('.').slice(0, 2).join('.'))
+      );
+      
+      return isAllowed;
+    } catch (error) {
+      this.logger.error(`Failed to check location allowance for user ${userId}, IP ${ipAddress}: ${error.message}`);
+      return true; // Allow on error to prevent lockout
+    }
+  }
+
+  /**
+   * Mark MFA as verified for a user session
+   */
+  async markMfaVerified(userId: string, sessionId?: string): Promise<void> {
+    const key = `mfa_verified:${userId}:${sessionId || 'default'}`;
+    const gracePeriod = 30 * 60; // 30 minutes in seconds
+    
+    try {
+      await this.cacheService.set(key, { verifiedAt: Date.now() }, { ttl: gracePeriod });
+      
+      await this.logSecurityEvent({
+        type: 'mfa_verified',
+        severity: 'low',
+        userId,
+        metadata: { sessionId },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to mark MFA as verified for user ${userId}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Mark device as trusted for a user
+   */
+  async markDeviceTrusted(userId: string, deviceFingerprint: string, trustScore: number = 90): Promise<void> {
+    const key = `trusted_device:${userId}:${deviceFingerprint}`;
+    const trustDuration = 30 * 24 * 60 * 60; // 30 days in seconds
+    
+    try {
+      await this.cacheService.set(key, { 
+        trustedAt: Date.now(), 
+        trustScore 
+      }, { ttl: trustDuration });
+      
+      await this.logSecurityEvent({
+        type: 'device_trusted',
+        severity: 'low',
+        userId,
+        metadata: { deviceFingerprint, trustScore },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to mark device as trusted for user ${userId}: ${error.message}`);
+    }
   }
 }

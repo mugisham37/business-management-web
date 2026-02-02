@@ -7,7 +7,7 @@ import { users, userSocialProviders, tenants } from '../../database/schema';
 import { AuthService } from './auth.service';
 import { AuthEventsService } from './auth-events.service';
 import { CustomLoggerService } from '../../logger/logger.service';
-import { AuthenticatedUser } from '../interfaces/auth.interface';
+import { AuthenticatedUser, OAuthLoginContext, TokenPair } from '../interfaces/auth.interface';
 
 export interface SocialAuthData {
   provider: 'google' | 'facebook' | 'github';
@@ -39,6 +39,93 @@ export class SocialAuthService {
     private readonly logger: CustomLoggerService,
   ) {
     this.logger.setContext('SocialAuthService');
+  }
+
+  /**
+   * Handle OAuth login flow - exchange code for tokens and authenticate user
+   */
+  async handleOAuthLogin(context: OAuthLoginContext): Promise<LoginResponse> {
+    try {
+      // Validate state parameter for CSRF protection
+      if (context.state) {
+        // In production, validate the state parameter against stored value
+        // For now, we'll just log it
+        this.logger.log(`OAuth state parameter received: ${context.state}`);
+      }
+
+      // Exchange authorization code for access token with the provider
+      const providerTokens = await this.exchangeCodeForTokens(context);
+      
+      // Fetch user profile from the provider
+      const providerProfile = await this.fetchUserProfile(context.provider, providerTokens.accessToken);
+      
+      // Create social auth data from provider profile
+      const socialAuthData: SocialAuthData = {
+        provider: context.provider,
+        providerId: providerProfile.id,
+        email: providerProfile.email,
+        firstName: providerProfile.firstName || '',
+        lastName: providerProfile.lastName || '',
+        displayName: providerProfile.displayName || `${providerProfile.firstName} ${providerProfile.lastName}`.trim(),
+        avatar: providerProfile.avatar,
+        accessToken: providerTokens.accessToken,
+        refreshToken: providerTokens.refreshToken,
+        profile: providerProfile,
+      };
+
+      // Handle social authentication (create or login user)
+      const authenticatedUser = await this.handleSocialAuth(
+        socialAuthData,
+        context.tenantId,
+        context.ipAddress,
+        context.userAgent
+      );
+
+      // Generate tokens for the authenticated user
+      const tokens = await this.authService.generateTokens(authenticatedUser, authenticatedUser.sessionId);
+
+      return {
+        user: authenticatedUser,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn,
+      };
+    } catch (error) {
+      this.logger.error(`OAuth login failed for provider ${context.provider}: ${error.message}`);
+      throw new BadRequestException(`OAuth login failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Exchange authorization code for access tokens with OAuth provider
+   */
+  private async exchangeCodeForTokens(context: OAuthLoginContext): Promise<{ accessToken: string; refreshToken?: string }> {
+    // This would integrate with actual OAuth providers
+    // For now, return mock tokens for development
+    this.logger.warn(`Mock token exchange for ${context.provider} - implement actual OAuth flow`);
+    
+    return {
+      accessToken: `mock_access_token_${context.provider}_${Date.now()}`,
+      refreshToken: `mock_refresh_token_${context.provider}_${Date.now()}`,
+    };
+  }
+
+  /**
+   * Fetch user profile from OAuth provider
+   */
+  private async fetchUserProfile(provider: string, accessToken: string): Promise<any> {
+    // This would make actual API calls to OAuth providers
+    // For now, return mock profile for development
+    this.logger.warn(`Mock profile fetch for ${provider} - implement actual provider API calls`);
+    
+    return {
+      id: `mock_${provider}_id_${Date.now()}`,
+      email: `user@${provider}.com`,
+      firstName: 'Mock',
+      lastName: 'User',
+      displayName: 'Mock User',
+      avatar: null,
+    };
   }
 
   /**
@@ -431,9 +518,12 @@ export class SocialAuthService {
       displayName: user.displayName,
       avatar: user.avatar,
       role: user.role,
-      emailVerified: user.emailVerified,
+      permissions: user.permissions || [],
+      sessionId: '', // Will be set by calling code
+      businessTier: 'micro', // Default, will be updated by calling code
+      featureFlags: [],
       isActive: user.isActive,
-      lastLoginAt: user.lastLoginAt,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

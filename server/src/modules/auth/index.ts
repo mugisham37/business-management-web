@@ -81,11 +81,12 @@ export {
   Permissions,
   Roles,
   RequirePermission,
-  RequirePermissions,
+  RequireAllPermissions,
+  RequireAnyPermission,
   ResourceAuth,
   TenantScoped,
   AdminOnly,
-  ManagerOrAbove,
+  ManagerAndAbove,
   SelfOrAdmin,
   ConditionalAuth,
   RateLimitedAuth,
@@ -102,18 +103,12 @@ export {
 
 // Tier-based Authorization Decorators
 export {
+  TierAuth,
   RequireTier,
-  RequireFeature,
-  RequireTierAndFeatures,
-  RequireSmallTier,
-  RequireMediumTier,
-  RequireEnterpriseTier,
-  RequireAdvancedReporting,
-  RequireMultiLocation,
-  RequireAPIAccess,
-  RequireCustomFields,
-  RequireAdvancedAnalytics,
-  RequireIntegrations,
+  PremiumAndAbove,
+  EnterpriseOnly,
+  PaidTiersOnly,
+  AdvancedAuth,
 } from './decorators/tier-auth.decorator';
 
 // Strategies
@@ -159,15 +154,14 @@ export {
   PermissionCheckResponse,
   BulkPermissionResponse,
   AvailablePermissionsResponse,
-  PolicyEvaluationResponse,
 } from './types/permissions.types';
 
+// Security types exported from interface
 export {
   SecurityEvent,
-  AuditLogEntry,
   ComplianceReport,
   ThreatDetectionResult,
-} from './types/security.types';
+} from './interfaces/auth.interface';
 
 // Input Types
 export {
@@ -193,8 +187,6 @@ export {
   DisableMfaInput,
   VerifyMfaTokenInput,
   GenerateBackupCodesInput,
-  SetupWebAuthnInput,
-  VerifyWebAuthnInput,
 } from './inputs/mfa.input';
 
 export {
@@ -206,20 +198,16 @@ export {
   CheckPermissionInput,
   BulkPermissionInput,
   PermissionFilterInput,
-  CreatePolicyInput,
-  UpdatePolicyInput,
 } from './inputs/permissions.input';
 
-export {
-  SecurityConfigInput,
-  ThreatDetectionConfigInput,
-  ComplianceReportInput,
-} from './inputs/security.input';
+// Note: Security input types will be added when security.input.ts is created
+// export { SecurityConfigInput, ThreatDetectionConfigInput, ComplianceReportInput } from './inputs/security.input';
 
 // Utilities
 export { AuthUtils } from './utils/auth.utils';
-export { SecurityUtils } from './utils/security.utils';
-export { PermissionUtils } from './utils/permission.utils';
+// Note: Additional utils will be added when the files are created
+// export { SecurityUtils } from './utils/security.utils';
+// export { PermissionUtils } from './utils/permission.utils';
 
 // Configuration
 export { default as authConfig } from './config/auth.config';
@@ -228,13 +216,10 @@ export { default as authConfig } from './config/auth.config';
 export { AuthSecurityMiddleware } from './middleware/auth-security.middleware';
 export { RateLimitMiddleware } from './middleware/rate-limit.middleware';
 
-// Event Types
-export { 
-  AuthEventType, 
-  AuthEvent,
+// Event Types - exported from interface
+export {
   SecurityEventType,
-  SecurityEvent as SecurityEventClass,
-} from './events/auth.events';
+} from './interfaces/auth.interface';
 
 /**
  * USAGE EXAMPLES:

@@ -41,6 +41,11 @@ export interface AuthenticatedUser {
   trialExpiresAt?: Date;
   // Security context
   securityContext?: SecurityContext;
+  // Additional fields used by services
+  isActive: boolean;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface SecurityContext {
@@ -276,4 +281,62 @@ export interface ThreatDetectionResult {
   recommendedActions: string[];
   metadata: Record<string, any>;
   timestamp: Date;
+}
+
+// Token generation response
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: 'Bearer';
+}
+
+// Additional security event type strings for runtime use
+export type SecurityEventTypeString = 
+  | 'login_attempt'
+  | 'login_success'
+  | 'login_failure'
+  | 'logout'
+  | 'password_change'
+  | 'password_reset_requested'
+  | 'password_reset_completed'
+  | 'mfa_enabled'
+  | 'mfa_disabled'
+  | 'mfa_verified'
+  | 'session_created'
+  | 'session_expired'
+  | 'session_revoked'
+  | 'device_registered'
+  | 'device_trusted'
+  | 'suspicious_activity'
+  | 'account_locked'
+  | 'account_unlocked'
+  | 'permission_granted'
+  | 'permission_revoked'
+  | 'data_export'
+  | 'data_deletion'
+  | 'security_scan'
+  | 'threat_detected';
+
+export type SecurityEventSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
+
+export interface SecurityEventInput {
+  type: SecurityEventType;
+  severity: SecurityEventSeverity;
+  userId?: string;
+  tenantId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  metadata?: Record<string, any>;
+}
+
+// OAuth login context
+export interface OAuthLoginContext {
+  provider: 'google' | 'facebook' | 'github';
+  code: string;
+  state?: string;
+  redirectUri: string;
+  tenantId?: string;
+  ipAddress?: string;
+  userAgent?: string;
 }

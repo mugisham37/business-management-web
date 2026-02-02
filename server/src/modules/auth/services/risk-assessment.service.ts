@@ -97,6 +97,84 @@ export class RiskAssessmentService {
   }
 
   /**
+   * Calculate risk score based on provided factors
+   * This is a simplified method for direct risk score calculation
+   */
+  async calculateRiskScore(factors: {
+    userId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    deviceFingerprint?: DeviceFingerprint;
+    loginTime?: Date;
+    failedAttempts?: number;
+    lastLoginAt?: Date;
+    mfaUsed?: boolean;
+  }): Promise<number> {
+    if (!this.riskConfig.enabled) {
+      return 20; // Low risk when assessment is disabled
+    }
+
+    try {
+      let totalScore = 0;
+      let totalWeight = 0;
+
+      // Location risk (simplified)
+      if (factors.ipAddress && this.riskConfig.factors.location.enabled) {
+        const locationRisk = await this.assessNetworkRisk(factors.ipAddress);
+        totalScore += locationRisk.score * locationRisk.weight;
+        totalWeight += locationRisk.weight;
+      }
+
+      // Device risk (simplified)
+      if (factors.deviceFingerprint && this.riskConfig.factors.device.enabled) {
+        const deviceScore = factors.deviceFingerprint.trustScore ? 
+          (100 - factors.deviceFingerprint.trustScore) : 50;
+        totalScore += deviceScore * this.riskConfig.factors.device.weight;
+        totalWeight += this.riskConfig.factors.device.weight;
+      }
+
+      // Behavior risk (simplified)
+      if (this.riskConfig.factors.behavior.enabled) {
+        let behaviorScore = 30; // baseline
+        
+        if (factors.failedAttempts && factors.failedAttempts > 0) {
+          behaviorScore += Math.min(40, factors.failedAttempts * 10);
+        }
+        
+        if (factors.lastLoginAt) {
+          const daysSinceLastLogin = (Date.now() - factors.lastLoginAt.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSinceLastLogin > 30) {
+            behaviorScore += 20;
+          }
+        }
+        
+        totalScore += behaviorScore * this.riskConfig.factors.behavior.weight;
+        totalWeight += this.riskConfig.factors.behavior.weight;
+      }
+
+      // Time risk (simplified)
+      if (factors.loginTime && this.riskConfig.factors.time.enabled) {
+        const timeRisk = await this.assessTimeRisk(factors.loginTime);
+        totalScore += timeRisk.score * timeRisk.weight;
+        totalWeight += timeRisk.weight;
+      }
+
+      // MFA bonus
+      if (factors.mfaUsed) {
+        totalScore *= 0.7; // 30% risk reduction for MFA
+      }
+
+      // Calculate weighted average
+      const finalScore = totalWeight > 0 ? Math.round(totalScore / totalWeight) : 30;
+      
+      return Math.max(0, Math.min(100, finalScore));
+    } catch (error) {
+      this.logger.error(`Risk score calculation failed: ${error.message}`);
+      return 50; // Medium risk on error
+    }
+  }
+
+  /**
    * Assess login risk based on multiple factors
    */
   async assessLoginRisk(context: LoginRiskContext): Promise<RiskAssessment> {

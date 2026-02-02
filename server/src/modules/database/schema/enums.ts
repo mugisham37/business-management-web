@@ -37,6 +37,10 @@ export const auditActionEnum = pgEnum('audit_action', [
   'logout',
   'export',
   'import',
+  'security_event',
+  'mfa_verify',
+  'password_reset',
+  'session_revoke',
 ]);
 
 // Feature flag status enumeration
@@ -168,4 +172,40 @@ export const breakTypeEnum = pgEnum('break_type', [
   'rest_break',
   'personal_break',
   'smoke_break',
+]);
+// Security event type enumeration
+export const securityEventTypeEnum = pgEnum('security_event_type', [
+  'login_attempt',
+  'login_success',
+  'login_failure',
+  'logout',
+  'password_change',
+  'password_reset_requested',
+  'password_reset_completed',
+  'mfa_enabled',
+  'mfa_disabled',
+  'mfa_verified',
+  'session_created',
+  'session_expired',
+  'session_revoked',
+  'device_registered',
+  'device_trusted',
+  'suspicious_activity',
+  'account_locked',
+  'account_unlocked',
+  'permission_granted',
+  'permission_revoked',
+  'data_export',
+  'data_deletion',
+  'security_scan',
+  'threat_detected',
+]);
+
+// Security event severity enumeration
+export const securityEventSeverityEnum = pgEnum('security_event_severity', [
+  'info',
+  'low',
+  'medium',
+  'high',
+  'critical',
 ]);

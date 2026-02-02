@@ -45,11 +45,9 @@ export class SecurityResolver extends BaseResolver {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<number> {
     try {
-      const riskScore = await this.riskAssessmentService.calculateRiskScore(
-        user.id,
-        user.tenantId,
-        {} // Context would be provided by request middleware
-      );
+      const riskScore = await this.riskAssessmentService.calculateRiskScore({
+        userId: user.id,
+      });
 
       return riskScore;
     } catch (error: any) {
@@ -70,12 +68,10 @@ export class SecurityResolver extends BaseResolver {
     try {
       // This would return a comprehensive security status
       // For now, return a simple status
-      const hasMfa = await this.securityService.isMfaEnabled(user.id, user.tenantId);
-      const riskScore = await this.riskAssessmentService.calculateRiskScore(
-        user.id,
-        user.tenantId,
-        {}
-      );
+      const hasMfa = await this.securityService.isMfaEnabled(user.id);
+      const riskScore = await this.riskAssessmentService.calculateRiskScore({
+        userId: user.id,
+      });
 
       let status = 'Good';
       if (!hasMfa) status = 'Needs MFA';
@@ -108,15 +104,16 @@ export class SecurityResolver extends BaseResolver {
 
       const parsedMetadata = metadata ? JSON.parse(metadata) : {};
 
-      await this.securityService.logSecurityEvent(
-        user.id,
-        user.tenantId,
-        eventType,
-        {
+      await this.securityService.logSecurityEvent({
+        type: eventType as any,
+        severity: 'low',
+        userId: user.id,
+        tenantId: user.tenantId,
+        metadata: {
           description,
           ...parsedMetadata,
-        }
-      );
+        },
+      });
 
       return {
         success: true,
@@ -150,17 +147,15 @@ export class SecurityResolver extends BaseResolver {
       const recommendations: string[] = [];
 
       // Check MFA status
-      const hasMfa = await this.securityService.isMfaEnabled(user.id, user.tenantId);
+      const hasMfa = await this.securityService.isMfaEnabled(user.id);
       if (!hasMfa) {
         recommendations.push('Enable multi-factor authentication for enhanced security');
       }
 
       // Check risk score
-      const riskScore = await this.riskAssessmentService.calculateRiskScore(
-        user.id,
-        user.tenantId,
-        {}
-      );
+      const riskScore = await this.riskAssessmentService.calculateRiskScore({
+        userId: user.id,
+      });
 
       if (riskScore > 50) {
         recommendations.push('Your account shows elevated risk - consider reviewing recent activity');
@@ -199,7 +194,6 @@ export class SecurityResolver extends BaseResolver {
 
       return await this.securityService.isDeviceTrusted(
         user.id,
-        user.tenantId,
         deviceFingerprint
       );
     } catch (error: any) {

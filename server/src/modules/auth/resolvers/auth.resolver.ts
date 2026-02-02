@@ -120,14 +120,21 @@ export class AuthResolver {
     const ipAddress = context.req.ip;
     const userAgent = context.req.headers['user-agent'];
 
-    return this.socialAuthService.handleOAuthLogin(
-      input.provider,
-      input.code,
-      input.state,
-      input.tenantId,
+    const result = await this.socialAuthService.handleOAuthLogin({
+      provider: input.provider as 'google' | 'facebook' | 'github',
+      code: input.code,
+      state: input.state,
+      redirectUri: '', // Will be handled by the service
+      tenantId: input.tenantId,
       ipAddress,
       userAgent,
-    );
+    });
+
+    // Add tokenType for LoginResponse compatibility
+    return {
+      ...result,
+      tokenType: 'Bearer',
+    };
   }
 
   /**

@@ -1,6 +1,6 @@
 import { pgTable, varchar, jsonb, index, unique, uuid, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
 import { systemBaseSchema } from './base.schema';
-import { businessTierEnum, subscriptionStatusEnum, auditActionEnum } from './enums';
+import { businessTierEnum, subscriptionStatusEnum, auditActionEnum, securityEventTypeEnum, securityEventSeverityEnum } from './enums';
 
 // Tenant table - system-wide, not tenant-isolated
 export const tenants = pgTable('tenants', {
@@ -85,10 +85,19 @@ export const auditLogs = pgTable('audit_logs', {
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: varchar('user_agent', { length: 500 }),
   requestId: uuid('request_id'),
+  // Security event specific fields
+  eventType: securityEventTypeEnum('event_type'),
+  severity: securityEventSeverityEnum('severity'),
+  riskScore: integer('risk_score'),
+  resolved: boolean('resolved').default(false),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedBy: uuid('resolved_by'),
 }, (table) => ({
   tenantIdIdx: index('audit_logs_tenant_id_idx').on(table.tenantId),
   userIdIdx: index('audit_logs_user_id_idx').on(table.userId),
   actionIdx: index('audit_logs_action_idx').on(table.action),
   resourceIdx: index('audit_logs_resource_idx').on(table.resource),
   createdAtIdx: index('audit_logs_created_at_idx').on(table.createdAt),
+  eventTypeIdx: index('audit_logs_event_type_idx').on(table.eventType),
+  severityIdx: index('audit_logs_severity_idx').on(table.severity),
 }));

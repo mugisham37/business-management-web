@@ -44,7 +44,7 @@ export class AuthSecurityMiddleware implements NestMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error(`Auth security middleware error on ${req.method} ${path} from ${req.ip}: ${error.message}`);
+      this.logger.error(`Auth security middleware error on ${req.method} ${req.path} from ${req.ip}: ${error.message}`);
       
       // Don't block the request on middleware errors
       next();

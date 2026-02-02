@@ -78,17 +78,18 @@ export class AdvancedAuthGuard implements CanActivate {
       }
       
       // Log security event
-      await this.securityService.logSecurityEvent(
-        user.id,
-        user.tenantId,
-        'advanced_auth_failure',
-        {
+      await this.securityService.logSecurityEvent({
+        type: 'advanced_auth_failure',
+        severity: 'medium',
+        userId: user.id,
+        tenantId: user.tenantId,
+        ipAddress: request?.ip,
+        userAgent: request?.headers?.['user-agent'],
+        metadata: {
           error: error.message,
           config: advancedAuthConfig,
-          ip: request?.ip,
-          userAgent: request?.headers?.['user-agent'],
-        }
-      );
+        },
+      });
 
       throw new UnauthorizedException('Advanced authentication failed');
     }
@@ -132,16 +133,11 @@ export class AdvancedAuthGuard implements CanActivate {
   ): Promise<void> {
     const maxRiskScore = config.maxRiskScore || 100;
     
-    const riskScore = await this.riskAssessmentService.calculateRiskScore(
-      user.id,
-      user.tenantId,
-      {
-        ip: request?.ip,
-        userAgent: request?.headers?.['user-agent'],
-        location: request?.headers?.['x-user-location'],
-        deviceFingerprint: request?.headers?.['x-device-fingerprint'],
-      }
-    );
+    const riskScore = await this.riskAssessmentService.calculateRiskScore({
+      userId: user.id,
+      ipAddress: request?.ip,
+      userAgent: request?.headers?.['user-agent'],
+    });
 
     if (riskScore > maxRiskScore) {
       throw new UnauthorizedException(
@@ -162,7 +158,7 @@ export class AdvancedAuthGuard implements CanActivate {
     }
 
     // Check if user has MFA enabled
-    const hasMfa = await this.securityService.isMfaEnabled(user.id, user.tenantId);
+    const hasMfa = await this.securityService.isMfaEnabled(user.id);
     if (!hasMfa) {
       throw new UnauthorizedException('Multi-factor authentication required');
     }
@@ -170,8 +166,7 @@ export class AdvancedAuthGuard implements CanActivate {
     // Check if MFA was recently verified (within last 30 minutes)
     const mfaVerified = await this.securityService.isMfaRecentlyVerified(
       user.id,
-      user.tenantId,
-      config.mfaGracePeriod || 30 * 60 * 1000 // 30 minutes
+      user.sessionId
     );
 
     if (!mfaVerified) {
@@ -198,7 +193,6 @@ export class AdvancedAuthGuard implements CanActivate {
 
     const isTrustedDevice = await this.securityService.isDeviceTrusted(
       user.id,
-      user.tenantId,
       deviceFingerprint
     );
 
@@ -258,10 +252,7 @@ export class AdvancedAuthGuard implements CanActivate {
 
     const isLocationAllowed = await this.securityService.isLocationAllowed(
       user.id,
-      user.tenantId,
-      userLocation,
-      userIp,
-      config.locationRestrictions
+      userIp
     );
 
     if (!isLocationAllowed) {

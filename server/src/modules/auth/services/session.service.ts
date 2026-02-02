@@ -239,6 +239,42 @@ export class SessionService {
   }
 
   /**
+   * Validate session and return session info if valid
+   */
+  async validateSession(sessionId: string, currentIpAddress?: string, currentUserAgent?: string): Promise<SessionInfo | null> {
+    try {
+      // First check if session exists and is valid
+      const sessionInfo = await this.getSessionInfo(sessionId);
+      
+      if (!sessionInfo) {
+        return null;
+      }
+
+      // Perform security validation
+      const securityCheck = await this.validateSessionSecurity(sessionId, currentIpAddress, currentUserAgent);
+      
+      if (!securityCheck.isValid) {
+        // If session is invalid due to security reasons, revoke it
+        if (securityCheck.reason?.includes('expired') || securityCheck.reason?.includes('revoked')) {
+          await this.revokeSession(sessionId, securityCheck.reason);
+        }
+        return null;
+      }
+
+      // If requires re-authentication but session is still valid, return session info
+      // The calling code can decide whether to require re-auth based on the security context
+      if (securityCheck.requiresReauth) {
+        sessionInfo.riskScore = securityCheck.riskScore;
+      }
+
+      return sessionInfo;
+    } catch (error) {
+      this.logger.error(`Session validation failed for ${sessionId}: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Validate session security
    */
   async validateSessionSecurity(

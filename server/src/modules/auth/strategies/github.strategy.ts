@@ -51,11 +51,12 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
   ): Promise<void> {
     try {
       // Extract user information from GitHub profile
-      const { id, username, displayName, emails, photos, _json } = profile;
+      const { id, username, displayName, emails, photos } = profile;
+      const profileJson = (profile as any)._json;
       
       // GitHub might not provide email in the profile if it's private
       // We'll need to handle this case
-      const email = emails?.[0]?.value || _json?.email;
+      const email = emails?.[0]?.value || profileJson?.email;
       if (!email) {
         return done(new Error('No email found in GitHub profile. Please make your email public in GitHub settings.'), null);
       }
@@ -73,7 +74,7 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
         firstName,
         lastName,
         displayName: displayName || username || '',
-        avatar: photos?.[0]?.value || _json?.avatar_url || null,
+        avatar: photos?.[0]?.value || profileJson?.avatar_url || null,
         accessToken,
         refreshToken,
         profile: {
@@ -83,8 +84,8 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
           emails,
           photos,
           provider: profile.provider,
-          _raw: profile._raw,
-          _json: profile._json,
+          _raw: (profile as any)._raw,
+          _json: profileJson,
         },
       };
 
@@ -95,8 +96,8 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
     } catch (error) {
       console.error('GitHub strategy validation failed:', {
         profileId: profile?.id,
-        username: profile?.username,
-        email: profile?.emails?.[0]?.value || profile?._json?.email,
+        username: (profile as any)?.username,
+        email: profile?.emails?.[0]?.value || (profile as any)?._json?.email,
         error: error.message,
         timestamp: new Date().toISOString(),
       });

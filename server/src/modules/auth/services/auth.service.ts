@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { DrizzleService } from '../../database/drizzle.service';
 import { users, userSessions, tenants } from '../../database/schema';
+import { businessTierEnum } from '../../database/schema/enums';
 import { AuthEventsService } from './auth-events.service';
 import { SecurityService } from './security.service';
 import { SessionService } from './session.service';
@@ -32,6 +33,7 @@ import {
   AuthenticationResult,
   RiskAssessment,
   DeviceFingerprint,
+  TokenPair,
 } from '../interfaces/auth.interface';
 import { eq, and, gt } from 'drizzle-orm';
 
@@ -787,6 +789,42 @@ export class AuthService {
   }
 
   /**
+   * Validate user credentials for local authentication strategy
+   * Used by Passport LocalStrategy for username/password authentication
+   */
+  async validateCredentials(email: string, password: string): Promise<AuthenticatedUser | null> {
+    const db = this.drizzleService.getDb();
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (!user) {
+      return null;
+    }
+
+    // Check if account is locked
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      return null;
+    }
+
+    // Verify password
+    const isPasswordValid = await this.verifyPassword(password, user.passwordHash || '');
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return null;
+    }
+
+    return this.mapUserToAuthenticatedUser(user);
+  }
+
+  /**
    * Validate user with enhanced security context
    */
   async validateUser(userId: string): Promise<AuthenticatedUser | null> {
@@ -975,6 +1013,21 @@ export class AuthService {
     return jwt.sign(payload, this.authConfig.jwtRefreshSecret);
   }
 
+  /**
+   * Generate both access and refresh tokens for a user
+   */
+  async generateTokens(user: any, sessionId: string, rememberMe: boolean = false): Promise<TokenPair> {
+    const accessToken = await this.generateAccessToken(user, sessionId);
+    const refreshToken = await this.generateRefreshToken(user, sessionId, rememberMe);
+    
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: this.getTokenExpirationTime(this.authConfig.jwtExpiresIn),
+      tokenType: 'Bearer',
+    };
+  }
+
   private async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, this.authConfig.bcryptRounds);
   }
@@ -1084,6 +1137,11 @@ export class AuthService {
       businessTier: user.businessTier || 'micro',
       featureFlags: user.featureFlags || [],
       trialExpiresAt: user.trialExpiresAt,
+      // Additional required fields
+      isActive: user.isActive ?? true,
+      emailVerified: user.emailVerified ?? false,
+      createdAt: user.createdAt || new Date(),
+      updatedAt: user.updatedAt || new Date(),
     };
   }
 
@@ -1102,7 +1160,7 @@ export class AuthService {
   }
 
   private async getTenantInfo(tenantId: string): Promise<{
-    businessTier: string;
+    businessTier: typeof businessTierEnum.enumValues[number];
     featureFlags: string[];
     trialExpiresAt?: Date;
   }> {
@@ -1125,7 +1183,7 @@ export class AuthService {
       const featureFlags = this.extractFeatureFlags(tenant.businessTier, tenant.featureFlags);
 
       const result: {
-        businessTier: string;
+        businessTier: typeof businessTierEnum.enumValues[number];
         featureFlags: string[];
         trialExpiresAt?: Date;
       } = {
