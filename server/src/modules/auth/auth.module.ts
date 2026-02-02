@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 
 // Core Services
 import { AuthService } from './services/auth.service';
@@ -22,6 +21,7 @@ import { MfaResolver } from './resolvers/mfa.resolver';
 import { PermissionsResolver } from './resolvers/permissions.resolver';
 import { AuthSubscriptionsResolver } from './resolvers/auth-subscriptions.resolver';
 import { SecurityResolver } from './resolvers/security.resolver';
+import { TierDemoResolver } from './resolvers/tier-demo.resolver';
 
 // Controllers
 import { SocialAuthController } from './controllers/social-auth.controller';
@@ -46,6 +46,9 @@ import { RiskBasedAuthGuard } from './guards/risk-based-auth.guard';
 // Middleware
 import { AuthSecurityMiddleware } from './middleware/auth-security.middleware';
 import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
+
+// Interceptors
+import { TierAuthInterceptor } from './interceptors/tier-auth.interceptor';
 
 // External Dependencies
 import { DatabaseModule } from '../database/database.module';
@@ -146,6 +149,7 @@ import { LoggerModule } from '../logger/logger.module';
     PermissionsResolver,
     AuthSubscriptionsResolver,
     SecurityResolver,
+    TierDemoResolver,
     
     // Passport Strategies
     JwtStrategy,
@@ -167,6 +171,9 @@ import { LoggerModule } from '../logger/logger.module';
     // Middleware
     AuthSecurityMiddleware,
     RateLimitMiddleware,
+    
+    // Interceptors
+    TierAuthInterceptor,
   ],
   
   controllers: [
@@ -192,6 +199,7 @@ import { LoggerModule } from '../logger/logger.module';
     PermissionsResolver,
     AuthSubscriptionsResolver,
     SecurityResolver,
+    TierDemoResolver,
     
     // Guards
     JwtAuthGuard,
@@ -202,6 +210,9 @@ import { LoggerModule } from '../logger/logger.module';
     RolesGuard,
     AdvancedAuthGuard,
     RiskBasedAuthGuard,
+    
+    // Interceptors
+    TierAuthInterceptor,
     
     // Modules
     PassportModule,

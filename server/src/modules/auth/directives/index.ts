@@ -1,0 +1,1 @@
+export { TierAuthDirective } from './tier-auth.directive';

@@ -1,0 +1,1 @@
+export { TierAuthInterceptor } from './tier-auth.interceptor';
