@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -129,7 +129,7 @@ import { SecurityModule } from '../security/security.module';
     DatabaseModule,
     CacheModule,
     LoggerModule,
-    SecurityModule,
+    forwardRef(() => SecurityModule),
   ],
   
   providers: [

@@ -604,6 +604,40 @@ export class DeletionHistoryFilterInput {
   limit?: number;
 }
 
+@InputType()
+export class UpdateDataRetentionPolicyInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  retentionDays?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  dataType?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  autoDelete?: boolean;
+}
+
 // ============================================================================
 // SECURITY ALERT INPUTS
 // ============================================================================

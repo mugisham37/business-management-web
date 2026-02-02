@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID, Subscription } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -155,7 +156,7 @@ export class PenetrationTestingResolver extends BaseResolver {
   /**
    * Get penetration test results
    */
-  @Query(() => Object, { name: 'penetrationTestResults' })
+  @Query(() => GraphQLJSON, { name: 'penetrationTestResults' })
   @UseGuards(PermissionsGuard)
   @Permissions('pentest:read')
   @UseInterceptors(CacheInterceptor)
@@ -296,7 +297,7 @@ export class PenetrationTestingResolver extends BaseResolver {
   /**
    * Get penetration testing statistics
    */
-  @Query(() => Object, { name: 'penetrationTestingStats' })
+  @Query(() => GraphQLJSON, { name: 'penetrationTestingStats' })
   @UseGuards(PermissionsGuard)
   @Permissions('pentest:read')
   @UseInterceptors(CacheInterceptor)
@@ -315,7 +316,7 @@ export class PenetrationTestingResolver extends BaseResolver {
   /**
    * Get vulnerability trends
    */
-  @Query(() => Object, { name: 'vulnerabilityTrends' })
+  @Query(() => GraphQLJSON, { name: 'vulnerabilityTrends' })
   @UseGuards(PermissionsGuard)
   @Permissions('pentest:read')
   @UseInterceptors(CacheInterceptor)

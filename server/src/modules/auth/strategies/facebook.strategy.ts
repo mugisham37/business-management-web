@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-facebook';
 import { ConfigService } from '@nestjs/config';
@@ -17,23 +17,33 @@ import { SocialAuthService } from '../services/social-auth.service';
  * - Tenant-aware user management
  * 
  * Configuration required:
- * - FACEBOOK_CLIENT_ID: Facebook App ID
- * - FACEBOOK_CLIENT_SECRET: Facebook App Secret
+ * - FACEBOOK_APP_ID: Facebook App ID
+ * - FACEBOOK_APP_SECRET: Facebook App Secret
  * - FACEBOOK_CALLBACK_URL: OAuth callback URL
  */
 @Injectable()
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
+  private readonly logger = new Logger(FacebookStrategy.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly socialAuthService: SocialAuthService,
   ) {
+    const clientID = configService.get<string>('FACEBOOK_APP_ID');
+    const clientSecret = configService.get<string>('FACEBOOK_APP_SECRET');
+    
+    // Use placeholder values if not configured (strategy won't work but won't crash)
     super({
-      clientID: configService.get<string>('FACEBOOK_CLIENT_ID'),
-      clientSecret: configService.get<string>('FACEBOOK_CLIENT_SECRET'),
+      clientID: clientID && !clientID.includes('your_') ? clientID : 'disabled',
+      clientSecret: clientSecret && !clientSecret.includes('your_') ? clientSecret : 'disabled',
       callbackURL: configService.get<string>('FACEBOOK_CALLBACK_URL', '/auth/facebook/callback'),
       scope: ['email', 'public_profile'],
       profileFields: ['id', 'emails', 'name', 'picture.type(large)'],
     });
+
+    if (!clientID || clientID.includes('your_') || !clientSecret || clientSecret.includes('your_')) {
+      this.logger.warn('Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to enable.');
+    }
   }
 
   /**

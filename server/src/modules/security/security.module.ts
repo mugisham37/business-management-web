@@ -1,13 +1,15 @@
-import { Module, Global } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module, Global, forwardRef } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { JwtModule } from '@nestjs/jwt';
 
 // Core Infrastructure
 import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { LoggerModule } from '../logger/logger.module';
 import { GraphQLCommonModule } from '../../common/graphql/graphql-common.module';
+import { AuthModule } from '../auth/auth.module';
 
 // Security Services - Core Engine
 import { SecurityOrchestratorService } from './services/security-orchestrator.service';
@@ -89,6 +91,17 @@ import { SecurityFacade } from './facades/security.facade';
     GraphQLCommonModule,
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '15m',
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    forwardRef(() => AuthModule),
   ],
   providers: [
     // 🎯 CORE ORCHESTRATION - Central Command Center

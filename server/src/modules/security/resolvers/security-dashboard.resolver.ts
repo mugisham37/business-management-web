@@ -1,5 +1,6 @@
 import { Resolver, Query, Args } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -253,7 +254,7 @@ export class SecurityDashboardResolver extends BaseResolver {
    * Get security trends over time
    * Cached for 5 minutes
    */
-  @Query(() => Object, { name: 'securityTrends' })
+  @Query(() => GraphQLJSON, { name: 'securityTrends' })
   @UseGuards(PermissionsGuard)
   @Permissions('security:read')
   async getSecurityTrends(

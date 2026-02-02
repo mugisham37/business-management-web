@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID, Subscription } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';

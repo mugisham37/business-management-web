@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -310,7 +311,7 @@ export class EnterpriseAuthResolver extends BaseResolver {
   /**
    * Get enterprise auth statistics
    */
-  @Query(() => Object, { name: 'enterpriseAuthStats' })
+  @Query(() => GraphQLJSON, { name: 'enterpriseAuthStats' })
   @UseGuards(PermissionsGuard)
   @Permissions('auth:read')
   @UseInterceptors(CacheInterceptor)

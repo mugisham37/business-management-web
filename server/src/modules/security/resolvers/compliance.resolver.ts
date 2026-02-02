@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -37,7 +38,7 @@ export class ComplianceResolver extends BaseResolver {
   /**
    * Get compliance status for the current tenant
    */
-  @Query(() => Object, { name: 'complianceStatus' })
+  @Query(() => GraphQLJSON, { name: 'complianceStatus' })
   @UseGuards(PermissionsGuard)
   @Permissions('compliance:read')
   async getComplianceStatus(
@@ -233,7 +234,7 @@ export class ComplianceResolver extends BaseResolver {
   /**
    * Get compliance check job status
    */
-  @Query(() => Object, { name: 'complianceCheckStatus' })
+  @Query(() => GraphQLJSON, { name: 'complianceCheckStatus' })
   @UseGuards(PermissionsGuard)
   @Permissions('compliance:read')
   async getComplianceCheckStatus(

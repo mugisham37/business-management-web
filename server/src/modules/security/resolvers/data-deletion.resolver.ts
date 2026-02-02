@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID, Subscription } from '@nestjs/graphql';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -17,6 +18,7 @@ import {
   ScheduleDataDeletionInput,
   CancelDataDeletionInput,
   DeletionHistoryFilterInput,
+  UpdateDataRetentionPolicyInput,
 } from '../inputs/advanced-security.input';
 import {
   AuditRequired,
@@ -269,7 +271,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Process GDPR data export request
    */
-  @Mutation(() => Object, { name: 'processGDPRExport' })
+  @Mutation(() => GraphQLJSON, { name: 'processGDPRExport' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:export')
   @AuditRequired('gdpr_export_processed', 'compliance')
@@ -340,7 +342,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Get data retention policies
    */
-  @Query(() => [Object], { name: 'dataRetentionPolicies' })
+  @Query(() => [GraphQLJSON], { name: 'dataRetentionPolicies' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:read')
   @UseInterceptors(CacheInterceptor)
@@ -358,7 +360,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Update data retention policy
    */
-  @Mutation(() => Object, { name: 'updateDataRetentionPolicy' })
+  @Mutation(() => GraphQLJSON, { name: 'updateDataRetentionPolicy' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:admin')
   @AuditRequired('retention_policy_updated', 'compliance')
@@ -367,7 +369,7 @@ export class DataDeletionResolver extends BaseResolver {
   @ComplianceCheck()
   async updateDataRetentionPolicy(
     @Args('policyId') policyId: string,
-    @Args('updates') updates: any,
+    @Args('updates') updates: UpdateDataRetentionPolicyInput,
     @CurrentUser() user: any,
     @CurrentTenant() tenantId: string,
   ): Promise<any> {
@@ -390,7 +392,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Get data deletion statistics
    */
-  @Query(() => Object, { name: 'dataDeletionStats' })
+  @Query(() => GraphQLJSON, { name: 'dataDeletionStats' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:read')
   @UseInterceptors(CacheInterceptor)
@@ -409,7 +411,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Generate compliance deletion report
    */
-  @Query(() => Object, { name: 'complianceDeletionReport' })
+  @Query(() => GraphQLJSON, { name: 'complianceDeletionReport' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:read')
   @AuditRequired('compliance_report_generated', 'compliance')
@@ -466,7 +468,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Subscribe to GDPR request notifications
    */
-  @Subscription(() => Object, { name: 'gdprRequestReceived' })
+  @Subscription(() => GraphQLJSON, { name: 'gdprRequestReceived' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:read')
   async gdprRequestReceived(
@@ -515,7 +517,7 @@ export class DataDeletionResolver extends BaseResolver {
   /**
    * Get emergency wipe status
    */
-  @Query(() => Object, { name: 'emergencyWipeStatus' })
+  @Query(() => GraphQLJSON, { name: 'emergencyWipeStatus' })
   @UseGuards(PermissionsGuard)
   @Permissions('data:emergency')
   async getEmergencyWipeStatus(

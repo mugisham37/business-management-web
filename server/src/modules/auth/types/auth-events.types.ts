@@ -1,5 +1,6 @@
 import { ObjectType, Field, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
+import { GraphQLJSON } from 'graphql-scalars';
 
 /**
  * Auth event types for subscriptions
@@ -51,7 +52,7 @@ export class AuthEvent {
   @ApiProperty({ description: 'Event timestamp' })
   timestamp!: Date;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @ApiProperty({ description: 'Event metadata', required: false })
   metadata?: Record<string, any>;
 
