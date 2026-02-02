@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -207,7 +208,7 @@ export class SecurityResolver extends BaseResolver {
   /**
    * Field resolver to load user information via DataLoader
    */
-  @ResolveField('user', () => Object, { nullable: true })
+  @ResolveField('user', () => GraphQLJSON, { nullable: true })
   async user(@Parent() event: SecurityEvent): Promise<any> {
     if (!event.userId) {
       return null;
@@ -232,7 +233,7 @@ export class SecurityResolver extends BaseResolver {
   /**
    * Field resolver to load resource information via DataLoader
    */
-  @ResolveField('resource', () => Object, { nullable: true })
+  @ResolveField('resource', () => GraphQLJSON, { nullable: true })
   async resource(@Parent() event: SecurityEvent): Promise<any> {
     if (!event.resource || !event.resourceId) {
       return null;

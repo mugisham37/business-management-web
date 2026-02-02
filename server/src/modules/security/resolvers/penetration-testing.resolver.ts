@@ -408,7 +408,7 @@ export class PenetrationTestingResolver extends BaseResolver {
   /**
    * Get scheduled automated tests
    */
-  @Query(() => [Object], { name: 'scheduledAutomatedTests' })
+  @Query(() => [GraphQLJSON], { name: 'scheduledAutomatedTests' })
   @UseGuards(PermissionsGuard)
   @Permissions('pentest:read')
   @UseInterceptors(CacheInterceptor)

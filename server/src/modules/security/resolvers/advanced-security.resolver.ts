@@ -269,7 +269,7 @@ export class BehavioralAnalysisResolver extends BaseResolver {
   /**
    * Subscribe to account compromise alerts
    */
-  @Subscription(() => Object, { name: 'accountCompromised' })
+  @Subscription(() => GraphQLJSON, { name: 'accountCompromised' })
   accountCompromised() {
     return pubSub.asyncIterator(['ACCOUNT_COMPROMISED']);
   }
@@ -292,7 +292,7 @@ export class AuditAnalysisResolver extends BaseResolver {
   /**
    * Generate comprehensive audit report
    */
-  @Query(() => Object, { name: 'generateAuditReport' })
+  @Query(() => GraphQLJSON, { name: 'generateAuditReport' })
   @UseGuards(PermissionsGuard)
   @Permissions('audit:read')
   @AuditRequired('audit_report_generated', 'compliance')
@@ -313,7 +313,7 @@ export class AuditAnalysisResolver extends BaseResolver {
   /**
    * Analyze audit patterns for anomalies
    */
-  @Query(() => Object, { name: 'auditPatternAnalysis' })
+  @Query(() => GraphQLJSON, { name: 'auditPatternAnalysis' })
   @UseGuards(PermissionsGuard)
   @Permissions('audit:read')
   @UseInterceptors(CacheInterceptor)
@@ -350,7 +350,7 @@ export class EncryptionManagementResolver extends BaseResolver {
   /**
    * Mask sensitive data
    */
-  @Query(() => Object, { name: 'maskSensitiveData' })
+  @Query(() => GraphQLJSON, { name: 'maskSensitiveData' })
   @UseGuards(PermissionsGuard)
   @Permissions('security:read')
   @EncryptionRequired()
@@ -425,7 +425,7 @@ export class SecurityMonitoringResolver extends BaseResolver {
   /**
    * Subscribe to active threats
    */
-  @Subscription(() => Object, { name: 'activeThreatsUpdated' })
+  @Subscription(() => GraphQLJSON, { name: 'activeThreatsUpdated' })
   @UseGuards(PermissionsGuard)
   @Permissions('security:read')
   activeThreatsUpdated(@CurrentTenant() tenantId: string) {
@@ -435,7 +435,7 @@ export class SecurityMonitoringResolver extends BaseResolver {
   /**
    * Subscribe to security alerts
    */
-  @Subscription(() => Object, { name: 'securityAlertReceived' })
+  @Subscription(() => GraphQLJSON, { name: 'securityAlertReceived' })
   @UseGuards(PermissionsGuard)
   @Permissions('security:read')
   securityAlertReceived(@CurrentTenant() tenantId: string) {
@@ -445,7 +445,7 @@ export class SecurityMonitoringResolver extends BaseResolver {
   /**
    * Subscribe to compliance violations
    */
-  @Subscription(() => Object, { name: 'complianceViolationDetected' })
+  @Subscription(() => GraphQLJSON, { name: 'complianceViolationDetected' })
   @UseGuards(PermissionsGuard)
   @Permissions('compliance:read')
   complianceViolationDetected(@CurrentTenant() tenantId: string) {

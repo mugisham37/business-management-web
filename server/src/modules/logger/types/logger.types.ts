@@ -149,7 +149,7 @@ export class PerformanceTrendType {
   operationCount!: number;
 }
 
-@ObjectType('SecurityAlert')
+@ObjectType('LogSecurityAlert')
 export class SecurityAlertType {
   @Field()
   type!: string;

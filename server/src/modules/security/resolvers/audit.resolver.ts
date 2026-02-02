@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
+import { GraphQLJSON } from 'graphql-scalars';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
@@ -181,7 +182,7 @@ export class AuditResolver extends BaseResolver {
    * Get audit log statistics
    * Provides summary metrics for audit logs
    */
-  @Query(() => Object, { name: 'auditLogStatistics' })
+  @Query(() => GraphQLJSON, { name: 'auditLogStatistics' })
   @UseGuards(PermissionsGuard)
   @Permissions('audit:read')
   async getAuditLogStatistics(
