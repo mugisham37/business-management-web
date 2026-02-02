@@ -1,3 +1,0 @@
-export {
-    usePushNotifications,
-} from "./usePushNotifications";
