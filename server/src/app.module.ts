@@ -18,6 +18,9 @@ import { LoggerModule } from './modules/logger/logger.module';
 import { GraphQLCommonModule } from './common/graphql/graphql-common.module';
 import { ValidationModule } from './common/validation/validation.module';
 
+// Business Modules
+import { AuthModule } from './modules/auth/auth.module';
+
 // Health Check
 import { HealthResolver } from './health/health.resolver';
 
@@ -57,6 +60,9 @@ import { ConfigService } from '@nestjs/config';
     DatabaseModule,
     CacheModule,
     LoggerModule,
+
+    // Business Modules
+    AuthModule,
   ],
   controllers: [],
   providers: [GraphQLConfigService, HealthResolver],
