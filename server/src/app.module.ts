@@ -9,12 +9,14 @@ import { configValidationSchema } from './config/config.validation';
 import { appConfig } from './config/app.config';
 import { databaseConfig } from './config/database.config';
 import { redisConfig } from './config/redis.config';
+import { securityConfig } from './config/security.config';
 import { GraphQLConfigService } from './config/graphql.config';
 
 // Core Modules
 import { DatabaseModule } from './modules/database/database.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { LoggerModule } from './modules/logger/logger.module';
+import { SecurityModule } from './modules/security/security.module';
 import { GraphQLCommonModule } from './common/graphql/graphql-common.module';
 import { ValidationModule } from './common/validation/validation.module';
 
@@ -33,7 +35,7 @@ import { ConfigService } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: configValidationSchema,
-      load: [appConfig, databaseConfig, redisConfig],
+      load: [appConfig, databaseConfig, redisConfig, securityConfig],
       envFilePath: ['.env.local', '.env'],
     }),
 
@@ -60,6 +62,7 @@ import { ConfigService } from '@nestjs/config';
     DatabaseModule,
     CacheModule,
     LoggerModule,
+    SecurityModule,
 
     // Business Modules
     AuthModule,

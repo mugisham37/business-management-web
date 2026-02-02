@@ -54,6 +54,7 @@ import { TierAuthInterceptor } from './interceptors/tier-auth.interceptor';
 import { DatabaseModule } from '../database/database.module';
 import { CacheModule } from '../cache/cache.module';
 import { LoggerModule } from '../logger/logger.module';
+import { SecurityModule } from '../security/security.module';
 
 /**
  * Enterprise Authentication & Authorization Module
@@ -128,6 +129,7 @@ import { LoggerModule } from '../logger/logger.module';
     DatabaseModule,
     CacheModule,
     LoggerModule,
+    SecurityModule,
   ],
   
   providers: [

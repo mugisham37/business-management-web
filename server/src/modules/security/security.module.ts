@@ -55,6 +55,9 @@ import { ComplianceInterceptor } from './interceptors/compliance.interceptor';
 import { SecurityHeadersMiddleware } from './middleware/security-headers.middleware';
 import { ThreatDetectionMiddleware } from './middleware/threat-detection.middleware';
 
+// Security Facade - Simplified Interface
+import { SecurityFacade } from './facades/security.facade';
+
 /**
  * 🔒 ENTERPRISE SECURITY MODULE
  * 
@@ -131,6 +134,9 @@ import { ThreatDetectionMiddleware } from './middleware/threat-detection.middlew
     // 🚧 MIDDLEWARE - Request Processing
     SecurityHeadersMiddleware,
     ThreatDetectionMiddleware,
+
+    // 🎯 SECURITY FACADE - Simplified Interface
+    SecurityFacade,
   ],
   exports: [
     // 🎯 PRIMARY INTERFACE - Use this for everything
@@ -162,6 +168,9 @@ import { ThreatDetectionMiddleware } from './middleware/threat-detection.middlew
     // 🚧 MIDDLEWARE - HTTP layer protection
     SecurityHeadersMiddleware,
     ThreatDetectionMiddleware,
+
+    // 🎯 SECURITY FACADE - Simplified Interface (RECOMMENDED)
+    SecurityFacade,
   ],
 })
 export class SecurityModule {

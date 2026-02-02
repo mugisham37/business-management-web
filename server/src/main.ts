@@ -4,6 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { CustomLoggerService } from './modules/logger/logger.service';
+import { SecurityAuditInterceptor } from './modules/security/interceptors/security-audit.interceptor';
+import { ThreatDetectionInterceptor } from './modules/security/interceptors/threat-detection.interceptor';
+import { SecurityHeadersMiddleware } from './modules/security/middleware/security-headers.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,6 +19,19 @@ async function bootstrap() {
   // Get custom logger
   const logger = app.get(CustomLoggerService);
   app.useLogger(logger);
+
+  // 🔒 APPLY GLOBAL SECURITY INTERCEPTORS
+  const securityAuditInterceptor = app.get(SecurityAuditInterceptor);
+  const threatDetectionInterceptor = app.get(ThreatDetectionInterceptor);
+  
+  app.useGlobalInterceptors(
+    securityAuditInterceptor,
+    threatDetectionInterceptor,
+  );
+
+  // 🛡️ APPLY SECURITY MIDDLEWARE
+  const securityHeadersMiddleware = app.get(SecurityHeadersMiddleware);
+  app.use(securityHeadersMiddleware.use.bind(securityHeadersMiddleware));
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -75,6 +91,7 @@ async function bootstrap() {
   logger.log(`📊 GraphQL Playground: http://localhost:${port}/graphql`, { context: 'Bootstrap' });
   logger.log(`📚 API Documentation: http://localhost:${port}/docs`, { context: 'Bootstrap' });
   logger.log(`❤️ Health Check: http://localhost:${port}/health`, { context: 'Bootstrap' });
+  logger.log(`🔒 Enterprise Security: ACTIVE (Threat Detection, Audit, Compliance)`, { context: 'Bootstrap' });
 }
 
 bootstrap().catch((error) => {
