@@ -3,7 +3,6 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
 import { IntelligentCacheService } from '../intelligent-cache.service';
 import { AdvancedCacheService } from '../advanced-cache.service';
@@ -72,10 +71,10 @@ import {
  * Provides comprehensive cache management functionality
  */
 @Resolver()
-@UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, CacheHealthGuard, CacheRateLimitGuard)
+@UseGuards(CacheAccessGuard, CacheHealthGuard, CacheRateLimitGuard)
 @UseInterceptors(CacheInterceptor)
 export class CacheResolver extends BaseResolver {
-  private readonly pubSub = new PubSub<any>();
+  private readonly pubSub = new PubSub();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,

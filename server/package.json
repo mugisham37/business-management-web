@@ -18,6 +18,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@apollo/server": "^4.9.5",
     "@nestjs/apollo": "^12.0.11",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^10.2.10",
@@ -28,7 +29,6 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.2.10",
     "@nestjs/swagger": "^7.1.16",
-    "@apollo/server": "^4.9.5",
     "apollo-server-express": "^3.12.1",
     "cache-manager": "^5.2.4",
     "class-transformer": "^0.5.1",
@@ -37,8 +37,9 @@
     "drizzle-orm": "^0.29.1",
     "express": "^4.18.2",
     "graphql": "^16.8.1",
-    "graphql-complexity": "^1.0.0",
+    "graphql-query-complexity": "^0.12.0",
     "graphql-redis-subscriptions": "^2.6.0",
+    "graphql-scalars": "^1.25.0",
     "graphql-subscriptions": "^2.0.0",
     "ioredis": "^5.3.2",
     "joi": "^17.11.0",

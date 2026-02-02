@@ -3,7 +3,6 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
 import { APIPerformanceService } from '../api-performance.service';
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
@@ -32,10 +31,10 @@ import {
  * Handles response optimization, compression, and performance analytics
  */
 @Resolver()
-@UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, CacheHealthGuard)
+@UseGuards(CacheAccessGuard, CacheHealthGuard)
 @UseInterceptors(CacheInterceptor)
 export class PerformanceResolver extends BaseResolver {
-  private readonly pubSub = new PubSub<any>();
+  private readonly pubSub = new PubSub();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,

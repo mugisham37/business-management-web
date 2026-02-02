@@ -5,11 +5,6 @@ import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
 
 import { BaseResolver } from '../../../common/graphql/base.resolver';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
-import { TenantGuard } from '../../tenant/guards/tenant.guard';
-import { TenantInterceptor } from '../../tenant/interceptors/tenant.interceptor';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 
 import { CustomLoggerService } from '../logger.service';
 import { LoggerAnalyticsService } from '../services/logger-analytics.service';
@@ -24,12 +19,9 @@ import {
   LogAnalyticsType,
   LogConnectionType,
   LogSearchResultType,
-  LogStreamEventType,
   LogMutationResponseType,
   AuditLogEntryType,
   SecurityLogEntryType,
-  PerformanceLogEntryType,
-  BusinessLogEntryType,
   LogSubscriptionPayloadType,
   MetricsSubscriptionPayloadType,
   AlertSubscriptionPayloadType,
@@ -43,17 +35,12 @@ import {
   LogEntryInput,
   AuditLogInput,
   SecurityLogInput,
-  PerformanceLogInput,
-  BusinessLogInput,
   LogStreamArgs,
   LogRetentionPolicyInput,
   LogExportInput,
-  LogAlertRuleInput,
 } from '../inputs/logger.input';
 
 @Resolver(() => LogEntryType)
-@UseGuards(GraphQLJwtAuthGuard, TenantGuard)
-@UseInterceptors(TenantInterceptor)
 export class LoggerResolver extends BaseResolver {
   constructor(
     private readonly loggerService: CustomLoggerService,
@@ -80,14 +67,12 @@ export class LoggerResolver extends BaseResolver {
 
   // Queries
   @Query(() => LogConnectionType, { description: 'Get paginated logs with cursor-based pagination' })
-  @RequirePermission('logs:read')
   async logs(
     @Args() args: LogConnectionArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
-    @Info() info: GraphQLResolveInfo,
   ): Promise<LogConnectionType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -98,7 +83,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'logs',
           resultCount: result.edges.length,
           totalCount: result.totalCount,
@@ -109,7 +94,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('logs', error, ['logs'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         args: JSON.stringify(args),
       });
       throw error;
@@ -117,13 +102,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Query(() => LogSearchResultType, { description: 'Search logs with full-text search capabilities' })
-  @RequirePermission('logs:search')
   async searchLogs(
     @Args() args: LogSearchArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogSearchResultType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -134,7 +118,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'searchLogs',
           query: args.query,
           resultCount: result.logs.length,
@@ -145,7 +129,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('searchLogs', error, ['searchLogs'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         query: args.query,
       });
       throw error;
@@ -153,13 +137,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Query(() => LogMetricsType, { description: 'Get logging metrics and statistics' })
-  @RequirePermission('logs:metrics')
   async logMetrics(
     @Args() args: LogMetricsArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMetricsType> {
     const tenantId = args.tenantId || this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -170,7 +153,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'logMetrics',
         },
       );
@@ -179,20 +162,19 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('logMetrics', error, ['logMetrics'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
       });
       throw error;
     }
   }
 
   @Query(() => LogAnalyticsType, { description: 'Get comprehensive log analytics and insights' })
-  @RequirePermission('logs:analytics')
   async logAnalytics(
     @Args() args: LogAnalyticsArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogAnalyticsType> {
     const tenantId = args.tenantId || this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -203,7 +185,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'logAnalytics',
         },
       );
@@ -212,20 +194,19 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('logAnalytics', error, ['logAnalytics'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
       });
       throw error;
     }
   }
 
   @Query(() => [AuditLogEntryType], { description: 'Get audit logs for compliance and security' })
-  @RequirePermission('audit:read')
   async auditLogs(
     @Args() args: LogConnectionArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<AuditLogEntryType[]> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -234,13 +215,13 @@ export class LoggerResolver extends BaseResolver {
       this.loggerService.audit(
         'audit_logs_accessed',
         {
-          accessedBy: user.id,
+          accessedBy: user?.id,
           recordCount: auditLogs.length,
           filters: args.filters,
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -249,7 +230,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'auditLogs',
           resultCount: auditLogs.length,
         },
@@ -259,20 +240,19 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('auditLogs', error, ['auditLogs'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
       });
       throw error;
     }
   }
 
   @Query(() => [SecurityLogEntryType], { description: 'Get security logs for threat monitoring' })
-  @RequirePermission('security:read')
   async securityLogs(
     @Args() args: LogConnectionArgs,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<SecurityLogEntryType[]> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
     const startTime = Date.now();
 
     try {
@@ -281,13 +261,13 @@ export class LoggerResolver extends BaseResolver {
       this.loggerService.security(
         'security_logs_accessed',
         {
-          accessedBy: user.id,
+          accessedBy: user?.id,
           recordCount: securityLogs.length,
           filters: args.filters,
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -296,7 +276,7 @@ export class LoggerResolver extends BaseResolver {
         Date.now() - startTime,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: 'securityLogs',
           resultCount: securityLogs.length,
         },
@@ -306,7 +286,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('securityLogs', error, ['securityLogs'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
       });
       throw error;
     }
@@ -314,21 +294,20 @@ export class LoggerResolver extends BaseResolver {
 
   // Mutations
   @Mutation(() => LogMutationResponseType, { description: 'Create a custom log entry' })
-  @RequirePermission('logs:write')
   async createLogEntry(
     @Args('input') input: LogEntryInput,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMutationResponseType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
 
     try {
-      await this.loggerService.printMessage(
+      this.loggerService.printMessage(
         input.level,
         input.message,
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
           operation: input.operation,
           duration: input.duration,
           correlationId: input.correlationId,
@@ -341,14 +320,14 @@ export class LoggerResolver extends BaseResolver {
       this.loggerService.audit(
         'custom_log_created',
         {
-          createdBy: user.id,
+          createdBy: user?.id,
           logLevel: input.level,
           logCategory: input.category,
           message: input.message,
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -359,7 +338,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('createLogEntry', error as Error, ['createLogEntry'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         input: JSON.stringify(input),
       });
 
@@ -376,13 +355,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Mutation(() => LogMutationResponseType, { description: 'Create an audit log entry' })
-  @RequirePermission('audit:write')
   async createAuditLog(
     @Args('input') input: AuditLogInput,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMutationResponseType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
 
     try {
       this.loggerService.audit(
@@ -397,7 +375,7 @@ export class LoggerResolver extends BaseResolver {
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -408,7 +386,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('createAuditLog', error as Error, ['createAuditLog'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         event: input.event,
       });
 
@@ -425,13 +403,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Mutation(() => LogMutationResponseType, { description: 'Create a security log entry' })
-  @RequirePermission('security:write')
   async createSecurityLog(
     @Args('input') input: SecurityLogInput,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMutationResponseType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
 
     try {
       this.loggerService.security(
@@ -446,7 +423,7 @@ export class LoggerResolver extends BaseResolver {
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -457,7 +434,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('createSecurityLog', error as Error, ['createSecurityLog'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         event: input.event,
       });
 
@@ -474,13 +451,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Mutation(() => LogMutationResponseType, { description: 'Export logs to external format' })
-  @RequirePermission('logs:export')
   async exportLogs(
     @Args('input') input: LogExportInput,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMutationResponseType> {
     const tenantId = this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
 
     try {
       const exportResult = await this.exportService.exportLogs(input, tenantId);
@@ -488,7 +464,7 @@ export class LoggerResolver extends BaseResolver {
       this.loggerService.audit(
         'logs_exported',
         {
-          exportedBy: user.id,
+          exportedBy: user?.id,
           format: input.format,
           filters: input.filters,
           recordCount: exportResult.recordCount,
@@ -496,7 +472,7 @@ export class LoggerResolver extends BaseResolver {
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -507,7 +483,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('exportLogs', error as Error, ['exportLogs'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
         format: input.format,
       });
 
@@ -524,13 +500,12 @@ export class LoggerResolver extends BaseResolver {
   }
 
   @Mutation(() => LogMutationResponseType, { description: 'Configure log retention policy' })
-  @RequirePermission('logs:admin')
   async setLogRetentionPolicy(
     @Args('input') input: LogRetentionPolicyInput,
-    @CurrentUser() user: any,
     @Context() context: any,
   ): Promise<LogMutationResponseType> {
     const tenantId = input.tenantId || this.getCurrentTenantId(context);
+    const user = this.getCurrentUser(context);
 
     try {
       await this.analyticsService.setRetentionPolicy(input, tenantId);
@@ -538,7 +513,7 @@ export class LoggerResolver extends BaseResolver {
       this.loggerService.audit(
         'log_retention_policy_updated',
         {
-          updatedBy: user.id,
+          updatedBy: user?.id,
           retentionDays: input.retentionDays,
           categories: input.categories,
           levels: input.levels,
@@ -546,7 +521,7 @@ export class LoggerResolver extends BaseResolver {
         },
         {
           tenantId,
-          userId: user.id,
+          userId: user?.id,
         },
       );
 
@@ -557,7 +532,7 @@ export class LoggerResolver extends BaseResolver {
     } catch (error) {
       this.loggerService.graphqlError('setLogRetentionPolicy', error as Error, ['setLogRetentionPolicy'], {
         tenantId,
-        userId: user.id,
+        userId: user?.id,
       });
 
       return {
@@ -575,12 +550,11 @@ export class LoggerResolver extends BaseResolver {
   // Subscriptions
   @Subscription(() => LogSubscriptionPayloadType, {
     description: 'Subscribe to real-time log events',
-    filter: (payload, variables, context) => {
-      const tenantId = context.req.user?.tenantId;
+    filter: (payload, _variables, context) => {
+      const tenantId = context.req?.user?.tenantId;
       return payload.log.tenantId === tenantId;
     },
   })
-  @RequirePermission('logs:subscribe')
   logStream(
     @Args() args: LogStreamArgs,
     @Context() context: any,
@@ -597,7 +571,7 @@ export class LoggerResolver extends BaseResolver {
       },
       {
         tenantId,
-        userId: context.req.user?.id,
+        userId: context.req?.user?.id,
       },
     );
 
@@ -607,7 +581,6 @@ export class LoggerResolver extends BaseResolver {
   @Subscription(() => MetricsSubscriptionPayloadType, {
     description: 'Subscribe to real-time metrics updates',
   })
-  @RequirePermission('logs:metrics')
   metricsStream(
     @Args('tenantId', { nullable: true }) tenantId: string,
     @Context() context: any,
@@ -620,7 +593,6 @@ export class LoggerResolver extends BaseResolver {
   @Subscription(() => AlertSubscriptionPayloadType, {
     description: 'Subscribe to log-based alerts and notifications',
   })
-  @RequirePermission('logs:alerts')
   alertStream(
     @Args('severity', { nullable: true }) severity: string,
     @Context() context: any,

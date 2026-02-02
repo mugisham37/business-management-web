@@ -3,7 +3,6 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
 import { BaseResolver } from '../../../common/graphql/base.resolver';
 import { DataLoaderService } from '../../../common/graphql/dataloader.service';
-import { GraphQLJwtAuthGuard } from '../../auth/guards/graphql-jwt-auth.guard';
 import { MutationResponse } from '../../../common/graphql/mutation-response.types';
 import { HorizontalScalingService } from '../horizontal-scaling.service';
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
@@ -42,10 +41,10 @@ import {
  * Handles node management, session management, and auto-scaling
  */
 @Resolver()
-@UseGuards(GraphQLJwtAuthGuard, CacheAccessGuard, LoadBalancingGuard, CacheHealthGuard)
+@UseGuards(CacheAccessGuard, LoadBalancingGuard, CacheHealthGuard)
 @UseInterceptors(CacheInterceptor)
 export class ScalingResolver extends BaseResolver {
-  private readonly pubSub = new PubSub<any>();
+  private readonly pubSub = new PubSub();
 
   constructor(
     protected override readonly dataLoaderService: DataLoaderService,

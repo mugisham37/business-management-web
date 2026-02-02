@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { CustomLoggerService } from '../server/modules/logger/logger.service';
+import { CustomLoggerService } from './modules/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -58,7 +58,7 @@ async function bootstrap() {
   }
 
   // Health check endpoint
-  app.getHttpAdapter().get('/health', (req, res) => {
+  app.getHttpAdapter().get('/health', (_, res) => {
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -71,10 +71,10 @@ async function bootstrap() {
   const port = configService.get('app.port');
   await app.listen(port);
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}`, 'Bootstrap');
-  logger.log(`📊 GraphQL Playground: http://localhost:${port}/graphql`, 'Bootstrap');
-  logger.log(`📚 API Documentation: http://localhost:${port}/docs`, 'Bootstrap');
-  logger.log(`❤️ Health Check: http://localhost:${port}/health`, 'Bootstrap');
+  logger.log(`🚀 Application is running on: http://localhost:${port}`, { context: 'Bootstrap' });
+  logger.log(`📊 GraphQL Playground: http://localhost:${port}/graphql`, { context: 'Bootstrap' });
+  logger.log(`📚 API Documentation: http://localhost:${port}/docs`, { context: 'Bootstrap' });
+  logger.log(`❤️ Health Check: http://localhost:${port}/health`, { context: 'Bootstrap' });
 }
 
 bootstrap().catch((error) => {

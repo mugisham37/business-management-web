@@ -1,4 +1,4 @@
-import { InputType, Field, Int, ArgsType, registerEnumType } from '@nestjs/graphql';
+import { InputType, Field, Int, ArgsType } from '@nestjs/graphql';
 import { GraphQLJSON, GraphQLDateTime } from 'graphql-scalars';
 import { IsOptional, IsString, IsInt, IsEnum, IsDateString, Min, Max } from 'class-validator';
 import { LogLevel, LogCategory } from '../logger.service';

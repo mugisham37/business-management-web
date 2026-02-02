@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DrizzleService } from './drizzle.service';
 import { CustomLoggerService } from '../logger/logger.service';
+import { sql } from 'drizzle-orm';
 
 @Injectable()
 export class DatabaseService {
@@ -33,7 +34,7 @@ export class DatabaseService {
       try {
         // Set tenant context for row-level security
         if (tenantId) {
-          await tx.execute(`SET app.current_tenant_id = '${tenantId}'`);
+          await tx.execute(sql`SET app.current_tenant_id = ${tenantId}`);
         }
 
         const result = await callback(tx);

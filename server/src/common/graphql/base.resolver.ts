@@ -1,19 +1,14 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Context } from '@nestjs/graphql';
 import { GraphQLResolveInfo } from 'graphql';
-import { GraphQLJwtAuthGuard } from '../../modules/auth/guards/graphql-jwt-auth.guard';
-import { TenantGuard } from '../../modules/tenant/guards/tenant.guard';
-import { TenantInterceptor } from '../../modules/tenant/interceptors/tenant.interceptor';
 import { DataLoaderService } from './dataloader.service';
 import { PageInfo } from './base.types';
 import { MutationResponse } from './mutation-response.types';
 
 /**
  * Base resolver with common functionality for all GraphQL resolvers
- * Provides authentication, tenant isolation, pagination, and DataLoader integration
+ * Provides pagination and DataLoader integration
  */
-@UseGuards(GraphQLJwtAuthGuard, TenantGuard)
-@UseInterceptors(TenantInterceptor)
 export abstract class BaseResolver {
   constructor(protected readonly dataLoaderService: DataLoaderService) {}
 
@@ -21,14 +16,14 @@ export abstract class BaseResolver {
    * Get the current user from GraphQL context
    */
   protected getCurrentUser(@Context() context: any): any {
-    return context.req.user;
+    return context.req?.user;
   }
 
   /**
    * Get the current tenant ID from GraphQL context
    */
   protected getCurrentTenantId(@Context() context: any): string {
-    return context.req.user?.tenantId;
+    return context.req?.user?.tenantId;
   }
 
   /**

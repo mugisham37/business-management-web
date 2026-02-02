@@ -3,6 +3,7 @@ import { DrizzleService } from './drizzle.service';
 import { CustomLoggerService } from '../logger/logger.service';
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
+import { sql } from 'drizzle-orm';
 
 interface Migration {
   id: string;
@@ -57,9 +58,9 @@ export class MigrationService {
       
       await db.transaction(async (tx) => {
         // Remove migration record
-        await tx.execute(`
+        await tx.execute(sql`
           DELETE FROM schema_migrations 
-          WHERE id = '${migrationId}'
+          WHERE id = ${migrationId}
         `);
         
         this.customLogger.audit('migration_rollback', {
@@ -78,7 +79,7 @@ export class MigrationService {
   async getMigrationStatus(): Promise<Migration[]> {
     const db = this.drizzleService.getDb();
     
-    const appliedMigrations = await db.execute(`
+    const appliedMigrations = await db.execute(sql`
       SELECT id, name, applied_at 
       FROM schema_migrations 
       ORDER BY applied_at ASC
@@ -95,7 +96,7 @@ export class MigrationService {
   private async ensureMigrationsTable(): Promise<void> {
     const db = this.drizzleService.getDb();
     
-    await db.execute(`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -146,7 +147,7 @@ export class MigrationService {
     const db = this.drizzleService.getDb();
     
     try {
-      const result = await db.execute(`
+      const result = await db.execute(sql`
         SELECT id FROM schema_migrations ORDER BY applied_at ASC
       `);
       
@@ -165,15 +166,15 @@ export class MigrationService {
         this.logger.log(`Applying migration: ${migration.name}`);
         
         // Execute migration SQL
-        await tx.execute(migration.sql);
+        await tx.execute(sql.raw(migration.sql));
         
         // Calculate checksum
         const checksum = await this.calculateChecksum(migration.sql);
         
         // Record migration
-        await tx.execute(`
+        await tx.execute(sql`
           INSERT INTO schema_migrations (id, name, checksum)
-          VALUES ('${migration.id}', '${migration.name}', '${checksum}')
+          VALUES (${migration.id}, ${migration.name}, ${checksum})
         `);
         
         this.customLogger.audit('migration_applied', {
