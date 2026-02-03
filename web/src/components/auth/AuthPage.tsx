@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoginForm } from './LoginForm';
@@ -21,7 +21,7 @@ interface AuthPageProps {
     redirectTo?: string;
 }
 
-export function AuthPage({
+function AuthPageInner({
     defaultMode = 'login',
     onLoginSuccess,
     onRegisterSuccess,
@@ -337,6 +337,27 @@ export function AuthPage({
                 </div>
             </main>
         </div>
+    );
+}
+
+// Loading fallback for Suspense
+function AuthPageFallback() {
+    return (
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+            <div className="text-white text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+                <p>Loading authentication...</p>
+            </div>
+        </div>
+    );
+}
+
+// Main AuthPage component wrapped in Suspense
+export function AuthPage(props: AuthPageProps) {
+    return (
+        <Suspense fallback={<AuthPageFallback />}>
+            <AuthPageInner {...props} />
+        </Suspense>
     );
 }
 

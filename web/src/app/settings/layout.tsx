@@ -1,4 +1,4 @@
-import { RouteGuard } from '@/components/auth/RouteGuard';
+import { ClientRouteGuard } from '@/components/auth/ClientRouteGuard';
 
 export const metadata = {
     title: 'Settings | Fizz Database',
@@ -11,7 +11,7 @@ export default function SettingsLayout({
     children: React.ReactNode;
 }) {
     return (
-        <RouteGuard 
+        <ClientRouteGuard 
             requireAuth={true}
             requiredPermissions={['settings:read']}
             fallbackPath="/auth"
@@ -28,6 +28,6 @@ export default function SettingsLayout({
                     {children}
                 </div>
             </div>
-        </RouteGuard>
+        </ClientRouteGuard>
     );
 }

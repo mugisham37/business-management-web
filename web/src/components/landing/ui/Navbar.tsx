@@ -4,12 +4,13 @@ import useScroll from "@/lib/use-scroll"
 import { cx } from "@/lib/utils/cn"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
-import React from "react"
+import React, { Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import { Button } from "@/components/landing/Button"
 
-export function Navigation() {
+// Inner component that uses useSearchParams
+function NavigationInner() {
   const scrolled = useScroll(15)
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
@@ -132,5 +133,50 @@ export function Navigation() {
         </nav>
       </div>
     </header>
+  )
+}
+
+// Fallback component for Suspense
+function NavigationFallback() {
+  const scrolled = useScroll(15)
+  
+  return (
+    <header
+      className={cx(
+        "fixed inset-x-3 top-4 z-50 mx-auto flex max-w-6xl transform-gpu animate-slide-down-fade justify-center overflow-hidden rounded-xl border border-transparent px-3 py-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1.03)] will-change-transform h-16",
+        scrolled
+          ? "backdrop-blur-nav max-w-3xl border-gray-100 bg-white/80 shadow-xl shadow-black/5 dark:border-white/15 dark:bg-black/70"
+          : "bg-white/0 dark:bg-gray-950/0",
+      )}
+    >
+      <div className="w-full md:my-auto">
+        <div className="relative flex items-center justify-between">
+          <Link href="/" aria-label="Home">
+            <span className="sr-only">Company logo</span>
+            <DatabaseLogo className="w-28 md:w-32" />
+          </Link>
+          <nav className="hidden md:absolute md:left-1/2 md:top-1/2 md:block md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
+            <div className="flex items-center gap-10 font-medium">
+              <Link className="px-2 py-1 text-gray-900 dark:text-gray-50" href="/about">About</Link>
+              <Link className="px-2 py-1 text-gray-900 dark:text-gray-50" href="/pricing">Pricing</Link>
+            </div>
+          </nav>
+          <div className="hidden md:flex items-center gap-2">
+            <Button asChild className="h-10 font-semibold">
+              <Link href="/auth">Get Started</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+// Main Navigation component wrapped in Suspense
+export function Navigation() {
+  return (
+    <Suspense fallback={<NavigationFallback />}>
+      <NavigationInner />
+    </Suspense>
   )
 }

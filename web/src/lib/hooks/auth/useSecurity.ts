@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter, type SecurityActivityData } from '../../auth/auth-events';

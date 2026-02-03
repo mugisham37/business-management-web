@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { ApolloProvider } from '@apollo/client';
-import { apolloClient } from '@/lib/graphql/client';
+import React, { useMemo, useState, useEffect } from 'react';
+import { ApolloProvider, ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { AuthProvider } from '@/lib/providers/auth-provider';
 import { ThemeProvider } from '@/lib/providers/theme-provider';
 import { NotificationProvider } from '@/lib/providers/notification-provider';
@@ -32,9 +31,31 @@ interface ProvidersProps {
  * 9. AuthEventHandler - Global auth event handling
  */
 export function Providers({ children }: ProvidersProps) {
+  const [client, setClient] = useState<ApolloClient<NormalizedCacheObject> | null>(null);
+  
+  // Initialize Apollo Client only on the client-side
+  useEffect(() => {
+    import('@/lib/graphql/client').then(({ getApolloClient }) => {
+      setClient(getApolloClient());
+    });
+  }, []);
+  
+  // Show loading or fallback during SSR and initial hydration
+  if (!client) {
+    return (
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <LayoutProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </LayoutProvider>
+      </ThemeProvider>
+    );
+  }
+  
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-      <ApolloProvider client={apolloClient}>
+      <ApolloProvider client={client}>
         <AuthProvider>
           <SessionManager>
             <PermissionProvider>

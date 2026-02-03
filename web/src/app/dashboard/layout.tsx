@@ -1,4 +1,4 @@
-import { RouteGuard } from '@/components/auth/RouteGuard';
+import { ClientRouteGuard } from '@/components/auth/ClientRouteGuard';
 
 export const metadata = {
     title: 'Dashboard | Fizz Database',
@@ -11,7 +11,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <RouteGuard 
+        <ClientRouteGuard 
             requireAuth={true}
             requiredPermissions={['dashboard:read']}
             fallbackPath="/auth"
@@ -20,6 +20,6 @@ export default function DashboardLayout({
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 {children}
             </div>
-        </RouteGuard>
+        </ClientRouteGuard>
     );
 }

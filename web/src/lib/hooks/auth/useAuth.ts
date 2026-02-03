@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { TokenManager } from '../../auth/token-manager';

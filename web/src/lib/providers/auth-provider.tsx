@@ -1,8 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
-import { ApolloProvider } from '@apollo/client';
-import { apolloClient } from '../graphql/client';
+import { getApolloClient } from '../graphql/client';
 import { AuthEventEmitter } from '../auth/auth-events';
 import { TokenManager } from '../auth/token-manager';
 import { useAuth } from '../hooks/auth/useAuth';
@@ -106,7 +105,7 @@ function AuthProviderInner({ children }: AuthProviderProps) {
       console.log('User logged out:', data?.reason || 'manual');
       
       // Clear Apollo cache
-      apolloClient.clearStore();
+      getApolloClient().clearStore();
       
       // Redirect to login if not already there
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
@@ -178,12 +177,12 @@ function AuthProviderInner({ children }: AuthProviderProps) {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  // Note: ApolloProvider should be configured in the parent providers.tsx
+  // to avoid nested Apollo Providers which cause cache conflicts
   return (
-    <ApolloProvider client={apolloClient}>
-      <AuthProviderInner>
-        {children}
-      </AuthProviderInner>
-    </ApolloProvider>
+    <AuthProviderInner>
+      {children}
+    </AuthProviderInner>
   );
 }
 

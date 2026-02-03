@@ -95,6 +95,26 @@ declare module '*.json' {
   export default value;
 }
 
+// Apollo Upload Client module declaration for direct .mjs import
+declare module 'apollo-upload-client/createUploadLink.mjs' {
+  import type { ApolloLink } from '@apollo/client';
+  
+  interface CreateUploadLinkOptions {
+    uri?: string | ((operation: unknown) => string);
+    credentials?: string;
+    headers?: Record<string, string>;
+    includeExtensions?: boolean;
+    fetchOptions?: RequestInit;
+    fetch?: typeof fetch;
+    FormData?: typeof FormData;
+    formDataAppendFile?: (formData: FormData, fieldName: string, file: unknown) => void;
+    isExtractableFile?: (value: unknown) => boolean;
+    useGETForQueries?: boolean;
+  }
+
+  export default function createUploadLink(options?: CreateUploadLinkOptions): ApolloLink;
+}
+
 // Environment variables type augmentation
 declare namespace NodeJS {
   interface ProcessEnv {
