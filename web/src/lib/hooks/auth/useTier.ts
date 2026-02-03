@@ -28,7 +28,7 @@ import { BusinessTier } from '../../graphql/generated/types';
 interface TierInfo {
   currentTier: BusinessTier;
   features: string[];
-  limits: Record<string, any>;
+  limits: Record<string, number | string | boolean>;
   expiresAt?: Date;
   isActive: boolean;
   isTrialExpired?: boolean;
@@ -106,7 +106,7 @@ export function useTier(): UseTierReturn {
   const canAccessTier = useCallback((tier: BusinessTier): boolean => {
     if (!tierState.tierInfo) return false;
     
-    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.BASIC, BusinessTier.STANDARD, BusinessTier.PREMIUM, BusinessTier.ENTERPRISE];
+    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.STARTER, BusinessTier.PROFESSIONAL, BusinessTier.ENTERPRISE];
     const currentIndex = tierHierarchy.indexOf(tierState.tierInfo.currentTier);
     const requiredIndex = tierHierarchy.indexOf(tier);
     
@@ -145,7 +145,7 @@ export function useTier(): UseTierReturn {
 
   useQuery(PREMIUM_FEATURE, {
     errorPolicy: 'all',
-    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.PREMIUM),
+    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.PROFESSIONAL),
   });
 
   useQuery(ENTERPRISE_FEATURE, {
@@ -155,7 +155,7 @@ export function useTier(): UseTierReturn {
 
   useQuery(STANDARD_FEATURE, {
     errorPolicy: 'all',
-    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.STANDARD),
+    skip: !tierState.tierInfo || !canAccessTier(BusinessTier.PROFESSIONAL),
   });
 
   // Refresh tier information
@@ -164,10 +164,10 @@ export function useTier(): UseTierReturn {
       setTierState(prev => ({ ...prev, isLoading: true, error: null }));
       await refetchTierInfo();
       setTierState(prev => ({ ...prev, isLoading: false }));
-    } catch (error: any) {
+    } catch (error) {
       setTierState(prev => ({
         ...prev,
-        error: error.message || 'Failed to refresh tier info',
+        error: error instanceof Error ? error.message : 'Failed to refresh tier info',
         isLoading: false,
       }));
     }
@@ -179,10 +179,10 @@ export function useTier(): UseTierReturn {
       setTierState(prev => ({ ...prev, isLoading: true, error: null }));
       await refetchUpgradeOptions();
       setTierState(prev => ({ ...prev, isLoading: false }));
-    } catch (error: any) {
+    } catch (error) {
       setTierState(prev => ({
         ...prev,
-        error: error.message || 'Failed to refresh upgrade options',
+        error: error instanceof Error ? error.message : 'Failed to refresh upgrade options',
         isLoading: false,
       }));
     }
@@ -245,8 +245,8 @@ export function useTier(): UseTierReturn {
       AuthEventEmitter.emit('tier:upgraded', targetTier);
 
       return response;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to simulate upgrade';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to simulate upgrade';
       setTierState(prev => ({
         ...prev,
         error: errorMessage,
@@ -272,16 +272,16 @@ export function useTier(): UseTierReturn {
 
   const getFeatureLimit = useCallback((feature: string): number | null => {
     if (!tierState.tierInfo?.limits) return null;
-    return tierState.tierInfo.limits[feature] || null;
+    const limit = tierState.tierInfo.limits[feature];
+    return typeof limit === 'number' ? limit : null;
   }, [tierState.tierInfo]);
 
   // Tier utilities
   const getTierDisplayName = useCallback((tier: BusinessTier): string => {
     const displayNames: Record<BusinessTier, string> = {
       [BusinessTier.FREE]: 'Free',
-      [BusinessTier.BASIC]: 'Basic',
-      [BusinessTier.STANDARD]: 'Standard',
-      [BusinessTier.PREMIUM]: 'Premium',
+      [BusinessTier.STARTER]: 'Starter',
+      [BusinessTier.PROFESSIONAL]: 'Professional',
       [BusinessTier.ENTERPRISE]: 'Enterprise',
     };
     return displayNames[tier] || tier;
@@ -290,9 +290,8 @@ export function useTier(): UseTierReturn {
   const getTierColor = useCallback((tier: BusinessTier): string => {
     const colors: Record<BusinessTier, string> = {
       [BusinessTier.FREE]: 'gray',
-      [BusinessTier.BASIC]: 'blue',
-      [BusinessTier.STANDARD]: 'green',
-      [BusinessTier.PREMIUM]: 'purple',
+      [BusinessTier.STARTER]: 'blue',
+      [BusinessTier.PROFESSIONAL]: 'purple',
       [BusinessTier.ENTERPRISE]: 'gold',
     };
     return colors[tier] || 'gray';
@@ -301,9 +300,8 @@ export function useTier(): UseTierReturn {
   const getTierIcon = useCallback((tier: BusinessTier): string => {
     const icons: Record<BusinessTier, string> = {
       [BusinessTier.FREE]: '🆓',
-      [BusinessTier.BASIC]: '📦',
-      [BusinessTier.STANDARD]: '⭐',
-      [BusinessTier.PREMIUM]: '💎',
+      [BusinessTier.STARTER]: '📦',
+      [BusinessTier.PROFESSIONAL]: '💎',
       [BusinessTier.ENTERPRISE]: '👑',
     };
     return icons[tier] || '📦';
@@ -316,7 +314,7 @@ export function useTier(): UseTierReturn {
   const canUpgradeTo = useCallback((tier: BusinessTier): boolean => {
     if (!tierState.tierInfo) return false;
     
-    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.BASIC, BusinessTier.STANDARD, BusinessTier.PREMIUM, BusinessTier.ENTERPRISE];
+    const tierHierarchy: BusinessTier[] = [BusinessTier.FREE, BusinessTier.STARTER, BusinessTier.PROFESSIONAL, BusinessTier.ENTERPRISE];
     const currentIndex = tierHierarchy.indexOf(tierState.tierInfo.currentTier);
     const targetIndex = tierHierarchy.indexOf(tier);
     
@@ -328,7 +326,8 @@ export function useTier(): UseTierReturn {
     const limit = getFeatureLimit(feature);
     if (!limit || !tierState.tierInfo?.limits) return 0;
     
-    const current = tierState.tierInfo.limits[`${feature}_current`] || 0;
+    const currentValue = tierState.tierInfo.limits[`${feature}_current`];
+    const current = typeof currentValue === 'number' ? currentValue : 0;
     return Math.min(100, (current / limit) * 100);
   }, [getFeatureLimit, tierState.tierInfo]);
 

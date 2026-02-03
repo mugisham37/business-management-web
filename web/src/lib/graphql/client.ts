@@ -1,14 +1,16 @@
-import { ApolloClient, InMemoryCache, createHttpLink, from, split } from '@apollo/client';
+import { ApolloClient, InMemoryCache, from, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
-// Use dynamic import for apollo-upload-client to avoid type issues
-const createUploadLink = require('apollo-upload-client').createUploadLink;
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { TokenManager } from '../auth/token-manager';
 import { AuthEventEmitter } from '../auth/auth-events';
+
+// Dynamic import for apollo-upload-client
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { createUploadLink } = require('apollo-upload-client');
 
 /**
  * GraphQL Client Configuration
@@ -21,12 +23,6 @@ import { AuthEventEmitter } from '../auth/auth-events';
  * - File upload support
  * - Intelligent caching with type policies
  */
-
-// HTTP Link for queries and mutations
-const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:3001/graphql',
-  credentials: 'include',
-});
 
 // Upload link for file uploads
 const uploadLink = createUploadLink({
@@ -66,7 +62,7 @@ const authLink = setContext((_, { headers }) => {
 });
 
 // Error link - handles authentication errors and token refresh
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
   if (graphQLErrors) {
     for (const error of graphQLErrors) {
       console.error(`GraphQL error: ${error.message}`);
@@ -77,7 +73,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
         TokenManager.refreshToken().then((success) => {
           if (success) {
             // Retry the operation with new token
-            const oldHeaders = operation.getContext().headers;
+            const oldHeaders = operation.getContext().headers as Record<string, string>;
             operation.setContext({
               headers: {
                 ...oldHeaders,
@@ -133,7 +129,7 @@ const retryLink = new RetryLink({
   },
   attempts: {
     max: 3,
-    retryIf: (error, _operation) => !!error && !error.message.includes('UNAUTHENTICATED'),
+    retryIf: (error) => !!error && !error.message.includes('UNAUTHENTICATED'),
   },
 });
 

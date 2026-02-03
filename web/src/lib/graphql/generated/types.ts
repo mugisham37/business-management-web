@@ -1,46 +1,82 @@
 /**
  * Generated GraphQL Types
  * 
- * This file contains all TypeScript types generated from the GraphQL schema.
- * These types ensure type safety across the entire application.
+ * This file contains TypeScript types generated from the GraphQL schema.
+ * These types should be generated automatically using GraphQL Code Generator.
+ * 
+ * For now, we're providing the essential types manually to resolve import errors.
+ * Run `npm run codegen` to generate the complete types from the schema.
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Enums
 export enum UserRole {
-  SUPER_ADMIN = 'super_admin',
-  TENANT_ADMIN = 'tenant_admin',
-  MANAGER = 'manager',
-  EMPLOYEE = 'employee',
-  CUSTOMER = 'customer',
-  READONLY = 'readonly',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  TENANT_ADMIN = 'TENANT_ADMIN',
+  MANAGER = 'MANAGER',
+  EMPLOYEE = 'EMPLOYEE',
+  VIEWER = 'VIEWER',
 }
 
 export enum BusinessTier {
-  FREE = 'free',
-  BASIC = 'basic',
-  STANDARD = 'standard',
-  PREMIUM = 'premium',
-  ENTERPRISE = 'enterprise',
+  FREE = 'FREE',
+  STARTER = 'STARTER',
+  PROFESSIONAL = 'PROFESSIONAL',
+  ENTERPRISE = 'ENTERPRISE',
 }
 
 export enum AuthEventType {
-  USER_LOGIN = 'USER_LOGIN',
-  USER_LOGOUT = 'USER_LOGOUT',
-  USER_REGISTERED = 'USER_REGISTERED',
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
+  REGISTER = 'REGISTER',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   MFA_ENABLED = 'MFA_ENABLED',
   MFA_DISABLED = 'MFA_DISABLED',
   PERMISSION_GRANTED = 'PERMISSION_GRANTED',
   PERMISSION_REVOKED = 'PERMISSION_REVOKED',
   ROLE_ASSIGNED = 'ROLE_ASSIGNED',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  FAILED_LOGIN_ATTEMPT = 'FAILED_LOGIN_ATTEMPT',
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
   ACCOUNT_UNLOCKED = 'ACCOUNT_UNLOCKED',
   SOCIAL_PROVIDER_LINKED = 'SOCIAL_PROVIDER_LINKED',
   SOCIAL_PROVIDER_UNLINKED = 'SOCIAL_PROVIDER_UNLINKED',
-  SECURITY_ALERT = 'SECURITY_ALERT',
-  RISK_ASSESSMENT = 'RISK_ASSESSMENT',
+}
+
+// Core Types
+export interface AuthUser {
+  id: string;
+  email: string;
+  tenantId: string;
+  role: UserRole;
+  permissions: string[];
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  avatar?: string;
+  lastLoginAt?: Date;
+  businessTier: BusinessTier;
+  featureFlags: string[];
+  trialExpiresAt?: Date;
+}
+
+export interface LoginResponse {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+  requiresMfa?: boolean;
+  mfaToken?: string;
+  riskScore?: number;
+  securityRecommendations?: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+  riskScore?: number;
 }
 
 // Input Types
@@ -69,20 +105,6 @@ export interface RefreshTokenInput {
   refreshToken: string;
 }
 
-export interface ChangePasswordInput {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export interface ForgotPasswordInput {
-  email: string;
-}
-
-export interface ResetPasswordInput {
-  token: string;
-  newPassword: string;
-}
-
 export interface OAuthLoginInput {
   provider: string;
   code: string;
@@ -90,195 +112,52 @@ export interface OAuthLoginInput {
   tenantId: string;
 }
 
-export interface EnableMfaInput {
-  token: string;
-}
-
-export interface DisableMfaInput {
-  token?: string;
-  backupCode?: string;
-}
-
-export interface VerifyMfaTokenInput {
-  token: string;
-}
-
-export interface GenerateBackupCodesInput {
-  token: string;
-}
-
-export interface SocialAuthInput {
-  provider: string;
-  providerId: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  picture?: string;
-  tenantId?: string;
-}
-
-export interface LinkSocialProviderInput {
-  provider: string;
-  providerId: string;
-  email: string;
-}
-
-export interface UnlinkSocialProviderInput {
-  provider: string;
-}
-
-export interface GrantPermissionInput {
-  userId: string;
-  permission: string;
-  resource?: string;
-  resourceId?: string;
-  expiresAt?: string;
-}
-
-export interface RevokePermissionInput {
-  userId: string;
-  permission: string;
-  resource?: string;
-  resourceId?: string;
-}
-
-export interface AssignRoleInput {
-  userId: string;
-  role: string;
-}
-
-export interface CheckPermissionInput {
-  userId: string;
-  permission: string;
-  resource?: string;
-  resourceId?: string;
-}
-
-export interface BulkPermissionInput {
-  userIds: string[];
-  permissions: string[];
-  resource?: string;
-  expiresAt?: string;
-}
-
-// Response Types
-export interface AuthUser {
-  id: string;
-  email: string;
-  tenantId: string;
-  role: string;
-  permissions: string[];
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  avatar?: string;
-  lastLoginAt?: Date;
-  businessTier: string;
-  featureFlags: string[];
-  trialExpiresAt?: Date;
-}
-
-export interface LoginResponse {
-  user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  tokenType: string;
-  requiresMfa?: boolean;
-  mfaToken?: string;
-  riskScore?: number;
-  securityRecommendations?: string;
-}
-
-export interface RefreshTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  tokenType: string;
-  riskScore?: number;
-}
-
-export interface MfaRequirementResponse {
-  requiresMfa: boolean;
-  userId?: string;
-  availableMethods?: string;
+// MFA Types
+export interface MfaStatusResponse {
+  isEnabled: boolean;
+  enabled: boolean; // Alias for isEnabled
+  hasBackupCodes: boolean;
+  backupCodesCount: number;
+  hasSecret: boolean;
+  lastUsedAt?: Date;
+  setupAt?: Date;
+  methods: string[];
 }
 
 export interface MfaSetupResponse {
   secret: string;
   qrCodeUrl: string;
   backupCodes: string[];
-  manualEntryKey: string;
+  setupToken: string;
 }
 
-export interface MfaStatusResponse {
-  enabled: boolean;
-  backupCodesCount: number;
-  hasSecret: boolean;
+export interface EnableMfaInput {
+  token: string;
+  setupToken: string;
 }
 
-export interface SocialProvider {
-  provider: string;
-  providerId: string;
-  email: string;
-  connectedAt: Date;
-  lastUsedAt?: Date;
+export interface DisableMfaInput {
+  token?: string;
+  backupCode?: string;
+  password: string;
 }
 
-export interface SocialAuthResponse {
-  success: boolean;
-  message: string;
-  connectedProviders: SocialProvider[];
+export interface VerifyMfaTokenInput {
+  token: string;
+  mfaToken?: string;
 }
 
-export interface SocialAuthUrlResponse {
-  authUrl: string;
-  state: string;
-  provider?: string;
-  tenantId?: string;
+export interface GenerateBackupCodesInput {
+  token: string;
 }
 
-export interface Permission {
-  id: string;
-  userId: string;
-  permission: string;
-  resource?: string;
-  resourceId?: string;
-  grantedBy?: string;
-  grantedAt: Date;
-  expiresAt?: Date;
-  isInherited: boolean;
-}
-
-export interface Role {
-  name: string;
-  permissions: string[];
-}
-
-export interface UserPermissionsResponse {
-  permissions: string[];
-  role: string;
-  detailedPermissions: Permission[];
-  includesInherited: boolean;
-}
-
-export interface PermissionCheckResponse {
-  hasPermission: boolean;
-  source?: string;
-  expiresAt?: Date;
-}
-
-export interface BulkPermissionResponse {
-  affectedUsers: number;
-  processedPermissions: number;
-  failedUsers: string[];
-  errors: string[];
-}
-
-export interface AvailablePermissionsResponse {
-  permissions: string[];
-  resources: string[];
-  actions: string[];
+// Security Types
+export interface RiskScoreResponse {
+  score: number;
+  level: string;
+  factors: string[];
+  recommendations: string[];
+  timestamp: Date;
 }
 
 export interface SecurityStatusResponse {
@@ -292,57 +171,161 @@ export interface SecurityStatusResponse {
   recommendations: string[];
 }
 
-export interface RiskScoreResponse {
-  score: number;
-  level: string;
-  factors: string[];
-  recommendations: string[];
-  timestamp: Date;
+export interface LogSecurityEventInput {
+  type: string;
+  description: string;
+  metadata?: Record<string, any>;
 }
 
-export interface SessionInfoResponse {
+// Permission Types
+export interface Role {
   id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  permissions: string[];
+  hierarchy: number;
+  isSystem: boolean;
   createdAt: Date;
-  lastAccessedAt: Date;
-  expiresAt: Date;
-  ipAddress?: string;
-  userAgent?: string;
-  deviceInfo?: string;
-  trustScore: number;
-  riskScore: number;
-  isActive: boolean;
+  updatedAt: Date;
 }
 
-export interface DeviceInfoResponse {
+export interface Permission {
   id: string;
-  platform: string;
-  browser: string;
-  trustScore: number;
-  firstSeen: Date;
-  lastSeen: Date;
-  seenCount: number;
-  isTrusted: boolean;
+  name: string;
+  resource: string;
+  action: string;
+  description: string;
+  category: string;
+  isSystem: boolean;
 }
 
+export interface UserPermissions {
+  userId: string;
+  permissions: string[];
+  roles: string[];
+  effectivePermissions: string[];
+  lastUpdated: Date;
+}
+
+export interface AvailablePermissionsResponse {
+  permissions: Permission[];
+  categories: string[];
+  resources: string[];
+  totalCount: number;
+}
+
+export interface CheckPermissionInput {
+  userId: string;
+  permission: string;
+  resource?: string;
+  resourceId?: string;
+}
+
+export interface GrantPermissionInput {
+  userId: string;
+  permission: string;
+  resource?: string;
+  resourceId?: string;
+}
+
+export interface RevokePermissionInput {
+  userId: string;
+  permission: string;
+  resource?: string;
+  resourceId?: string;
+}
+
+export interface AssignRoleInput {
+  userId: string;
+  roleName: string;
+}
+
+export interface BulkPermissionInput {
+  userIds: string[];
+  permissions: string[];
+}
+
+// Social Auth Types
+export interface SocialProvider {
+  provider: string;
+  providerId: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  linkedAt: Date;
+  lastUsedAt?: Date;
+  isVerified: boolean;
+}
+
+export interface LinkSocialProviderInput {
+  provider: string;
+  code: string;
+  state?: string;
+}
+
+// Tier Types
+export interface TierInfo {
+  tier: BusinessTier;
+  displayName: string;
+  description: string;
+  features: string[];
+  limits: Record<string, number>;
+  pricing?: Record<string, any>;
+  isActive: boolean;
+  trialExpiresAt?: Date;
+  subscriptionExpiresAt?: Date;
+}
+
+export interface FeatureAccess {
+  feature: string;
+  hasAccess: boolean;
+  reason?: string;
+  requiredTier?: BusinessTier;
+  usageCount?: number;
+  usageLimit?: number;
+  resetDate?: Date;
+}
+
+export interface TierUsage {
+  feature: string;
+  currentUsage: number;
+  limit: number;
+  percentage: number;
+  resetDate?: Date;
+  isOverLimit: boolean;
+}
+
+// Event Types
 export interface AuthEvent {
   type: AuthEventType;
-  userId: string;
-  tenantId: string;
   timestamp: Date;
   metadata?: Record<string, any>;
-  ipAddress?: string;
-  userAgent?: string;
-  description?: string;
-  severity?: string;
+  user?: AuthUser;
 }
 
+export interface SecurityEvent {
+  id: string;
+  type: string;
+  severity: string;
+  description: string;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+  resolved: boolean;
+  resolvedAt?: Date;
+}
+
+// Response Types
 export interface MutationResponse {
   success: boolean;
   message: string;
-  errors?: Array<{
-    message: string;
-    timestamp: Date;
-  }>;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  hasMore: boolean;
+  nextCursor?: string;
 }
 
 // Utility Types
@@ -351,78 +334,22 @@ export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K]
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 
-// GraphQL Operation Types
-export interface Query {
-  me?: Maybe<AuthUser>;
-  requiresMfa: MfaRequirementResponse;
-  validateSession: boolean;
-  getSecurityStatus: string;
-  mfaStatus: MfaStatusResponse;
-  isMfaEnabled: boolean;
-  getSocialAuthUrl: SocialAuthUrlResponse;
-  getConnectedSocialProviders: SocialProvider[];
-  isSocialProviderAvailable: boolean;
-  getSupportedSocialProviders: string[];
-  getPermissions: string[];
-  myPermissions: string[];
-  getRoles: Role[];
-  getRolePermissions: string[];
-  hasPermission: boolean;
-  getAllPermissions: string[];
-  getDetailedPermissions: UserPermissionsResponse;
-  checkPermission: PermissionCheckResponse;
-  getAvailablePermissions: AvailablePermissionsResponse;
-  myRiskScore: number;
-  mySecurityStatus: string;
-  mySecurityRecommendations: string[];
-  isDeviceTrusted: boolean;
-  tenantSecurityMetrics: string;
-  basicFeature: string;
-  premiumFeature: string;
-  enterpriseFeature: string;
-  standardFeature: string;
-  myTierInfo: string;
-  getUpgradeOptions: string;
-  testFeatureFlag: string;
+// Apollo Client Types (for hooks)
+export interface QueryResult<TData = any> {
+  data?: TData;
+  loading: boolean;
+  error?: any;
+  refetch: () => Promise<any>;
 }
 
-export interface Mutation {
-  login: LoginResponse;
-  loginWithMfa: LoginResponse;
-  oauthLogin: LoginResponse;
-  register: LoginResponse;
-  logout: MutationResponse;
-  logoutAllSessions: MutationResponse;
-  refreshToken: RefreshTokenResponse;
-  changePassword: MutationResponse;
-  forgotPassword: MutationResponse;
-  resetPassword: MutationResponse;
-  generateMfaSetup: MfaSetupResponse;
-  enableMfa: MutationResponse;
-  disableMfa: MutationResponse;
-  verifyMfaToken: MutationResponse;
-  generateBackupCodes: string[];
-  linkSocialProvider: SocialAuthResponse;
-  unlinkSocialProvider: SocialAuthResponse;
-  grantPermission: MutationResponse;
-  revokePermission: MutationResponse;
-  assignRole: MutationResponse;
-  bulkGrantPermissions: BulkPermissionResponse;
-  bulkRevokePermissions: BulkPermissionResponse;
-  logSecurityEvent: MutationResponse;
-  simulateTierUpgrade: string;
+export interface MutationResult<TData = any> {
+  data?: TData;
+  loading: boolean;
+  error?: any;
 }
 
-export interface Subscription {
-  userAuthEvents: AuthEvent;
-  userPermissionEvents: AuthEvent;
-  tenantAuthEvents: AuthEvent;
-  securityAlerts: AuthEvent;
-  userMfaEvents: AuthEvent;
-  userSessionEvents: AuthEvent;
-  tenantRoleEvents: AuthEvent;
-  userSocialProviderEvents: AuthEvent;
-  userRiskEvents: AuthEvent;
-  userEvents: AuthEvent;
-  allTenantAuthEvents: AuthEvent;
+export interface SubscriptionResult<TData = any> {
+  data?: TData;
+  loading: boolean;
+  error?: any;
 }

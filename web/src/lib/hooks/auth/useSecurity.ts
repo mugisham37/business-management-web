@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
-import { AuthEventEmitter } from '../../auth/auth-events';
+import { AuthEventEmitter, type SecurityActivityData } from '../../auth/auth-events';
 import {
   MY_RISK_SCORE,
   MY_SECURITY_STATUS,
@@ -39,7 +39,7 @@ interface SecurityOperations {
   refreshSecurityStatus: () => Promise<void>;
   refreshRecommendations: () => Promise<void>;
   checkDeviceTrust: (deviceFingerprint?: string) => Promise<boolean>;
-  logSecurityEvent: (eventType: string, description: string, metadata?: Record<string, any>) => Promise<boolean>;
+  logSecurityEvent: (eventType: string, description: string, metadata?: Record<string, unknown>) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -105,8 +105,10 @@ export function useSecurity(): UseSecurityReturn {
 
   // Handle security events
   const handleSecurityEvent = useCallback((event: AuthEvent) => {
-    switch (event.type) {
-      case 'RISK_ASSESSMENT':
+    // Security events may have string types not in AuthEventType enum
+    const eventType = event.type as string;
+    switch (eventType) {
+      case 'RISK_ASSESSMENT': {
         const newRiskScore = event.metadata?.riskScore;
         if (typeof newRiskScore === 'number') {
           setSecurityState(prev => ({
@@ -122,13 +124,18 @@ export function useSecurity(): UseSecurityReturn {
           });
         }
         break;
-      case 'SECURITY_ALERT':
-        AuthEventEmitter.emit('security:suspicious_activity', event.metadata);
+      }
+      case 'SECURITY_ALERT': {
+        const metadata = event.metadata as SecurityActivityData | undefined;
+        if (metadata) {
+          AuthEventEmitter.emit('security:suspicious_activity', metadata);
+        }
         // Refresh security data
         refetchRisk();
         refetchStatus();
         refetchRecommendations();
         break;
+      }
       default:
         console.log('Received security event:', event);
     }
@@ -149,10 +156,10 @@ export function useSecurity(): UseSecurityReturn {
       setSecurityState(prev => ({ ...prev, isLoading: true, error: null }));
       await refetchRisk();
       setSecurityState(prev => ({ ...prev, isLoading: false, lastAssessment: new Date() }));
-    } catch (error: any) {
+    } catch (error) {
       setSecurityState(prev => ({
         ...prev,
-        error: error.message || 'Failed to refresh risk score',
+        error: error instanceof Error ? error.message : 'Failed to refresh risk score',
         isLoading: false,
       }));
     }
@@ -164,10 +171,10 @@ export function useSecurity(): UseSecurityReturn {
       setSecurityState(prev => ({ ...prev, isLoading: true, error: null }));
       await refetchStatus();
       setSecurityState(prev => ({ ...prev, isLoading: false }));
-    } catch (error: any) {
+    } catch (error) {
       setSecurityState(prev => ({
         ...prev,
-        error: error.message || 'Failed to refresh security status',
+        error: error instanceof Error ? error.message : 'Failed to refresh security status',
         isLoading: false,
       }));
     }
@@ -179,10 +186,10 @@ export function useSecurity(): UseSecurityReturn {
       setSecurityState(prev => ({ ...prev, isLoading: true, error: null }));
       await refetchRecommendations();
       setSecurityState(prev => ({ ...prev, isLoading: false }));
-    } catch (error: any) {
+    } catch (error) {
       setSecurityState(prev => ({
         ...prev,
-        error: error.message || 'Failed to refresh recommendations',
+        error: error instanceof Error ? error.message : 'Failed to refresh recommendations',
         isLoading: false,
       }));
     }
@@ -208,7 +215,7 @@ export function useSecurity(): UseSecurityReturn {
       });
 
       return isTrusted;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to check device trust:', error);
       return false;
     }
@@ -218,7 +225,7 @@ export function useSecurity(): UseSecurityReturn {
   const logSecurityEvent = useCallback(async (
     eventType: string,
     description: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<boolean> => {
     try {
       setSecurityState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -242,8 +249,8 @@ export function useSecurity(): UseSecurityReturn {
 
       setSecurityState(prev => ({ ...prev, isLoading: false }));
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to log security event';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to log security event';
       setSecurityState(prev => ({
         ...prev,
         error: errorMessage,

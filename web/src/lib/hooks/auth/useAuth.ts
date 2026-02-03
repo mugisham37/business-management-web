@@ -7,16 +7,16 @@ import {
   LOGIN,
   LOGOUT,
   REGISTER,
-  REFRESH_TOKEN,
   USER_AUTH_EVENTS,
   USER_SESSION_EVENTS
 } from '../../graphql/operations/auth';
-import type { 
+import { 
   AuthUser, 
   LoginInput, 
   RegisterInput, 
   LoginResponse,
-  AuthEvent
+  AuthEvent,
+  AuthEventType
 } from '../../graphql/generated/types';
 
 /**
@@ -110,13 +110,15 @@ export function useAuth(): UseAuthReturn {
   // Handle authentication events
   const handleAuthEvent = useCallback((event: AuthEvent) => {
     switch (event.type) {
-      case 'USER_LOGIN':
-        AuthEventEmitter.emit('auth:login', event.metadata?.user);
+      case AuthEventType.LOGIN:
+        if (event.metadata?.user) {
+          AuthEventEmitter.emit('auth:login', event.metadata.user as { id: string; email: string });
+        }
         break;
-      case 'USER_LOGOUT':
+      case AuthEventType.LOGOUT:
         AuthEventEmitter.emit('auth:logout', { reason: 'server_logout' });
         break;
-      case 'PASSWORD_CHANGED':
+      case AuthEventType.PASSWORD_CHANGED:
         // Force re-authentication after password change
         AuthEventEmitter.emit('auth:logout', { reason: 'password_changed' });
         break;
@@ -127,12 +129,11 @@ export function useAuth(): UseAuthReturn {
 
   // Handle session events
   const handleSessionEvent = useCallback((event: AuthEvent) => {
-    switch (event.type) {
-      case 'SESSION_EXPIRED':
-        AuthEventEmitter.emit('auth:session_expired');
-        break;
-      default:
-        console.log('Received session event:', event);
+    // Session events don't have a specific type in AuthEventType, handle generically
+    if (event.metadata?.sessionExpired) {
+      AuthEventEmitter.emit('auth:session_expired');
+    } else {
+      console.log('Received session event:', event);
     }
   }, []);
 
@@ -187,8 +188,8 @@ export function useAuth(): UseAuthReturn {
       AuthEventEmitter.emit('auth:login', loginData.user);
 
       return loginData;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Login failed';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -259,8 +260,8 @@ export function useAuth(): UseAuthReturn {
       AuthEventEmitter.emit('auth:register', registerData.user);
 
       return registerData;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Registration failed';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       setAuthState(prev => ({
         ...prev,
         isLoading: false,

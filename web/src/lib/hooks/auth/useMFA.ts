@@ -14,10 +14,7 @@ import {
 import type {
   MfaStatusResponse,
   MfaSetupResponse,
-  EnableMfaInput,
   DisableMfaInput,
-  VerifyMfaTokenInput,
-  GenerateBackupCodesInput,
   AuthEvent,
 } from '../../graphql/generated/types';
 
@@ -45,7 +42,7 @@ interface MfaState {
 interface MfaOperations {
   generateSetup: () => Promise<MfaSetupResponse>;
   enableMfa: (token: string) => Promise<boolean>;
-  disableMfa: (token?: string, backupCode?: string) => Promise<boolean>;
+  disableMfa: (token?: string, backupCode?: string, password?: string) => Promise<boolean>;
   verifyToken: (token: string) => Promise<boolean>;
   generateBackupCodes: (token: string) => Promise<string[]>;
   refreshStatus: () => Promise<void>;
@@ -158,8 +155,8 @@ export function useMFA(): UseMfaReturn {
       }));
 
       return setupData;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to generate MFA setup';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate MFA setup';
       setMfaState(prev => ({
         ...prev,
         error: errorMessage,
@@ -199,8 +196,8 @@ export function useMFA(): UseMfaReturn {
       await refetchEnabled();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to enable MFA';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to enable MFA';
       setMfaState(prev => ({
         ...prev,
         error: errorMessage,
@@ -211,11 +208,13 @@ export function useMFA(): UseMfaReturn {
   }, [enableMfaMutation, refetchStatus, refetchEnabled]);
 
   // Disable MFA
-  const disableMfa = useCallback(async (token?: string, backupCode?: string): Promise<boolean> => {
+  const disableMfa = useCallback(async (token?: string, backupCode?: string, password?: string): Promise<boolean> => {
     try {
       setMfaState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      const input: DisableMfaInput = {};
+      const input: DisableMfaInput = {
+        password: password || '', // Password is required by the type
+      };
       if (token) input.token = token;
       if (backupCode) input.backupCode = backupCode;
 
@@ -244,8 +243,8 @@ export function useMFA(): UseMfaReturn {
       await refetchEnabled();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to disable MFA';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to disable MFA';
       setMfaState(prev => ({
         ...prev,
         error: errorMessage,
@@ -282,8 +281,8 @@ export function useMFA(): UseMfaReturn {
       }
 
       return isValid;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to verify MFA token';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to verify MFA token';
       setMfaState(prev => ({
         ...prev,
         error: errorMessage,
@@ -321,8 +320,8 @@ export function useMFA(): UseMfaReturn {
       await refetchStatus();
 
       return backupCodes;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to generate backup codes';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate backup codes';
       setMfaState(prev => ({
         ...prev,
         error: errorMessage,

@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
   MY_PERMISSIONS,
-  GET_PERMISSIONS,
   GET_ROLES,
   GET_AVAILABLE_PERMISSIONS,
   CHECK_PERMISSION,
@@ -22,7 +21,6 @@ import type {
   RevokePermissionInput,
   AssignRoleInput,
   BulkPermissionInput,
-  CheckPermissionInput,
   AuthEvent,
 } from '../../graphql/generated/types';
 
@@ -247,8 +245,8 @@ export function usePermissions(): UsePermissionsReturn {
       await refetchPermissions();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to grant permission';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to grant permission';
       setPermissionsState(prev => ({
         ...prev,
         error: errorMessage,
@@ -286,8 +284,8 @@ export function usePermissions(): UsePermissionsReturn {
       await refetchPermissions();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to revoke permission';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to revoke permission';
       setPermissionsState(prev => ({
         ...prev,
         error: errorMessage,
@@ -325,8 +323,8 @@ export function usePermissions(): UsePermissionsReturn {
       await Promise.all([refetchPermissions(), refetchRoles()]);
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to assign role';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to assign role';
       setPermissionsState(prev => ({
         ...prev,
         error: errorMessage,
@@ -365,8 +363,8 @@ export function usePermissions(): UsePermissionsReturn {
       await refetchPermissions();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to bulk grant permissions';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to bulk grant permissions';
       setPermissionsState(prev => ({
         ...prev,
         error: errorMessage,
@@ -405,8 +403,8 @@ export function usePermissions(): UsePermissionsReturn {
       await refetchPermissions();
 
       return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to bulk revoke permissions';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to bulk revoke permissions';
       setPermissionsState(prev => ({
         ...prev,
         error: errorMessage,
@@ -479,20 +477,19 @@ export function usePermissions(): UsePermissionsReturn {
   const getResourcePermissions = useCallback((resource: string): string[] => {
     if (!permissionsState.availablePermissions) return [];
     
-    return permissionsState.availablePermissions.permissions.filter(
-      permission => permission.startsWith(`${resource}:`)
-    );
+    return permissionsState.availablePermissions.permissions
+      .filter(permission => permission.resource === resource)
+      .map(permission => permission.name);
   }, [permissionsState.availablePermissions]);
 
   const getAvailableActions = useCallback((resource: string): string[] => {
     if (!permissionsState.availablePermissions) return [];
     
-    const resourcePermissions = getResourcePermissions(resource);
-    return resourcePermissions.map(permission => {
-      const parts = permission.split(':');
-      return parts[1] || '';
-    }).filter(Boolean);
-  }, [permissionsState.availablePermissions, getResourcePermissions]);
+    return permissionsState.availablePermissions.permissions
+      .filter(permission => permission.resource === resource)
+      .map(permission => permission.action)
+      .filter(Boolean);
+  }, [permissionsState.availablePermissions]);
 
   // Computed properties
   const permissionCount = permissionsState.userPermissions.length;

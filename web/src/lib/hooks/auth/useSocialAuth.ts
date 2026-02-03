@@ -1,354 +1,493 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
-  GET_SOCIAL_AUTH_URL,
-  GET_CONNECTED_SOCIAL_PROVIDERS,
-  IS_SOCIAL_PROVIDER_AVAILABLE,
-  GET_SUPPORTED_SOCIAL_PROVIDERS,
+  GET_LINKED_PROVIDERS,
+  GET_OAUTH_URL,
+  GET_AVAILABLE_PROVIDERS,
+  OAUTH_LOGIN,
   LINK_SOCIAL_PROVIDER,
   UNLINK_SOCIAL_PROVIDER,
-  USER_SOCIAL_PROVIDER_EVENTS,
+  REFRESH_SOCIAL_TOKEN,
+  VERIFY_SOCIAL_EMAIL,
+  SOCIAL_AUTH_EVENTS,
+  PROVIDER_STATUS_CHANGED,
 } from '../../graphql/operations/social-auth';
 import type {
   SocialProvider,
-  SocialAuthUrlResponse,
-  LinkSocialProviderInput,
-  UnlinkSocialProviderInput,
-  AuthEvent,
+  LoginResponse,
 } from '../../graphql/generated/types';
 
 /**
  * Social Authentication Hook
  * 
  * Provides comprehensive social authentication management with:
- * - OAuth URL generation
+ * - OAuth provider integration (Google, Facebook, GitHub)
  * - Provider linking/unlinking
- * - Connected providers management
- * - Provider availability checking
+ * - Social login operations
+ * - Provider status monitoring
  * - Real-time social auth events
  */
 
 interface SocialAuthState {
-  connectedProviders: SocialProvider[];
-  supportedProviders: string[];
+  linkedProviders: SocialProvider[];
+  availableProviders: unknown[];
   isLoading: boolean;
   error: string | null;
-  authUrl: string | null;
-  authState: string | null;
+  isLinking: boolean;
+  isUnlinking: boolean;
 }
 
 interface SocialAuthOperations {
-  generateAuthUrl: (provider: string, tenantId?: string) => Promise<SocialAuthUrlResponse>;
-  linkProvider: (input: LinkSocialProviderInput) => Promise<boolean>;
+  oauthLogin: (provider: string, tenantId: string) => Promise<LoginResponse>;
+  linkProvider: (provider: string) => Promise<boolean>;
   unlinkProvider: (provider: string) => Promise<boolean>;
-  isProviderAvailable: (provider: string) => Promise<boolean>;
-  refreshConnectedProviders: () => Promise<void>;
+  refreshProviderToken: (provider: string) => Promise<boolean>;
+  verifyProviderEmail: (provider: string, email: string) => Promise<boolean>;
+  getOAuthUrl: (provider: string, tenantId: string) => Promise<string>;
+  refreshProviders: () => Promise<void>;
   clearError: () => void;
-  clearAuthUrl: () => void;
 }
 
 interface UseSocialAuthReturn extends SocialAuthState, SocialAuthOperations {
-  // Utilities
-  isProviderConnected: (provider: string) => boolean;
-  getProviderInfo: (provider: string) => SocialProvider | null;
+  // Provider utilities
+  isProviderLinked: (provider: string) => boolean;
+  getLinkedProvider: (provider: string) => SocialProvider | null;
+  getProviderInfo: (provider: string) => unknown;
   canLinkProvider: (provider: string) => boolean;
-  getProviderDisplayName: (provider: string) => string;
+  canUnlinkProvider: (provider: string) => boolean;
+  
+  // Computed properties
+  linkedProviderCount: number;
+  hasLinkedProviders: boolean;
+  availableProviderCount: number;
 }
 
 export function useSocialAuth(): UseSocialAuthReturn {
   const [socialAuthState, setSocialAuthState] = useState<SocialAuthState>({
-    connectedProviders: [],
-    supportedProviders: [],
+    linkedProviders: [],
+    availableProviders: [],
     isLoading: false,
     error: null,
-    authUrl: null,
-    authState: null,
+    isLinking: false,
+    isUnlinking: false,
   });
 
   // GraphQL operations
-  const { data: connectedData, loading: connectedLoading, refetch: refetchConnected } = useQuery(
-    GET_CONNECTED_SOCIAL_PROVIDERS,
+  const { data: linkedData, loading: linkedLoading, refetch: refetchLinked } = useQuery(
+    GET_LINKED_PROVIDERS,
     {
       errorPolicy: 'all',
       notifyOnNetworkStatusChange: true,
     }
   );
 
-  const { data: supportedData, loading: supportedLoading } = useQuery(
-    GET_SUPPORTED_SOCIAL_PROVIDERS,
+  const { data: availableData, loading: availableLoading } = useQuery(
+    GET_AVAILABLE_PROVIDERS,
     {
       errorPolicy: 'all',
     }
   );
 
-  const [generateAuthUrlMutation, { loading: authUrlLoading }] = useMutation(
-    GET_SOCIAL_AUTH_URL,
-    {
-      errorPolicy: 'all',
-    }
-  );
+  const [getOAuthUrlMutation] = useMutation(GET_OAUTH_URL, {
+    errorPolicy: 'all',
+  });
+
+  const [oauthLoginMutation, { loading: loginLoading }] = useMutation(OAUTH_LOGIN, {
+    errorPolicy: 'all',
+    onCompleted: (data) => {
+      if (data.oauthLogin) {
+        AuthEventEmitter.emit('auth:login', data.oauthLogin.user);
+        AuthEventEmitter.emit('social:provider_linked', data.oauthLogin.user);
+      }
+    },
+    onError: (error) => {
+      setSocialAuthState(prev => ({
+        ...prev,
+        error: error.message,
+        isLoading: false,
+      }));
+    },
+  });
 
   const [linkProviderMutation, { loading: linkLoading }] = useMutation(LINK_SOCIAL_PROVIDER, {
     errorPolicy: 'all',
+    onCompleted: (data) => {
+      if (data.linkSocialProvider.success) {
+        AuthEventEmitter.emit('social:provider_linked', data.linkSocialProvider.provider.provider);
+        refetchLinked();
+      }
+    },
+    onError: (error) => {
+      setSocialAuthState(prev => ({
+        ...prev,
+        error: error.message,
+        isLinking: false,
+      }));
+    },
   });
 
-  const [unlinkProviderMutation, { loading: unlinkLoading }] = useMutation(
-    UNLINK_SOCIAL_PROVIDER,
-    {
-      errorPolicy: 'all',
-    }
-  );
+  const [unlinkProviderMutation, { loading: unlinkLoading }] = useMutation(UNLINK_SOCIAL_PROVIDER, {
+    errorPolicy: 'all',
+    onCompleted: (data) => {
+      if (data.unlinkSocialProvider.success) {
+        AuthEventEmitter.emit('social:provider_unlinked', data.unlinkSocialProvider.provider);
+        refetchLinked();
+      }
+    },
+    onError: (error) => {
+      setSocialAuthState(prev => ({
+        ...prev,
+        error: error.message,
+        isUnlinking: false,
+      }));
+    },
+  });
 
-  const [checkProviderAvailabilityMutation] = useMutation(IS_SOCIAL_PROVIDER_AVAILABLE, {
+  const [refreshTokenMutation] = useMutation(REFRESH_SOCIAL_TOKEN, {
     errorPolicy: 'all',
   });
 
-  // Real-time social provider events
-  useSubscription(USER_SOCIAL_PROVIDER_EVENTS, {
+  const [verifyEmailMutation] = useMutation(VERIFY_SOCIAL_EMAIL, {
+    errorPolicy: 'all',
+  });
+
+  // Subscriptions
+  useSubscription(SOCIAL_AUTH_EVENTS, {
     onData: ({ data }) => {
-      if (data.data?.userSocialProviderEvents) {
-        handleSocialProviderEvent(data.data.userSocialProviderEvents);
+      if (data.data?.socialAuthEvents) {
+        const event = data.data.socialAuthEvents;
+        AuthEventEmitter.emit('social:auth_event', event);
+        
+        // Refresh providers on relevant events
+        if (['PROVIDER_LINKED', 'PROVIDER_UNLINKED'].includes(event.type)) {
+          refetchLinked();
+        }
       }
     },
   });
 
-  // Handle social provider events
-  const handleSocialProviderEvent = useCallback((event: AuthEvent) => {
-    switch (event.type) {
-      case 'SOCIAL_PROVIDER_LINKED':
-        AuthEventEmitter.emit('social:provider_linked', event.metadata?.provider);
-        refetchConnected();
-        break;
-      case 'SOCIAL_PROVIDER_UNLINKED':
-        AuthEventEmitter.emit('social:provider_unlinked', event.metadata?.provider);
-        refetchConnected();
-        break;
-      default:
-        console.log('Received social provider event:', event);
-    }
-  }, [refetchConnected]);
+  useSubscription(PROVIDER_STATUS_CHANGED, {
+    onData: ({ data }) => {
+      if (data.data?.providerStatusChanged) {
+        const event = data.data.providerStatusChanged;
+        AuthEventEmitter.emit('social:provider_status_changed', event);
+      }
+    },
+  });
 
-  // Generate OAuth authorization URL
-  const generateAuthUrl = useCallback(async (
-    provider: string,
-    tenantId?: string
-  ): Promise<SocialAuthUrlResponse> => {
+  // Update state when data changes
+  useEffect(() => {
+    setSocialAuthState(prev => ({
+      ...prev,
+      linkedProviders: linkedData?.linkedProviders || [],
+      isLoading: linkedLoading || availableLoading,
+    }));
+  }, [linkedData, linkedLoading, availableLoading]);
+
+  useEffect(() => {
+    setSocialAuthState(prev => ({
+      ...prev,
+      availableProviders: availableData?.availableProviders || [],
+    }));
+  }, [availableData]);
+
+  useEffect(() => {
+    setSocialAuthState(prev => ({
+      ...prev,
+      isLinking: linkLoading,
+      isUnlinking: unlinkLoading,
+      isLoading: loginLoading || linkLoading || unlinkLoading,
+    }));
+  }, [loginLoading, linkLoading, unlinkLoading]);
+
+  // Operations
+  const oauthLogin = useCallback(async (provider: string, tenantId: string): Promise<LoginResponse> => {
     try {
-      setSocialAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+      setSocialAuthState(prev => ({ ...prev, error: null, isLoading: true }));
 
-      const result = await generateAuthUrlMutation({
-        variables: { provider, tenantId },
+      // First get OAuth URL
+      const urlResult = await getOAuthUrlMutation({
+        variables: {
+          input: { provider, tenantId }
+        }
       });
 
-      if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
+      if (!urlResult.data?.getOAuthUrl?.url) {
+        throw new Error('Failed to get OAuth URL');
       }
 
-      const authData = result.data?.getSocialAuthUrl;
-      if (!authData) {
-        throw new Error('Failed to generate auth URL');
+      // Open OAuth popup
+      const popup = window.open(
+        urlResult.data.getOAuthUrl.url,
+        'oauth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups and try again.');
       }
 
-      setSocialAuthState(prev => ({
-        ...prev,
-        authUrl: authData.authUrl,
-        authState: authData.state,
-        isLoading: false,
-      }));
+      // Wait for OAuth callback
+      return new Promise((resolve, reject) => {
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            reject(new Error('OAuth cancelled'));
+          }
+        }, 1000);
 
-      return authData;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to generate auth URL';
+        // Listen for OAuth callback
+        const handleMessage = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+
+          if (event.data.type === 'OAUTH_SUCCESS') {
+            clearInterval(checkClosed);
+            popup.close();
+            window.removeEventListener('message', handleMessage);
+
+            // Complete OAuth login
+            oauthLoginMutation({
+              variables: {
+                input: {
+                  provider,
+                  code: event.data.code,
+                  state: event.data.state,
+                  tenantId,
+                }
+              }
+            }).then(result => {
+              if (result.data?.oauthLogin) {
+                resolve(result.data.oauthLogin);
+              } else {
+                reject(new Error('OAuth login failed'));
+              }
+            }).catch(reject);
+          } else if (event.data.type === 'OAUTH_ERROR') {
+            clearInterval(checkClosed);
+            popup.close();
+            window.removeEventListener('message', handleMessage);
+            reject(new Error(event.data.error || 'OAuth failed'));
+          }
+        };
+
+        window.addEventListener('message', handleMessage);
+      });
+    } catch (error) {
       setSocialAuthState(prev => ({
         ...prev,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'OAuth login failed',
         isLoading: false,
       }));
       throw error;
     }
-  }, [generateAuthUrlMutation]);
+  }, [getOAuthUrlMutation, oauthLoginMutation]);
 
-  // Link social provider
-  const linkProvider = useCallback(async (input: LinkSocialProviderInput): Promise<boolean> => {
+  const linkProvider = useCallback(async (provider: string): Promise<boolean> => {
     try {
-      setSocialAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+      setSocialAuthState(prev => ({ ...prev, error: null, isLinking: true }));
 
-      const result = await linkProviderMutation({
-        variables: { input },
+      // Get OAuth URL for linking
+      const urlResult = await getOAuthUrlMutation({
+        variables: {
+          input: { provider, action: 'link' }
+        }
       });
 
-      if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
+      if (!urlResult.data?.getOAuthUrl?.url) {
+        throw new Error('Failed to get OAuth URL');
       }
 
-      const response = result.data?.linkSocialProvider;
-      if (!response?.success) {
-        throw new Error(response?.message || 'Failed to link provider');
+      // Open OAuth popup
+      const popup = window.open(
+        urlResult.data.getOAuthUrl.url,
+        'oauth-link',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups and try again.');
       }
 
+      // Wait for OAuth callback
+      return new Promise((resolve, reject) => {
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            setSocialAuthState(prev => ({ ...prev, isLinking: false }));
+            reject(new Error('OAuth cancelled'));
+          }
+        }, 1000);
+
+        const handleMessage = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+
+          if (event.data.type === 'OAUTH_SUCCESS') {
+            clearInterval(checkClosed);
+            popup.close();
+            window.removeEventListener('message', handleMessage);
+
+            linkProviderMutation({
+              variables: {
+                input: {
+                  provider,
+                  code: event.data.code,
+                  state: event.data.state,
+                }
+              }
+            }).then(result => {
+              setSocialAuthState(prev => ({ ...prev, isLinking: false }));
+              resolve(result.data?.linkSocialProvider?.success || false);
+            }).catch(error => {
+              setSocialAuthState(prev => ({ ...prev, isLinking: false }));
+              reject(error);
+            });
+          } else if (event.data.type === 'OAUTH_ERROR') {
+            clearInterval(checkClosed);
+            popup.close();
+            window.removeEventListener('message', handleMessage);
+            setSocialAuthState(prev => ({ ...prev, isLinking: false }));
+            reject(new Error(event.data.error || 'OAuth failed'));
+          }
+        };
+
+        window.addEventListener('message', handleMessage);
+      });
+    } catch (error) {
       setSocialAuthState(prev => ({
         ...prev,
-        connectedProviders: response.connectedProviders,
-        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to link provider',
+        isLinking: false,
       }));
-
-      // Refresh connected providers
-      await refetchConnected();
-
-      return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to link provider';
-      setSocialAuthState(prev => ({
-        ...prev,
-        error: errorMessage,
-        isLoading: false,
-      }));
-      return false;
+      throw error;
     }
-  }, [linkProviderMutation, refetchConnected]);
+  }, [getOAuthUrlMutation, linkProviderMutation]);
 
-  // Unlink social provider
   const unlinkProvider = useCallback(async (provider: string): Promise<boolean> => {
     try {
-      setSocialAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+      setSocialAuthState(prev => ({ ...prev, error: null, isUnlinking: true }));
 
       const result = await unlinkProviderMutation({
-        variables: { input: { provider } },
+        variables: { provider }
       });
 
-      if (result.errors && result.errors.length > 0) {
-        throw new Error(result.errors[0]?.message || 'Unknown error occurred');
-      }
-
-      const response = result.data?.unlinkSocialProvider;
-      if (!response?.success) {
-        throw new Error(response?.message || 'Failed to unlink provider');
-      }
-
+      return result.data?.unlinkSocialProvider?.success || false;
+    } catch (error) {
       setSocialAuthState(prev => ({
         ...prev,
-        connectedProviders: response.connectedProviders,
-        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to unlink provider',
+        isUnlinking: false,
       }));
-
-      // Refresh connected providers
-      await refetchConnected();
-
-      return true;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to unlink provider';
-      setSocialAuthState(prev => ({
-        ...prev,
-        error: errorMessage,
-        isLoading: false,
-      }));
-      return false;
+      throw error;
     }
-  }, [unlinkProviderMutation, refetchConnected]);
+  }, [unlinkProviderMutation]);
 
-  // Check if provider is available
-  const isProviderAvailable = useCallback(async (provider: string): Promise<boolean> => {
+  const refreshProviderToken = useCallback(async (provider: string): Promise<boolean> => {
     try {
-      const result = await checkProviderAvailabilityMutation({
-        variables: { provider },
+      const result = await refreshTokenMutation({
+        variables: { provider }
       });
 
-      return result.data?.isSocialProviderAvailable || false;
+      return result.data?.refreshSocialToken?.success || false;
     } catch (error) {
-      console.error('Failed to check provider availability:', error);
-      return false;
+      setSocialAuthState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Failed to refresh token' }));
+      throw error;
     }
-  }, [checkProviderAvailabilityMutation]);
+  }, [refreshTokenMutation]);
 
-  // Refresh connected providers
-  const refreshConnectedProviders = useCallback(async (): Promise<void> => {
+  const verifyProviderEmail = useCallback(async (provider: string, email: string): Promise<boolean> => {
     try {
-      await refetchConnected();
-    } catch (error) {
-      console.error('Failed to refresh connected providers:', error);
-    }
-  }, [refetchConnected]);
+      const result = await verifyEmailMutation({
+        variables: {
+          input: { provider, email }
+        }
+      });
 
-  // Clear error
+      return result.data?.verifySocialEmail?.success || false;
+    } catch (error) {
+      setSocialAuthState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Failed to verify email' }));
+      throw error;
+    }
+  }, [verifyEmailMutation]);
+
+  const getOAuthUrl = useCallback(async (provider: string, tenantId: string): Promise<string> => {
+    try {
+      const result = await getOAuthUrlMutation({
+        variables: {
+          input: { provider, tenantId }
+        }
+      });
+
+      return result.data?.getOAuthUrl?.url || '';
+    } catch (error) {
+      setSocialAuthState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Failed to get OAuth URL' }));
+      throw error;
+    }
+  }, [getOAuthUrlMutation]);
+
+  const refreshProviders = useCallback(async (): Promise<void> => {
+    try {
+      await refetchLinked();
+    } catch (error) {
+      setSocialAuthState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Failed to refresh providers' }));
+    }
+  }, [refetchLinked]);
+
   const clearError = useCallback(() => {
     setSocialAuthState(prev => ({ ...prev, error: null }));
   }, []);
 
-  // Clear auth URL
-  const clearAuthUrl = useCallback(() => {
-    setSocialAuthState(prev => ({ ...prev, authUrl: null, authState: null }));
-  }, []);
-
   // Utility functions
-  const isProviderConnected = useCallback((provider: string): boolean => {
-    return socialAuthState.connectedProviders.some(p => p.provider === provider);
-  }, [socialAuthState.connectedProviders]);
+  const isProviderLinked = useCallback((provider: string): boolean => {
+    return socialAuthState.linkedProviders.some(p => p.provider === provider);
+  }, [socialAuthState.linkedProviders]);
 
-  const getProviderInfo = useCallback((provider: string): SocialProvider | null => {
-    return socialAuthState.connectedProviders.find(p => p.provider === provider) || null;
-  }, [socialAuthState.connectedProviders]);
+  const getLinkedProvider = useCallback((provider: string): SocialProvider | null => {
+    return socialAuthState.linkedProviders.find(p => p.provider === provider) || null;
+  }, [socialAuthState.linkedProviders]);
+
+  const getProviderInfo = useCallback((provider: string): unknown => {
+    return (socialAuthState.availableProviders as Array<{provider: string}>).find(p => p.provider === provider) || null;
+  }, [socialAuthState.availableProviders]);
 
   const canLinkProvider = useCallback((provider: string): boolean => {
-    return socialAuthState.supportedProviders.includes(provider) && 
-           !isProviderConnected(provider);
-  }, [socialAuthState.supportedProviders, isProviderConnected]);
+    const providerInfo = getProviderInfo(provider) as { enabled?: boolean } | null;
+    return Boolean(providerInfo?.enabled) && !isProviderLinked(provider);
+  }, [getProviderInfo, isProviderLinked]);
 
-  const getProviderDisplayName = useCallback((provider: string): string => {
-    const displayNames: Record<string, string> = {
-      google: 'Google',
-      facebook: 'Facebook',
-      github: 'GitHub',
-      twitter: 'Twitter',
-      linkedin: 'LinkedIn',
-      microsoft: 'Microsoft',
-    };
-    
-    return displayNames[provider.toLowerCase()] || provider;
-  }, []);
+  const canUnlinkProvider = useCallback((provider: string): boolean => {
+    return isProviderLinked(provider) && socialAuthState.linkedProviders.length > 1;
+  }, [isProviderLinked, socialAuthState.linkedProviders.length]);
 
-  // Update state when data changes
-  React.useEffect(() => {
-    if (connectedData?.getConnectedSocialProviders) {
-      setSocialAuthState(prev => ({
-        ...prev,
-        connectedProviders: connectedData.getConnectedSocialProviders,
-      }));
-    }
-  }, [connectedData]);
-
-  React.useEffect(() => {
-    if (supportedData?.getSupportedSocialProviders) {
-      setSocialAuthState(prev => ({
-        ...prev,
-        supportedProviders: supportedData.getSupportedSocialProviders,
-      }));
-    }
-  }, [supportedData]);
+  // Computed properties
+  const linkedProviderCount = socialAuthState.linkedProviders.length;
+  const hasLinkedProviders = linkedProviderCount > 0;
+  const availableProviderCount = socialAuthState.availableProviders.length;
 
   return {
     // State
     ...socialAuthState,
-    isLoading: socialAuthState.isLoading || 
-               connectedLoading || 
-               supportedLoading || 
-               authUrlLoading || 
-               linkLoading || 
-               unlinkLoading,
 
     // Operations
-    generateAuthUrl,
+    oauthLogin,
     linkProvider,
     unlinkProvider,
-    isProviderAvailable,
-    refreshConnectedProviders,
+    refreshProviderToken,
+    verifyProviderEmail,
+    getOAuthUrl,
+    refreshProviders,
     clearError,
-    clearAuthUrl,
 
     // Utilities
-    isProviderConnected,
+    isProviderLinked,
+    getLinkedProvider,
     getProviderInfo,
     canLinkProvider,
-    getProviderDisplayName,
+    canUnlinkProvider,
+
+    // Computed properties
+    linkedProviderCount,
+    hasLinkedProviders,
+    availableProviderCount,
   };
 }

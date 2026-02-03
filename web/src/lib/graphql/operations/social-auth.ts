@@ -1,10 +1,10 @@
 import { gql } from '@apollo/client';
+import { LOGIN_RESPONSE_FRAGMENT } from './auth';
 
 /**
  * Social Authentication GraphQL Operations
  * 
- * All social authentication-related queries and mutations
- * for OAuth provider management.
+ * Queries and mutations for OAuth providers (Google, Facebook, GitHub).
  */
 
 // Fragments
@@ -13,92 +13,125 @@ export const SOCIAL_PROVIDER_FRAGMENT = gql`
     provider
     providerId
     email
-    connectedAt
+    name
+    avatar
+    linkedAt
     lastUsedAt
+    isVerified
   }
 `;
 
-export const SOCIAL_AUTH_RESPONSE_FRAGMENT = gql`
-  fragment SocialAuthResponseFragment on SocialAuthResponse {
-    success
-    message
-    connectedProviders {
-      ...SocialProviderFragment
-    }
-  }
-  ${SOCIAL_PROVIDER_FRAGMENT}
-`;
-
-export const SOCIAL_AUTH_URL_RESPONSE_FRAGMENT = gql`
-  fragment SocialAuthUrlResponseFragment on SocialAuthUrlResponse {
-    authUrl
+export const OAUTH_URL_FRAGMENT = gql`
+  fragment OAuthUrlFragment on OAuthUrlResponse {
+    url
     state
     provider
-    tenantId
+    expiresAt
   }
 `;
 
 // Queries
-export const GET_SOCIAL_AUTH_URL = gql`
-  query GetSocialAuthUrl($provider: String!, $tenantId: String) {
-    getSocialAuthUrl(provider: $provider, tenantId: $tenantId) {
-      ...SocialAuthUrlResponseFragment
-    }
-  }
-  ${SOCIAL_AUTH_URL_RESPONSE_FRAGMENT}
-`;
-
-export const GET_CONNECTED_SOCIAL_PROVIDERS = gql`
-  query GetConnectedSocialProviders {
-    getConnectedSocialProviders {
+export const GET_LINKED_PROVIDERS = gql`
+  query GetLinkedProviders {
+    linkedProviders {
       ...SocialProviderFragment
     }
   }
   ${SOCIAL_PROVIDER_FRAGMENT}
 `;
 
-export const IS_SOCIAL_PROVIDER_AVAILABLE = gql`
-  query IsSocialProviderAvailable($provider: String!) {
-    isSocialProviderAvailable(provider: $provider)
+export const GET_OAUTH_URL = gql`
+  query GetOAuthUrl($input: GetOAuthUrlInput!) {
+    getOAuthUrl(input: $input) {
+      ...OAuthUrlFragment
+    }
   }
+  ${OAUTH_URL_FRAGMENT}
 `;
 
-export const GET_SUPPORTED_SOCIAL_PROVIDERS = gql`
-  query GetSupportedSocialProviders {
-    getSupportedSocialProviders
+export const GET_AVAILABLE_PROVIDERS = gql`
+  query GetAvailableProviders {
+    availableProviders {
+      provider
+      name
+      icon
+      enabled
+      requiresVerification
+    }
   }
 `;
 
 // Mutations
+export const OAUTH_LOGIN = gql`
+  mutation OAuthLogin($input: OAuthLoginInput!) {
+    oauthLogin(input: $input) {
+      ...LoginResponseFragment
+    }
+  }
+  ${LOGIN_RESPONSE_FRAGMENT}
+`;
+
 export const LINK_SOCIAL_PROVIDER = gql`
   mutation LinkSocialProvider($input: LinkSocialProviderInput!) {
     linkSocialProvider(input: $input) {
-      ...SocialAuthResponseFragment
+      success
+      message
+      provider {
+        ...SocialProviderFragment
+      }
     }
   }
-  ${SOCIAL_AUTH_RESPONSE_FRAGMENT}
+  ${SOCIAL_PROVIDER_FRAGMENT}
 `;
 
 export const UNLINK_SOCIAL_PROVIDER = gql`
-  mutation UnlinkSocialProvider($input: UnlinkSocialProviderInput!) {
-    unlinkSocialProvider(input: $input) {
-      ...SocialAuthResponseFragment
+  mutation UnlinkSocialProvider($provider: String!) {
+    unlinkSocialProvider(provider: $provider) {
+      success
+      message
     }
   }
-  ${SOCIAL_AUTH_RESPONSE_FRAGMENT}
+`;
+
+export const REFRESH_SOCIAL_TOKEN = gql`
+  mutation RefreshSocialToken($provider: String!) {
+    refreshSocialToken(provider: $provider) {
+      success
+      message
+      expiresAt
+    }
+  }
+`;
+
+export const VERIFY_SOCIAL_EMAIL = gql`
+  mutation VerifySocialEmail($input: VerifySocialEmailInput!) {
+    verifySocialEmail(input: $input) {
+      success
+      message
+    }
+  }
 `;
 
 // Subscriptions
-export const USER_SOCIAL_PROVIDER_EVENTS = gql`
-  subscription UserSocialProviderEvents {
-    userSocialProviderEvents {
+export const SOCIAL_AUTH_EVENTS = gql`
+  subscription SocialAuthEvents {
+    socialAuthEvents {
       type
-      userId
-      tenantId
+      provider
       timestamp
       metadata
-      description
-      severity
+      userId
+    }
+  }
+`;
+
+export const PROVIDER_STATUS_CHANGED = gql`
+  subscription ProviderStatusChanged {
+    providerStatusChanged {
+      provider
+      status
+      timestamp
+      reason
     }
   }
 `;

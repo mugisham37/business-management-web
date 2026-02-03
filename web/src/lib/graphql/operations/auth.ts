@@ -3,8 +3,7 @@ import { gql } from '@apollo/client';
 /**
  * Authentication GraphQL Operations
  * 
- * All authentication-related queries, mutations, and subscriptions
- * with comprehensive error handling and type safety.
+ * Queries and mutations for user authentication, registration, and session management.
  */
 
 // Fragments
@@ -43,17 +42,6 @@ export const LOGIN_RESPONSE_FRAGMENT = gql`
   ${AUTH_USER_FRAGMENT}
 `;
 
-export const MUTATION_RESPONSE_FRAGMENT = gql`
-  fragment MutationResponseFragment on MutationResponse {
-    success
-    message
-    errors {
-      message
-      timestamp
-    }
-  }
-`;
-
 // Queries
 export const GET_CURRENT_USER = gql`
   query GetCurrentUser {
@@ -64,26 +52,18 @@ export const GET_CURRENT_USER = gql`
   ${AUTH_USER_FRAGMENT}
 `;
 
-export const REQUIRES_MFA = gql`
-  query RequiresMfa($email: String!) {
-    requiresMfa(email: $email) {
-      requiresMfa
-      userId
-      availableMethods
+export const GET_AUTH_STATUS = gql`
+  query GetAuthStatus {
+    authStatus {
+      isAuthenticated
+      user {
+        ...AuthUserFragment
+      }
+      sessionExpiresAt
+      requiresRefresh
     }
   }
-`;
-
-export const VALIDATE_SESSION = gql`
-  query ValidateSession {
-    validateSession
-  }
-`;
-
-export const GET_SECURITY_STATUS = gql`
-  query GetSecurityStatus {
-    getSecurityStatus
-  }
+  ${AUTH_USER_FRAGMENT}
 `;
 
 // Mutations
@@ -105,15 +85,6 @@ export const LOGIN_WITH_MFA = gql`
   ${LOGIN_RESPONSE_FRAGMENT}
 `;
 
-export const OAUTH_LOGIN = gql`
-  mutation OAuthLogin($input: OAuthLoginInput!) {
-    oauthLogin(input: $input) {
-      ...LoginResponseFragment
-    }
-  }
-  ${LOGIN_RESPONSE_FRAGMENT}
-`;
-
 export const REGISTER = gql`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
@@ -126,19 +97,10 @@ export const REGISTER = gql`
 export const LOGOUT = gql`
   mutation Logout {
     logout {
-      ...MutationResponseFragment
+      success
+      message
     }
   }
-  ${MUTATION_RESPONSE_FRAGMENT}
-`;
-
-export const LOGOUT_ALL_SESSIONS = gql`
-  mutation LogoutAllSessions {
-    logoutAllSessions {
-      ...MutationResponseFragment
-    }
-  }
-  ${MUTATION_RESPONSE_FRAGMENT}
 `;
 
 export const REFRESH_TOKEN = gql`
@@ -153,31 +115,49 @@ export const REFRESH_TOKEN = gql`
   }
 `;
 
-export const CHANGE_PASSWORD = gql`
-  mutation ChangePassword($input: ChangePasswordInput!) {
-    changePassword(input: $input) {
-      ...MutationResponseFragment
-    }
-  }
-  ${MUTATION_RESPONSE_FRAGMENT}
-`;
-
 export const FORGOT_PASSWORD = gql`
-  mutation ForgotPassword($input: ForgotPasswordInput!) {
-    forgotPassword(input: $input) {
-      ...MutationResponseFragment
+  mutation ForgotPassword($email: String!) {
+    forgotPassword(email: $email) {
+      success
+      message
     }
   }
-  ${MUTATION_RESPONSE_FRAGMENT}
 `;
 
 export const RESET_PASSWORD = gql`
   mutation ResetPassword($input: ResetPasswordInput!) {
     resetPassword(input: $input) {
-      ...MutationResponseFragment
+      success
+      message
     }
   }
-  ${MUTATION_RESPONSE_FRAGMENT}
+`;
+
+export const CHANGE_PASSWORD = gql`
+  mutation ChangePassword($input: ChangePasswordInput!) {
+    changePassword(input: $input) {
+      success
+      message
+    }
+  }
+`;
+
+export const VERIFY_EMAIL = gql`
+  mutation VerifyEmail($token: String!) {
+    verifyEmail(token: $token) {
+      success
+      message
+    }
+  }
+`;
+
+export const RESEND_VERIFICATION = gql`
+  mutation ResendVerification($email: String!) {
+    resendVerification(email: $email) {
+      success
+      message
+    }
+  }
 `;
 
 // Subscriptions
@@ -185,44 +165,37 @@ export const USER_AUTH_EVENTS = gql`
   subscription UserAuthEvents {
     userAuthEvents {
       type
-      userId
-      tenantId
       timestamp
       metadata
-      ipAddress
-      userAgent
-      description
-      severity
+      user {
+        ...AuthUserFragment
+      }
     }
   }
+  ${AUTH_USER_FRAGMENT}
 `;
 
 export const USER_SESSION_EVENTS = gql`
   subscription UserSessionEvents {
     userSessionEvents {
       type
-      userId
-      tenantId
+      sessionId
       timestamp
       metadata
-      description
-      severity
     }
   }
 `;
 
-export const SECURITY_ALERTS = gql`
-  subscription SecurityAlerts {
-    securityAlerts {
-      type
-      userId
-      tenantId
+export const AUTH_STATUS_CHANGED = gql`
+  subscription AuthStatusChanged {
+    authStatusChanged {
+      isAuthenticated
+      user {
+        ...AuthUserFragment
+      }
+      reason
       timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
-      severity
     }
   }
+  ${AUTH_USER_FRAGMENT}
 `;

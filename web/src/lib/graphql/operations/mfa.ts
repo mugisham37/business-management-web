@@ -3,25 +3,27 @@ import { gql } from '@apollo/client';
 /**
  * Multi-Factor Authentication GraphQL Operations
  * 
- * All MFA-related queries, mutations, and subscriptions
- * for comprehensive MFA management.
+ * Queries and mutations for MFA setup, verification, and management.
  */
 
 // Fragments
-export const MFA_SETUP_RESPONSE_FRAGMENT = gql`
-  fragment MfaSetupResponseFragment on MfaSetupResponse {
-    secret
-    qrCodeUrl
-    backupCodes
-    manualEntryKey
+export const MFA_STATUS_FRAGMENT = gql`
+  fragment MfaStatusFragment on MfaStatusResponse {
+    isEnabled
+    hasBackupCodes
+    backupCodesCount
+    lastUsedAt
+    setupAt
+    methods
   }
 `;
 
-export const MFA_STATUS_RESPONSE_FRAGMENT = gql`
-  fragment MfaStatusResponseFragment on MfaStatusResponse {
-    enabled
-    backupCodesCount
-    hasSecret
+export const MFA_SETUP_FRAGMENT = gql`
+  fragment MfaSetupFragment on MfaSetupResponse {
+    secret
+    qrCodeUrl
+    backupCodes
+    setupToken
   }
 `;
 
@@ -29,10 +31,10 @@ export const MFA_STATUS_RESPONSE_FRAGMENT = gql`
 export const GET_MFA_STATUS = gql`
   query GetMfaStatus {
     mfaStatus {
-      ...MfaStatusResponseFragment
+      ...MfaStatusFragment
     }
   }
-  ${MFA_STATUS_RESPONSE_FRAGMENT}
+  ${MFA_STATUS_FRAGMENT}
 `;
 
 export const IS_MFA_ENABLED = gql`
@@ -41,14 +43,25 @@ export const IS_MFA_ENABLED = gql`
   }
 `;
 
+export const GET_MFA_BACKUP_CODES = gql`
+  query GetMfaBackupCodes {
+    mfaBackupCodes {
+      codes
+      generatedAt
+      usedCount
+      totalCount
+    }
+  }
+`;
+
 // Mutations
 export const GENERATE_MFA_SETUP = gql`
   mutation GenerateMfaSetup {
     generateMfaSetup {
-      ...MfaSetupResponseFragment
+      ...MfaSetupFragment
     }
   }
-  ${MFA_SETUP_RESPONSE_FRAGMENT}
+  ${MFA_SETUP_FRAGMENT}
 `;
 
 export const ENABLE_MFA = gql`
@@ -56,10 +69,7 @@ export const ENABLE_MFA = gql`
     enableMfa(input: $input) {
       success
       message
-      errors {
-        message
-        timestamp
-      }
+      backupCodes
     }
   }
 `;
@@ -69,10 +79,6 @@ export const DISABLE_MFA = gql`
     disableMfa(input: $input) {
       success
       message
-      errors {
-        message
-        timestamp
-      }
     }
   }
 `;
@@ -82,17 +88,36 @@ export const VERIFY_MFA_TOKEN = gql`
     verifyMfaToken(input: $input) {
       success
       message
-      errors {
-        message
-        timestamp
-      }
+      isValid
     }
   }
 `;
 
 export const GENERATE_BACKUP_CODES = gql`
   mutation GenerateBackupCodes($input: GenerateBackupCodesInput!) {
-    generateBackupCodes(input: $input)
+    generateBackupCodes(input: $input) {
+      codes
+      message
+    }
+  }
+`;
+
+export const USE_BACKUP_CODE = gql`
+  mutation UseBackupCode($input: UseBackupCodeInput!) {
+    useBackupCode(input: $input) {
+      success
+      message
+      remainingCodes
+    }
+  }
+`;
+
+export const RESET_MFA = gql`
+  mutation ResetMfa($input: ResetMfaInput!) {
+    resetMfa(input: $input) {
+      success
+      message
+    }
   }
 `;
 
@@ -101,12 +126,20 @@ export const USER_MFA_EVENTS = gql`
   subscription UserMfaEvents {
     userMfaEvents {
       type
-      userId
-      tenantId
       timestamp
       metadata
-      description
-      severity
+      userId
+    }
+  }
+`;
+
+export const MFA_STATUS_CHANGED = gql`
+  subscription MfaStatusChanged {
+    mfaStatusChanged {
+      isEnabled
+      timestamp
+      reason
+      metadata
     }
   }
 `;

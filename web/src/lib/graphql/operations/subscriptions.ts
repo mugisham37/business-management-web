@@ -1,182 +1,86 @@
 import { gql } from '@apollo/client';
 
 /**
- * All GraphQL Subscriptions
+ * Subscription GraphQL Operations
  * 
- * Centralized subscription operations for real-time updates
- * across authentication, permissions, security, and other events.
+ * Real-time subscriptions for authentication, security, and system events.
  */
 
-// Authentication Subscriptions
-export const TENANT_AUTH_EVENTS = gql`
-  subscription TenantAuthEvents {
-    tenantAuthEvents {
+// Re-export all subscription operations from individual modules
+export {
+  USER_AUTH_EVENTS,
+  USER_SESSION_EVENTS,
+  AUTH_STATUS_CHANGED,
+} from './auth';
+
+export {
+  USER_MFA_EVENTS,
+  MFA_STATUS_CHANGED,
+} from './mfa';
+
+export {
+  USER_RISK_EVENTS,
+  SECURITY_ALERTS,
+  DEVICE_TRUST_CHANGED,
+  SESSION_EVENTS,
+} from './security';
+
+export {
+  USER_PERMISSION_EVENTS,
+  TENANT_ROLE_EVENTS,
+  PERMISSION_CHANGES,
+} from './permissions';
+
+export {
+  SOCIAL_AUTH_EVENTS,
+  PROVIDER_STATUS_CHANGED,
+} from './social-auth';
+
+export {
+  TIER_CHANGED,
+  FEATURE_USAGE_UPDATED,
+  SUBSCRIPTION_STATUS_CHANGED,
+  TRIAL_EXPIRING,
+} from './tier';
+
+// Global system subscriptions
+export const SYSTEM_NOTIFICATIONS = gql`
+  subscription SystemNotifications {
+    systemNotifications {
+      id
       type
-      userId
-      tenantId
-      timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
+      title
+      message
       severity
+      timestamp
+      actionRequired
+      metadata
     }
   }
 `;
 
-export const ALL_TENANT_AUTH_EVENTS = gql`
-  subscription AllTenantAuthEvents {
-    allTenantAuthEvents {
+export const USER_NOTIFICATIONS = gql`
+  subscription UserNotifications {
+    userNotifications {
+      id
       type
-      userId
-      tenantId
+      title
+      message
+      read
       timestamp
+      actionUrl
       metadata
-      ipAddress
-      userAgent
-      description
-      severity
     }
   }
 `;
 
-export const USER_EVENTS = gql`
-  subscription UserEvents($userId: String!) {
-    userEvents(userId: $userId) {
+export const TENANT_EVENTS = gql`
+  subscription TenantEvents {
+    tenantEvents {
       type
-      userId
       tenantId
       timestamp
       metadata
-      ipAddress
-      userAgent
-      description
-      severity
-    }
-  }
-`;
-
-// Combined subscription for all user-specific events
-export const ALL_USER_EVENTS = gql`
-  subscription AllUserEvents {
-    userAuthEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
-      severity
-    }
-    userPermissionEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-    userMfaEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-    userSessionEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-    userSocialProviderEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-    userRiskEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-  }
-`;
-
-// Security-focused subscriptions
-export const ALL_SECURITY_EVENTS = gql`
-  subscription AllSecurityEvents {
-    securityAlerts {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
-      severity
-    }
-    userRiskEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-  }
-`;
-
-// Admin-level subscriptions for monitoring
-export const ADMIN_MONITORING_EVENTS = gql`
-  subscription AdminMonitoringEvents {
-    tenantAuthEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
-      severity
-    }
-    tenantRoleEvents {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      description
-      severity
-    }
-    securityAlerts {
-      type
-      userId
-      tenantId
-      timestamp
-      metadata
-      ipAddress
-      userAgent
-      description
-      severity
     }
   }
 `;

@@ -6,7 +6,7 @@ import { apolloClient } from '../graphql/client';
 import { AuthEventEmitter } from '../auth/auth-events';
 import { TokenManager } from '../auth/token-manager';
 import { useAuth } from '../hooks/auth/useAuth';
-import type { AuthUser } from '../graphql/generated/types';
+import type { AuthUser, LoginInput, RegisterInput, LoginResponse } from '../graphql/generated/types';
 
 /**
  * Authentication Provider
@@ -31,9 +31,9 @@ interface AuthContextValue {
   isInitialized: boolean;
 
   // Authentication operations
-  login: (input: any) => Promise<any>;
+  login: (input: LoginInput) => Promise<LoginResponse>;
   logout: () => Promise<void>;
-  register: (input: any) => Promise<any>;
+  register: (input: RegisterInput) => Promise<LoginResponse>;
   refreshToken: () => Promise<boolean>;
   clearError: () => void;
 
@@ -98,7 +98,7 @@ function AuthProviderInner({ children }: AuthProviderProps) {
 
   // Handle authentication events
   useEffect(() => {
-    const handleLogin = (user: AuthUser) => {
+    const handleLogin = (user: { id: string; email: string; [key: string]: unknown }) => {
       console.log('User logged in:', user.email);
     };
 

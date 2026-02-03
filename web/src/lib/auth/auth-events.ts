@@ -12,18 +12,54 @@ import { EventEmitter } from 'events';
  * - Session events
  */
 
+// Token data interface
+interface TokenData {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+}
+
+// User data interface
+interface UserData {
+  id: string;
+  email: string;
+  [key: string]: unknown;
+}
+
+// Security activity data interface
+export interface SecurityActivityData {
+  type: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
+// Social auth event data interface
+interface SocialAuthEventData {
+  type: string;
+  provider?: string;
+  [key: string]: unknown;
+}
+
+// Provider status data interface
+interface ProviderStatusData {
+  provider: string;
+  status: string;
+  [key: string]: unknown;
+}
+
 interface AuthEvents {
   // Token events
-  'tokens:updated': (tokens: any) => void;
-  'tokens:refreshed': (tokens: any) => void;
-  'tokens:refresh_failed': (error: any) => void;
+  'tokens:updated': (tokens: TokenData) => void;
+  'tokens:refreshed': (tokens: TokenData) => void;
+  'tokens:refresh_failed': (error: Error | { message: string }) => void;
   'tokens:cleared': () => void;
-  'tokens:synced': (tokens: any) => void;
+  'tokens:synced': (tokens: TokenData) => void;
 
   // Authentication events
-  'auth:login': (user: any) => void;
+  'auth:login': (user: UserData) => void;
   'auth:logout': (reason?: { reason: string }) => void;
-  'auth:register': (user: any) => void;
+  'auth:register': (user: UserData) => void;
   'auth:session_expired': () => void;
   'auth:permission_denied': (data: { operation?: string; error: string }) => void;
 
@@ -36,7 +72,7 @@ interface AuthEvents {
   // Security events
   'security:risk_score_changed': (data: { score: number; level: string }) => void;
   'security:device_trust_changed': (data: { trusted: boolean; score: number }) => void;
-  'security:suspicious_activity': (data: any) => void;
+  'security:suspicious_activity': (data: SecurityActivityData) => void;
   'security:account_locked': () => void;
   'security:account_unlocked': () => void;
 
@@ -49,6 +85,8 @@ interface AuthEvents {
   // Social auth events
   'social:provider_linked': (provider: string) => void;
   'social:provider_unlinked': (provider: string) => void;
+  'social:auth_event': (data: SocialAuthEventData) => void;
+  'social:provider_status_changed': (data: ProviderStatusData) => void;
 
   // Session events
   'session:created': (sessionId: string) => void;
@@ -66,6 +104,9 @@ interface AuthEvents {
   'network:reconnected': () => void;
 }
 
+// Export the type for AuthEventType
+export type AuthEventType = keyof AuthEvents;
+
 class AuthEventEmitterClass extends EventEmitter {
   private static instance: AuthEventEmitterClass;
 
@@ -82,14 +123,14 @@ class AuthEventEmitterClass extends EventEmitter {
   }
 
   // Type-safe event emission with proper overloads
-  emit(event: 'tokens:updated', tokens: any): boolean;
-  emit(event: 'tokens:refreshed', tokens: any): boolean;
-  emit(event: 'tokens:refresh_failed', error: any): boolean;
+  emit(event: 'tokens:updated', tokens: TokenData): boolean;
+  emit(event: 'tokens:refreshed', tokens: TokenData): boolean;
+  emit(event: 'tokens:refresh_failed', error: Error | { message: string }): boolean;
   emit(event: 'tokens:cleared'): boolean;
-  emit(event: 'tokens:synced', tokens: any): boolean;
-  emit(event: 'auth:login', user: any): boolean;
+  emit(event: 'tokens:synced', tokens: TokenData): boolean;
+  emit(event: 'auth:login', user: UserData): boolean;
   emit(event: 'auth:logout', reason?: { reason: string }): boolean;
-  emit(event: 'auth:register', user: any): boolean;
+  emit(event: 'auth:register', user: UserData): boolean;
   emit(event: 'auth:session_expired'): boolean;
   emit(event: 'auth:permission_denied', data: { operation?: string; error: string }): boolean;
   emit(event: 'auth:mfa_required', data: { mfaToken?: string; userId?: string }): boolean;
@@ -98,7 +139,7 @@ class AuthEventEmitterClass extends EventEmitter {
   emit(event: 'auth:mfa_verified'): boolean;
   emit(event: 'security:risk_score_changed', data: { score: number; level: string }): boolean;
   emit(event: 'security:device_trust_changed', data: { trusted: boolean; score: number }): boolean;
-  emit(event: 'security:suspicious_activity', data: any): boolean;
+  emit(event: 'security:suspicious_activity', data: SecurityActivityData): boolean;
   emit(event: 'security:account_locked'): boolean;
   emit(event: 'security:account_unlocked'): boolean;
   emit(event: 'permissions:updated', permissions: string[]): boolean;
@@ -107,6 +148,8 @@ class AuthEventEmitterClass extends EventEmitter {
   emit(event: 'role:assigned', role: string): boolean;
   emit(event: 'social:provider_linked', provider: string): boolean;
   emit(event: 'social:provider_unlinked', provider: string): boolean;
+  emit(event: 'social:auth_event', data: SocialAuthEventData): boolean;
+  emit(event: 'social:provider_status_changed', data: ProviderStatusData): boolean;
   emit(event: 'session:created', sessionId: string): boolean;
   emit(event: 'session:expired', sessionId: string): boolean;
   emit(event: 'session:revoked', sessionId: string): boolean;
@@ -116,7 +159,7 @@ class AuthEventEmitterClass extends EventEmitter {
   emit(event: 'network:online'): boolean;
   emit(event: 'network:offline'): boolean;
   emit(event: 'network:reconnected'): boolean;
-  emit<K extends keyof AuthEvents>(event: K, ...args: any[]): boolean {
+  emit<K extends keyof AuthEvents>(event: K, ...args: Parameters<AuthEvents[K]>): boolean {
     return super.emit(event as string, ...args);
   }
 
@@ -150,9 +193,10 @@ class AuthEventEmitterClass extends EventEmitter {
       
       // Clear any cached data
       if (typeof window !== 'undefined') {
-        // Clear Apollo cache
-        const { apolloClient } = require('../graphql/client');
-        apolloClient.clearStore();
+        // Clear Apollo cache using dynamic import
+        import('../graphql/client').then(({ apolloClient }) => {
+          apolloClient.clearStore();
+        });
         
         // Redirect to login page
         window.location.href = '/auth';
@@ -217,9 +261,11 @@ class AuthEventEmitterClass extends EventEmitter {
   enableDebugMode(): void {
     const originalEmit = this.emit.bind(this);
     
-    this.emit = function(event: string, ...args: any[]): boolean {
-      console.log(`[AuthEvent] ${event}:`, args.length > 0 ? args : '(no args)');
-      return originalEmit(event as any, ...args);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this as any).emit = function<K extends keyof AuthEvents>(event: K, ...args: Parameters<AuthEvents[K]>): boolean {
+      console.log(`[AuthEvent] ${String(event)}:`, args.length > 0 ? args : '(no args)');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (originalEmit as any)(event, ...args);
     };
   }
 

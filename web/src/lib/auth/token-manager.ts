@@ -197,7 +197,8 @@ class TokenManagerClass {
     } catch (error) {
       console.error('Token refresh failed:', error);
       this.clearTokens();
-      AuthEventEmitter.emit('tokens:refresh_failed', { error });
+      const errorMessage = error instanceof Error ? error : { message: 'Token refresh failed' };
+      AuthEventEmitter.emit('tokens:refresh_failed', errorMessage);
       return false;
     }
   }
@@ -322,14 +323,15 @@ class TokenManagerClass {
   /**
    * Validate token data structure
    */
-  private isValidTokenData(data: any): data is TokenData {
+  private isValidTokenData(data: unknown): data is TokenData {
+    if (!data || typeof data !== 'object') return false;
+    const tokenData = data as Record<string, unknown>;
     return (
-      data &&
-      typeof data.accessToken === 'string' &&
-      typeof data.refreshToken === 'string' &&
-      typeof data.expiresIn === 'number' &&
-      typeof data.tokenType === 'string' &&
-      typeof data.issuedAt === 'number'
+      typeof tokenData.accessToken === 'string' &&
+      typeof tokenData.refreshToken === 'string' &&
+      typeof tokenData.expiresIn === 'number' &&
+      typeof tokenData.tokenType === 'string' &&
+      typeof tokenData.issuedAt === 'number'
     );
   }
 

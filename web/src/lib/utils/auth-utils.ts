@@ -107,12 +107,11 @@ export function validatePhoneNumber(phone: string): boolean {
  * Role hierarchy utilities
  */
 const ROLE_HIERARCHY: Record<UserRole, number> = {
-  [UserRole.SUPER_ADMIN]: 6,
-  [UserRole.TENANT_ADMIN]: 5,
-  [UserRole.MANAGER]: 4,
-  [UserRole.EMPLOYEE]: 3,
-  [UserRole.CUSTOMER]: 2,
-  [UserRole.READONLY]: 1,
+  [UserRole.SUPER_ADMIN]: 5,
+  [UserRole.TENANT_ADMIN]: 4,
+  [UserRole.MANAGER]: 3,
+  [UserRole.EMPLOYEE]: 2,
+  [UserRole.VIEWER]: 1,
 };
 
 export function getRoleLevel(role: UserRole): number {
@@ -129,8 +128,7 @@ export function getRoleDisplayName(role: UserRole): string {
     [UserRole.TENANT_ADMIN]: 'Administrator',
     [UserRole.MANAGER]: 'Manager',
     [UserRole.EMPLOYEE]: 'Employee',
-    [UserRole.CUSTOMER]: 'Customer',
-    [UserRole.READONLY]: 'Read Only',
+    [UserRole.VIEWER]: 'Viewer',
   };
   
   return displayNames[role] || role;
@@ -141,10 +139,9 @@ export function getRoleDisplayName(role: UserRole): string {
  */
 const TIER_HIERARCHY: Record<BusinessTier, number> = {
   [BusinessTier.FREE]: 1,
-  [BusinessTier.BASIC]: 2,
-  [BusinessTier.STANDARD]: 3,
-  [BusinessTier.PREMIUM]: 4,
-  [BusinessTier.ENTERPRISE]: 5,
+  [BusinessTier.STARTER]: 2,
+  [BusinessTier.PROFESSIONAL]: 3,
+  [BusinessTier.ENTERPRISE]: 4,
 };
 
 export function getTierLevel(tier: BusinessTier): number {
@@ -158,9 +155,8 @@ export function hasTierAccess(userTier: BusinessTier, requiredTier: BusinessTier
 export function getTierDisplayName(tier: BusinessTier): string {
   const displayNames: Record<BusinessTier, string> = {
     [BusinessTier.FREE]: 'Free',
-    [BusinessTier.BASIC]: 'Basic',
-    [BusinessTier.STANDARD]: 'Standard',
-    [BusinessTier.PREMIUM]: 'Premium',
+    [BusinessTier.STARTER]: 'Starter',
+    [BusinessTier.PROFESSIONAL]: 'Professional',
     [BusinessTier.ENTERPRISE]: 'Enterprise',
   };
   
@@ -170,9 +166,8 @@ export function getTierDisplayName(tier: BusinessTier): string {
 export function getTierColor(tier: BusinessTier): string {
   const colors: Record<BusinessTier, string> = {
     [BusinessTier.FREE]: 'gray',
-    [BusinessTier.BASIC]: 'blue',
-    [BusinessTier.STANDARD]: 'green',
-    [BusinessTier.PREMIUM]: 'purple',
+    [BusinessTier.STARTER]: 'blue',
+    [BusinessTier.PROFESSIONAL]: 'purple',
     [BusinessTier.ENTERPRISE]: 'gold',
   };
   
@@ -339,7 +334,28 @@ export function formatTimeUntilExpiration(expiresAt: Date): string {
 /**
  * Device fingerprinting utilities
  */
-export function generateDeviceFingerprint(): Record<string, any> {
+interface DeviceFingerprint {
+  userAgent?: string;
+  language?: string;
+  languages?: readonly string[];
+  platform?: string;
+  cookieEnabled?: boolean;
+  doNotTrack?: string | null;
+  timezone?: string;
+  screen?: {
+    width: number;
+    height: number;
+    colorDepth: number;
+    pixelDepth: number;
+  };
+  viewport?: {
+    width: number;
+    height: number;
+  };
+  timestamp?: number;
+}
+
+export function generateDeviceFingerprint(): DeviceFingerprint {
   if (typeof window === 'undefined') {
     return {};
   }
