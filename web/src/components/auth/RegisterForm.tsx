@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/hooks/auth/useAuth';
 import { useSecurity } from '@/lib/hooks/auth/useSecurity';
 import { usePermissions } from '@/lib/hooks/auth/usePermissions';
 import { AuthEventEmitter } from '@/lib/auth/auth-events';
+import { AuthErrorCode } from '@/lib/auth/auth-errors';
 import { cn } from '@/lib/utils';
 
 interface RegisterFormProps {
@@ -23,7 +24,7 @@ interface RegisterFormProps {
         businessName: string;
         acceptTerms: boolean;
     }) => Promise<void>;
-    onRegistrationSuccess?: (user: any) => void;
+    onRegistrationSuccess?: (user: { id: string; email: string; displayName?: string }) => void;
     isLoading?: boolean;
     error?: string | null;
     className?: string;
@@ -81,19 +82,19 @@ export function RegisterForm({
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
     // Use foundation layer hooks
-    const { register, isLoading: authLoading, error: authError, clearError } = useAuth();
+    const { register, isLoading: authLoading, error: authErrorString, clearError: clearAuthError } = useAuth();
     const { riskScore, riskLevel, logSecurityEvent } = useSecurity();
     const { availableRoles } = usePermissions();
 
     // Determine loading and error states
     const isLoading = externalLoading || authLoading;
-    const error = externalError || (authError ? authError.message : null);
+    const error = externalError || authErrorString;
 
     const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password]);
 
     // Listen for registration success events
     useEffect(() => {
-        const handleRegistrationSuccess = (user: any) => {
+        const handleRegistrationSuccess = (user: { id: string; email: string; displayName?: string }) => {
             if (onRegistrationSuccess) {
                 onRegistrationSuccess(user);
             }
@@ -157,7 +158,7 @@ export function RegisterForm({
 
         if (!validateForm()) return;
 
-        clearError();
+        clearAuthError();
 
         const registrationData = {
             firstName: firstName.trim(),
@@ -182,8 +183,11 @@ export function RegisterForm({
                 // Use external submit handler
                 await onSubmit(registrationData);
             } else {
-                // Use foundation layer register
-                await register(registrationData);
+                // Use foundation layer register - tenantId will be assigned by server for new registrations
+                await register({
+                    ...registrationData,
+                    tenantId: '', // Server will create new tenant for registration
+                });
             }
         } catch (error) {
             console.error('Registration submission error:', error);
@@ -192,12 +196,12 @@ export function RegisterForm({
     };
 
     const handleRetry = async () => {
-        clearError();
-        await handleSubmit(new Event('submit') as any);
+        clearAuthError();
+        await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     };
 
     const handleDismissError = () => {
-        clearError();
+        clearAuthError();
     };
 
     const handleErrorAction = (action: string) => {
@@ -210,7 +214,7 @@ export function RegisterForm({
         }
     };
 
-    const clearError = (field: string) => {
+    const clearFieldError = (field: string) => {
         if (validationErrors[field]) {
             setValidationErrors((prev) => {
                 const newErrors = { ...prev };
@@ -267,14 +271,16 @@ export function RegisterForm({
             )}
 
             {/* Enhanced Error Display */}
-            <AuthErrorDisplay
-                error={authError}
-                canRetry={true}
-                isRetrying={isLoading}
-                onRetry={handleRetry}
-                onDismiss={handleDismissError}
-                onAction={handleErrorAction}
-            />
+            {error && (
+                <AuthErrorDisplay
+                    error={{ code: AuthErrorCode.UNKNOWN_ERROR, message: error, retryable: true }}
+                    canRetry={true}
+                    isRetrying={isLoading}
+                    onRetry={handleRetry}
+                    onDismiss={handleDismissError}
+                    onAction={handleErrorAction}
+                />
+            )}
 
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
@@ -290,7 +296,7 @@ export function RegisterForm({
                             value={firstName}
                             onChange={(e) => {
                                 setFirstName(e.target.value);
-                                clearError('firstName');
+                                clearFieldError('firstName');
                             }}
                             placeholder="John"
                             className={cn(
@@ -316,7 +322,7 @@ export function RegisterForm({
                         value={lastName}
                         onChange={(e) => {
                             setLastName(e.target.value);
-                            clearError('lastName');
+                            clearFieldError('lastName');
                         }}
                         placeholder="Doe"
                         className={cn(
@@ -345,7 +351,7 @@ export function RegisterForm({
                         value={businessName}
                         onChange={(e) => {
                             setBusinessName(e.target.value);
-                            clearError('businessName');
+                            clearFieldError('businessName');
                         }}
                         placeholder="Acme Corporation"
                         className={cn(
@@ -374,7 +380,7 @@ export function RegisterForm({
                         value={email}
                         onChange={(e) => {
                             setEmail(e.target.value);
-                            clearError('email');
+                            clearFieldError('email');
                         }}
                         placeholder="you@example.com"
                         className={cn(
@@ -403,7 +409,7 @@ export function RegisterForm({
                         value={password}
                         onChange={(e) => {
                             setPassword(e.target.value);
-                            clearError('password');
+                            clearFieldError('password');
                         }}
                         placeholder="••••••••"
                         className={cn(
@@ -481,7 +487,7 @@ export function RegisterForm({
                     checked={acceptTerms}
                     onCheckedChange={(checked) => {
                         setAcceptTerms(checked as boolean);
-                        clearError('acceptTerms');
+                        clearFieldError('acceptTerms');
                     }}
                     disabled={isLoading}
                     className="mt-0.5"
@@ -505,7 +511,7 @@ export function RegisterForm({
             <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full h-12 text-base font-semibold bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             >
                 {isLoading ? (
                     <>

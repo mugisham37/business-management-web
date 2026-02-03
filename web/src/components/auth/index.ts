@@ -15,7 +15,7 @@ export { SessionManager } from './SessionManager';
 export { AuthEventHandler } from './AuthEventHandler';
 
 // Security Components
-export { SecurityDashboard } from './SecurityDashboard';
+
 
 // Foundation Layer Hooks (re-exported for convenience)
 export { useAuth } from '@/lib/hooks/auth/useAuth';

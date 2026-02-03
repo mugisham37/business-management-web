@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, X, Loader2 } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,14 +12,15 @@ import { cn } from '@/lib/utils';
 
 interface MFAVerificationModalProps {
     isOpen: boolean;
-    mfaToken: string;
+    /** @deprecated mfaToken is currently not used internally but kept for API compatibility */
+    mfaToken?: string;
     onVerify: (token: string) => Promise<void>;
     onCancel: () => void;
 }
 
 export function MFAVerificationModal({
     isOpen,
-    mfaToken,
+    // mfaToken is kept in interface for future use/API compatibility
     onVerify,
     onCancel,
 }: MFAVerificationModalProps) {
@@ -49,8 +50,9 @@ export function MFAVerificationModal({
             } else {
                 setError('Invalid verification code. Please try again.');
             }
-        } catch (error: any) {
-            setError(error.message || 'Verification failed. Please try again.');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+            setError(errorMessage);
         } finally {
             setIsVerifying(false);
         }

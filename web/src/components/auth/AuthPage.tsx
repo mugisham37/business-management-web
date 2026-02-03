@@ -39,7 +39,7 @@ export function AuthPage({
     const [showMfaModal, setShowMfaModal] = useState(false);
 
     // Use foundation layer hooks
-    const { user, isAuthenticated, isLoading, error } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const { verifyToken: verifyMfaToken } = useMFA();
     const { logSecurityEvent } = useSecurity();
 
@@ -50,17 +50,9 @@ export function AuthPage({
         }
     }, [isAuthenticated, user, router, redirectTo]);
 
-    // Update mode when URL params change
-    useEffect(() => {
-        const urlMode = searchParams?.get('mode') as AuthMode;
-        if (urlMode && ['login', 'register'].includes(urlMode) && urlMode !== mode) {
-            setMode(urlMode);
-        }
-    }, [searchParams, mode]);
-
     // Listen for auth events
     useEffect(() => {
-        const handleLoginSuccess = (user: any) => {
+        const handleLoginSuccess = (user: { id: string; email: string }) => {
             logSecurityEvent('login_success', 'User successfully logged in', {
                 userId: user.id,
                 email: user.email,
@@ -69,7 +61,7 @@ export function AuthPage({
             onLoginSuccess?.();
         };
 
-        const handleRegisterSuccess = (user: any) => {
+        const handleRegisterSuccess = (user: { id: string; email: string }) => {
             logSecurityEvent('registration_success', 'User successfully registered', {
                 userId: user.id,
                 email: user.email,
@@ -133,7 +125,7 @@ export function AuthPage({
     }, []);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
             {/* Main Content */}
             <main className="flex min-h-screen">
                 {/* Left Panel - Form */}
@@ -252,7 +244,7 @@ export function AuthPage({
                 {/* Right Panel - Decorative */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
+                    <div className="absolute inset-0 bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600">
                         <div className="absolute inset-0 opacity-30">
                             <svg
                                 className="w-full h-full"
@@ -301,12 +293,12 @@ export function AuthPage({
                             {/* Feature Pills */}
                             <div className="flex flex-wrap justify-center gap-3">
                                 {['POS', 'Inventory', 'CRM', 'Analytics', 'Multi-location'].map(
-                                    (feature) => (
+                                    (feature, index) => (
                                         <motion.span
                                             key={feature}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ duration: 0.3, delay: Math.random() * 0.3 }}
+                                            transition={{ duration: 0.3, delay: index * 0.1 }}
                                             className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-sm font-medium"
                                         >
                                             {feature}

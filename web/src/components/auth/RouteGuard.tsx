@@ -1,21 +1,105 @@
 /**
  * Route Guard Component
  * Implements consistent permission enforcement during navigation
- * Requirements 7.4, 7.5 - Navigation guards with permission validation and transparent session renewal
+ * Uses foundation layer hooks: useAuth, usePermissions, useTier
  */
 
 'use client';
 
-import { ReactNode } from 'react';
-import { useNavigationGuard, NavigationGuardConfig } from '@/hooks/utilities-infrastructure/useNavigationGuard';
+import { ReactNode, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/auth/useAuth';
+import { usePermissions } from '@/lib/hooks/auth/usePermissions';
+import { useTier } from '@/lib/hooks/auth/useTier';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-interface RouteGuardProps extends NavigationGuardConfig {
+interface RouteGuardProps {
   children: ReactNode;
+  requiredPermissions?: string[];
+  allowedRoles?: string[];
+  tierRestrictions?: string[];
+  redirectTo?: string;
   fallback?: ReactNode;
   showError?: boolean;
+}
+
+/**
+ * Custom hook for navigation guard logic
+ */
+function useNavigationGuardLogic(config: {
+  requiredPermissions?: string[];
+  allowedRoles?: string[];
+  tierRestrictions?: string[];
+  redirectTo?: string;
+}) {
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, hasRole } = useAuth();
+  const { hasAllPermissions, isLoading: permLoading } = usePermissions();
+  const { hasFeature, isLoading: tierLoading } = useTier();
+
+  const isLoading = authLoading || permLoading || tierLoading;
+
+  // Compute error state synchronously (not in effect)
+  const error = useMemo(() => {
+    if (isLoading) return null;
+
+    // Check authentication
+    if (!isAuthenticated) {
+      return 'Authentication required';
+    }
+
+    // Check permissions
+    if (config.requiredPermissions && config.requiredPermissions.length > 0) {
+      if (!hasAllPermissions(config.requiredPermissions)) {
+        return 'Insufficient permissions';
+      }
+    }
+
+    // Check roles
+    if (config.allowedRoles && config.allowedRoles.length > 0) {
+      const hasAllowedRole = config.allowedRoles.some(role => hasRole(role));
+      if (!hasAllowedRole) {
+        return 'Role not authorized';
+      }
+    }
+
+    // Check tier restrictions
+    if (config.tierRestrictions && config.tierRestrictions.length > 0) {
+      const hasTierAccess = config.tierRestrictions.some(feature => hasFeature(feature));
+      if (!hasTierAccess) {
+        return 'Tier upgrade required';
+      }
+    }
+
+    return null;
+  }, [
+    isLoading,
+    isAuthenticated,
+    config.requiredPermissions,
+    config.allowedRoles,
+    config.tierRestrictions,
+    hasAllPermissions,
+    hasRole,
+    hasFeature,
+  ]);
+
+  // Handle redirect as a side effect (only when error changes)
+  useEffect(() => {
+    if (!isLoading && error && config.redirectTo) {
+      router.push(config.redirectTo);
+    }
+  }, [isLoading, error, config.redirectTo, router]);
+
+  const hasAccess = isAuthenticated && !error;
+
+  const revalidate = () => {
+    // Trigger a re-render by forcing a refresh of auth state
+    // This is a no-op for now since error is computed
+  };
+
+  return { isLoading, hasAccess, error, revalidate };
 }
 
 /**
@@ -24,11 +108,19 @@ interface RouteGuardProps extends NavigationGuardConfig {
  */
 export function RouteGuard({
   children,
+  requiredPermissions = [],
+  allowedRoles = [],
+  tierRestrictions = [],
+  redirectTo = '/auth',
   fallback,
   showError = true,
-  ...guardConfig
 }: RouteGuardProps) {
-  const { isLoading, hasAccess, error, revalidate } = useNavigationGuard(guardConfig);
+  const { isLoading, hasAccess, error, revalidate } = useNavigationGuardLogic({
+    requiredPermissions,
+    allowedRoles,
+    tierRestrictions,
+    redirectTo,
+  });
 
   // Show loading state while checking access
   if (isLoading) {
@@ -79,7 +171,6 @@ export function RouteGuard({
 export function DashboardGuard({ children }: { children: ReactNode }) {
   return (
     <RouteGuard
-      requireAuth={true}
       requiredPermissions={['dashboard:read']}
       redirectTo="/auth"
     >
@@ -95,7 +186,6 @@ export function DashboardGuard({ children }: { children: ReactNode }) {
 export function AdminGuard({ children }: { children: ReactNode }) {
   return (
     <RouteGuard
-      requireAuth={true}
       requiredPermissions={['admin:*']}
       allowedRoles={['admin', 'super_admin']}
       redirectTo="/dashboard?error=admin_required"
@@ -109,7 +199,7 @@ export function AdminGuard({ children }: { children: ReactNode }) {
  * Permission-based Route Guard
  * Flexible guard for specific permission requirements
  */
-export function PermissionGuard({ 
+export function PermissionRouteGuard({ 
   children, 
   permissions 
 }: { 
@@ -118,7 +208,6 @@ export function PermissionGuard({
 }) {
   return (
     <RouteGuard
-      requireAuth={true}
       requiredPermissions={permissions}
       redirectTo="/dashboard?error=insufficient_permissions"
     >
@@ -140,7 +229,6 @@ export function TierGuard({
 }) {
   return (
     <RouteGuard
-      requireAuth={true}
       tierRestrictions={requiredTiers}
       redirectTo="/pricing?upgrade_required=true"
     >

@@ -9,27 +9,36 @@ import { useSocialAuth } from '@/lib/hooks/auth/useSocialAuth';
 import { useSecurity } from '@/lib/hooks/auth/useSecurity';
 import { AuthEventEmitter } from '@/lib/auth/auth-events';
 
+interface SocialAuthResult {
+    user?: { id: string; email: string };
+    token?: string;
+}
+
+interface SocialAuthError {
+    message: string;
+    code?: string;
+}
+
 interface SocialLoginButtonsProps {
-    onSuccess?: (result: any) => void;
-    onError?: (error: any) => void;
+    onSuccess?: (result: SocialAuthResult) => void;
+    onError?: (error: SocialAuthError) => void;
     isLoading?: boolean;
     className?: string;
     redirectTo?: string;
 }
 
 export function SocialLoginButtons({
-    onSuccess,
+    // onSuccess and redirectTo are part of the interface for external use but handled internally via redirects
     onError,
     isLoading: externalLoading = false,
     className,
-    redirectTo = '/dashboard',
 }: SocialLoginButtonsProps) {
     const {
-        connectedProviders,
-        supportedProviders,
+        linkedProviders,
+        availableProviders,
         isLoading: socialLoading,
         error,
-        generateAuthUrl,
+        getOAuthUrl,
         clearError,
     } = useSocialAuth();
 
@@ -73,26 +82,28 @@ export function SocialLoginButtons({
                 timestamp: new Date().toISOString(),
             });
 
-            const result = await generateAuthUrl(provider);
+            // Get OAuth URL and redirect (tenantId empty for now, server will handle)
+            const authUrl = await getOAuthUrl(provider, '');
             
-            if (result.authUrl) {
+            if (authUrl) {
                 // Redirect to social provider
-                window.location.href = result.authUrl;
+                window.location.href = authUrl;
             }
-        } catch (error: any) {
-            console.error(`${provider} login error:`, error);
+        } catch (err: unknown) {
+            console.error(`${provider} login error:`, err);
             if (onError) {
-                onError(error);
+                const errorMessage = err instanceof Error ? err.message : 'Social login failed';
+                onError({ message: errorMessage });
             }
         }
     };
 
     const isProviderSupported = (provider: string) => {
-        return supportedProviders.includes(provider);
+        return (availableProviders as Array<{ provider: string }>).some(p => p.provider === provider);
     };
 
     const isProviderConnected = (provider: string) => {
-        return connectedProviders.some(p => p.provider === provider);
+        return linkedProviders.some(p => p.provider === provider);
     };
     return (
         <div className={cn('space-y-3', className)}>

@@ -40,25 +40,19 @@ export function SessionManager({ children }: SessionManagerProps) {
         }
 
         // Check if token needs refresh (5 minutes before expiry)
-        const tokenData = TokenManager.getTokenData();
-        if (tokenData) {
-          const expiresAt = tokenData.issuedAt + (tokenData.expiresIn * 1000);
-          const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+        if (TokenManager.isTokenExpiringSoon()) {
+          console.log('Token expiring soon, attempting refresh...');
+          const refreshed = await refreshToken();
           
-          if (expiresAt <= fiveMinutesFromNow) {
-            console.log('Token expiring soon, attempting refresh...');
-            const refreshed = await refreshToken();
-            
-            if (refreshed) {
-              console.log('Token refreshed successfully');
-              await logSecurityEvent('token_refreshed', 'Session token refreshed', {
-                userId: user?.id,
-                timestamp: new Date().toISOString(),
-              });
-            } else {
-              console.log('Token refresh failed');
-              AuthEventEmitter.emit('auth:session_expired');
-            }
+          if (refreshed) {
+            console.log('Token refreshed successfully');
+            await logSecurityEvent('token_refreshed', 'Session token refreshed', {
+              userId: user?.id,
+              timestamp: new Date().toISOString(),
+            });
+          } else {
+            console.log('Token refresh failed');
+            AuthEventEmitter.emit('auth:session_expired');
           }
         }
       } catch (error) {

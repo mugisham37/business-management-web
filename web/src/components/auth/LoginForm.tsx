@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, Loader2, WifiOff, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/hooks/auth/useAuth';
 import { useSecurity } from '@/lib/hooks/auth/useSecurity';
 import { useMFA } from '@/lib/hooks/auth/useMFA';
 import { AuthEventEmitter } from '@/lib/auth/auth-events';
+import { AuthErrorCode } from '@/lib/auth/auth-errors';
 import { cn } from '@/lib/utils';
 
 interface LoginFormProps {
@@ -41,13 +42,13 @@ export function LoginForm({
     }>({});
 
     // Use foundation layer hooks
-    const { login, isLoading: authLoading, error: authError, clearError } = useAuth();
+    const { login, isLoading: authLoading, error: authErrorString, clearError } = useAuth();
     const { riskScore, riskLevel, logSecurityEvent } = useSecurity();
     const { isEnabled: mfaEnabled } = useMFA();
 
     // Determine loading and error states
     const isLoading = externalLoading || authLoading;
-    const error = externalError || (authError ? authError.message : null);
+    const error = externalError || authErrorString;
 
     // Listen for MFA required events
     useEffect(() => {
@@ -132,7 +133,7 @@ export function LoginForm({
 
     const handleRetry = async () => {
         clearError();
-        await handleSubmit(new Event('submit') as any);
+        await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     };
 
     const handleDismissError = () => {
@@ -194,14 +195,16 @@ export function LoginForm({
             )}
 
             {/* Enhanced Error Display */}
-            <AuthErrorDisplay
-                error={authError}
-                canRetry={true}
-                isRetrying={isLoading}
-                onRetry={handleRetry}
-                onDismiss={handleDismissError}
-                onAction={handleErrorAction}
-            />
+            {error && (
+                <AuthErrorDisplay
+                    error={{ code: AuthErrorCode.UNKNOWN_ERROR, message: error, retryable: true }}
+                    canRetry={true}
+                    isRetrying={isLoading}
+                    onRetry={handleRetry}
+                    onDismiss={handleDismissError}
+                    onAction={handleErrorAction}
+                />
+            )}
 
             {/* Email Field */}
             <div className="space-y-2">
@@ -308,7 +311,7 @@ export function LoginForm({
             <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full h-12 text-base font-semibold bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             >
                 {isLoading ? (
                     <>

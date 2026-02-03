@@ -14,7 +14,7 @@ export function AuthEventHandler() {
 
   useEffect(() => {
     // Authentication events
-    const handleLogin = (user: any) => {
+    const handleLogin = (user: { id: string; email: string; displayName?: string }) => {
       toast.success(`Welcome back, ${user.displayName || user.email}!`);
     };
 
@@ -30,7 +30,7 @@ export function AuthEventHandler() {
       toast.info(message || 'You have been signed out');
     };
 
-    const handleRegister = (user: any) => {
+    const handleRegister = (user: { id: string; email: string; displayName?: string }) => {
       toast.success(`Account created successfully! Welcome, ${user.displayName || user.email}!`);
     };
 
@@ -43,7 +43,7 @@ export function AuthEventHandler() {
     };
 
     // MFA events
-    const handleMfaRequired = (data: { mfaToken?: string; userId?: string }) => {
+    const handleMfaRequired = () => {
       toast.info('Multi-factor authentication required');
     };
 
@@ -72,7 +72,7 @@ export function AuthEventHandler() {
       }
     };
 
-    const handleSuspiciousActivity = (data: any) => {
+    const handleSuspiciousActivity = () => {
       toast.error('Suspicious activity detected. Please verify your account.');
     };
 
@@ -85,7 +85,7 @@ export function AuthEventHandler() {
     };
 
     // Permission events
-    const handlePermissionsUpdated = (permissions: string[]) => {
+    const handlePermissionsUpdated = () => {
       toast.info('Your permissions have been updated');
     };
 
@@ -137,7 +137,7 @@ export function AuthEventHandler() {
     };
 
     // Token events
-    const handleTokenRefreshFailed = (error: any) => {
+    const handleTokenRefreshFailed = () => {
       toast.error('Session refresh failed. Please sign in again.');
       router.push('/auth');
     };
