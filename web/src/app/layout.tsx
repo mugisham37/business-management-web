@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@/lib/error-handling/error-boundary.css";
 import { Providers } from "./providers";
-
+import { ServerDependencyCheck } from "@/components/connection/ServerDependencyCheck";
+import { ConnectionStatusBar } from "@/components/connection/ConnectionStatusBar";
 import { ErrorInitializer } from "./error-initializer";
 
 const geistSans = Geist({
@@ -49,7 +50,10 @@ export default function RootLayout({
       >
         <ErrorInitializer />
         <Providers>
-          {children}
+          <ServerDependencyCheck requireServer={true} showInstructions={true}>
+            <ConnectionStatusBar showInDevelopment={true} />
+            {children}
+          </ServerDependencyCheck>
         </Providers>
       </body>
     </html>

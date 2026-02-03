@@ -8,6 +8,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
 import { TokenManager } from '../auth/token-manager';
 import { AuthEventEmitter } from '../auth/auth-events';
+import { ConnectionMonitor } from './connection-monitor';
 
 /**
  * GraphQL Client Configuration
@@ -88,11 +89,17 @@ function createCache() {
 
 // Create the Apollo Client (client-side only)
 function createApolloClient(): ApolloClient<NormalizedCacheObject> {
+  console.log('🚀 [GraphQL Client] Initializing Apollo Client...');
+  console.log(`📡 [GraphQL Client] GraphQL Endpoint: ${process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:3001/graphql'}`);
+  console.log(`🔌 [GraphQL Client] WebSocket Endpoint: ${process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || 'ws://localhost:3001/graphql'}`);
+
   // Upload link for file uploads
   const uploadLink = createUploadLink({
     uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:3001/graphql',
     credentials: 'include',
   });
+
+  console.log('🔗 [GraphQL Client] Upload link configured');
 
   // WebSocket link for subscriptions (client-side only)
   const wsLink = typeof window !== 'undefined' ? new GraphQLWsLink(
@@ -100,6 +107,7 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
       url: process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || 'ws://localhost:3001/graphql',
       connectionParams: () => {
         const token = TokenManager.getAccessToken();
+        console.log(`🔐 [GraphQL Client] WebSocket connection params: ${token ? 'Token provided' : 'No token'}`);
         // Only provide connection params if we have a valid token
         if (!token) {
           return {};
@@ -113,6 +121,7 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
       // Retry connection on failure (but not for auth errors)
       retryAttempts: 5,
       retryWait: async (retries) => {
+        console.log(`🔄 [GraphQL Client] WebSocket retry attempt ${retries + 1}/5`);
         // Exponential backoff: 1s, 2s, 4s, 8s, 16s
         await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, retries), 30000)));
       },
@@ -133,65 +142,68 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
       },
       on: {
         connected: () => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('WebSocket connected');
-          }
+          console.log('✅ [GraphQL Client] WebSocket connected successfully');
+          ConnectionMonitor.forceCheck();
         },
         closed: (event) => {
-          // Only log if it's not an expected auth-related closure
-          if (process.env.NODE_ENV === 'development') {
-            const closeEvent = event as { code?: number };
-            if (closeEvent?.code !== 4500) {
-              console.log('WebSocket closed');
-            }
-          }
+          const closeEvent = event as CloseEvent | undefined;
+          console.log(`🔌 [GraphQL Client] WebSocket connection closed: ${closeEvent?.code || 'unknown'} ${closeEvent?.reason || 'no reason'}`);
         },
         error: (error) => {
-          // Only log meaningful errors, not empty connection failures or auth errors when not logged in
-          if (!TokenManager.isAuthenticated()) {
-            // Silently ignore errors when not authenticated - this is expected
-            return;
-          }
-          if (error && Object.keys(error).length > 0) {
-            console.error('WebSocket error:', error);
-          } else if (process.env.NODE_ENV === 'development') {
-            console.warn('WebSocket connection failed. Is the backend server running?');
-          }
+          console.error('❌ [GraphQL Client] WebSocket error:', error);
         },
       },
     })
   ) : null;
 
+  console.log('🔗 [GraphQL Client] WebSocket link configured');
+
   // Authentication link - adds JWT token to requests
-  const authLink = setContext((_, { headers }) => {
+  const authLink = setContext(async (_, { headers }) => {
     const token = TokenManager.getAccessToken();
+    const deviceInfo = getDeviceFingerprint();
+    
+    const authHeaders = {
+      ...headers,
+      ...(token && { authorization: `Bearer ${token}` }),
+      'x-device-fingerprint': JSON.stringify(deviceInfo),
+      'x-client-version': '1.0.0',
+      'x-request-id': `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    console.log(`🔐 [GraphQL Client] Request headers prepared: ${token ? 'Authenticated' : 'Anonymous'}`);
     
     return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : '',
-        'x-device-fingerprint': JSON.stringify(getDeviceFingerprint()),
-      },
+      headers: authHeaders,
     };
   });
 
-  // Error link - handles authentication errors and token refresh
+  console.log('🔗 [GraphQL Client] Auth link configured');
+
+  // Error link - handles authentication errors and token refresh with detailed logging
   const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+    const operationName = operation.operationName || 'Unknown';
+    const requestId = operation.getContext().headers?.['x-request-id'] || 'unknown';
+    
+    console.log(`🔍 [GraphQL Client] Processing operation: ${operationName} (${requestId})`);
+
     if (graphQLErrors) {
+      console.log(`⚠️ [GraphQL Client] GraphQL errors in ${operationName}:`);
       for (const error of graphQLErrors) {
-        // Only log non-auth errors or auth errors when user should be authenticated
         const isAuthError = error.extensions?.code === 'UNAUTHENTICATED';
-        if (!isAuthError || TokenManager.isAuthenticated()) {
-          console.error(`GraphQL error: ${error.message}`);
-        }
+        const errorCode = error.extensions?.code || 'UNKNOWN';
+        
+        console.log(`  - ${errorCode}: ${error.message}`);
         
         // Handle authentication errors
         if (isAuthError) {
+          console.log('🔐 [GraphQL Client] Authentication error detected');
           // Only try to refresh if we thought we were authenticated
           if (TokenManager.isAuthenticated()) {
+            console.log('🔄 [GraphQL Client] Attempting token refresh...');
             TokenManager.refreshToken().then((success) => {
               if (success) {
-                // Retry the operation with new token
+                console.log('✅ [GraphQL Client] Token refresh successful, retrying operation');
                 const oldHeaders = operation.getContext().headers as Record<string, string>;
                 operation.setContext({
                   headers: {
@@ -199,29 +211,32 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
                     authorization: `Bearer ${TokenManager.getAccessToken()}`,
                   },
                 });
-                // Note: We can't return the forward operation here due to type constraints
-                // The retry will happen on the next request
               } else {
-                // Refresh failed, redirect to login
+                console.log('❌ [GraphQL Client] Token refresh failed, logging out');
                 AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
               }
             }).catch(() => {
+              console.log('❌ [GraphQL Client] Token refresh error, logging out');
               AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
             });
+          } else {
+            console.log('ℹ️ [GraphQL Client] Auth error for unauthenticated user (expected)');
           }
           return; // Return void for this case
         }
         
         // Handle permission errors
         if (error.extensions?.code === 'FORBIDDEN') {
+          console.log('🚫 [GraphQL Client] Permission denied for operation');
           AuthEventEmitter.emit('auth:permission_denied', { 
-            operation: operation.operationName,
+            operation: operationName,
             error: error.message 
           });
         }
         
         // Handle MFA required errors
         if (error.extensions?.code === 'MFA_REQUIRED') {
+          console.log('🔐 [GraphQL Client] MFA required');
           AuthEventEmitter.emit('auth:mfa_required', {
             mfaToken: error.extensions.mfaToken as string,
             userId: error.extensions.userId as string,
@@ -231,6 +246,10 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
     }
     
     if (networkError) {
+      console.log(`🌐 [GraphQL Client] Network error in ${operationName}:`);
+      console.log(`  - Type: ${networkError.name}`);
+      console.log(`  - Message: ${networkError.message}`);
+      
       // Check if this is an expected authentication-related error when user is not logged in
       const isAuthRelatedError = 
         networkError.message?.includes('Missing authentication token') ||
@@ -238,19 +257,33 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
         networkError.message?.includes('4401') ||
         ('statusCode' in networkError && networkError.statusCode === 401);
       
-      // Only log if it's not an expected auth error for unauthenticated users
-      if (isAuthRelatedError && !TokenManager.isAuthenticated()) {
-        // Silently ignore - this is expected when not logged in
+      // Check for connection errors
+      const isConnectionError = 
+        networkError.message?.includes('Failed to fetch') ||
+        networkError.message?.includes('NetworkError') ||
+        networkError.message?.includes('fetch');
+      
+      if (isConnectionError) {
+        console.log('🚨 [GraphQL Client] Server connection failed - server may be down');
+        console.log('🔧 [GraphQL Client] Triggering connection check...');
+        ConnectionMonitor.forceCheck();
+      } else if (isAuthRelatedError && !TokenManager.isAuthenticated()) {
+        console.log('ℹ️ [GraphQL Client] Auth-related error for unauthenticated user (expected)');
       } else {
-        console.error(`Network error: ${networkError.message}`);
+        console.error(`❌ [GraphQL Client] Unexpected network error: ${networkError.message}`);
       }
       
       // Handle network errors - only emit logout event if we thought we were authenticated
       if ('statusCode' in networkError && networkError.statusCode === 401 && TokenManager.isAuthenticated()) {
+        console.log('🔐 [GraphQL Client] Unauthorized response, logging out');
         AuthEventEmitter.emit('auth:logout', { reason: 'unauthorized' });
       }
     }
+
+    console.log(`✅ [GraphQL Client] Completed error handling for ${operationName}`);
   });
+
+  console.log('🔗 [GraphQL Client] Error link configured');
 
   // Retry link - retries failed requests
   const retryLink = new RetryLink({

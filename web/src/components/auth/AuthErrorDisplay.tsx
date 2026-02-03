@@ -47,6 +47,17 @@ export function AuthErrorDisplay({
     AuthErrorCode.TIMEOUT_ERROR,
   ].includes(error.code);
 
+  // Enhanced logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 [AuthErrorDisplay] Displaying error:', {
+      code: error.code,
+      message: error.message,
+      retryable: error.retryable,
+      isNetworkError,
+      timestamp: new Date().toISOString()
+    });
+  }
+
   const getErrorIcon = () => {
     switch (error.code) {
       case AuthErrorCode.NETWORK_ERROR:

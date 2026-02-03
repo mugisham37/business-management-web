@@ -142,17 +142,28 @@ export function useAuth(): UseAuthReturn {
   // Login operation
   const login = useCallback(async (input: LoginInput): Promise<LoginResponse> => {
     try {
+      console.log('🔐 [useAuth] Starting login process...');
+      console.log(`📧 [useAuth] Email: ${input.email}`);
+      console.log(`🔒 [useAuth] Remember me: ${input.rememberMe || false}`);
+      
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
 
       const result = await loginMutation({
         variables: { input },
       });
 
+      console.log('📡 [useAuth] Login mutation completed');
+      console.log(`📊 [useAuth] Has errors: ${result.errors ? 'Yes' : 'No'}`);
+      console.log(`📊 [useAuth] Has data: ${result.data ? 'Yes' : 'No'}`);
+
       if (result.errors && result.errors.length > 0) {
         const error = result.errors[0];
+        console.log(`❌ [useAuth] GraphQL error: ${error?.message || 'Unknown error'}`);
+        console.log(`🔍 [useAuth] Error code: ${error?.extensions?.code || 'Unknown'}`);
         
         // Handle MFA required
         if (error?.extensions?.code === 'MFA_REQUIRED') {
+          console.log('🔐 [useAuth] MFA required for login');
           throw new Error('MFA_REQUIRED');
         }
         
@@ -161,15 +172,22 @@ export function useAuth(): UseAuthReturn {
 
       const loginData = result.data?.login;
       if (!loginData) {
+        console.log('❌ [useAuth] No login data returned');
         throw new Error('Login failed: No data returned');
       }
 
+      console.log('✅ [useAuth] Login data received');
+      console.log(`🔐 [useAuth] Requires MFA: ${loginData.requiresMfa || false}`);
+      console.log(`👤 [useAuth] User ID: ${loginData.user?.id || 'Unknown'}`);
+
       // Handle MFA requirement
       if (loginData.requiresMfa) {
+        console.log('🔐 [useAuth] MFA required, throwing MFA_REQUIRED error');
         throw new Error('MFA_REQUIRED');
       }
 
       // Store tokens
+      console.log('💾 [useAuth] Storing authentication tokens...');
       TokenManager.setTokens({
         accessToken: loginData.accessToken,
         refreshToken: loginData.refreshToken,
@@ -187,11 +205,15 @@ export function useAuth(): UseAuthReturn {
       }));
 
       // Emit login event
+      console.log('📢 [useAuth] Emitting login success event');
       AuthEventEmitter.emit('auth:login', loginData.user);
 
+      console.log('🎉 [useAuth] Login process completed successfully');
       return loginData;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      console.log(`❌ [useAuth] Login failed: ${errorMessage}`);
+      
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
