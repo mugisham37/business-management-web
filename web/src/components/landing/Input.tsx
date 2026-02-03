@@ -95,7 +95,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
           >
             <RiSearchLine
-              className="size-[1.125rem] shrink-0"
+              className="size-4.5 shrink-0"
               aria-hidden="true"
             />
           </div>

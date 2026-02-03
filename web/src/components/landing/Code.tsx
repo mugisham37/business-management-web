@@ -36,7 +36,7 @@ export default async function Code({
       )}
     >
       {copy && (
-        <div className="absolute right-0 h-full w-24 bg-gradient-to-r from-gray-900/0 via-gray-900/70 to-gray-900">
+        <div className="absolute right-0 h-full w-24 bg-linear-to-r from-gray-900/0 via-gray-900/70 to-gray-900">
           <div className="absolute right-3 top-3">
             <CopyToClipboard code={code} />
           </div>
@@ -44,7 +44,7 @@ export default async function Code({
       )}
 
       <div
-        className="text-sm [&>pre]:overflow-x-auto [&>pre]:!bg-gray-950 [&>pre]:py-6 [&>pre]:pl-4 [&>pre]:pr-5 [&>pre]:leading-snug [&>pre]:dark:!bg-gray-950 [&_code]:block [&_code]:w-fit [&_code]:min-w-full"
+        className="text-sm [&>pre]:overflow-x-auto [&>pre]:bg-gray-950! [&>pre]:py-6 [&>pre]:pl-4 [&>pre]:pr-5 [&>pre]:leading-snug [&>pre]:dark:bg-gray-950! [&_code]:block [&_code]:w-fit [&_code]:min-w-full"
         dangerouslySetInnerHTML={{ __html: html }}
       ></div>
     </div>

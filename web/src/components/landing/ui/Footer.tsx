@@ -185,7 +185,7 @@ export default function Footer() {
           <div className="rounded-full border border-gray-200 py-1 pl-1 pr-2 dark:border-gray-800">
             <div className="flex items-center gap-1.5">
               <div className="relative size-4 shrink-0">
-                <div className="absolute inset-[1px] rounded-full bg-emerald-500/20 dark:bg-emerald-600/20" />
+                <div className="absolute inset-px rounded-full bg-emerald-500/20 dark:bg-emerald-600/20" />
                 <div className="absolute inset-1 rounded-full bg-emerald-600 dark:bg-emerald-500" />
               </div>
               <span className="text-xs text-gray-700 dark:text-gray-50">

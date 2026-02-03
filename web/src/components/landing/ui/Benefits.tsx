@@ -45,7 +45,7 @@ export default function Benefits() {
     <section aria-labelledby="benefits-title" className="mx-auto mt-44">
       <h2
         id="benefits-title"
-        className="inline-block bg-gradient-to-t from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent md:text-5xl dark:from-gray-50 dark:to-gray-300"
+        className="inline-block bg-linear-to-t from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent md:text-5xl dark:from-gray-50 dark:to-gray-300"
       >
         What&rsquo;s in for you
       </h2>
