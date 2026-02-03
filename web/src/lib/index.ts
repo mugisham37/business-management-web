@@ -21,6 +21,8 @@ export * from './graphql/generated/types';
 // Authentication Core
 export { TokenManager } from './auth/token-manager';
 export { AuthEventEmitter } from './auth/auth-events';
+export { socialAuthManager } from './auth/social-auth';
+export type { SocialProvider, SocialAuthResult } from './auth/social-auth';
 
 // Hooks
 export * from './hooks/auth';

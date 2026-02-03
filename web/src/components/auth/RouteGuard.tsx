@@ -15,11 +15,16 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
-interface RouteGuardProps {
+export interface RouteGuardProps {
   children: ReactNode;
+  /** Whether authentication is required (default: true) */
+  requireAuth?: boolean;
   requiredPermissions?: string[];
   allowedRoles?: string[];
   tierRestrictions?: string[];
+  /** Path to redirect to when access is denied (alias for redirectTo) */
+  fallbackPath?: string;
+  /** @deprecated Use fallbackPath instead */
   redirectTo?: string;
   fallback?: ReactNode;
   showError?: boolean;
@@ -29,6 +34,7 @@ interface RouteGuardProps {
  * Custom hook for navigation guard logic
  */
 function useNavigationGuardLogic(config: {
+  requireAuth?: boolean;
   requiredPermissions?: string[];
   allowedRoles?: string[];
   tierRestrictions?: string[];
@@ -39,14 +45,15 @@ function useNavigationGuardLogic(config: {
   const { hasAllPermissions, isLoading: permLoading } = usePermissions();
   const { hasFeature, isLoading: tierLoading } = useTier();
 
+  const requireAuth = config.requireAuth !== false; // Default to true
   const isLoading = authLoading || permLoading || tierLoading;
 
   // Compute error state synchronously (not in effect)
   const error = useMemo(() => {
     if (isLoading) return null;
 
-    // Check authentication
-    if (!isAuthenticated) {
+    // Check authentication (only if requireAuth is true)
+    if (requireAuth && !isAuthenticated) {
       return 'Authentication required';
     }
 
@@ -77,6 +84,7 @@ function useNavigationGuardLogic(config: {
   }, [
     isLoading,
     isAuthenticated,
+    requireAuth,
     config.requiredPermissions,
     config.allowedRoles,
     config.tierRestrictions,
@@ -92,7 +100,7 @@ function useNavigationGuardLogic(config: {
     }
   }, [isLoading, error, config.redirectTo, router]);
 
-  const hasAccess = isAuthenticated && !error;
+  const hasAccess = (requireAuth ? isAuthenticated : true) && !error;
 
   const revalidate = () => {
     // Trigger a re-render by forcing a refresh of auth state
@@ -108,18 +116,24 @@ function useNavigationGuardLogic(config: {
  */
 export function RouteGuard({
   children,
+  requireAuth = true,
   requiredPermissions = [],
   allowedRoles = [],
   tierRestrictions = [],
+  fallbackPath,
   redirectTo = '/auth',
   fallback,
   showError = true,
 }: RouteGuardProps) {
+  // Support both fallbackPath and redirectTo (fallbackPath takes precedence)
+  const redirectPath = fallbackPath || redirectTo;
+  
   const { isLoading, hasAccess, error, revalidate } = useNavigationGuardLogic({
+    requireAuth,
     requiredPermissions,
     allowedRoles,
     tierRestrictions,
-    redirectTo,
+    redirectTo: redirectPath,
   });
 
   // Show loading state while checking access

@@ -54,6 +54,9 @@ export interface AuthUser {
   displayName?: string;
   avatar?: string;
   lastLoginAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  businessName?: string;
   businessTier: BusinessTier;
   featureFlags: string[];
   trialExpiresAt?: Date;

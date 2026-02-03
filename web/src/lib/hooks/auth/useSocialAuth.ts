@@ -61,6 +61,10 @@ interface UseSocialAuthReturn extends SocialAuthState, SocialAuthOperations {
   linkedProviderCount: number;
   hasLinkedProviders: boolean;
   availableProviderCount: number;
+  
+  // Aliases for backwards compatibility
+  connectedProviders: SocialProvider[];
+  supportedProviders: string[];
 }
 
 export function useSocialAuth(): UseSocialAuthReturn {
@@ -463,6 +467,10 @@ export function useSocialAuth(): UseSocialAuthReturn {
   const linkedProviderCount = socialAuthState.linkedProviders.length;
   const hasLinkedProviders = linkedProviderCount > 0;
   const availableProviderCount = socialAuthState.availableProviders.length;
+  
+  // Aliases for backwards compatibility
+  const connectedProviders = socialAuthState.linkedProviders;
+  const supportedProviders = (socialAuthState.availableProviders as Array<{ provider: string }>).map(p => p.provider);
 
   return {
     // State
@@ -489,5 +497,9 @@ export function useSocialAuth(): UseSocialAuthReturn {
     linkedProviderCount,
     hasLinkedProviders,
     availableProviderCount,
+    
+    // Aliases for backwards compatibility
+    connectedProviders,
+    supportedProviders,
   };
 }

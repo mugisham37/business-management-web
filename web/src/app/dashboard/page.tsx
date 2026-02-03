@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, Users, Settings, BarChart3, Lock } from 'lucide-react';
 
 export default function DashboardPage() {
-    const { user, hasPermission, hasFeature, logout } = useAuth();
+    const { user, logout } = useAuth();
     const { userPermissions } = usePermissions();
     const { currentTier, hasFeature: hasTierFeature } = useTier();
     const { riskScore, riskLevel, isDeviceTrusted } = useSecurity();
@@ -22,7 +22,7 @@ export default function DashboardPage() {
                         Welcome back, {user?.displayName || user?.firstName}!
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        Here's what's happening with your business today.
+                        Here&apos;s what&apos;s happening with your business today.
                     </p>
                 </div>
                 <Button onClick={logout} variant="outline">

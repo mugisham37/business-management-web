@@ -19,7 +19,7 @@ export default function About() {
         <Badge>about database</Badge>
         <h1
           id="about-overview"
-          className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300"
+          className="mt-2 inline-block bg-linear-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300"
         >
           <Balancer>
             We are engineers, building the database platform we always wanted
@@ -35,7 +35,7 @@ export default function About() {
       <section aria-labelledby="vision-title" className="mx-auto mt-40">
         <h2
           id="vision-title"
-          className="inline-block bg-gradient-to-t from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent md:text-5xl dark:from-gray-50 dark:to-gray-300"
+          className="inline-block bg-linear-to-t from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent md:text-5xl dark:from-gray-50 dark:to-gray-300"
         >
           Our Vision
         </h2>

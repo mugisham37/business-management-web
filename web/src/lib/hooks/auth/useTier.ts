@@ -63,6 +63,9 @@ interface TierOperations {
 }
 
 interface UseTierReturn extends TierState, TierOperations {
+  // Current tier for easy access
+  currentTier: BusinessTier;
+  
   // Feature access utilities
   hasFeature: (feature: string) => boolean;
   canAccessTier: (tier: BusinessTier) => boolean;
@@ -382,6 +385,9 @@ export function useTier(): UseTierReturn {
     }
   }, [upgradeOptionsData]);
 
+  // Computed properties for convenience
+  const currentTier = tierState.tierInfo?.currentTier || BusinessTier.FREE;
+
   return {
     // State
     ...tierState,
@@ -389,6 +395,9 @@ export function useTier(): UseTierReturn {
                tierInfoLoading || 
                upgradeOptionsLoading || 
                simulateLoading,
+
+    // Computed tier value for easy access
+    currentTier,
 
     // Operations
     refreshTierInfo,

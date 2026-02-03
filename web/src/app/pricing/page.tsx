@@ -207,7 +207,7 @@ export default function Pricing() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
                     {plan.name}
                   </h2>
-                  {plan.trialDays > 0 && (
+                  {plan.trialDays && plan.trialDays > 0 && (
                     <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                       {plan.trialDays}-day trial
                     </Badge>
@@ -468,15 +468,13 @@ export default function Pricing() {
       </section>
 
       {/* Subscription Modal */}
-      {selectedPlan && (
-        <SubscriptionModal
-          isOpen={isModalOpen}
-          onClose={closeSubscriptionModal}
-          tier={selectedPlan.tier}
-          billingCycle={selectedPlan.billingCycle}
-          onSubscriptionComplete={handleSubscriptionComplete}
-        />
-      )}
+      <SubscriptionModal
+        isOpen={isModalOpen}
+        onClose={closeSubscriptionModal}
+        selectedTier={selectedPlan}
+        billingCycle={billingFrequency}
+        onComplete={handleSubscriptionComplete}
+      />
 
       <Faqs />
     </div>
