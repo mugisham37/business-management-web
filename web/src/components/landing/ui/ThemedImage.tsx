@@ -1,6 +1,7 @@
 "use client"
 import { useTheme } from "next-themes"
 import Image from "next/image"
+import { useEffect, useState } from "react"
 
 const ThemedImage = ({
   lightSrc,
@@ -18,6 +19,7 @@ const ThemedImage = ({
   className?: string
 }) => {
   const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   let src
 
   switch (resolvedTheme) {
@@ -32,9 +34,18 @@ const ThemedImage = ({
       break
   }
 
+  // Use useEffect to ensure rendering happens only after hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // During SSR and initial hydration, use lightSrc to match server-rendered output
+  // After mounted, use the resolved theme
+  const displaySrc = mounted && resolvedTheme ? src : lightSrc
+
   return (
     <Image
-      src={src}
+      src={displaySrc}
       alt={alt}
       width={width}
       height={height}

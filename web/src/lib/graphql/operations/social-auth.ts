@@ -13,27 +13,24 @@ export const SOCIAL_PROVIDER_FRAGMENT = gql`
     provider
     providerId
     email
-    name
-    avatar
-    linkedAt
+    connectedAt
     lastUsedAt
-    isVerified
   }
 `;
 
 export const OAUTH_URL_FRAGMENT = gql`
-  fragment OAuthUrlFragment on OAuthUrlResponse {
-    url
+  fragment OAuthUrlFragment on SocialAuthUrlResponse {
+    authUrl
     state
     provider
-    expiresAt
+    tenantId
   }
 `;
 
 // Queries
 export const GET_LINKED_PROVIDERS = gql`
   query GetLinkedProviders {
-    linkedProviders {
+    getConnectedSocialProviders {
       ...SocialProviderFragment
     }
   }
@@ -41,8 +38,8 @@ export const GET_LINKED_PROVIDERS = gql`
 `;
 
 export const GET_OAUTH_URL = gql`
-  query GetOAuthUrl($input: GetOAuthUrlInput!) {
-    getOAuthUrl(input: $input) {
+  query GetSocialAuthUrl($provider: String!, $tenantId: String) {
+    getSocialAuthUrl(provider: $provider, tenantId: $tenantId) {
       ...OAuthUrlFragment
     }
   }
@@ -51,13 +48,7 @@ export const GET_OAUTH_URL = gql`
 
 export const GET_AVAILABLE_PROVIDERS = gql`
   query GetAvailableProviders {
-    availableProviders {
-      provider
-      name
-      icon
-      enabled
-      requiresVerification
-    }
+    getSupportedSocialProviders
   }
 `;
 

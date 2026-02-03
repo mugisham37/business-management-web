@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useQuery, useMutation, useSubscription } from '@apollo/client';
+import { useQuery, useMutation, useSubscription, useLazyQuery } from '@apollo/client';
 import { AuthEventEmitter } from '../../auth/auth-events';
 import {
   GET_LINKED_PROVIDERS,
@@ -58,12 +58,12 @@ interface UseSocialAuthReturn extends SocialAuthState, SocialAuthOperations {
   getProviderInfo: (provider: string) => unknown;
   canLinkProvider: (provider: string) => boolean;
   canUnlinkProvider: (provider: string) => boolean;
-  
+
   // Computed properties
   linkedProviderCount: number;
   hasLinkedProviders: boolean;
   availableProviderCount: number;
-  
+
   // Aliases for backwards compatibility
   connectedProviders: SocialProvider[];
   supportedProviders: string[];
@@ -95,7 +95,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
     }
   );
 
-  const [getOAuthUrlMutation] = useMutation(GET_OAUTH_URL, {
+  const [getOAuthUrlQuery] = useLazyQuery(GET_OAUTH_URL, {
     errorPolicy: 'all',
   });
 
@@ -164,7 +164,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
       if (data.data?.socialAuthEvents) {
         const event = data.data.socialAuthEvents;
         AuthEventEmitter.emit('social:auth_event', event);
-        
+
         // Refresh providers on relevant events
         if (['PROVIDER_LINKED', 'PROVIDER_UNLINKED'].includes(event.type)) {
           refetchLinked();
@@ -213,19 +213,20 @@ export function useSocialAuth(): UseSocialAuthReturn {
       setSocialAuthState(prev => ({ ...prev, error: null, isLoading: true }));
 
       // First get OAuth URL
-      const urlResult = await getOAuthUrlMutation({
+      const urlResult = await getOAuthUrlQuery({
         variables: {
-          input: { provider, tenantId }
+          provider,
+          tenantId
         }
       });
 
-      if (!urlResult.data?.getOAuthUrl?.url) {
+      if (!urlResult.data?.getSocialAuthUrl?.authUrl) {
         throw new Error('Failed to get OAuth URL');
       }
 
       // Open OAuth popup
       const popup = window.open(
-        urlResult.data.getOAuthUrl.url,
+        urlResult.data.getSocialAuthUrl.authUrl,
         'oauth',
         'width=500,height=600,scrollbars=yes,resizable=yes'
       );
@@ -287,26 +288,26 @@ export function useSocialAuth(): UseSocialAuthReturn {
       }));
       throw error;
     }
-  }, [getOAuthUrlMutation, oauthLoginMutation]);
+  }, [getOAuthUrlQuery, oauthLoginMutation]);
 
   const linkProvider = useCallback(async (provider: string): Promise<boolean> => {
     try {
       setSocialAuthState(prev => ({ ...prev, error: null, isLinking: true }));
 
       // Get OAuth URL for linking
-      const urlResult = await getOAuthUrlMutation({
+      const urlResult = await getOAuthUrlQuery({
         variables: {
-          input: { provider, action: 'link' }
+          provider
         }
       });
 
-      if (!urlResult.data?.getOAuthUrl?.url) {
+      if (!urlResult.data?.getSocialAuthUrl?.authUrl) {
         throw new Error('Failed to get OAuth URL');
       }
 
       // Open OAuth popup
       const popup = window.open(
-        urlResult.data.getOAuthUrl.url,
+        urlResult.data.getSocialAuthUrl.authUrl,
         'oauth-link',
         'width=500,height=600,scrollbars=yes,resizable=yes'
       );
@@ -367,7 +368,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
       }));
       throw error;
     }
-  }, [getOAuthUrlMutation, linkProviderMutation]);
+  }, [getOAuthUrlQuery, linkProviderMutation]);
 
   const unlinkProvider = useCallback(async (provider: string): Promise<boolean> => {
     try {
@@ -418,18 +419,19 @@ export function useSocialAuth(): UseSocialAuthReturn {
 
   const getOAuthUrl = useCallback(async (provider: string, tenantId: string): Promise<string> => {
     try {
-      const result = await getOAuthUrlMutation({
+      const result = await getOAuthUrlQuery({
         variables: {
-          input: { provider, tenantId }
+          provider,
+          tenantId
         }
       });
 
-      return result.data?.getOAuthUrl?.url || '';
+      return result.data?.getSocialAuthUrl?.authUrl || '';
     } catch (error) {
       setSocialAuthState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Failed to get OAuth URL' }));
       throw error;
     }
-  }, [getOAuthUrlMutation]);
+  }, [getOAuthUrlQuery]);
 
   const refreshProviders = useCallback(async (): Promise<void> => {
     try {
@@ -453,7 +455,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
   }, [socialAuthState.linkedProviders]);
 
   const getProviderInfo = useCallback((provider: string): unknown => {
-    return (socialAuthState.availableProviders as Array<{provider: string}>).find(p => p.provider === provider) || null;
+    return (socialAuthState.availableProviders as Array<{ provider: string }>).find(p => p.provider === provider) || null;
   }, [socialAuthState.availableProviders]);
 
   const canLinkProvider = useCallback((provider: string): boolean => {
@@ -469,7 +471,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
   const linkedProviderCount = socialAuthState.linkedProviders.length;
   const hasLinkedProviders = linkedProviderCount > 0;
   const availableProviderCount = socialAuthState.availableProviders.length;
-  
+
   // Aliases for backwards compatibility
   const connectedProviders = socialAuthState.linkedProviders;
   const supportedProviders = (socialAuthState.availableProviders as Array<{ provider: string }>).map(p => p.provider);
@@ -499,7 +501,7 @@ export function useSocialAuth(): UseSocialAuthReturn {
     linkedProviderCount,
     hasLinkedProviders,
     availableProviderCount,
-    
+
     // Aliases for backwards compatibility
     connectedProviders,
     supportedProviders,

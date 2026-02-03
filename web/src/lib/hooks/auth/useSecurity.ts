@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useQuery, useMutation, useSubscription } from '@apollo/client';
+import { useQuery, useMutation, useSubscription, useLazyQuery } from '@apollo/client';
 import { AuthEventEmitter, type SecurityActivityData } from '../../auth/auth-events';
 import {
   MY_RISK_SCORE,
@@ -88,8 +88,9 @@ export function useSecurity(): UseSecurityReturn {
     }
   );
 
-  const [checkDeviceTrustMutation] = useMutation(IS_DEVICE_TRUSTED, {
+  const [checkDeviceTrustQuery] = useLazyQuery(IS_DEVICE_TRUSTED, {
     errorPolicy: 'all',
+    fetchPolicy: 'network-only',
   });
 
   const [logSecurityEventMutation, { loading: logEventLoading }] = useMutation(LOG_SECURITY_EVENT, {
@@ -200,11 +201,11 @@ export function useSecurity(): UseSecurityReturn {
   // Check device trust
   const checkDeviceTrust = useCallback(async (deviceFingerprint?: string): Promise<boolean> => {
     try {
-      const result = await checkDeviceTrustMutation({
+      const result = await checkDeviceTrustQuery({
         variables: { deviceFingerprint },
       });
 
-      const isTrusted = result.data?.isDeviceTrusted || false;
+      const isTrusted = result.data?.isDeviceTrusted?.trusted || false;
       
       setSecurityState(prev => ({
         ...prev,
@@ -213,7 +214,7 @@ export function useSecurity(): UseSecurityReturn {
 
       AuthEventEmitter.emit('security:device_trust_changed', {
         trusted: isTrusted,
-        score: isTrusted ? 100 : 0,
+        score: result.data?.isDeviceTrusted?.trustScore || (isTrusted ? 100 : 0),
       });
 
       return isTrusted;
@@ -221,7 +222,7 @@ export function useSecurity(): UseSecurityReturn {
       console.error('Failed to check device trust:', error);
       return false;
     }
-  }, [checkDeviceTrustMutation]);
+  }, [checkDeviceTrustQuery]);
 
   // Log security event
   const logSecurityEvent = useCallback(async (

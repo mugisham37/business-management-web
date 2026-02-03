@@ -100,14 +100,64 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
       url: process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || 'ws://localhost:3001/graphql',
       connectionParams: () => {
         const token = TokenManager.getAccessToken();
+        // Only provide connection params if we have a valid token
+        if (!token) {
+          return {};
+        }
         return {
-          authorization: token ? `Bearer ${token}` : '',
+          authorization: `Bearer ${token}`,
         };
       },
+      // Lazy connection - only connect when a subscription is made
+      lazy: true,
+      // Retry connection on failure (but not for auth errors)
+      retryAttempts: 5,
+      retryWait: async (retries) => {
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+        await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, retries), 30000)));
+      },
+      // Don't retry if we're not authenticated or if it's an auth-related close
+      shouldRetry: (errOrCloseEvent) => {
+        // Don't retry if user is not authenticated
+        if (!TokenManager.isAuthenticated()) {
+          return false;
+        }
+        // Don't retry on authentication-related close events (4500, 4401, 4403)
+        if (errOrCloseEvent && typeof errOrCloseEvent === 'object' && 'code' in errOrCloseEvent) {
+          const code = (errOrCloseEvent as { code: number }).code;
+          if (code === 4500 || code === 4401 || code === 4403) {
+            return false;
+          }
+        }
+        return true;
+      },
       on: {
-        connected: () => console.log('WebSocket connected'),
-        closed: () => console.log('WebSocket closed'),
-        error: (error) => console.error('WebSocket error:', error),
+        connected: () => {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('WebSocket connected');
+          }
+        },
+        closed: (event) => {
+          // Only log if it's not an expected auth-related closure
+          if (process.env.NODE_ENV === 'development') {
+            const closeEvent = event as { code?: number };
+            if (closeEvent?.code !== 4500) {
+              console.log('WebSocket closed');
+            }
+          }
+        },
+        error: (error) => {
+          // Only log meaningful errors, not empty connection failures or auth errors when not logged in
+          if (!TokenManager.isAuthenticated()) {
+            // Silently ignore errors when not authenticated - this is expected
+            return;
+          }
+          if (error && Object.keys(error).length > 0) {
+            console.error('WebSocket error:', error);
+          } else if (process.env.NODE_ENV === 'development') {
+            console.warn('WebSocket connection failed. Is the backend server running?');
+          }
+        },
       },
     })
   ) : null;
@@ -129,30 +179,36 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
   const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
     if (graphQLErrors) {
       for (const error of graphQLErrors) {
-        console.error(`GraphQL error: ${error.message}`);
+        // Only log non-auth errors or auth errors when user should be authenticated
+        const isAuthError = error.extensions?.code === 'UNAUTHENTICATED';
+        if (!isAuthError || TokenManager.isAuthenticated()) {
+          console.error(`GraphQL error: ${error.message}`);
+        }
         
         // Handle authentication errors
-        if (error.extensions?.code === 'UNAUTHENTICATED') {
-          // Try to refresh token
-          TokenManager.refreshToken().then((success) => {
-            if (success) {
-              // Retry the operation with new token
-              const oldHeaders = operation.getContext().headers as Record<string, string>;
-              operation.setContext({
-                headers: {
-                  ...oldHeaders,
-                  authorization: `Bearer ${TokenManager.getAccessToken()}`,
-                },
-              });
-              // Note: We can't return the forward operation here due to type constraints
-              // The retry will happen on the next request
-            } else {
-              // Refresh failed, redirect to login
+        if (isAuthError) {
+          // Only try to refresh if we thought we were authenticated
+          if (TokenManager.isAuthenticated()) {
+            TokenManager.refreshToken().then((success) => {
+              if (success) {
+                // Retry the operation with new token
+                const oldHeaders = operation.getContext().headers as Record<string, string>;
+                operation.setContext({
+                  headers: {
+                    ...oldHeaders,
+                    authorization: `Bearer ${TokenManager.getAccessToken()}`,
+                  },
+                });
+                // Note: We can't return the forward operation here due to type constraints
+                // The retry will happen on the next request
+              } else {
+                // Refresh failed, redirect to login
+                AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
+              }
+            }).catch(() => {
               AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
-            }
-          }).catch(() => {
-            AuthEventEmitter.emit('auth:logout', { reason: 'token_expired' });
-          });
+            });
+          }
           return; // Return void for this case
         }
         
@@ -175,10 +231,22 @@ function createApolloClient(): ApolloClient<NormalizedCacheObject> {
     }
     
     if (networkError) {
-      console.error(`Network error: ${networkError.message}`);
+      // Check if this is an expected authentication-related error when user is not logged in
+      const isAuthRelatedError = 
+        networkError.message?.includes('Missing authentication token') ||
+        networkError.message?.includes('4500') ||
+        networkError.message?.includes('4401') ||
+        ('statusCode' in networkError && networkError.statusCode === 401);
       
-      // Handle network errors
-      if ('statusCode' in networkError && networkError.statusCode === 401) {
+      // Only log if it's not an expected auth error for unauthenticated users
+      if (isAuthRelatedError && !TokenManager.isAuthenticated()) {
+        // Silently ignore - this is expected when not logged in
+      } else {
+        console.error(`Network error: ${networkError.message}`);
+      }
+      
+      // Handle network errors - only emit logout event if we thought we were authenticated
+      if ('statusCode' in networkError && networkError.statusCode === 401 && TokenManager.isAuthenticated()) {
         AuthEventEmitter.emit('auth:logout', { reason: 'unauthorized' });
       }
     }

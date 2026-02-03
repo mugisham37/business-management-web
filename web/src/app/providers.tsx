@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ApolloProvider, ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { AuthProvider } from '@/lib/providers/auth-provider';
 import { ThemeProvider } from '@/lib/providers/theme-provider';
@@ -13,6 +13,21 @@ import { AuthEventHandler } from '@/components/auth/AuthEventHandler';
 
 interface ProvidersProps {
   children: React.ReactNode;
+}
+
+/**
+ * Loading fallback component displayed while Apollo Client is initializing
+ * This prevents components using Apollo hooks from rendering prematurely
+ */
+function ApolloLoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Initializing...</p>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -29,24 +44,31 @@ interface ProvidersProps {
  * 7. LayoutProvider - Responsive state
  * 8. NotificationProvider - Toast notifications
  * 9. AuthEventHandler - Global auth event handling
+ * 
+ * IMPORTANT: Children are NOT rendered until Apollo Client is ready.
+ * This prevents "Could not find client in context" errors when components
+ * use Apollo hooks (useQuery, useMutation, etc.) during initial render.
  */
 export function Providers({ children }: ProvidersProps) {
   const [client, setClient] = useState<ApolloClient<NormalizedCacheObject> | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Initialize Apollo Client only on the client-side
   useEffect(() => {
     import('@/lib/graphql/client').then(({ getApolloClient }) => {
       setClient(getApolloClient());
+      setIsInitialized(true);
     });
   }, []);
   
-  // Show loading or fallback during SSR and initial hydration
-  if (!client) {
+  // Show loading fallback while Apollo Client is initializing
+  // CRITICAL: Do NOT render children without ApolloProvider as they may use Apollo hooks
+  if (!client || !isInitialized) {
     return (
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <LayoutProvider>
           <NotificationProvider>
-            {children}
+            <ApolloLoadingFallback />
           </NotificationProvider>
         </LayoutProvider>
       </ThemeProvider>
