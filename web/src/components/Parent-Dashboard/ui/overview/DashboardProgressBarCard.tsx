@@ -1,7 +1,7 @@
 import { Badge } from "@/components/Parent-Dashboard/Badge"
 import { ProgressBar } from "@/components/Parent-Dashboard/ProgressBar"
 
-import { KpiEntry } from "@/app/(dashboard)/overview/page"
+import { KpiEntry } from "@/app/dashboard/main/overview/page"
 
 export type CardProps = {
   title: string

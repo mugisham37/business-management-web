@@ -1,4 +1,4 @@
-import { PeriodValue } from "@/app/(dashboard)/overview/page"
+import { PeriodValue } from "@/app/dashboard/main/overview/page"
 import { Badge } from "@/components/Parent-Dashboard/Badge"
 import { LineChart } from "@/components/Parent-Dashboard/LineChart"
 import { overviews } from "@/data/overview-data"
