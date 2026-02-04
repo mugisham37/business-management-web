@@ -1,21 +1,21 @@
 "use client"
 
-import { Button } from "@/components/Button"
+import { Button } from "@/components/Parent-Dashboard/Button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/Dropdown"
+} from "@/components/Parent-Dashboard/Dropdown"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Tooltip } from "@/components/Tooltip"
-import { ModalAddUser } from "@/components/ui/settings/ModalAddUser"
+} from "@/components/Parent-Dashboard/Select"
+import { Tooltip } from "@/components/Parent-Dashboard/Tooltip"
+import { ModalAddUser } from "@/components/Parent-Dashboard/ui/settings/ModalAddUser"
 import { invitedUsers, roles, users } from "@/data/data"
 import { RiAddLine, RiMore2Fill } from "@remixicon/react"
 

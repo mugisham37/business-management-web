@@ -68,7 +68,7 @@ export function ModalAddWorkspace({
       <Dialog onOpenChange={onOpenChange}>
         <DialogTrigger className="w-full text-left">
           <DropdownMenuItem
-            onSelect={(event) => {
+            onSelect={(event: Event) => {
               event.preventDefault()
               onSelect && onSelect()
             }}

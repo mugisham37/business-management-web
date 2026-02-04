@@ -38,7 +38,7 @@ const CommandBar = ({
         <Popover.Content
           side="top"
           sideOffset={0}
-          onOpenAutoFocus={(e) => {
+          onOpenAutoFocus={(e: Event) => {
             if (disableAutoFocus) {
               e.preventDefault()
             }

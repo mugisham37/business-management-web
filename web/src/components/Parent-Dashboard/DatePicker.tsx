@@ -139,7 +139,7 @@ const TimeInput = React.forwardRef<HTMLDivElement, TimeInputProps>(
         ref={innerRef}
         className="group/time-input inline-flex w-full gap-x-2"
       >
-        {state.segments.map((segment, i) => (
+        {state.segments.map((segment: DateSegment, i: number) => (
           <TimeSegment key={i} segment={segment} state={state} />
         ))}
       </div>
@@ -232,7 +232,7 @@ const CalendarPopover = React.forwardRef<
         side="bottom"
         align={align}
         avoidCollisions
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={(e: Event) => e.preventDefault()}
         className={cx(
           // base
           "relative z-50 w-fit rounded-md border text-sm shadow-xl shadow-black/[2.5%]",
@@ -966,7 +966,7 @@ const RangeDatePicker = ({
                     </span>
                     <TimeInput
                       value={startTime}
-                      onChange={(v) => onTimeChange(v, "start")}
+                      onChange={(v: TimeValue | null) => v && onTimeChange(v, "start")}
                       aria-label="Start date time"
                       isDisabled={!range?.from}
                       isRequired={props.required}
@@ -979,7 +979,7 @@ const RangeDatePicker = ({
                     </span>
                     <TimeInput
                       value={endTime}
-                      onChange={(v) => onTimeChange(v, "end")}
+                      onChange={(v: TimeValue | null) => v && onTimeChange(v, "end")}
                       aria-label="End date time"
                       isDisabled={!range?.to}
                       isRequired={props.required}

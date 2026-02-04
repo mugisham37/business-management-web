@@ -163,7 +163,7 @@ const Calendar = ({
           } = useNavigation()
           const { numberOfMonths, fromDate, toDate } = useDayPicker()
 
-          const displayIndex = displayMonths.findIndex((month) =>
+          const displayIndex = displayMonths.findIndex((month: Date) =>
             isSameMonth(props.displayMonth, month),
           )
           const isFirst = displayIndex === 0
@@ -254,7 +254,7 @@ const Calendar = ({
           )
         },
         Day: ({ date, displayMonth }: DayProps) => {
-          const buttonRef = React.useRef<HTMLButtonElement>(null)
+          const buttonRef = React.useRef<HTMLButtonElement>(null!)
           const { activeModifiers, buttonProps, divProps, isButton, isHidden } =
             useDayRender(date, displayMonth, buttonRef)
 

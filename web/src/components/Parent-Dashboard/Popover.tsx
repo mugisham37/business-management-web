@@ -85,7 +85,7 @@ const PopoverContent = React.forwardRef<
             className,
           )}
           // https://github.com/radix-ui/primitives/issues/1159
-          onWheel={(event) => {
+          onWheel={(event: React.WheelEvent) => {
             event.stopPropagation()
             const isScrollingDown = event.deltaY > 0
             if (isScrollingDown) {

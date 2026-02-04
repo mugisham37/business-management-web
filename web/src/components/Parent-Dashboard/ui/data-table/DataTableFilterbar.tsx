@@ -6,7 +6,7 @@ import { conditions, regions, statuses } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { RiDownloadLine } from "@remixicon/react"
 import { Table } from "@tanstack/react-table"
-import { useState } from "react"
+import React, { useState } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { DataTableFilter } from "./DataTableFilter"
 import { ViewOptions } from "./DataTableViewOptions"
@@ -19,11 +19,11 @@ export function Filterbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
   const [searchTerm, setSearchTerm] = useState<string>("")
 
-  const debouncedSetFilterValue = useDebouncedCallback((value) => {
+  const debouncedSetFilterValue = useDebouncedCallback((value: string) => {
     table.getColumn("owner")?.setFilterValue(value)
   }, 300)
 
-  const handleSearchChange = (event: any) => {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setSearchTerm(value)
     debouncedSetFilterValue(value)

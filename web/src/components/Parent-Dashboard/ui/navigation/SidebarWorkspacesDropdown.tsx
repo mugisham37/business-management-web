@@ -80,7 +80,7 @@ export const WorkspacesDropdownDesktop = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           hidden={hasOpenDialog}
-          onCloseAutoFocus={(event) => {
+          onCloseAutoFocus={(event: Event) => {
             if (focusRef.current) {
               focusRef.current.focus()
               focusRef.current = null
@@ -180,7 +180,7 @@ export const WorkspacesDropdownMobile = () => {
         <DropdownMenuContent
           className="!min-w-72"
           hidden={hasOpenDialog}
-          onCloseAutoFocus={(event) => {
+          onCloseAutoFocus={(event: Event) => {
             if (focusRef.current) {
               focusRef.current.focus()
               focusRef.current = null

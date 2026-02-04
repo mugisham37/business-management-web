@@ -387,7 +387,7 @@ const ChartTooltipRow = ({ value, name, color }: ChartTooltipRowProps) => (
 interface ChartTooltipProps {
   active: boolean | undefined
   payload: any
-  label: string
+  label?: string | number
   categoryColors: Map<string, string>
   valueFormatter: (value: number) => string
 }

@@ -134,7 +134,7 @@ export function DataTableFilter<TData, TValue>({
         return (
           <Select
             value={selectedValues as string}
-            onValueChange={(value) => {
+            onValueChange={(value: string) => {
               setSelectedValues(value)
             }}
           >
@@ -161,7 +161,7 @@ export function DataTableFilter<TData, TValue>({
                     checked={(selectedValues as string[])?.includes(
                       option.value,
                     )}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={(checked: boolean | "indeterminate") => {
                       setSelectedValues((prev) => {
                         if (checked) {
                           return prev
@@ -193,7 +193,7 @@ export function DataTableFilter<TData, TValue>({
           <div className="space-y-2">
             <Select
               value={(selectedValues as ConditionFilter)?.condition}
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 setSelectedValues((prev) => {
                   return {
                     condition: value,

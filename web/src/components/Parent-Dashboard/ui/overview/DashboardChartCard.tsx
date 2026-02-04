@@ -78,10 +78,10 @@ export function ChartCard({
       }
       return false
     })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a: { date: Date | string }, b: { date: Date | string }) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   const chartData = allDatesInInterval
-    ?.map((date, index) => {
+    ?.map((date: Date, index: number) => {
       const overview = data[index]
       const prevOverview = prevData[index]
       const value = (overview?.[title] as number) || null

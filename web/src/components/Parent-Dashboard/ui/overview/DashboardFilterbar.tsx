@@ -139,7 +139,7 @@ export function Filterbar({
         <Select
           defaultValue="no-comparison"
           value={selectedPeriod}
-          onValueChange={(value) => {
+          onValueChange={(value: string) => {
             onPeriodChange(value as PeriodValue)
           }}
         >

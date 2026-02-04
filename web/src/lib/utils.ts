@@ -35,3 +35,23 @@ export const hasErrorInput = [
   // ring color
   "ring-red-200 dark:ring-red-700/30",
 ]
+
+// Formatters for currency and unit values
+export const formatters = {
+  currency: (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value),
+  unit: (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value),
+}
+
+// Percentage formatter
+export const percentageFormatter = (value: number) =>
+  `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`

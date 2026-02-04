@@ -53,7 +53,7 @@ export function DropdownUserProfile({
               <DropdownMenuSubMenuContent>
                 <DropdownMenuRadioGroup
                   value={theme}
-                  onValueChange={(value) => {
+                  onValueChange={(value: string) => {
                     setTheme(value)
                   }}
                 >
