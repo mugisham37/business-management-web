@@ -1,7 +1,7 @@
 "use client"
 
 import { siteConfig } from "@/app/siteConfig"
-import useScroll from "@/lib/hooks/use-scroll"
+import useScroll from "@/lib/use-scroll"
 import { cx } from "@/lib/utils"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
