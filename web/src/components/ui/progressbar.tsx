@@ -1,5 +1,3 @@
-// Tremor Raw ProgressBar [v0.0.1]
-
 import React from "react"
 import { tv, type VariantProps } from "tailwind-variants"
 
@@ -7,45 +5,61 @@ import { cx } from "@/lib/utils"
 
 const progressBarVariants = tv({
   slots: {
-    background: "",
-    bar: "",
+    root: "flex w-full items-center",
+    track: "relative flex h-2 w-full items-center rounded-full overflow-hidden",
+    indicator: "h-full rounded-full transition-all duration-300 ease-in-out",
+    label: "ml-2 whitespace-nowrap text-sm font-medium leading-none text-gray-900 dark:text-gray-50",
   },
   variants: {
     variant: {
       default: {
-        background: "bg-blue-200 dark:bg-blue-500/30",
-        bar: "bg-blue-500 dark:bg-blue-500",
+        track: "bg-blue-200 dark:bg-blue-500/30",
+        indicator: "bg-blue-500 dark:bg-blue-500",
       },
       neutral: {
-        background: "bg-gray-200 dark:bg-gray-500/40",
-        bar: "bg-gray-500 dark:bg-gray-500",
+        track: "bg-gray-200 dark:bg-gray-500/40",
+        indicator: "bg-gray-500 dark:bg-gray-500",
       },
       warning: {
-        background: "bg-yellow-200 dark:bg-yellow-500/30",
-        bar: "bg-yellow-500 dark:bg-yellow-500",
+        track: "bg-yellow-200 dark:bg-yellow-500/30",
+        indicator: "bg-yellow-500 dark:bg-yellow-500",
       },
       error: {
-        background: "bg-red-200 dark:bg-red-500/30",
-        bar: "bg-red-500 dark:bg-red-500",
+        track: "bg-red-200 dark:bg-red-500/30",
+        indicator: "bg-red-500 dark:bg-red-500",
       },
       success: {
-        background: "bg-emerald-200 dark:bg-emerald-500/30",
-        bar: "bg-emerald-500 dark:bg-emerald-500",
+        track: "bg-emerald-200 dark:bg-emerald-500/30",
+        indicator: "bg-emerald-500 dark:bg-emerald-500",
+      },
+    },
+    size: {
+      sm: {
+        track: "h-1",
+      },
+      md: {
+        track: "h-2",
+      },
+      lg: {
+        track: "h-3",
       },
     },
   },
   defaultVariants: {
     variant: "default",
+    size: "md",
   },
 })
 
 interface ProgressBarProps
-  extends React.HTMLProps<HTMLDivElement>,
-  VariantProps<typeof progressBarVariants> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children">,
+    VariantProps<typeof progressBarVariants> {
   value?: number
   max?: number
   showAnimation?: boolean
   label?: string
+  showPercentage?: boolean
+  formatLabel?: (value: number, max: number) => string
 }
 
 const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
@@ -54,55 +68,62 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
       value = 0,
       max = 100,
       label,
-      showAnimation = false,
+      showAnimation = true,
+      showPercentage = false,
+      formatLabel,
       variant,
+      size,
       className,
       ...props
-    }: ProgressBarProps,
-    forwardedRef,
+    },
+    ref,
   ) => {
-    const safeValue = Math.min(max, Math.max(value, 0))
-    const { background, bar } = progressBarVariants({ variant })
+    const normalizedValue = Math.min(max, Math.max(value, 0))
+    const percentage = max > 0 ? (normalizedValue / max) * 100 : 0
+    
+    const { root, track, indicator, label: labelClass } = progressBarVariants({
+      variant,
+      size,
+    })
+
+    const displayLabel = React.useMemo(() => {
+      if (formatLabel) {
+        return formatLabel(normalizedValue, max)
+      }
+      if (showPercentage) {
+        return `${Math.round(percentage)}%`
+      }
+      return label
+    }, [formatLabel, normalizedValue, max, showPercentage, percentage, label])
+
     return (
       <div
-        ref={forwardedRef}
-        className={cx("flex w-full items-center", className)}
-        tremor-id="tremor-raw"
+        ref={ref}
+        className={cx(root(), className)}
+        role="progressbar"
+        aria-valuenow={normalizedValue}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-label={typeof displayLabel === "string" ? displayLabel : "Progress"}
         {...props}
       >
-        <div
-          className={cx(
-            "relative flex h-2 w-full items-center rounded-full",
-            background(),
-          )}
-          aria-label="progress bar"
-          aria-valuenow={value}
-          aria-valuemax={max}
-        >
+        <div className={track()}>
           <div
             className={cx(
-              "h-full flex-col rounded-full",
-              bar(),
-              showAnimation &&
-              "transform-gpu transition-all duration-300 ease-in-out",
+              indicator(),
+              !showAnimation && "transition-none",
             )}
             style={{
-              width: max ? `${(safeValue / max) * 100}%` : `${safeValue}%`,
+              width: `${percentage}%`,
+              transform: "translateZ(0)",
             }}
           />
         </div>
-        {label ? (
-          <span
-            className={cx(
-              // base
-              "ml-2 whitespace-nowrap text-sm font-medium leading-none",
-              // text color
-              "text-gray-900 dark:text-gray-50",
-            )}
-          >
-            {label}
+        {displayLabel && (
+          <span className={labelClass()}>
+            {displayLabel}
           </span>
-        ) : null}
+        )}
       </div>
     )
   },
