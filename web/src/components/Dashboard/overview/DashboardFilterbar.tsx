@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/Dialog"
 
-import { PeriodValue } from "@/app/dashboard/(main)/overview/page"
+import { PeriodValue } from "@/app/dashboard/main/overview/page"
 import { OverviewData } from "@/data/schema"
 import { Button } from "@/components/ui/Button"
 import { Checkbox } from "@/components/ui/Checkbox"

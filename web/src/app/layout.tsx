@@ -3,6 +3,7 @@ import { Navigation } from "@/components/Landing/Navbar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
 
@@ -53,15 +54,17 @@ export default function RootLayout({
       <body
         className={`${inter.className} min-h-screen scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-        >
-          <Navigation />
-          {children}
-          <Footer />
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            disableTransitionOnChange
+          >
+            <Navigation />
+            {children}
+            <Footer />
+          </ThemeProvider>
+        </NuqsAdapter>
       </body>
     </html>
   )

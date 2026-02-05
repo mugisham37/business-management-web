@@ -1,6 +1,6 @@
 "use client"
 
-import { Divider } from "@/components/Divider"
+import { Divider } from "@/components/ui/Divider"
 import Approvers from "./_components/Approvers"
 import AuditRules from "./_components/AuditRules"
 import TransactionPolicy from "./_components/TransactionPolicy"

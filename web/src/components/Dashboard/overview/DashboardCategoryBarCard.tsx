@@ -4,7 +4,7 @@ import { CategoryBar } from "@/components/ui/CategoryBar"
 import { cx } from "@/lib/utils"
 import { getColorClassName, AvailableChartColorsKeys } from "@/lib/chartUtils"
 
-import type { KpiEntryExtended } from "@/app/dashboard/(main)/overview/page"
+import type { KpiEntryExtended } from "@/app/dashboard/main/overview/page"
 
 export type CardProps = {
   title: string
