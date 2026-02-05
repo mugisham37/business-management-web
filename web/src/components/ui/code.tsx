@@ -94,7 +94,7 @@ export default async function Code({
           <span className="text-xs font-medium text-gray-300">{filename}</span>
           {copy && (
             <div className="flex items-center gap-2">
-              <CopyToClipboard code={code} />
+              <CopyToClipboard value={code} />
             </div>
           )}
         </div>
@@ -103,7 +103,7 @@ export default async function Code({
       {copy && !filename && (
         <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-r from-gray-900/0 via-gray-900/70 to-gray-900 pointer-events-none">
           <div className="absolute right-3 top-3 pointer-events-auto">
-            <CopyToClipboard code={code} />
+            <CopyToClipboard value={code} />
           </div>
         </div>
       )}

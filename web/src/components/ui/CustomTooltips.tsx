@@ -1,6 +1,6 @@
 import { chartColors, getColorClassName } from "@/lib/chartUtils"
 import { cx, formatters } from "@/lib/utils"
-import { TooltipProps } from "./BarChart"
+import { TooltipProps } from "./bar-chart"
 import { TooltipProps as TooltipComboBarChartProps } from "./combo-chart"
 
 export const CustomTooltip = ({ payload, active }: TooltipProps) => {
@@ -24,7 +24,7 @@ export const CustomTooltip = ({ payload, active }: TooltipProps) => {
   return (
     <div className="flex w-56 items-start justify-between rounded-md border border-gray-200 bg-white p-2 text-sm shadow-md dark:border-gray-800 dark:bg-gray-950">
       <div className="space-y-2">
-        {payload.map((category, index) => (
+        {payload.map((category: any, index: number) => (
           <div key={index} className="flex space-x-2.5">
             <span
               className={cx(
@@ -133,10 +133,10 @@ export const CustomTooltip3 = ({ payload, active }: TooltipProps) => {
   return (
     <div className="w-56 rounded-md border border-gray-200 bg-white text-sm shadow-md dark:border-gray-800 dark:bg-gray-950">
       <ul role="list" className="grid grid-cols-2 gap-x-4 p-2">
-        {payload.map((category, index) => (
+        {payload.map((category: any, index: number) => (
           <li key={index} className="flex space-x-2.5">
             <span
-              className={cx(chartColors[category.color].bg, "w-1 rounded")}
+              className={cx(chartColors[category.color as keyof typeof chartColors]?.bg, "w-1 rounded")}
               aria-hidden="true"
             />
             <div className="space-y-0.5">
