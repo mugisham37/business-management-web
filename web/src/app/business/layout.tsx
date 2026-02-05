@@ -1,20 +1,20 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/Sidebar"
-import { AppSidebar } from "@/components/ui/navigation/AppSidebar"
-import { Breadcrumbs } from "@/components/ui/navigation/Breadcrumbs"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/Sidebar"
+import { AppSidebar } from "@/components/Business/navigation/AppSidebar"
+import { Breadcrumbs } from "@/components/Business/navigation/Breadcrumbs"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import localFont from "next/font/local"
 import { cookies } from "next/headers"
-import "./globals.css"
-import { siteConfig } from "./siteConfig"
+import "../globals.css"
+import { siteConfig } from "../siteConfig"
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+  src: "../fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 })
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+  src: "../fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
 })

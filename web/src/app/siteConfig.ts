@@ -13,6 +13,11 @@ export const siteConfig = {
     overview: "/overview",
     details: "/details",
     login: "/dashboard/login",
+    quotes: {
+      overview: "/business/quotes/overview",
+      monitoring: "/business/quotes/monitoring",
+      audits: "/business/quotes/audits",
+    },
     settings: {
       general: "/settings/general",
       billing: "/settings/billing",

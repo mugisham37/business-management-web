@@ -1,21 +1,21 @@
 "use client"
-import { BarChart } from "@/components/BarChart"
-import { Button } from "@/components/Button"
-import { ComboChart } from "@/components/ComboChart"
-import { ConditionalBarChart } from "@/components/ConditionalBarChart"
+import { BarChart } from "@/components/ui/BarChart"
+import { Button } from "@/components/ui/Button"
+import { ComboChart } from "@/components/ui/ComboChart"
+import { ConditionalBarChart } from "@/components/ui/ConditionalBarChart"
 import {
   CustomTooltip,
   CustomTooltip2,
   CustomTooltip3,
   CustomTooltip4,
-} from "@/components/CustomTooltips"
+} from "@/components/ui/CustomTooltips"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import { dataChart, dataChart2, dataChart3, dataChart4 } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { SlidersHorizontal } from "lucide-react"
@@ -65,7 +65,7 @@ export default function Monitoring() {
             customTooltip={CustomTooltip}
             yAxisLabel="Number of inherent risks"
             barCategoryGap="20%"
-            valueFormatter={(value) => formatters.unit(value)}
+            valueFormatter={(value: number) => formatters.unit({ number: value })}
             className="mt-4 hidden h-60 md:block"
           />
           <BarChart
@@ -95,7 +95,7 @@ export default function Monitoring() {
             barSeries={{
               categories: ["Quotes"],
               yAxisLabel: "Number of quotes / Deal size ($)",
-              valueFormatter: (value) =>
+              valueFormatter: (value: number) =>
                 formatters.currency({ number: value, maxFractionDigits: 0 }),
             }}
             lineSeries={{
@@ -171,7 +171,7 @@ export default function Monitoring() {
             categories={["Density"]}
             colors={["orange"]}
             customTooltip={CustomTooltip4}
-            valueFormatter={(value) =>
+            valueFormatter={(value: number) =>
               formatters.percentage({ number: value, decimals: 0 })
             }
             yAxisWidth={55}
@@ -185,7 +185,7 @@ export default function Monitoring() {
             categories={["Density"]}
             colors={["orange"]}
             customTooltip={CustomTooltip4}
-            valueFormatter={(value) =>
+            valueFormatter={(value: number) =>
               formatters.percentage({ number: value, decimals: 0 })
             }
             showYAxis={false}

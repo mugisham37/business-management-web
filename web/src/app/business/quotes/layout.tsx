@@ -1,10 +1,10 @@
 "use client"
-import { TabNavigation, TabNavigationLink } from "@/components/TabNavigation"
-import { MetricsCards } from "@/components/ui/homepage/MetricsCards"
+import { TabNavigation, TabNavigationLink } from "@/components/ui/TabNavigation"
+import { MetricsCards } from "@/components/Business/homepage/MetricsCards"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import React from "react"
-import { siteConfig } from "../siteConfig"
+import { siteConfig } from "../../siteConfig"
 
 const navigation = [
   { name: "Overview", href: siteConfig.baseLinks.quotes.overview },

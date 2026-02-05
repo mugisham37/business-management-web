@@ -1,14 +1,14 @@
 "use client"
-import { Badge } from "@/components/Badge"
-import { Button } from "@/components/Button"
-import { Input } from "@/components/Input"
+import { Badge } from "@/components/ui/Badge"
+import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ import {
   TableHeaderCell,
   TableRoot,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/Table"
 import { quotes } from "@/data/data"
 import { cx } from "@/lib/utils"
 import { Download } from "lucide-react"
