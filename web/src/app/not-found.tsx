@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { siteConfig } from "./siteConfig"
-import { Button } from "@/components/uis/ui1/Button"
+import { Button } from "@/components/ui/Button"
 import { DatabaseLogo } from "../../public/DatabaseLogo"
 import { ArrowAnimated } from "@/components/Landing/ArrowAnimated"
 

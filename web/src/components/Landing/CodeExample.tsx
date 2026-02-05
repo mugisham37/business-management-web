@@ -1,4 +1,4 @@
-import Code from "@/components/ui/code"
+import Code from "@/components/ui/Code"
 import {
   RiLinksLine,
   RiPlugLine,

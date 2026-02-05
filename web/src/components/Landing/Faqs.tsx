@@ -4,7 +4,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../../uis/ui1/Accordion"
+} from "../ui/Accordion"
 
 const faqs = [
   {

@@ -1,7 +1,7 @@
 "use client"
 import Balancer from "react-wrap-balancer"
-import { Button } from "../../uis/ui1/Button"
-import { Input } from "../../uis/ui1/Input"
+import { Button } from "../ui/Button"
+import { Input } from "../ui/Input"
 
 export default function Cta() {
   return (

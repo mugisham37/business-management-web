@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/Badge"
-import { Button } from "@/components/uis/ui1/Button"
+import { Button } from "@/components/ui/Button"
 import Benefits from "@/components/Landing/Benefits"
 import TeamGallery from "@/components/Landing/TeamGallery"
 import { cx } from "@/lib/utils"

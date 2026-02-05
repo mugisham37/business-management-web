@@ -1,13 +1,13 @@
 "use client"
 
 import { siteConfig } from "@/app/siteConfig"
-import useScroll from "@/hooks/use-scroll"
+import useScroll from "@/hooks/useScroll"
 import { cx } from "@/lib/utils"
 import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
 import React from "react"
 import { DatabaseLogo } from "../../../public/DatabaseLogo"
-import { Button } from "../../uis/ui1/Button"
+import { Button } from "../ui/Button"
 
 export function Navigation() {
   const scrolled = useScroll(15)

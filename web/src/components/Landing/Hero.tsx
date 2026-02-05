@@ -1,6 +1,6 @@
 import { RiPlayCircleFill } from "@remixicon/react"
 import Link from "next/link"
-import { Button } from "../../uis/ui1/Button"
+import { Button } from "../ui/Button"
 import HeroImage from "./HeroImage"
 
 export default function Hero() {
