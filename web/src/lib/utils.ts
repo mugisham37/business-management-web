@@ -15,6 +15,16 @@ export function cx(...args: ClassValue[]): string {
   return twMerge(clsx(...args))
 }
 
+/**
+ * shadcn/ui cn utility function
+ * Alias for cx function to maintain compatibility
+ * @param args - Class values to merge
+ * @returns Merged and deduplicated class string
+ */
+export function cn(...args: ClassValue[]): string {
+  return twMerge(clsx(...args))
+}
+
 // =============================================================================
 // STYLING CONSTANTS
 // =============================================================================
