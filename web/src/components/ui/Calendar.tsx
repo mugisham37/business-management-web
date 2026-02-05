@@ -23,7 +23,7 @@ import {
 } from "react-day-picker"
 
 import { cx, focusRing } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/Button"
 
 interface NavigationButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   onClick: () => void

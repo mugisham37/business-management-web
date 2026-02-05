@@ -1,7 +1,7 @@
 import { chartColors, getColorClassName } from "@/lib/chartUtils"
 import { cx, formatters } from "@/lib/utils"
-import { TooltipProps } from "./bar-chart"
-import { TooltipProps as TooltipComboBarChartProps } from "./combo-chart"
+import { TooltipProps } from "./BarChart"
+import { TooltipProps as TooltipComboBarChartProps } from "./ComboChart"
 
 export const CustomTooltip = ({ payload, active }: TooltipProps) => {
   if (!active || !payload || payload.length === 0) return null

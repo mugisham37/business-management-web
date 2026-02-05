@@ -9,9 +9,9 @@ import {
   H3,
   P,
   Ul,
-} from "@/components/ui/mdx"
+} from "@/components/ui/MDX"
 
-import { ChangelogImage } from "@/components/ui/mdx"
+import { ChangelogImage } from "@/components/ui/MDX"
 
 let customComponents = {
   h1: H1,

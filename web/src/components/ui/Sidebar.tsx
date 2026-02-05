@@ -9,28 +9,28 @@ import { RiCloseLine } from "@remixicon/react"
 
 import { useIsMobile } from "@/hooks/useMobile"
 import { cx, focusRing } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Separator } from "@/components/ui/Separator"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
+} from "@/components/ui/Sheet"
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
   DrawerTitle,
-} from "@/components/ui/drawer"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/components/ui/Drawer"
+import { Skeleton } from "@/components/ui/Skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/Tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7

@@ -1,7 +1,7 @@
 import { cx } from "@/lib/utils"
 import type { BundledLanguage, BundledTheme } from "shiki"
 import { codeToHtml } from "shiki"
-import CopyToClipboard from "./copy-to-clipboard"
+import CopyToClipboard from "./CopyToClipboard"
 
 interface CodeProps {
   code: string

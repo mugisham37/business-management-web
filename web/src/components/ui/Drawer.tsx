@@ -6,7 +6,7 @@ import * as DrawerPrimitives from "@radix-ui/react-dialog"
 import { RiCloseLine } from "@remixicon/react"
 
 import { cx, focusRing } from "@/lib/utils"
-import { Button } from "./button"
+import { Button } from "./Button"
 
 const VaulDrawer = ({
   shouldScaleBackground = true,
