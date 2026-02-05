@@ -1,9 +1,9 @@
-import { PeriodValue } from "@/app/dashbooard/(main)/overview/page"
+import { PeriodValue } from "@/app/dashboard/(main)/overview/page"
 import { Badge } from "@/components/ui/Badge"
 import { LineChart } from "@/components/ui/LineChart"
 import { overviews } from "@/data/overview-data"
 import { OverviewData } from "@/data/schema"
-import { cx, formatters, percentageFormatter } from "@/lib/utils"
+import { cx, formatters, isValidNumber, safeFormat } from "@/lib/utils"
 import {
   eachDayOfInterval,
   formatDate,
@@ -22,11 +22,13 @@ export type CardProps = {
 }
 
 const formattingMap = {
-  currency: formatters.currency,
-  unit: formatters.unit,
+  currency: (value: number) => formatters.currency({ number: value }),
+  unit: (value: number) => formatters.unit({ number: value }),
 }
 
-export const getBadgeType = (value: number) => {
+export const getBadgeType = (value: number): "success" | "error" | "warning" | "neutral" => {
+  if (!isValidNumber(value)) return "neutral"
+  
   if (value > 0) {
     return "success"
   } else if (value < 0) {
@@ -47,14 +49,17 @@ export function ChartCard({
   isThumbnail,
 }: CardProps) {
   const formatter = formattingMap[type]
+  
   const selectedDatesInterval =
     selectedDates?.from && selectedDates?.to
       ? interval(selectedDates.from, selectedDates.to)
       : null
+      
   const allDatesInInterval =
     selectedDates?.from && selectedDates?.to
       ? eachDayOfInterval(interval(selectedDates.from, selectedDates.to))
       : null
+      
   const prevDates = getPeriod(selectedDates, selectedPeriod)
 
   const prevDatesInterval =
@@ -99,7 +104,10 @@ export function ChartCard({
         previousValue:
           selectedPeriod !== "no-comparison" ? previousValue : null,
         evolution:
-          selectedPeriod !== "no-comparison" && value && previousValue
+          selectedPeriod !== "no-comparison" && 
+          isValidNumber(value) && 
+          isValidNumber(previousValue) && 
+          previousValue !== 0
             ? (value - previousValue) / previousValue
             : undefined,
       }
@@ -108,14 +116,21 @@ export function ChartCard({
 
   const categories =
     selectedPeriod === "no-comparison" ? ["value"] : ["value", "previousValue"]
+    
   const value =
-    chartData?.reduce((acc, item) => acc + (item.value || 0), 0) || 0
+    chartData?.reduce((acc, item) => acc + (isValidNumber(item.value) ? item.value : 0), 0) || 0
+    
   const previousValue =
-    chartData?.reduce((acc, item) => acc + (item.previousValue || 0), 0) || 0
+    chartData?.reduce((acc, item) => acc + (isValidNumber(item.previousValue) ? item.previousValue : 0), 0) || 0
+    
   const evolution =
-    selectedPeriod !== "no-comparison"
+    selectedPeriod !== "no-comparison" && isValidNumber(previousValue) && previousValue !== 0
       ? (value - previousValue) / previousValue
       : 0
+
+  const formatValue = (val: number) => safeFormat(val, formatter, "N/A")
+  const formatPercentage = (val: number) => 
+    safeFormat(val, (v) => formatters.percentage({ number: v, decimals: 1, showSign: true }), "0.0%")
 
   return (
     <div className={cx("transition")}>
@@ -124,20 +139,20 @@ export function ChartCard({
           <dt className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
             {title}
           </dt>
-          {selectedPeriod !== "no-comparison" && (
+          {selectedPeriod !== "no-comparison" && isValidNumber(evolution) && (
             <Badge variant={getBadgeType(evolution)}>
-              {percentageFormatter(evolution)}
+              {formatPercentage(evolution)}
             </Badge>
           )}
         </div>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
         <dd className="text-xl text-gray-900 dark:text-gray-50">
-          {formatter(value)}
+          {formatValue(value)}
         </dd>
         {selectedPeriod !== "no-comparison" && (
           <dd className="text-sm text-gray-500">
-            from {formatter(previousValue)}
+            from {formatValue(previousValue)}
           </dd>
         )}
       </div>
@@ -147,12 +162,18 @@ export function ChartCard({
         index="formattedDate"
         colors={["indigo", "gray"]}
         startEndOnly={true}
-        valueFormatter={(value) => formatter(value as number)}
+        valueFormatter={formatValue}
         showYAxis={false}
         showLegend={false}
         categories={categories}
         showTooltip={isThumbnail ? false : true}
+        useOverviewTooltip={true}
         autoMinValue
+        connectNulls={false}
+        allowDecimals={type === "currency"}
+        intervalType="preserveStartEnd"
+        enableLegendSlider={false}
+        tickGap={5}
       />
     </div>
   )
