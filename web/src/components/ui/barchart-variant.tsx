@@ -25,7 +25,22 @@ import {
 import { useOnWindowResize } from "@/hooks/useOnWindowResize"
 import { cx } from "@/lib/utils"
 
-//#region Shape
+type ChartDataItem = Record<string, any>
+
+interface ShapeProps {
+  x: number
+  y: number
+  width: number
+  height: number
+  name: string
+  payload: ChartDataItem
+  value: number
+}
+
+interface ActiveBarState {
+  payload: ChartDataItem
+  value: number
+}
 
 function deepEqual<T>(obj1: T, obj2: T): boolean {
   if (obj1 === obj2) return true
@@ -52,22 +67,22 @@ function deepEqual<T>(obj1: T, obj2: T): boolean {
 }
 
 const renderShape = (
-  props: any,
-  activeBar: any | undefined,
+  props: ShapeProps,
+  activeBar: ActiveBarState | undefined,
   activeLegend: string | undefined,
   strokeClass: string,
-  layout: string,
+  layout: "horizontal" | "vertical",
 ) => {
   const { name, payload, value } = props
   let { x, width, y, height } = props
-  let lineX1, lineY1, lineX2, lineY2
+  let lineX1: number, lineY1: number, lineX2: number, lineY2: number
 
   if (layout === "horizontal" && height < 0) {
     y += height
-    height = Math.abs(height) // height must be a positive number
+    height = Math.abs(height)
   } else if (layout === "vertical" && width < 0) {
     x += width
-    width = Math.abs(width) // width must be a positive number
+    width = Math.abs(width)
   }
 
   if (layout === "horizontal") {
@@ -76,12 +91,14 @@ const renderShape = (
     lineX2 = x + width
     lineY2 = y
   } else {
-    // vertical layout
     lineX1 = x + width
     lineY1 = y
     lineX2 = x + width
     lineY2 = y + height
   }
+
+  const isActive = activeBar && deepEqual(activeBar, { payload, value })
+  const isInactive = (activeBar || (activeLegend && activeLegend !== name)) && !isActive
 
   return (
     <g>
@@ -90,13 +107,7 @@ const renderShape = (
         y={y}
         width={width}
         height={height}
-        opacity={
-          activeBar || (activeLegend && activeLegend !== name)
-            ? deepEqual(activeBar, { ...payload, value })
-              ? 0.2
-              : 0.1
-            : 0.2
-        }
+        opacity={isInactive ? 0.1 : 0.2}
       />
       <line
         x1={lineX1}
@@ -106,19 +117,11 @@ const renderShape = (
         stroke=""
         className={strokeClass}
         strokeWidth="2"
-        opacity={
-          activeBar || (activeLegend && activeLegend !== name)
-            ? deepEqual(activeBar, { ...payload, value })
-              ? 1
-              : 0.5
-            : 1
-        }
+        opacity={isInactive ? 0.5 : 1}
       />
     </g>
   )
 }
-
-//#region Legend
 
 interface LegendItemProps {
   name: string
@@ -127,51 +130,64 @@ interface LegendItemProps {
   activeLegend?: string
 }
 
-const LegendItem = ({
+const LegendItem = React.memo<LegendItemProps>(({
   name,
   color,
   onClick,
   activeLegend,
-}: LegendItemProps) => {
+}) => {
   const hasOnValueChange = !!onClick
+  const isActive = activeLegend === name
+  const isInactive = activeLegend && !isActive
+
+  const handleClick = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    onClick?.(name, color)
+  }, [onClick, name, color])
+
   return (
     <li
       className={cx(
-        // base
         "group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition",
         hasOnValueChange
           ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
           : "cursor-default",
       )}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick?.(name, color)
-      }}
+      onClick={handleClick}
+      role={hasOnValueChange ? "button" : undefined}
+      tabIndex={hasOnValueChange ? 0 : undefined}
+      onKeyDown={hasOnValueChange ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          handleClick(e as any)
+        }
+      } : undefined}
+      aria-label={hasOnValueChange ? `Toggle ${name} series` : undefined}
     >
       <span
         className={cx(
           "size-2 shrink-0 rounded-sm",
           getColorClassName(color, "bg"),
-          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
+          isInactive ? "opacity-40" : "opacity-100",
         )}
         aria-hidden={true}
       />
       <p
         className={cx(
-          // base
           "truncate whitespace-nowrap text-xs",
-          // text color
           "text-gray-700 dark:text-gray-300",
           hasOnValueChange &&
           "group-hover:text-gray-900 dark:group-hover:text-gray-50",
-          activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
+          isInactive ? "opacity-40" : "opacity-100",
         )}
       >
         {name}
       </p>
     </li>
   )
-}
+})
+
+LegendItem.displayName = "LegendItem"
 
 interface ScrollButtonProps {
   icon: React.ElementType
@@ -179,25 +195,50 @@ interface ScrollButtonProps {
   disabled?: boolean
 }
 
-const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
+const ScrollButton = React.memo<ScrollButtonProps>(({ icon, onClick, disabled }) => {
   const Icon = icon
   const [isPressed, setIsPressed] = React.useState(false)
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null)
 
+  const handleClick = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    onClick?.()
+  }, [onClick])
+
+  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsPressed(true)
+  }, [])
+
+  const handleMouseUp = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsPressed(false)
+  }, [])
+
   React.useEffect(() => {
-    if (isPressed) {
+    if (isPressed && !disabled) {
       intervalRef.current = setInterval(() => {
         onClick?.()
       }, 300)
     } else {
-      clearInterval(intervalRef.current as NodeJS.Timeout)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
-    return () => clearInterval(intervalRef.current as NodeJS.Timeout)
-  }, [isPressed, onClick])
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [isPressed, onClick, disabled])
 
   React.useEffect(() => {
     if (disabled) {
-      clearInterval(intervalRef.current as NodeJS.Timeout)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
       setIsPressed(false)
     }
   }, [disabled])
@@ -206,30 +247,24 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
     <button
       type="button"
       className={cx(
-        // base
         "group inline-flex size-5 items-center truncate rounded transition",
         disabled
           ? "cursor-not-allowed text-gray-400 dark:text-gray-600"
           : "cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50",
       )}
       disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick?.()
-      }}
-      onMouseDown={(e) => {
-        e.stopPropagation()
-        setIsPressed(true)
-      }}
-      onMouseUp={(e) => {
-        e.stopPropagation()
-        setIsPressed(false)
-      }}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      aria-label={`Scroll ${icon === RiArrowLeftSLine ? 'left' : 'right'}`}
     >
       <Icon className="size-full" aria-hidden="true" />
     </button>
   )
-}
+})
+
+ScrollButton.displayName = "ScrollButton"
 
 interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   categories: string[]
@@ -239,7 +274,7 @@ interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
   enableLegendSlider?: boolean
 }
 
-type HasScrollProps = {
+interface HasScrollProps {
   left: boolean
   right: boolean
 }
@@ -254,14 +289,15 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     enableLegendSlider = false,
     ...other
   } = props
-  const scrollableRef = React.useRef<HTMLInputElement>(null)
+  
+  const scrollableRef = React.useRef<HTMLDivElement>(null)
   const scrollButtonsRef = React.useRef<HTMLDivElement>(null)
   const [hasScroll, setHasScroll] = React.useState<HasScrollProps | null>(null)
   const [isKeyDowned, setIsKeyDowned] = React.useState<string | null>(null)
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null)
 
   const checkScroll = React.useCallback(() => {
-    const scrollable = scrollableRef?.current
+    const scrollable = scrollableRef.current
     if (!scrollable) return
 
     const hasLeftScroll = scrollable.scrollLeft > 0
@@ -269,75 +305,93 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
       scrollable.scrollWidth - scrollable.clientWidth > scrollable.scrollLeft
 
     setHasScroll({ left: hasLeftScroll, right: hasRightScroll })
-  }, [setHasScroll])
+  }, [])
 
-  const scrollToTest = React.useCallback(
+  const scrollTo = React.useCallback(
     (direction: "left" | "right") => {
-      const element = scrollableRef?.current
-      const scrollButtons = scrollButtonsRef?.current
-      const scrollButtonsWith = scrollButtons?.clientWidth ?? 0
+      const element = scrollableRef.current
+      const scrollButtons = scrollButtonsRef.current
+      const scrollButtonsWidth = scrollButtons?.clientWidth ?? 0
       const width = element?.clientWidth ?? 0
 
       if (element && enableLegendSlider) {
         element.scrollTo({
           left:
             direction === "left"
-              ? element.scrollLeft - width + scrollButtonsWith
-              : element.scrollLeft + width - scrollButtonsWith,
+              ? element.scrollLeft - width + scrollButtonsWidth
+              : element.scrollLeft + width - scrollButtonsWidth,
           behavior: "smooth",
         })
-        setTimeout(() => {
-          checkScroll()
-        }, 400)
+        setTimeout(checkScroll, 400)
       }
     },
     [enableLegendSlider, checkScroll],
   )
 
-  React.useEffect(() => {
-    const keyDownHandler = (key: string) => {
-      if (key === "ArrowLeft") {
-        scrollToTest("left")
-      } else if (key === "ArrowRight") {
-        scrollToTest("right")
-      }
+  const handleKeyDown = React.useCallback((key: string) => {
+    if (key === "ArrowLeft") {
+      scrollTo("left")
+    } else if (key === "ArrowRight") {
+      scrollTo("right")
     }
+  }, [scrollTo])
+
+  React.useEffect(() => {
     if (isKeyDowned) {
-      keyDownHandler(isKeyDowned)
+      handleKeyDown(isKeyDowned)
       intervalRef.current = setInterval(() => {
-        keyDownHandler(isKeyDowned)
+        handleKeyDown(isKeyDowned)
       }, 300)
     } else {
-      clearInterval(intervalRef.current as NodeJS.Timeout)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
-    return () => clearInterval(intervalRef.current as NodeJS.Timeout)
-  }, [isKeyDowned, scrollToTest])
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [isKeyDowned, handleKeyDown])
 
-  const keyDown = (e: KeyboardEvent) => {
+  const keyDown = React.useCallback((e: KeyboardEvent) => {
     e.stopPropagation()
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault()
       setIsKeyDowned(e.key)
     }
-  }
-  const keyUp = (e: KeyboardEvent) => {
+  }, [])
+
+  const keyUp = React.useCallback((e: KeyboardEvent) => {
     e.stopPropagation()
     setIsKeyDowned(null)
-  }
+  }, [])
 
   React.useEffect(() => {
-    const scrollable = scrollableRef?.current
-    if (enableLegendSlider) {
+    const scrollable = scrollableRef.current
+    if (enableLegendSlider && scrollable) {
       checkScroll()
-      scrollable?.addEventListener("keydown", keyDown)
-      scrollable?.addEventListener("keyup", keyUp)
-    }
+      scrollable.addEventListener("keydown", keyDown)
+      scrollable.addEventListener("keyup", keyUp)
 
-    return () => {
-      scrollable?.removeEventListener("keydown", keyDown)
-      scrollable?.removeEventListener("keyup", keyUp)
+      return () => {
+        scrollable.removeEventListener("keydown", keyDown)
+        scrollable.removeEventListener("keyup", keyUp)
+      }
     }
-  }, [checkScroll, enableLegendSlider])
+  }, [checkScroll, enableLegendSlider, keyDown, keyUp])
+
+  const memoizedLegendItems = React.useMemo(() => 
+    categories.map((category, index) => (
+      <LegendItem
+        key={`item-${category}-${index}`}
+        name={category}
+        color={colors[index] as AvailableChartColorsKeys}
+        onClick={onClickLegendItem}
+        activeLegend={activeLegend}
+      />
+    )), [categories, colors, onClickLegendItem, activeLegend])
 
   return (
     <ol
@@ -347,7 +401,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     >
       <div
         ref={scrollableRef}
-        tabIndex={0}
+        tabIndex={enableLegendSlider ? 0 : undefined}
         className={cx(
           "flex h-full",
           enableLegendSlider
@@ -356,62 +410,64 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
               : ""
             : "flex-wrap",
         )}
+        role={enableLegendSlider ? "region" : undefined}
+        aria-label={enableLegendSlider ? "Chart legend with scroll controls" : undefined}
       >
-        {categories.map((category, index) => (
-          <LegendItem
-            key={`item-${index}`}
-            name={category}
-            color={colors[index] as AvailableChartColorsKeys}
-            onClick={onClickLegendItem}
-            activeLegend={activeLegend}
-          />
-        ))}
+        {memoizedLegendItems}
       </div>
-      {enableLegendSlider && (hasScroll?.right || hasScroll?.left) ? (
-        <>
-          <div
-            className={cx(
-              // base
-              "absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1",
-              // background color
-              "bg-white dark:bg-gray-950",
-            )}
-          >
-            <ScrollButton
-              icon={RiArrowLeftSLine}
-              onClick={() => {
-                setIsKeyDowned(null)
-                scrollToTest("left")
-              }}
-              disabled={!hasScroll?.left}
-            />
-            <ScrollButton
-              icon={RiArrowRightSLine}
-              onClick={() => {
-                setIsKeyDowned(null)
-                scrollToTest("right")
-              }}
-              disabled={!hasScroll?.right}
-            />
-          </div>
-        </>
-      ) : null}
+      {enableLegendSlider && (hasScroll?.right || hasScroll?.left) && (
+        <div
+          ref={scrollButtonsRef}
+          className={cx(
+            "absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1",
+            "bg-white dark:bg-gray-950",
+          )}
+        >
+          <ScrollButton
+            icon={RiArrowLeftSLine}
+            onClick={() => {
+              setIsKeyDowned(null)
+              scrollTo("left")
+            }}
+            disabled={!hasScroll?.left}
+          />
+          <ScrollButton
+            icon={RiArrowRightSLine}
+            onClick={() => {
+              setIsKeyDowned(null)
+              scrollTo("right")
+            }}
+            disabled={!hasScroll?.right}
+          />
+        </div>
+      )}
     </ol>
   )
 })
 
 Legend.displayName = "Legend"
 
-const ChartLegend = (
-  { payload }: any,
-  categoryColors: Map<string, AvailableChartColorsKeys>,
-  setLegendHeight: React.Dispatch<React.SetStateAction<number>>,
-  activeLegend: string | undefined,
-  onClick?: (category: string, color: string) => void,
-  enableLegendSlider?: boolean,
-  legendPosition?: "left" | "center" | "right",
-  yAxisWidth?: number,
-) => {
+interface ChartLegendProps {
+  payload: Array<{ value: string; type: string }>
+  categoryColors: Map<string, AvailableChartColorsKeys>
+  setLegendHeight: React.Dispatch<React.SetStateAction<number>>
+  activeLegend: string | undefined
+  onClick?: (category: string, color: string) => void
+  enableLegendSlider?: boolean
+  legendPosition?: "left" | "center" | "right"
+  yAxisWidth?: number
+}
+
+const ChartLegend = React.memo<ChartLegendProps>(({
+  payload,
+  categoryColors,
+  setLegendHeight,
+  activeLegend,
+  onClick,
+  enableLegendSlider = false,
+  legendPosition = "right",
+  yAxisWidth = 56,
+}) => {
   const legendRef = React.useRef<HTMLDivElement>(null)
 
   useOnWindowResize(() => {
@@ -420,48 +476,55 @@ const ChartLegend = (
     setLegendHeight(calculateHeight(legendRef.current?.clientHeight))
   })
 
-  const filteredPayload = payload.filter((item: any) => item.type !== "none")
+  const filteredPayload = React.useMemo(() => 
+    payload.filter((item) => item.type !== "none"), 
+    [payload]
+  )
 
-  const paddingLeft =
-    legendPosition === "left" && yAxisWidth ? yAxisWidth - 8 : 0
+  const paddingLeft = React.useMemo(() => 
+    legendPosition === "left" && yAxisWidth ? yAxisWidth - 8 : 0,
+    [legendPosition, yAxisWidth]
+  )
+
+  const justifyClass = React.useMemo(() => {
+    switch (legendPosition) {
+      case "center": return "justify-center"
+      case "left": return "justify-start"
+      case "right": return "justify-end"
+      default: return "justify-end"
+    }
+  }, [legendPosition])
 
   return (
     <div
-      style={{ paddingLeft: paddingLeft }}
+      style={{ paddingLeft }}
       ref={legendRef}
-      className={cx(
-        "flex items-center",
-        { "justify-center": legendPosition === "center" },
-        {
-          "justify-start": legendPosition === "left",
-        },
-        { "justify-end": legendPosition === "right" },
-      )}
+      className={cx("flex items-center", justifyClass)}
     >
       <Legend
-        categories={filteredPayload.map((entry: any) => entry.value)}
-        colors={filteredPayload.map((entry: any) =>
-          categoryColors.get(entry.value),
-        )}
+        categories={filteredPayload.map((entry) => entry.value)}
+        colors={filteredPayload.map((entry) =>
+          categoryColors.get(entry.value)
+        ).filter((color): color is AvailableChartColorsKeys => color !== undefined)}
         onClickLegendItem={onClick}
         activeLegend={activeLegend}
         enableLegendSlider={enableLegendSlider}
       />
     </div>
   )
-}
+})
 
-//#region Tooltip
+ChartLegend.displayName = "ChartLegend"
 
 type TooltipProps = Pick<ChartTooltipProps, "active" | "payload" | "label">
 
-type PayloadItem = {
+interface PayloadItem {
   category: string
   value: number
   index: string
   color: AvailableChartColorsKeys
   type?: string
-  payload: any
+  payload: ChartDataItem
 }
 
 interface ChartTooltipProps {
@@ -472,87 +535,75 @@ interface ChartTooltipProps {
   xValueFormatter?: (value: string) => string
 }
 
-const ChartTooltip = ({
+const ChartTooltip = React.memo<ChartTooltipProps>(({
   active,
   payload,
   label,
   valueFormatter,
   xValueFormatter,
-}: ChartTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div
-        className={cx(
-          // base
-          "w-44 rounded-md border text-sm shadow-md",
-          // border color
-          "border-gray-200 dark:border-gray-800",
-          // background color
-          "bg-white dark:bg-gray-950",
-        )}
-      >
-        {/* unhide to show x-axis value, also uncomment label in line 465 */}
+}) => {
+  if (!active || !payload?.length) return null
 
-        <div className={cx("border-b border-inherit p-2")}>
-          <p
-            className={cx(
-              // base
-              "font-medium",
-              // text color
-              "text-gray-900 dark:text-gray-50",
-            )}
+  return (
+    <div
+      className={cx(
+        "w-44 rounded-md border text-sm shadow-md",
+        "border-gray-200 dark:border-gray-800",
+        "bg-white dark:bg-gray-950",
+      )}
+    >
+      <div className={cx("border-b border-inherit p-2")}>
+        <p
+          className={cx(
+            "font-medium",
+            "text-gray-900 dark:text-gray-50",
+          )}
+        >
+          {xValueFormatter ? xValueFormatter(label) : label}
+        </p>
+      </div>
+
+      <div className={cx("space-y-1 p-2")}>
+        {payload.map(({ value, category, color }, index) => (
+          <div
+            key={`tooltip-item-${category}-${index}`}
+            className="flex items-center justify-between space-x-4"
           >
-            {xValueFormatter ? xValueFormatter(label) : label}
-          </p>
-        </div>
-
-        <div className={cx("space-y-1 p-2")}>
-          {payload.map(({ value, category, color }, index) => (
-            <div
-              key={`id-${index}`}
-              className="flex items-center justify-between space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <span
-                  className={cx(
-                    "size-2.5 shrink-0 rounded-sm",
-                    getColorClassName(color, "bg"),
-                  )}
-                  aria-hidden="true"
-                />
-                <p
-                  className={cx(
-                    // base
-                    "whitespace-nowrap text-right",
-                    // text color
-                    "text-gray-700 dark:text-gray-300",
-                  )}
-                >
-                  {category}
-                </p>
-              </div>
+            <div className="flex items-center space-x-2">
+              <span
+                className={cx(
+                  "size-2.5 shrink-0 rounded-sm",
+                  getColorClassName(color, "bg"),
+                )}
+                aria-hidden="true"
+              />
               <p
                 className={cx(
-                  // base
-                  "whitespace-nowrap text-right font-medium tabular-nums",
-                  // text color
-                  "text-gray-900 dark:text-gray-50",
+                  "whitespace-nowrap text-right",
+                  "text-gray-700 dark:text-gray-300",
                 )}
               >
-                {valueFormatter(value)}
+                {category}
               </p>
             </div>
-          ))}
-        </div>
+            <p
+              className={cx(
+                "whitespace-nowrap text-right font-medium tabular-nums",
+                "text-gray-900 dark:text-gray-50",
+              )}
+            >
+              {valueFormatter(value)}
+            </p>
+          </div>
+        ))}
       </div>
-    )
-  }
-  return null
-}
+    </div>
+  )
+})
 
-//#region BarChart
+ChartTooltip.displayName = "ChartTooltip"
 
-type BaseEventProps = {
+interface BaseEventProps {
   eventType: "category" | "bar"
   categoryClicked: string
   [key: string]: number | string
@@ -561,7 +612,7 @@ type BaseEventProps = {
 type BarChartEventProps = BaseEventProps | null | undefined
 
 interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
-  data: Record<string, any>[]
+  data: ChartDataItem[]
   index: string
   categories: string[]
   colors?: AvailableChartColorsKeys[]
@@ -629,60 +680,265 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
       layout = "horizontal",
       ...other
     } = props
+
     const CustomTooltip = customTooltip
-    const paddingValue =
-      (!showXAxis && !showYAxis) || (startEndOnly && !showYAxis) ? 0 : 20
+    const paddingValue = (!showXAxis && !showYAxis) || (startEndOnly && !showYAxis) ? 0 : 20
     const [legendHeight, setLegendHeight] = React.useState(60)
-    const [activeLegend, setActiveLegend] = React.useState<string | undefined>(
-      undefined,
+    const [activeLegend, setActiveLegend] = React.useState<string | undefined>(undefined)
+    const [activeBar, setActiveBar] = React.useState<ActiveBarState | undefined>(undefined)
+    
+    const categoryColors = React.useMemo(() => 
+      constructCategoryColors(categories, colors), 
+      [categories, colors]
     )
-    const categoryColors = constructCategoryColors(categories, colors)
-    const [activeBar, setActiveBar] = React.useState<any | undefined>(undefined)
-    const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
+    
+    const yAxisDomain = React.useMemo(() => 
+      getYAxisDomain(autoMinValue, minValue, maxValue),
+      [autoMinValue, minValue, maxValue]
+    )
+    
     const hasOnValueChange = !!onValueChange
     const stacked = type === "stacked" || type === "percent"
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
 
-    function valueToPercent(value: number) {
+    const valueToPercent = React.useCallback((value: number) => {
       return `${(value * 100).toFixed(0)}%`
-    }
+    }, [])
 
-    function onBarClick(data: any, _: any, event: React.MouseEvent) {
+    const onBarClick = React.useCallback((data: any, _: any, event: React.MouseEvent) => {
       event.stopPropagation()
       if (!onValueChange) return
-      if (deepEqual(activeBar, { ...data.payload, value: data.value })) {
+      
+      const newActiveBar = { payload: data.payload, value: data.value }
+      
+      if (activeBar && deepEqual(activeBar, newActiveBar)) {
         setActiveLegend(undefined)
         setActiveBar(undefined)
-        onValueChange?.(null)
+        onValueChange(null)
       } else {
         setActiveLegend(data.tooltipPayload?.[0]?.dataKey)
-        setActiveBar({
-          ...data.payload,
-          value: data.value,
-        })
-        onValueChange?.({
+        setActiveBar(newActiveBar)
+        onValueChange({
           eventType: "bar",
           categoryClicked: data.tooltipPayload?.[0]?.dataKey,
           ...data.payload,
         })
       }
-    }
+    }, [onValueChange, activeBar])
 
-    function onCategoryClick(dataKey: string) {
+    const onCategoryClick = React.useCallback((dataKey: string) => {
       if (!hasOnValueChange) return
+      
       if (dataKey === activeLegend && !activeBar) {
         setActiveLegend(undefined)
-        onValueChange?.(null)
+        onValueChange(null)
       } else {
         setActiveLegend(dataKey)
-        onValueChange?.({
+        onValueChange({
           eventType: "category",
           categoryClicked: dataKey,
         })
       }
       setActiveBar(undefined)
+    }, [hasOnValueChange, activeLegend, activeBar, onValueChange])
+
+    const handleChartClick = React.useCallback(() => {
+      if (hasOnValueChange && (activeLegend || activeBar)) {
+        setActiveBar(undefined)
+        setActiveLegend(undefined)
+        onValueChange(null)
+      }
+    }, [hasOnValueChange, activeLegend, activeBar, onValueChange])
+
+    const renderTooltipContent = React.useCallback(({ active, payload, label }: any) => {
+      const cleanPayload: PayloadItem[] = payload
+        ? payload.map((item: any) => ({
+            category: item.dataKey,
+            value: item.value,
+            index: item.payload[index],
+            color: categoryColors.get(item.dataKey) as AvailableChartColorsKeys,
+            type: item.type,
+            payload: item.payload,
+          }))
+        : []
+
+      if (
+        tooltipCallback &&
+        (active !== prevActiveRef.current || label !== prevLabelRef.current)
+      ) {
+        tooltipCallback({ active, payload: cleanPayload, label })
+        prevActiveRef.current = active
+        prevLabelRef.current = label
+      }
+
+      return showTooltip && active ? (
+        CustomTooltip ? (
+          <CustomTooltip
+            active={active}
+            payload={cleanPayload}
+            label={label}
+          />
+        ) : (
+          <ChartTooltip
+            active={active}
+            payload={cleanPayload}
+            label={label}
+            valueFormatter={valueFormatter}
+            xValueFormatter={xValueFormatter}
+          />
+        )
+      ) : null
+    }, [
+      index,
+      categoryColors,
+      tooltipCallback,
+      showTooltip,
+      CustomTooltip,
+      valueFormatter,
+      xValueFormatter,
+    ])
+
+    const renderLegendContent = React.useCallback(({ payload }: any) => (
+      <ChartLegend
+        payload={payload}
+        categoryColors={categoryColors}
+        setLegendHeight={setLegendHeight}
+        activeLegend={activeLegend}
+        onClick={hasOnValueChange ? onCategoryClick : undefined}
+        enableLegendSlider={enableLegendSlider}
+        legendPosition={legendPosition}
+        yAxisWidth={yAxisWidth}
+      />
+    ), [
+      categoryColors,
+      activeLegend,
+      hasOnValueChange,
+      onCategoryClick,
+      enableLegendSlider,
+      legendPosition,
+      yAxisWidth,
+    ])
+
+    const xAxisProps = React.useMemo(() => {
+      const baseProps = {
+        hide: !showXAxis,
+        tick: {
+          transform: layout !== "vertical" ? "translate(0, 6)" : undefined,
+        },
+        fill: "",
+        stroke: "",
+        className: cx(
+          "text-xs",
+          "mt-4 fill-gray-500 dark:fill-gray-500",
+        ),
+        tickLine: false,
+        axisLine: false,
+        minTickGap: tickGap,
+        tickFormatter: xValueFormatter,
+      }
+
+      if (layout !== "vertical") {
+        return {
+          ...baseProps,
+          padding: {
+            left: paddingValue,
+            right: paddingValue,
+          },
+          dataKey: index,
+          interval: startEndOnly ? "preserveStartEnd" : intervalType,
+          ticks: startEndOnly && data.length > 0
+            ? [data[0][index], data[data.length - 1][index]]
+            : undefined,
+        }
+      } else {
+        return {
+          ...baseProps,
+          type: "number" as const,
+          domain: yAxisDomain as AxisDomain,
+          tickFormatter: type === "percent" ? valueToPercent : valueFormatter,
+          allowDecimals,
+        }
+      }
+    }, [
+      showXAxis,
+      layout,
+      tickGap,
+      xValueFormatter,
+      paddingValue,
+      index,
+      startEndOnly,
+      intervalType,
+      data,
+      yAxisDomain,
+      type,
+      valueToPercent,
+      valueFormatter,
+      allowDecimals,
+    ])
+
+    const yAxisProps = React.useMemo(() => {
+      const baseProps = {
+        width: yAxisWidth,
+        hide: !showYAxis,
+        axisLine: false,
+        tickLine: layout === "horizontal",
+        tickSize: 6,
+        fill: "",
+        stroke: "",
+        className: cx(
+          "text-xs",
+          "fill-gray-500 stroke-gray-800 dark:fill-gray-500 dark:stroke-gray-300",
+        ),
+        tick: {
+          transform: layout !== "vertical" ? "translate(-3, 0)" : "translate(0, 0)",
+        },
+      }
+
+      if (layout !== "vertical") {
+        return {
+          ...baseProps,
+          type: "number" as const,
+          domain: yAxisDomain as AxisDomain,
+          tickFormatter: type === "percent" ? valueToPercent : valueFormatter,
+          allowDecimals,
+        }
+      } else {
+        return {
+          ...baseProps,
+          dataKey: index,
+          ticks: startEndOnly && data.length > 0
+            ? [data[0][index], data[data.length - 1][index]]
+            : undefined,
+          type: "category" as const,
+          interval: "equidistantPreserveStart" as const,
+        }
+      }
+    }, [
+      yAxisWidth,
+      showYAxis,
+      layout,
+      yAxisDomain,
+      type,
+      valueToPercent,
+      valueFormatter,
+      allowDecimals,
+      index,
+      startEndOnly,
+      data,
+    ])
+
+    if (!data.length || !categories.length) {
+      return (
+        <div
+          ref={forwardedRef}
+          className={cx("h-80 w-full flex items-center justify-center", className)}
+          {...other}
+        >
+          <p className="text-gray-500 dark:text-gray-400">No data available</p>
+        </div>
+      )
     }
 
     return (
@@ -695,15 +951,7 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
         <ResponsiveContainer>
           <RechartsBarChart
             data={data}
-            onClick={
-              hasOnValueChange && (activeLegend || activeBar)
-                ? () => {
-                  setActiveBar(undefined)
-                  setActiveLegend(undefined)
-                  onValueChange?.(null)
-                }
-                : undefined
-            }
+            onClick={handleChartClick}
             margin={{
               bottom: xAxisLabel ? 30 : undefined,
               left: yAxisLabel ? 20 : undefined,
@@ -715,51 +963,15 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
             barCategoryGap={barCategoryGap}
             syncId={syncId}
           >
-            {showGridLines ? (
+            {showGridLines && (
               <CartesianGrid
                 className={cx("stroke-gray-100 stroke-1 dark:stroke-gray-900")}
                 horizontal={layout !== "vertical"}
                 vertical={layout === "vertical"}
               />
-            ) : null}
-            <XAxis
-              hide={!showXAxis}
-              tick={{
-                transform:
-                  layout !== "vertical" ? "translate(0, 6)" : undefined,
-              }}
-              fill=""
-              stroke=""
-              className={cx(
-                // base
-                "text-xs",
-                // text fill
-                "mt-4 fill-gray-500 dark:fill-gray-500",
-              )}
-              tickLine={false}
-              axisLine={false}
-              minTickGap={tickGap}
-              tickFormatter={xValueFormatter}
-              {...(layout !== "vertical"
-                ? {
-                  padding: {
-                    left: paddingValue,
-                    right: paddingValue,
-                  },
-                  dataKey: index,
-                  interval: startEndOnly ? "preserveStartEnd" : intervalType,
-                  ticks: startEndOnly
-                    ? [data[0][index], data[data.length - 1][index]]
-                    : undefined,
-                }
-                : {
-                  type: "number",
-                  domain: yAxisDomain as AxisDomain,
-                  tickFormatter:
-                    type === "percent" ? valueToPercent : valueFormatter,
-                  allowDecimals: allowDecimals,
-                })}
-            >
+            )}
+            
+            <XAxis {...xAxisProps}>
               {xAxisLabel && (
                 <Label
                   position="insideBottom"
@@ -770,43 +982,8 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
                 </Label>
               )}
             </XAxis>
-            <YAxis
-              width={yAxisWidth}
-              hide={!showYAxis}
-              axisLine={false}
-              tickLine={layout === "horizontal" && true}
-              tickSize={6}
-              fill=""
-              stroke=""
-              className={cx(
-                // base
-                "text-xs",
-                // text fill
-                "fill-gray-500 stroke-gray-800 dark:fill-gray-500 dark:stroke-gray-300",
-              )}
-              tick={{
-                transform:
-                  layout !== "vertical"
-                    ? "translate(-3, 0)"
-                    : "translate(0, 0)",
-              }}
-              {...(layout !== "vertical"
-                ? {
-                  type: "number",
-                  domain: yAxisDomain as AxisDomain,
-                  tickFormatter:
-                    type === "percent" ? valueToPercent : valueFormatter,
-                  allowDecimals: allowDecimals,
-                }
-                : {
-                  dataKey: index,
-                  ticks: startEndOnly
-                    ? [data[0][index], data[data.length - 1][index]]
-                    : undefined,
-                  type: "category",
-                  interval: "equidistantPreserveStart",
-                })}
-            >
+            
+            <YAxis {...yAxisProps}>
               {yAxisLabel && (
                 <Label
                   position="insideLeft"
@@ -819,6 +996,7 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
                 </Label>
               )}
             </YAxis>
+            
             <Tooltip
               wrapperStyle={{ outline: "none" }}
               isAnimationActive={true}
@@ -829,102 +1007,40 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
                 y: layout === "horizontal" ? 0 : undefined,
                 x: layout === "horizontal" ? undefined : yAxisWidth + 20,
               }}
-              content={({ active, payload, label }) => {
-                const cleanPayload: TooltipProps["payload"] = payload
-                  ? payload.map((item: any) => ({
-                    category: item.dataKey,
-                    value: item.value,
-                    index: item.payload[index],
-                    color: categoryColors.get(
-                      item.dataKey,
-                    ) as AvailableChartColorsKeys,
-                    type: item.type,
-                    payload: item.payload,
-                  }))
-                  : []
-
-                if (
-                  tooltipCallback &&
-                  (active !== prevActiveRef.current ||
-                    label !== prevLabelRef.current)
-                ) {
-                  tooltipCallback({ active, payload: cleanPayload, label })
-                  prevActiveRef.current = active
-                  prevLabelRef.current = label
-                }
-
-                return showTooltip && active ? (
-                  CustomTooltip ? (
-                    <CustomTooltip
-                      active={active}
-                      payload={cleanPayload}
-                      label={label}
-                    />
-                  ) : (
-                    <ChartTooltip
-                      active={active}
-                      payload={cleanPayload}
-                      label={label}
-                      valueFormatter={valueFormatter}
-                      xValueFormatter={xValueFormatter}
-                    />
-                  )
-                ) : null
-              }}
+              content={renderTooltipContent}
             />
-            {showLegend ? (
+            
+            {showLegend && (
               <RechartsLegend
                 verticalAlign="top"
                 height={legendHeight}
-                content={({ payload }) =>
-                  ChartLegend(
-                    { payload },
-                    categoryColors,
-                    setLegendHeight,
-                    activeLegend,
-                    hasOnValueChange
-                      ? (clickedLegendItem: string) =>
-                        onCategoryClick(clickedLegendItem)
-                      : undefined,
-                    enableLegendSlider,
-                    legendPosition,
-                    yAxisWidth,
-                  )
-                }
+                content={renderLegendContent}
               />
-            ) : null}
-            {categories.map((category) => (
-              <Bar
-                className={cx(
-                  getColorClassName(
-                    categoryColors.get(category) as AvailableChartColorsKeys,
-                    "fill",
-                  ),
-                  onValueChange ? "cursor-pointer" : "",
-                )}
-                key={category}
-                name={category}
-                type="linear"
-                dataKey={category}
-                stackId={stacked ? "stack" : undefined}
-                isAnimationActive={false}
-                fill=""
-                shape={(props: any) => {
-                  const strokeClass = getColorClassName(
-                    categoryColors.get(category) as AvailableChartColorsKeys,
-                    "stroke",
-                  )
-                  return renderShape(
-                    props,
-                    activeBar,
-                    activeLegend,
-                    strokeClass,
-                    layout,
-                  )
-                }}
-                onClick={onBarClick}
-              />
-            ))}
+            )}
+            
+            {categories.map((category) => {
+              const color = categoryColors.get(category) as AvailableChartColorsKeys
+              return (
+                <Bar
+                  key={category}
+                  className={cx(
+                    getColorClassName(color, "fill"),
+                    onValueChange ? "cursor-pointer" : "",
+                  )}
+                  name={category}
+                  type="linear"
+                  dataKey={category}
+                  stackId={stacked ? "stack" : undefined}
+                  isAnimationActive={false}
+                  fill=""
+                  shape={(props: any) => {
+                    const strokeClass = getColorClassName(color, "stroke")
+                    return renderShape(props, activeBar, activeLegend, strokeClass, layout)
+                  }}
+                  onClick={onBarClick}
+                />
+              )
+            })}
           </RechartsBarChart>
         </ResponsiveContainer>
       </div>
@@ -934,4 +1050,4 @@ const BarChartVariant = React.forwardRef<HTMLDivElement, BarChartProps>(
 
 BarChartVariant.displayName = "BarChartVariant"
 
-export { BarChartVariant }
+export { BarChartVariant, type BarChartProps, type BarChartEventProps }

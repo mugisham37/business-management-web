@@ -1,20 +1,36 @@
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cx } from "@/lib/utils"
 
-import { cn } from "@/lib/utils"
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  asChild?: boolean
+  variant?: "default" | "tremor" | "tremor-raw"
+}
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
-      className
-    )}
-    {...props}
-  />
-))
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, asChild, variant = "default", ...props }, ref) => {
+    const Component = asChild ? Slot : "div"
+    
+    const baseClasses = "relative w-full border text-left shadow"
+    
+    const variantClasses = {
+      default: "rounded-xl bg-card text-card-foreground",
+      tremor: "rounded-lg p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800",
+      "tremor-raw": "rounded-lg p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-900"
+    }
+    
+    const tremorProps = (variant === "tremor" || variant === "tremor-raw") ? { "tremor-id": "tremor-raw" } : {}
+    
+    return (
+      <Component
+        ref={ref}
+        className={cx(baseClasses, variantClasses[variant], className)}
+        {...tremorProps}
+        {...props}
+      />
+    )
+  }
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
@@ -23,7 +39,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cx("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
 ))
@@ -35,7 +51,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
+    className={cx("font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ))
@@ -47,7 +63,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cx("text-sm text-muted-foreground", className)}
     {...props}
   />
 ))
@@ -57,7 +73,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cx("p-6 pt-0", className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
 
@@ -67,82 +83,18 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cx("flex items-center p-6 pt-0", className)}
     {...props}
   />
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
-// Tremor Raw Card [v0.0.1]
-
-import { Slot } from "@radix-ui/react-slot"
-import React from "react"
-
-import { cx } from "@/lib/utils"
-
-interface CardProps extends React.ComponentPropsWithoutRef<"div"> {
-  asChild?: boolean
+export { 
+  Card, 
+  CardHeader, 
+  CardFooter, 
+  CardTitle, 
+  CardDescription, 
+  CardContent,
+  type CardProps 
 }
-
-const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, asChild, ...props }, forwardedRef) => {
-    const Component = asChild ? Slot : "div"
-    return (
-      <Component
-        ref={forwardedRef}
-        className={cx(
-          // base
-          "relative w-full rounded-lg border p-6 text-left shadow-sm",
-          // background color
-          "bg-white dark:bg-[#090E1A]",
-          // border color
-          "border-gray-200 dark:border-gray-900",
-          className,
-        )}
-        tremor-id="tremor-raw"
-        {...props}
-      />
-    )
-  },
-)
-
-Card.displayName = "Card"
-
-export { Card, type CardProps }
-// Tremor Card [v0.0.2]
-
-import { Slot } from "@radix-ui/react-slot"
-import React from "react"
-
-import { cx } from "@/lib/utils"
-
-interface CardProps extends React.ComponentPropsWithoutRef<"div"> {
-  asChild?: boolean
-}
-
-const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, asChild, ...props }, forwardedRef) => {
-    const Component = asChild ? Slot : "div"
-    return (
-      <Component
-        ref={forwardedRef}
-        className={cx(
-          // base
-          "relative w-full rounded-lg border p-6 text-left shadow-sm",
-          // background color
-          "bg-white dark:bg-[#090E1A]",
-          // border color
-          "border-gray-200 dark:border-gray-800",
-          className,
-        )}
-        tremor-id="tremor-raw"
-        {...props}
-      />
-    )
-  },
-)
-
-Card.displayName = "Card"
-
-export { Card, type CardProps }
