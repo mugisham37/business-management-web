@@ -1,7 +1,7 @@
 "use client"
 
 import { siteConfig } from "@/app/siteConfig"
-import { TabNavigation, TabNavigationLink } from "@/components/Parent-Dashboard/TabNavigation"
+import { TabNavigation, TabNavigationLink } from "@/components/uis/ui2/TabNavigation"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 

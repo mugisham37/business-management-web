@@ -1,5 +1,5 @@
 import React from "react"
-import { Sidebar } from "@/components/Parent-Dashboard/ui/navigation/Sidebar"
+import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -12,3 +12,16 @@ export default function RootLayout({
         </div>
     )
 }
+
+        className={`${GeistSans.className} overflow-x-hidden overflow-y-scroll scroll-auto bg-gray-50 antialiased selection:bg-blue-100 selection:text-blue-700 dark:bg-gray-950`}
+      >
+        <ThemeProvider
+          defaultTheme="system"
+          disableTransitionOnChange
+          attribute="class"
+        >
+          <NuqsAdapter>
+            <div>{children}</div>
+          </NuqsAdapter>
+        </ThemeProvider>
+      

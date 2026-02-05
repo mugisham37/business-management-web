@@ -1,9 +1,9 @@
-import CodeExample from "@/components/Landing/ui/CodeExample"
-import Cta from "@/components/Landing/ui/Cta"
-import Features from "@/components/Landing/ui/Features"
-import { GlobalDatabase } from "@/components/Landing/ui/GlobalDatabase"
-import Hero from "@/components/Landing/ui/Hero"
-import LogoCloud from "@/components/Landing/ui/LogoCloud"
+import CodeExample from "@/components/Landing/CodeExample"
+import Cta from "@/components/Landing/Cta"
+import Features from "@/components/Landing/Features"
+import { GlobalDatabase } from "@/components/Landing/GlobalDatabase"
+import Hero from "@/components/Landing/Hero"
+import LogoCloud from "@/components/Landing/LogoCloud"
 
 export default function Home() {
   return (

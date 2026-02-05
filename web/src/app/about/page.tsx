@@ -1,7 +1,7 @@
-import { Badge } from "@/components/Landing/Badge"
-import { Button } from "@/components/Landing/Button"
-import Benefits from "@/components/Landing/ui/Benefits"
-import TeamGallery from "@/components/Landing/ui/TeamGallery"
+import { Badge } from "@/components/ui/Badge"
+import { Button } from "@/components/uis/ui1/Button"
+import Benefits from "@/components/Landing/Benefits"
+import TeamGallery from "@/components/Landing/TeamGallery"
 import { cx } from "@/lib/utils"
 import Balancer from "react-wrap-balancer"
 

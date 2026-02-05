@@ -166,7 +166,7 @@ import {
 } from "./schema"
 
 // Helper function to get a weighted random continent and country
-const getWeightedLocation = (): { continent: string; country: string } => {
+const getWeightedLocation = () => {
   // Total weight for weighted random selection
   const totalWeight = locations.reduce((sum, loc) => sum + loc.weight, 0)
   let random = Math.random() * totalWeight

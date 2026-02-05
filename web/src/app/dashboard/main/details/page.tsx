@@ -1,5 +1,5 @@
-import { columns } from "@/components/Parent-Dashboard/ui/data-table/columns"
-import { DataTable } from "@/components/Parent-Dashboard/ui/data-table/DataTable"
+import { columns } from "@/components/Dashboard/data-table/columns"
+import { DataTable } from "@/components/Dashboard/data-table/DataTable"
 import { usage } from "@/data/data"
 
 export default function Example() {
