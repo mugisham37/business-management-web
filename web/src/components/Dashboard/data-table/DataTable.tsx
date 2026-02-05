@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/Table"
 import { cx } from "@/lib/utils"
 import * as React from "react"
 

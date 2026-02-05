@@ -1,7 +1,7 @@
 "use client"
 
-import { Badge, BadgeProps } from "@/components/Badge"
-import { Checkbox } from "@/components/Checkbox"
+import { Badge, BadgeProps } from "@/components/ui/Badge"
+import { Checkbox } from "@/components/ui/Checkbox"
 import { statuses } from "@/data/data"
 import { Usage } from "@/data/schema"
 import { formatters } from "@/lib/utils"

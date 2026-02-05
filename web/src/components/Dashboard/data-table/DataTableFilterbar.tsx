@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Searchbar } from "@/components/Searchbar"
+import { Button } from "@/components/ui/Button"
+import { Searchbar } from "@/components/ui/Searchbar"
 import { conditions, regions, statuses } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { RiDownloadLine } from "@remixicon/react"

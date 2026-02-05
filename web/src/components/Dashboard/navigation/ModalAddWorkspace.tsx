@@ -1,5 +1,5 @@
-import { Badge } from "@/components/Badge"
-import { Button } from "@/components/Button"
+import { Badge } from "@/components/ui/Badge"
+import { Button } from "@/components/ui/Button"
 import {
   Dialog,
   DialogClose,
@@ -9,22 +9,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog"
-import { DropdownMenuItem } from "@/components/Dropdown"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+} from "@/components/ui/Dialog"
+import { DropdownMenuItem } from "@/components/ui/Dropdown"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 import {
   RadioCardGroup,
   RadioCardGroupIndicator,
   RadioCardItem,
-} from "@/components/RadioCard"
+} from "@/components/ui/RadioCard"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 
 export const databases: {
   label: string

@@ -2,15 +2,15 @@
 
 import React from "react"
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover"
 import { Column, Table } from "@tanstack/react-table"
 
 import ReactDOM from "react-dom"
 import invariant from "tiny-invariant"
 
-import { Button } from "@/components/Button"
-import { Checkbox } from "@/components/Checkbox"
-import { Label } from "@/components/Label"
+import { Button } from "@/components/ui/Button"
+import { Checkbox } from "@/components/ui/Checkbox"
+import { Label } from "@/components/ui/Label"
 import { cx } from "@/lib/utils"
 import { triggerPostMoveFlash } from "@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash"
 import {

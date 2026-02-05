@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/Button"
 import { cx, focusRing } from "@/lib/utils"
 import { RiMore2Fill } from "@remixicon/react"
 

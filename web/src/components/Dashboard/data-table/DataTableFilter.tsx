@@ -7,23 +7,23 @@ import {
 } from "@remixicon/react"
 import { Column } from "@tanstack/react-table"
 
-import { Button } from "@/components/Button"
-import { Checkbox } from "@/components/Checkbox"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+import { Button } from "@/components/ui/Button"
+import { Checkbox } from "@/components/ui/Checkbox"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 import {
   Popover,
   PopoverClose,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/Popover"
+} from "@/components/ui/Popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import { cx, focusRing } from "@/lib/utils"
 import React from "react"
 
