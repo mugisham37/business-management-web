@@ -1,7 +1,7 @@
 import { RiArrowRightUpLine } from "@remixicon/react"
 import Link from "next/link"
 import { DatabaseLogo } from "../../../public/DatabaseLogo"
-import ThemeSwitch from "../ui/themeswitch"
+import ThemeSwitch from "../ui/themes-witch"
 
 const navigation = {
   product: [

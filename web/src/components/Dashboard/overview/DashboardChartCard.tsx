@@ -1,6 +1,6 @@
 import { PeriodValue } from "@/app/dashboard/main/overview/page"
 import { Badge } from "@/components/uis/ui2/Badge"
-import { LineChart } from "@/components/ui/LineChart"
+import { LineChart } from "@/components/ui/linechart"
 import { overviews } from "@/data/overview-data"
 import { OverviewData } from "@/data/schema"
 import { cx, formatters, percentageFormatter } from "@/lib/utils"

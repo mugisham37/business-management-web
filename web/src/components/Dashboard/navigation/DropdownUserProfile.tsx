@@ -13,7 +13,7 @@ import {
   DropdownMenuSubMenuContent,
   DropdownMenuSubMenuTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown"
+} from "@/components/ui/drop-down-menu"
 import {
   RiArrowRightUpLine,
   RiComputerLine,

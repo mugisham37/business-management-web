@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown"
+} from "@/components/ui/drop-down-menu"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>

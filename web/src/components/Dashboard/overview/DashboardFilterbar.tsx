@@ -24,7 +24,7 @@ import {
 import { PeriodValue } from "@/app/dashboard/main/overview/page"
 import { Button } from "@/components/uis/ui2/Button"
 import { Checkbox } from "@/components/uis/ui2/Checkbox"
-import { DateRangePicker } from "@/components/ui/datepicker"
+import { DateRangePicker } from "@/components/ui/date-picker"
 import { cx } from "@/lib/utils"
 import { RiSettings5Line } from "@remixicon/react"
 import { eachDayOfInterval, interval, subDays, subYears } from "date-fns"

@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown"
+} from "@/components/ui/drop-down-menu"
 import { cx, focusInput } from "@/lib/utils"
 import { RiArrowRightSLine, RiExpandUpDownLine } from "@remixicon/react"
 import React from "react"

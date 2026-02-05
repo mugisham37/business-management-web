@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/uis/ui2/Dialog"
-import { DropdownMenuItem } from "@/components/ui/dropdown"
+import { DropdownMenuItem } from "@/components/ui/drop-down-menu"
 import { Input } from "@/components/uis/ui2/Input"
 import { Label } from "@/components/uis/ui2/Label"
 import {

@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/Accordion"
 import { Button } from "@/components/Button"
-import useScroll from "@/lib/useScroll"
+import useScroll from "@/hooks/useScroll"
 import { cx } from "@/lib/utils"
 import { useQueryState } from "nuqs"
 import React from "react"
