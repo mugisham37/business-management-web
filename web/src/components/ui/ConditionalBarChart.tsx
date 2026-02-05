@@ -1,5 +1,3 @@
-// Tremor BarChart [v0.2.1]
-
 "use client"
 
 import React from "react"
@@ -28,7 +26,76 @@ import {
 import { useOnWindowResize } from "@/hooks/useOnWindowResize"
 import { cx } from "@/lib/utils"
 
-//#region Shape
+type BaseEventProps = {
+  eventType: "category" | "bar"
+  categoryClicked: string
+  [key: string]: number | string
+}
+
+export type BarChartEventProps = BaseEventProps | null | undefined
+
+type PayloadItem = {
+  category: string
+  value: number
+  index: string
+  color: AvailableChartColorsKeys
+  type?: string
+  payload: any
+}
+
+export type TooltipProps = {
+  active: boolean | undefined
+  payload: PayloadItem[]
+  label: string
+}
+
+interface ChartTooltipProps extends TooltipProps {
+  valueFormatter: (value: number) => string
+}
+
+interface LegendItemProps {
+  name: string
+  color: AvailableChartColorsKeys
+  onClick?: (name: string, color: AvailableChartColorsKeys) => void
+}
+
+interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
+  categories: string[]
+  colors?: AvailableChartColorsKeys[]
+  onClickLegendItem?: (category: string, color: string) => void
+  activeLegend?: string
+}
+
+interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
+  data: Record<string, any>[]
+  index: string
+  categories: string[]
+  colors?: AvailableChartColorsKeys[]
+  valueFormatter?: (value: number) => string
+  startEndOnly?: boolean
+  showXAxis?: boolean
+  showYAxis?: boolean
+  showGridLines?: boolean
+  yAxisWidth?: number
+  intervalType?: "preserveStartEnd" | "equidistantPreserveStart"
+  showTooltip?: boolean
+  showLegend?: boolean
+  autoMinValue?: boolean
+  minValue?: number
+  maxValue?: number
+  allowDecimals?: boolean
+  onValueChange?: (value: BarChartEventProps) => void
+  enableLegendSlider?: boolean
+  tickGap?: number
+  barCategoryGap?: string | number
+  xAxisLabel?: string
+  yAxisLabel?: string
+  layout?: "vertical" | "horizontal"
+  type?: "default" | "stacked" | "percent"
+  legendPosition?: "left" | "center" | "right"
+  tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void
+  customTooltip?: React.ComponentType<TooltipProps>
+}
 
 function deepEqual<T>(obj1: T, obj2: T): boolean {
   if (obj1 === obj2) return true
@@ -66,48 +133,36 @@ const renderShape = (
 
   if (layout === "horizontal" && height < 0) {
     y += height
-    height = Math.abs(height) // height must be a positive number
+    height = Math.abs(height)
   } else if (layout === "vertical" && width < 0) {
     x += width
-    width = Math.abs(width) // width must be a positive number
+    width = Math.abs(width)
   }
 
+  const isActive = activeBar && deepEqual(activeBar, { ...payload, value })
+  const isInactive = activeLegend && activeLegend !== name
+  const opacity = activeBar || isInactive ? (isActive ? fillOpacity : 0.3) : fillOpacity
+
   return (
-    <>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        className={getConditionalColorClassName(value, color)}
-        opacity={
-          activeBar || (activeLegend && activeLegend !== name)
-            ? deepEqual(activeBar, { ...payload, value })
-              ? fillOpacity
-              : 0.3
-            : fillOpacity
-        }
-      />
-    </>
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      className={getConditionalColorClassName(value, color)}
+      opacity={opacity}
+    />
   )
 }
 
-//#region Legend
-
-interface LegendItemProps {
-  name: string
-  color: AvailableChartColorsKeys
-  onClick?: (name: string, color: AvailableChartColorsKeys) => void
-}
-
 const LegendItem = ({ name, color, onClick }: LegendItemProps) => {
-  const hasOnValueChange = !!onClick
+  const hasOnClick = !!onClick
+  
   return (
     <div
       className={cx(
-        // base
         "group inline-flex flex-nowrap items-center gap-2 whitespace-nowrap rounded px-2 py-1 transition",
-        hasOnValueChange
+        hasOnClick
           ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
           : "cursor-default",
       )}
@@ -128,13 +183,6 @@ const LegendItem = ({ name, color, onClick }: LegendItemProps) => {
   )
 }
 
-interface LegendProps extends React.OlHTMLAttributes<HTMLOListElement> {
-  categories: string[]
-  colors?: AvailableChartColorsKeys[]
-  onClickLegendItem?: (category: string, color: string) => void
-  activeLegend?: string
-}
-
 const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
   const {
     categories,
@@ -144,6 +192,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
     activeLegend,
     ...other
   } = props
+  
   return (
     <ol
       ref={ref}
@@ -172,34 +221,30 @@ const ChartLegend = (
   setLegendHeight: React.Dispatch<React.SetStateAction<number>>,
   activeLegend: string | undefined,
   onClick?: (category: string, color: string) => void,
-  legendPosition?: "left" | "center" | "right",
-  yAxisWidth?: number,
+  legendPosition: "left" | "center" | "right" = "right",
+  yAxisWidth = 56,
 ) => {
   const legendRef = React.useRef<HTMLDivElement>(null)
 
   useOnWindowResize(() => {
-    const calculateHeight = (height: number | undefined) =>
-      height ? Number(height) + 15 : 60
-    setLegendHeight(calculateHeight(legendRef.current?.clientHeight))
+    const height = legendRef.current?.clientHeight
+    setLegendHeight(height ? height + 15 : 60)
   })
 
   const filteredPayload = payload.filter((item: any) => item.type !== "none")
+  const paddingLeft = legendPosition === "left" && yAxisWidth ? yAxisWidth - 8 : 0
 
-  const paddingLeft =
-    legendPosition === "left" && yAxisWidth ? yAxisWidth - 8 : 0
+  const justifyClass = {
+    center: "justify-center",
+    left: "justify-start",
+    right: "justify-end",
+  }[legendPosition]
 
   return (
     <div
-      style={{ paddingLeft: paddingLeft }}
+      style={{ paddingLeft }}
       ref={legendRef}
-      className={cx(
-        "flex items-center",
-        { "justify-center": legendPosition === "center" },
-        {
-          "justify-start": legendPosition === "left",
-        },
-        { "justify-end": legendPosition === "right" },
-      )}
+      className={cx("flex items-center", justifyClass)}
     >
       <Legend
         categories={filteredPayload.map((entry: any) => entry.value)}
@@ -213,139 +258,53 @@ const ChartLegend = (
   )
 }
 
-//#region Tooltip
-
-type TooltipProps = Pick<ChartTooltipProps, "active" | "payload" | "label">
-
-type PayloadItem = {
-  category: string
-  value: number
-  index: string
-  color: AvailableChartColorsKeys
-  type?: string
-  payload: any
-}
-
-interface ChartTooltipProps {
-  active: boolean | undefined
-  payload: PayloadItem[]
-  label: string
-  valueFormatter: (value: number) => string
-}
-
 const ChartTooltip = ({
   active,
   payload,
   label,
   valueFormatter,
 }: ChartTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div
-        className={cx(
-          // base
-          "rounded-md border text-sm shadow-md",
-          // border color
-          "border-gray-200 dark:border-gray-800",
-          // background color
-          "bg-white dark:bg-gray-950",
-        )}
-      >
-        <div className={cx("border-b border-inherit px-4 py-2")}>
-          <p
-            className={cx(
-              // base
-              "font-medium",
-              // text color
-              "text-gray-900 dark:text-gray-50",
-            )}
+  if (!active || !payload?.length) return null
+
+  return (
+    <div
+      className={cx(
+        "rounded-md border text-sm shadow-md",
+        "border-gray-200 dark:border-gray-800",
+        "bg-white dark:bg-gray-950",
+      )}
+    >
+      <div className="border-b border-inherit px-4 py-2">
+        <p className="font-medium text-gray-900 dark:text-gray-50">
+          {label}
+        </p>
+      </div>
+      <div className="space-y-1 px-4 py-2">
+        {payload.map(({ value, category, color }, index) => (
+          <div
+            key={`tooltip-${index}`}
+            className="flex items-center justify-between space-x-8"
           >
-            {label}
-          </p>
-        </div>
-        <div className={cx("space-y-1 px-4 py-2")}>
-          {payload.map(({ value, category, color }, index) => (
-            <div
-              key={`id-${index}`}
-              className="flex items-center justify-between space-x-8"
-            >
-              <div className="flex items-center space-x-2">
-                <span
-                  aria-hidden="true"
-                  className={cx(
-                    "size-2 shrink-0 rounded-sm",
-                    getColorClassName(color, "bg"),
-                  )}
-                />
-                <p
-                  className={cx(
-                    // base
-                    "whitespace-nowrap text-right",
-                    // text color
-                    "text-gray-700 dark:text-gray-300",
-                  )}
-                >
-                  {category}
-                </p>
-              </div>
-              <p
+            <div className="flex items-center space-x-2">
+              <span
+                aria-hidden="true"
                 className={cx(
-                  // base
-                  "whitespace-nowrap text-right font-medium tabular-nums",
-                  // text color
-                  "text-gray-900 dark:text-gray-50",
+                  "size-2 shrink-0 rounded-sm",
+                  getColorClassName(color, "bg"),
                 )}
-              >
-                {valueFormatter(value)}
+              />
+              <p className="whitespace-nowrap text-gray-700 dark:text-gray-300">
+                {category}
               </p>
             </div>
-          ))}
-        </div>
+            <p className="whitespace-nowrap text-right font-medium tabular-nums text-gray-900 dark:text-gray-50">
+              {valueFormatter(value)}
+            </p>
+          </div>
+        ))}
       </div>
-    )
-  }
-  return null
-}
-
-//#region BarChart
-
-type BaseEventProps = {
-  eventType: "category" | "bar"
-  categoryClicked: string
-  [key: string]: number | string
-}
-
-type BarChartEventProps = BaseEventProps | null | undefined
-
-interface BarChartProps extends React.HTMLAttributes<HTMLDivElement> {
-  data: Record<string, any>[]
-  index: string
-  categories: string[]
-  colors?: AvailableChartColorsKeys[]
-  valueFormatter?: (value: number) => string
-  startEndOnly?: boolean
-  showXAxis?: boolean
-  showYAxis?: boolean
-  showGridLines?: boolean
-  yAxisWidth?: number
-  intervalType?: "preserveStartEnd" | "equidistantPreserveStart"
-  showTooltip?: boolean
-  showLegend?: boolean
-  autoMinValue?: boolean
-  minValue?: number
-  maxValue?: number
-  allowDecimals?: boolean
-  onValueChange?: (value: BarChartEventProps) => void
-  enableLegendSlider?: boolean
-  tickGap?: number
-  barCategoryGap?: string | number
-  xAxisLabel?: string
-  yAxisLabel?: string
-  layout?: "vertical" | "horizontal"
-  type?: "default" | "stacked" | "percent"
-  legendPosition?: "left" | "center" | "right"
-  tooltipCallback?: (tooltipCallbackContent: TooltipProps) => void
-  customTooltip?: React.ComponentType<TooltipProps>
+    </div>
+  )
 }
 
 const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
@@ -370,7 +329,6 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       allowDecimals = true,
       className,
       onValueChange,
-      enableLegendSlider = false,
       barCategoryGap,
       tickGap = 5,
       xAxisLabel,
@@ -382,60 +340,134 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
       customTooltip,
       ...other
     } = props
-    const CustomTooltip = customTooltip
-    const paddingValue =
-      (!showXAxis && !showYAxis) || (startEndOnly && !showYAxis) ? 0 : 20
-    const [legendHeight, setLegendHeight] = React.useState(60)
-    const [activeLegend, setActiveLegend] = React.useState<string | undefined>(
-      undefined,
-    )
-    const categoryColors = constructCategoryColors(categories, colors)
-    const [activeBar, setActiveBar] = React.useState<any | undefined>(undefined)
-    const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
-    const hasOnValueChange = !!onValueChange
-    const stacked = type === "stacked" || type === "percent"
 
+    const [legendHeight, setLegendHeight] = React.useState(60)
+    const [activeLegend, setActiveLegend] = React.useState<string | undefined>(undefined)
+    const [activeBar, setActiveBar] = React.useState<any | undefined>(undefined)
+    
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevLabelRef = React.useRef<string | undefined>(undefined)
 
-    function valueToPercent(value: number) {
-      return `${(value * 100).toFixed(0)}%`
-    }
+    const categoryColors = constructCategoryColors(categories, colors)
+    const yAxisDomain = getYAxisDomain(autoMinValue, minValue, maxValue)
+    const hasOnValueChange = !!onValueChange
+    const stacked = type === "stacked" || type === "percent"
+    const paddingValue = (!showXAxis && !showYAxis) || (startEndOnly && !showYAxis) ? 0 : 20
 
-    function onBarClick(data: any, _: any, event: React.MouseEvent) {
+    const valueToPercent = (value: number) => `${(value * 100).toFixed(0)}%`
+
+    const handleBarClick = (data: any, _: any, event: React.MouseEvent) => {
       event.stopPropagation()
       if (!onValueChange) return
-      if (deepEqual(activeBar, { ...data.payload, value: data.value })) {
+
+      const barData = { ...data.payload, value: data.value }
+      const isCurrentlyActive = deepEqual(activeBar, barData)
+
+      if (isCurrentlyActive) {
         setActiveLegend(undefined)
         setActiveBar(undefined)
-        onValueChange?.(null)
+        onValueChange(null)
       } else {
-        setActiveLegend(data.tooltipPayload?.[0]?.dataKey)
-        setActiveBar({
-          ...data.payload,
-          value: data.value,
-        })
-        onValueChange?.({
+        const categoryClicked = data.tooltipPayload?.[0]?.dataKey
+        setActiveLegend(categoryClicked)
+        setActiveBar(barData)
+        onValueChange({
           eventType: "bar",
-          categoryClicked: data.tooltipPayload?.[0]?.dataKey,
+          categoryClicked,
           ...data.payload,
         })
       }
     }
 
-    function onCategoryClick(dataKey: string) {
+    const handleCategoryClick = (dataKey: string) => {
       if (!hasOnValueChange) return
+
       if (dataKey === activeLegend && !activeBar) {
         setActiveLegend(undefined)
-        onValueChange?.(null)
+        onValueChange(null)
       } else {
         setActiveLegend(dataKey)
-        onValueChange?.({
+        onValueChange({
           eventType: "category",
           categoryClicked: dataKey,
         })
       }
       setActiveBar(undefined)
+    }
+
+    const handleChartClick = () => {
+      if (hasOnValueChange && (activeLegend || activeBar)) {
+        setActiveBar(undefined)
+        setActiveLegend(undefined)
+        onValueChange(null)
+      }
+    }
+
+    const getXAxisConfig = () => {
+      if (layout !== "vertical") {
+        return {
+          padding: { left: paddingValue, right: paddingValue },
+          dataKey: index,
+          interval: startEndOnly ? "preserveStartEnd" : intervalType,
+          ticks: startEndOnly ? [data[0]?.[index], data[data.length - 1]?.[index]] : undefined,
+        }
+      }
+      return {
+        type: "number" as const,
+        domain: yAxisDomain as AxisDomain,
+        tickFormatter: type === "percent" ? valueToPercent : valueFormatter,
+        allowDecimals,
+      }
+    }
+
+    const getYAxisConfig = () => {
+      if (layout !== "vertical") {
+        return {
+          type: "number" as const,
+          domain: yAxisDomain as AxisDomain,
+          tickFormatter: type === "percent" ? valueToPercent : valueFormatter,
+          allowDecimals,
+        }
+      }
+      return {
+        dataKey: index,
+        ticks: startEndOnly ? [data[0]?.[index], data[data.length - 1]?.[index]] : undefined,
+        type: "category" as const,
+        interval: "equidistantPreserveStart" as const,
+      }
+    }
+
+    const renderTooltipContent = ({ active, payload, label }: any) => {
+      const cleanPayload: PayloadItem[] = payload
+        ? payload.map((item: any) => ({
+            category: item.dataKey,
+            value: item.value,
+            index: item.payload[index],
+            color: categoryColors.get(item.dataKey) as AvailableChartColorsKeys,
+            type: item.type,
+            payload: item.payload,
+          }))
+        : []
+
+      if (tooltipCallback && (active !== prevActiveRef.current || label !== prevLabelRef.current)) {
+        tooltipCallback({ active, payload: cleanPayload, label })
+        prevActiveRef.current = active
+        prevLabelRef.current = label
+      }
+
+      if (!showTooltip || !active) return null
+
+      const CustomTooltip = customTooltip
+      return CustomTooltip ? (
+        <CustomTooltip active={active} payload={cleanPayload} label={label} />
+      ) : (
+        <ChartTooltip
+          active={active}
+          payload={cleanPayload}
+          label={label}
+          valueFormatter={valueFormatter}
+        />
+      )
     }
 
     return (
@@ -448,15 +480,7 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
         <ResponsiveContainer>
           <RechartsBarChart
             data={data}
-            onClick={
-              hasOnValueChange && (activeLegend || activeBar)
-                ? () => {
-                    setActiveBar(undefined)
-                    setActiveLegend(undefined)
-                    onValueChange?.(null)
-                  }
-                : undefined
-            }
+            onClick={handleChartClick}
             margin={{
               bottom: xAxisLabel ? 30 : undefined,
               left: yAxisLabel ? 20 : undefined,
@@ -467,50 +491,27 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
             layout={layout}
             barCategoryGap={barCategoryGap}
           >
-            {showGridLines ? (
+            {showGridLines && (
               <CartesianGrid
-                className={cx("stroke-gray-200 stroke-1 dark:stroke-gray-800")}
+                className="stroke-gray-200 stroke-1 dark:stroke-gray-800"
                 horizontal={layout !== "vertical"}
                 vertical={layout === "vertical"}
               />
-            ) : null}
+            )}
+            
             <XAxis
               hide={!showXAxis}
-              tick={{
-                transform:
-                  layout !== "vertical" ? "translate(0, 6)" : undefined,
-              }}
+              tick={{ transform: layout !== "vertical" ? "translate(0, 6)" : undefined }}
               fill=""
               stroke=""
               className={cx(
-                // base
-                "text-xs",
-                // text fill
-                "fill-gray-500 dark:fill-gray-500",
-                { "mt-4": layout !== "vertical" },
+                "text-xs fill-gray-500 dark:fill-gray-500",
+                { "mt-4": layout !== "vertical" }
               )}
               tickLine={false}
               axisLine={false}
               minTickGap={tickGap}
-              {...(layout !== "vertical"
-                ? {
-                    padding: {
-                      left: paddingValue,
-                      right: paddingValue,
-                    },
-                    dataKey: index,
-                    interval: startEndOnly ? "preserveStartEnd" : intervalType,
-                    ticks: startEndOnly
-                      ? [data[0][index], data[data.length - 1][index]]
-                      : undefined,
-                  }
-                : {
-                    type: "number",
-                    domain: yAxisDomain as AxisDomain,
-                    tickFormatter:
-                      type === "percent" ? valueToPercent : valueFormatter,
-                    allowDecimals: allowDecimals,
-                  })}
+              {...getXAxisConfig()}
             >
               {xAxisLabel && (
                 <Label
@@ -522,6 +523,7 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 </Label>
               )}
             </XAxis>
+            
             <YAxis
               width={yAxisWidth}
               hide={!showYAxis}
@@ -529,34 +531,11 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
               tickLine={false}
               fill=""
               stroke=""
-              className={cx(
-                // base
-                "text-xs",
-                // text fill
-                "fill-gray-500 dark:fill-gray-500",
-              )}
+              className="text-xs fill-gray-500 dark:fill-gray-500"
               tick={{
-                transform:
-                  layout !== "vertical"
-                    ? "translate(-3, 0)"
-                    : "translate(0, 0)",
+                transform: layout !== "vertical" ? "translate(-3, 0)" : "translate(0, 0)",
               }}
-              {...(layout !== "vertical"
-                ? {
-                    type: "number",
-                    domain: yAxisDomain as AxisDomain,
-                    tickFormatter:
-                      type === "percent" ? valueToPercent : valueFormatter,
-                    allowDecimals: allowDecimals,
-                  }
-                : {
-                    dataKey: index,
-                    ticks: startEndOnly
-                      ? [data[0][index], data[data.length - 1][index]]
-                      : undefined,
-                    type: "category",
-                    interval: "equidistantPreserveStart",
-                  })}
+              {...getYAxisConfig()}
             >
               {yAxisLabel && (
                 <Label
@@ -570,9 +549,10 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 </Label>
               )}
             </YAxis>
+            
             <Tooltip
               wrapperStyle={{ outline: "none" }}
-              isAnimationActive={true}
+              isAnimationActive
               animationDuration={100}
               cursor={{ fill: "#d1d5db", opacity: "0.15" }}
               offset={20}
@@ -580,49 +560,10 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 y: layout === "horizontal" ? 0 : undefined,
                 x: layout === "horizontal" ? undefined : yAxisWidth + 20,
               }}
-              content={({ active, payload, label }) => {
-                const cleanPayload: TooltipProps["payload"] = payload
-                  ? payload.map((item: any) => ({
-                      category: item.dataKey,
-                      value: item.value,
-                      index: item.payload[index],
-                      color: categoryColors.get(
-                        item.dataKey,
-                      ) as AvailableChartColorsKeys,
-                      type: item.type,
-                      payload: item.payload,
-                    }))
-                  : []
-
-                if (
-                  tooltipCallback &&
-                  (active !== prevActiveRef.current ||
-                    label !== prevLabelRef.current)
-                ) {
-                  tooltipCallback({ active, payload: cleanPayload, label })
-                  prevActiveRef.current = active
-                  prevLabelRef.current = label
-                }
-
-                return showTooltip && active ? (
-                  CustomTooltip ? (
-                    <CustomTooltip
-                      active={active}
-                      payload={cleanPayload}
-                      label={label}
-                    />
-                  ) : (
-                    <ChartTooltip
-                      active={active}
-                      payload={cleanPayload}
-                      label={label}
-                      valueFormatter={valueFormatter}
-                    />
-                  )
-                ) : null
-              }}
+              content={renderTooltipContent}
             />
-            {showLegend ? (
+            
+            {showLegend && (
               <RechartsLegend
                 verticalAlign="top"
                 height={legendHeight}
@@ -632,19 +573,17 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                     categoryColors,
                     setLegendHeight,
                     activeLegend,
-                    hasOnValueChange
-                      ? (clickedLegendItem: string) =>
-                          onCategoryClick(clickedLegendItem)
-                      : undefined,
+                    hasOnValueChange ? handleCategoryClick : undefined,
                     legendPosition,
                     yAxisWidth,
                   )
                 }
               />
-            ) : null}
+            )}
+            
             {categories.map((category) => (
               <Bar
-                className={cx(onValueChange ? "cursor-pointer" : "")}
+                className={cx(onValueChange && "cursor-pointer")}
                 key={category}
                 name={category}
                 type="linear"
@@ -661,7 +600,7 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                     categoryColors.get(category) as AvailableChartColorsKeys,
                   )
                 }
-                onClick={onBarClick}
+                onClick={handleBarClick}
               />
             ))}
           </RechartsBarChart>
@@ -673,4 +612,4 @@ const ConditionalBarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
 
 ConditionalBarChart.displayName = "ConditionalBarChart"
 
-export { ConditionalBarChart, type BarChartEventProps, type TooltipProps }
+export { ConditionalBarChart }
