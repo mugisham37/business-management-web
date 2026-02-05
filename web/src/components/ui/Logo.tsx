@@ -91,4 +91,5 @@ const Logo = React.forwardRef<SVGSVGElement, LogoProps>(
 
 Logo.displayName = "Logo"
 
+export default Logo
 export { Logo }

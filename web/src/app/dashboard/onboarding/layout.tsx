@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/Button"
-import { Logo } from "@/components/ui/Logo"
+import Logo from "@/components/ui/Logo"
 import { useScrollPosition } from "@/hooks/useScroll"
 import { cx } from "@/lib/utils"
 import { usePathname } from "next/navigation"
