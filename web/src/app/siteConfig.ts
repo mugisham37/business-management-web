@@ -12,6 +12,7 @@ export const siteConfig = {
     terms: "/terms",
     overview: "/overview",
     details: "/details",
+    login: "/dashboard/login",
     settings: {
       general: "/settings/general",
       billing: "/settings/billing",
