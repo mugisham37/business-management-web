@@ -1,9 +1,9 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover"
 import { cx, focusRing } from "@/lib/utils"
 import { RiNotification2Line } from "@remixicon/react"
 import { format, formatDistanceToNow } from "date-fns"
-import { Button } from "../Button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../Tabs"
+import { Button } from "@/components/ui/Button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs"
 
 interface Notification {
   id: string

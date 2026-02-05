@@ -1,5 +1,5 @@
 "use client"
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/Button"
 import {
   Drawer,
   DrawerBody,
@@ -8,15 +8,15 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/Drawer"
-import { RadioCardGroup, RadioCardItem } from "@/components/RadioCardGroup"
+} from "@/components/ui/Drawer"
+import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
 import {
   Select,
   SelectContent,
   SelectItemExtended,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import {
   categoryTypes,
   policyTypes,
@@ -27,9 +27,9 @@ import {
   type Ticket,
 } from "@/data/support/schema"
 import React from "react"
-import { Input } from "../Input"
-import { Label } from "../Label"
-import { Textarea } from "../Textarea"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
+import { Textarea } from "@/components/ui/TextArea"
 
 type TicketFormData = Partial<Ticket>
 
@@ -86,7 +86,7 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
         <RadioCardGroup
           defaultValue={formData.type}
           className="grid grid-cols-2 gap-2 text-sm"
-          onValueChange={(value) => onUpdateForm({ type: value })}
+          onValueChange={(value: string) => onUpdateForm({ type: value })}
         >
           {ticketTypes.map((type) => (
             <RadioCardItem
@@ -108,10 +108,10 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
           value={formData.category}
           onValueChange={(value: Category) => onUpdateForm({ category: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger variant="tremor">
             <SelectValue placeholder="Select Category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent variant="tremor">
             {categoryTypes.map((category) => (
               <SelectItemExtended
                 key={category.value}
@@ -131,10 +131,10 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
             onUpdateForm({ policyType: value })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger variant="tremor">
             <SelectValue placeholder="Select Policy Type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent variant="tremor">
             {policyTypes.map((type) => (
               <SelectItemExtended
                 key={type.value}
@@ -149,10 +149,11 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
 
       <FormField label="Policy Number">
         <Input
+          variant="tremor"
           disabled
           name="policyNumber"
           value={formData.policyNumber}
-          onChange={(e) => onUpdateForm({ policyNumber: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdateForm({ policyNumber: e.target.value })}
           placeholder="Auto generated"
         />
       </FormField>
@@ -175,7 +176,7 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
         <RadioCardGroup
           defaultValue={formData.priority}
           className="grid grid-cols-1 gap-2 text-sm"
-          onValueChange={(value) => onUpdateForm({ priority: value })}
+          onValueChange={(value: string) => onUpdateForm({ priority: value })}
         >
           {priorities.map((priority) => (
             <RadioCardItem
@@ -199,9 +200,10 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
 
       <FormField label="Description">
         <Textarea
+          variant="tremor"
           name="description"
           value={formData.description}
-          onChange={(e) => onUpdateForm({ description: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onUpdateForm({ description: e.target.value })}
           placeholder="Detailed description of the issue..."
           className="h-32"
         />
@@ -209,10 +211,12 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
 
       <FormField label="Expected Call Duration (minutes)">
         <Input
+          variant="tremor"
           name="duration"
           type="number"
+          enableStepper={true}
           value={formData.duration || ""}
-          onChange={(e) => {
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             onUpdateForm({ duration: e.target.value || null })
           }}
           placeholder="0"
@@ -272,13 +276,6 @@ const SummaryPage = ({ formData }: { formData: TicketFormData }) => (
           <h3 className="font-medium">Details</h3>
           <div className="mt-4 space-y-4">
             <SummaryItem
-              label="Priority"
-              value={
-                priorities.find((p) => p.value === formData.priority)?.label ??
-                undefined
-              }
-            />
-            <SummaryItem
               label="Description"
               value={formData.description || undefined}
             />
@@ -319,14 +316,33 @@ export function TicketDrawer({ open, onOpenChange }: TicketDrawerProps) {
   })
 
   const [currentPage, setCurrentPage] = React.useState(1)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const handleUpdateForm = (updates: Partial<TicketFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }))
   }
 
-  const handleSubmit = () => {
-    console.log("Ticket created:", formData)
-    onOpenChange(false)
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    try {
+      console.log("Ticket created:", formData)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      onOpenChange(false)
+      setCurrentPage(1)
+      setFormData({
+        status: "in-progress",
+        category: categoryTypes[0].value,
+        type: ticketTypes[0].value,
+        policyType: policyTypes[0].value,
+        priority: priorities[0].value,
+        description: "",
+        policyNumber: "",
+        duration: "0",
+        created: new Date().toISOString(),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const renderPage = () => {
@@ -351,26 +367,50 @@ export function TicketDrawer({ open, onOpenChange }: TicketDrawerProps) {
           <DrawerClose asChild>
             <Button variant="secondary">Cancel</Button>
           </DrawerClose>
-          <Button onClick={() => setCurrentPage(2)}>Continue</Button>
+          <Button 
+            variant="primary"
+            onClick={() => setCurrentPage(2)}
+          >
+            Continue
+          </Button>
         </>
       )
     }
     if (currentPage === 2) {
       return (
         <>
-          <Button variant="secondary" onClick={() => setCurrentPage(1)}>
+          <Button 
+            variant="secondary" 
+            onClick={() => setCurrentPage(1)}
+          >
             Back
           </Button>
-          <Button onClick={() => setCurrentPage(3)}>Review</Button>
+          <Button 
+            variant="primary"
+            onClick={() => setCurrentPage(3)}
+          >
+            Review
+          </Button>
         </>
       )
     }
     return (
       <>
-        <Button variant="secondary" onClick={() => setCurrentPage(2)}>
+        <Button 
+          variant="secondary" 
+          onClick={() => setCurrentPage(2)}
+          disabled={isSubmitting}
+        >
           Back
         </Button>
-        <Button onClick={handleSubmit}>Create Ticket</Button>
+        <Button 
+          variant="primary"
+          onClick={handleSubmit}
+          isLoading={isSubmitting}
+          loadingText="Creating Ticket..."
+        >
+          Create Ticket
+        </Button>
       </>
     )
   }

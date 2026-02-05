@@ -107,7 +107,7 @@ function ListItem({
   index: number
   column: Column<any, unknown> | undefined
 }) {
-  const { registerItem, instanceId } = useListContext()
+  const { registerItem, instanceId, reorderItem, getListLength } = useListContext()
 
   const ref = React.useRef<HTMLDivElement>(null)
   const [closestEdge, setClosestEdge] = React.useState<Edge | null>(null)
@@ -116,6 +116,9 @@ function ListItem({
 
   const [draggableState, setDraggableState] =
     React.useState<DraggableState>(idleState)
+  
+  const [isReordering, setIsReordering] = React.useState(false)
+  const [isFocused, setIsFocused] = React.useState(false)
 
   React.useEffect(() => {
     const element = ref.current
@@ -131,6 +134,7 @@ function ListItem({
         element: dragHandle,
         getInitialData: () => data,
         onGenerateDragPreview({ nativeSetDragImage }) {
+          setIsReordering(true)
           setCustomNativeDragPreview({
             nativeSetDragImage,
             getOffset: pointerOutsideOfPreview({
@@ -146,9 +150,11 @@ function ListItem({
         },
         onDragStart() {
           setDraggableState(draggingState)
+          setIsReordering(true)
         },
         onDrop() {
           setDraggableState(idleState)
+          setIsReordering(false)
         },
       }),
       dropTargetForElements({
@@ -206,26 +212,57 @@ function ListItem({
       <div ref={ref} className="relative border-b border-transparent">
         <div
           className={cx(
-            "relative flex items-center justify-between gap-2",
+            "relative flex items-center justify-between gap-2 rounded-sm transition-colors",
             draggableState.type === "dragging" && "opacity-50",
+            isFocused && "bg-gray-50 dark:bg-gray-900/50",
           )}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         >
           <div className="flex items-center gap-2">
             <Checkbox
               checked={column?.getIsVisible()}
               onCheckedChange={() => column?.toggleVisibility()}
+              disabled={!column?.getCanHide()}
+              aria-label={`Toggle ${item.label} column visibility`}
             />
-            <span>{item.label}</span>
+            <Label 
+              className="cursor-pointer select-none"
+              disabled={!column?.getCanHide()}
+              onClick={() => column?.getCanHide() && column?.toggleVisibility()}
+            >
+              {item.label}
+            </Label>
           </div>
           <Button
             aria-hidden="true"
             tabIndex={-1}
             variant="ghost"
-            className="-mr-1 px-0 py-1"
+            size="icon"
+            className="-mr-1 px-0 py-1 h-6 w-6"
             ref={dragHandleRef}
             aria-label={`Reorder ${item.label}`}
+            disabled={isReordering}
+            isLoading={isReordering}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowUp' && index > 0) {
+                e.preventDefault()
+                reorderItem({
+                  startIndex: index,
+                  indexOfTarget: index - 1,
+                  closestEdgeOfTarget: 'top'
+                })
+              } else if (e.key === 'ArrowDown' && index < getListLength() - 1) {
+                e.preventDefault()
+                reorderItem({
+                  startIndex: index,
+                  indexOfTarget: index + 1,
+                  closestEdgeOfTarget: 'bottom'
+                })
+              }
+            }}
           >
-            <RiDraggable className="size-5 text-gray-400 dark:text-gray-600" />
+            <RiDraggable className="size-4 text-gray-400 dark:text-gray-600" />
           </Button>
         </div>
         {closestEdge && <DropIndicator edge={closestEdge} gap="1px" />}
@@ -272,17 +309,19 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
-  const tableColumns: Item[] = table.getAllColumns().map((column) => ({
-    id: column.id,
-    label: column.columnDef.meta?.displayName as string,
-  }))
+  const tableColumns: Item[] = table.getAllColumns()
+    .filter(column => column.columnDef.meta?.displayName)
+    .map((column) => ({
+      id: column.id,
+      label: column.columnDef.meta?.displayName as string,
+    }))
   const [{ items, lastCardMoved }, setListState] = React.useState<ListState>({
     items: tableColumns,
     lastCardMoved: null,
   })
   const [registry] = React.useState(getItemRegistry)
+  const [isReordering, setIsReordering] = React.useState(false)
 
-  // Isolated instances of this component from one another
   const [instanceId] = React.useState(() => Symbol("instance-id"))
 
   React.useEffect(() => {
@@ -311,6 +350,7 @@ function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
         return
       }
 
+      setIsReordering(true)
       setListState((listState) => {
         const item = listState.items[startIndex]
 
@@ -328,6 +368,8 @@ function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
           },
         }
       })
+      
+      setTimeout(() => setIsReordering(false), 150)
     },
     [],
   )
@@ -410,9 +452,13 @@ function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
           <PopoverTrigger asChild>
             <Button
               variant="secondary"
+              size="sm"
               className={cx(
                 "ml-auto hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex",
               )}
+              isLoading={isReordering}
+              loadingText="Reordering..."
+              aria-label="Configure column visibility and order"
             >
               <RiEqualizer2Line className="size-4" aria-hidden="true" />
               View
@@ -421,23 +467,36 @@ function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
           <PopoverContent
             align="end"
             sideOffset={7}
-            className="z-50 w-fit space-y-2"
+            collisionPadding={8}
+            avoidCollisions={true}
+            className="z-50 w-fit min-w-60 space-y-2"
           >
             <Label className="font-medium">Display properties</Label>
             <ListContext.Provider value={contextValue}>
-              <div className="flex flex-col">
-                {items.map((item, index) => {
-                  const column = table.getColumn(item.id)
-                  if (!column) return null
-                  return (
-                    <div
-                      key={column.id}
-                      className={cx(!column.getCanHide() && "hidden")}
-                    >
-                      <ListItem column={column} item={item} index={index} />
-                    </div>
-                  )
-                })}
+              <div 
+                className="flex flex-col"
+                role="list"
+                aria-label="Column visibility and order settings"
+              >
+                {items.length === 0 ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                    No configurable columns available
+                  </div>
+                ) : (
+                  items.map((item, index) => {
+                    const column = table.getColumn(item.id)
+                    if (!column) return null
+                    return (
+                      <div
+                        key={column.id}
+                        className={cx(!column.getCanHide() && "hidden")}
+                        role="listitem"
+                      >
+                        <ListItem column={column} item={item} index={index} />
+                      </div>
+                    )
+                  })
+                )}
               </div>
             </ListContext.Provider>
           </PopoverContent>

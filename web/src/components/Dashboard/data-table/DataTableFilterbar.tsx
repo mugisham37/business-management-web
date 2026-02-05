@@ -1,170 +1,241 @@
 "use client"
 
 import { Button } from "@/components/ui/Button"
-import { Searchbar } from "@/components/ui/Searchbar"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
+import { Searchbar } from "@/components/ui/SearchBar"
+import { Switch } from "@/components/ui/Switch"
 import { conditions, regions, statuses } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { RiDownloadLine } from "@remixicon/react"
 import { Table } from "@tanstack/react-table"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { DataTableFilter } from "./DataTableFilter"
 import { ViewOptions } from "./DataTableViewOptions"
 
-interface DataTableToolbarProps<TData> {
+interface DataTableFilterbarProps<TData> {
   table: Table<TData>
+  onExport?: () => void
+  exportLabel?: string
+  isExporting?: boolean
+  disabled?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
+  showExport?: boolean
+  showViewOptions?: boolean
 }
 
-export function Filterbar<TData>({ table }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
-  const [searchTerm, setSearchTerm] = useState<string>("")
-
-  const debouncedSetFilterValue = useDebouncedCallback((value) => {
-    table.getColumn("owner")?.setFilterValue(value)
-  }, 300)
-
-  const handleSearchChange = (event: any) => {
-    const value = event.target.value
-    setSearchTerm(value)
-    debouncedSetFilterValue(value)
-  }
-
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-x-6">
-      <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:items-center">
-        {table.getColumn("status")?.getIsVisible() && (
-          <DataTableFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
-            type="select"
-          />
-        )}
-        {table.getColumn("region")?.getIsVisible() && (
-          <DataTableFilter
-            column={table.getColumn("region")}
-            title="Region"
-            options={regions}
-            type="checkbox"
-          />
-        )}
-        {table.getColumn("costs")?.getIsVisible() && (
-          <DataTableFilter
-            column={table.getColumn("costs")}
-            title="Costs"
-            type="number"
-            options={conditions}
-            formatter={formatters.currency}
-          />
-        )}
-        {table.getColumn("owner")?.getIsVisible() && (
-          <Searchbar
-            type="search"
-            placeholder="Search by owner..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full sm:max-w-[250px] sm:[&>input]:h-[30px]"
-          />
-        )}
-        {isFiltered && (
-          <Button
-            variant="ghost"
-            onClick={() => table.resetColumnFilters()}
-            className="border border-gray-200 px-2 font-semibold text-indigo-600 sm:border-none sm:py-1 dark:border-gray-800 dark:text-indigo-500"
-          >
-            Clear filters
-          </Button>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="secondary"
-          className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
-        >
-          <RiDownloadLine className="size-4 shrink-0" aria-hidden="true" />
-          Export
-        </Button>
-        <ViewOptions table={table} />
-      </div>
-    </div>
-  )
-}
-"use client"
-
-import { Button } from "@/components/Button"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { Switch } from "@/components/Switch"
-import { useRef, useState } from "react"
-import { useDebouncedCallback } from "use-debounce"
-
-interface FilterBarProps {
+interface GlobalFilterbarProps {
   globalFilter: string
   setGlobalFilter: (value: string) => void
-  registeredOnly: boolean
-  setRegisteredOnly: (checked: boolean) => void
+  registeredOnly?: boolean
+  setRegisteredOnly?: (checked: boolean) => void
+  switchLabel?: string
+  switchId?: string
+  placeholder?: string
+  disabled?: boolean
+  isLoading?: boolean
+  onClear?: () => void
+  variant?: "default" | "contained"
+  className?: string
 }
 
-export function Filterbar({
-  globalFilter,
+interface UnifiedFilterbarProps<TData> extends Partial<DataTableFilterbarProps<TData>>, Partial<GlobalFilterbarProps> {
+  mode: "table" | "global"
+}
+
+export function Filterbar<TData>({
+  mode,
+  table,
+  onExport,
+  exportLabel = "Export",
+  isExporting = false,
+  disabled = false,
+  searchColumn = "owner",
+  searchPlaceholder,
+  showExport = true,
+  showViewOptions = true,
+  globalFilter = "",
   setGlobalFilter,
-  registeredOnly,
+  registeredOnly = false,
   setRegisteredOnly,
-}: FilterBarProps) {
-  const [searchTerm, setSearchTerm] = useState(globalFilter)
+  switchLabel = "Registered agents only",
+  switchId = "registered-filter",
+  placeholder = "Search all columns...",
+  isLoading = false,
+  onClear,
+  variant = "default",
+  className = "",
+}: UnifiedFilterbarProps<TData>) {
+  const [searchTerm, setSearchTerm] = useState<string>(globalFilter)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const debouncedSetGlobalFilter = useDebouncedCallback((value) => {
-    setGlobalFilter(value)
+  const debouncedSetFilterValue = useDebouncedCallback((value: string) => {
+    if (mode === "table" && table) {
+      table.getColumn(searchColumn)?.setFilterValue(value)
+    } else if (mode === "global" && setGlobalFilter) {
+      setGlobalFilter(value)
+    }
   }, 300)
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setSearchTerm(value)
-    debouncedSetGlobalFilter(value)
+    debouncedSetFilterValue(value)
   }
 
   const handleClear = () => {
     setSearchTerm("")
-    setGlobalFilter("")
+    if (mode === "table" && table) {
+      table.getColumn(searchColumn)?.setFilterValue("")
+    } else if (mode === "global" && setGlobalFilter) {
+      setGlobalFilter("")
+    }
+    onClear?.()
     searchInputRef.current?.focus()
   }
 
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-6 rounded-lg bg-gray-50/50 p-6 ring-1 ring-gray-200 dark:bg-[#090E1A] dark:ring-gray-800">
-      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-fit">
-        <Input
-          ref={searchInputRef}
-          className="w-full sm:w-96"
-          type="search"
-          placeholder="Search all columns..."
-          value={searchTerm ?? ""}
-          onChange={handleSearchChange}
-        />
-        {searchTerm && (
-          <Button
-            variant="ghost"
-            onClick={handleClear}
-            className="border border-gray-200 px-2.5 font-semibold text-blue-500 sm:border-none sm:py-1 dark:border-gray-800 dark:text-blue-500"
-          >
-            Clear
-          </Button>
+  const handleClearAllFilters = () => {
+    if (mode === "table" && table) {
+      table.resetColumnFilters()
+      setSearchTerm("")
+    }
+  }
+
+  if (mode === "table" && table) {
+    const isFiltered = table.getState().columnFilters.length > 0 || table.getState().globalFilter
+
+    return (
+      <div className={`flex flex-wrap items-center justify-between gap-2 sm:gap-x-6 ${className}`}>
+        <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:items-center">
+          {table.getColumn("status")?.getIsVisible() && (
+            <DataTableFilter
+              column={table.getColumn("status")}
+              title="Status"
+              options={statuses}
+              type="select"
+              disabled={disabled}
+              isLoading={isLoading}
+            />
+          )}
+          {table.getColumn("region")?.getIsVisible() && (
+            <DataTableFilter
+              column={table.getColumn("region")}
+              title="Region"
+              options={regions}
+              type="checkbox"
+              disabled={disabled}
+              isLoading={isLoading}
+            />
+          )}
+          {table.getColumn("costs")?.getIsVisible() && (
+            <DataTableFilter
+              column={table.getColumn("costs")}
+              title="Costs"
+              type="number"
+              options={conditions}
+              formatter={formatters.currency}
+              disabled={disabled}
+              isLoading={isLoading}
+            />
+          )}
+          {table.getColumn(searchColumn)?.getIsVisible() && (
+            <Searchbar
+              ref={searchInputRef}
+              placeholder={searchPlaceholder || `Search by ${searchColumn}...`}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full sm:max-w-[250px]"
+              containerClassName="w-full sm:w-auto"
+              disabled={disabled}
+              variant="filled"
+              size="default"
+            />
+          )}
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={handleClearAllFilters}
+              disabled={disabled}
+              className="border border-gray-200 px-2 font-semibold text-indigo-600 sm:border-none sm:py-1 dark:border-gray-800 dark:text-indigo-500"
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {showExport && (
+            <Button
+              variant="secondary"
+              onClick={onExport}
+              disabled={disabled}
+              isLoading={isExporting}
+              loadingText="Exporting..."
+              className="hidden gap-x-2 px-2 py-1.5 text-sm sm:text-xs lg:flex"
+            >
+              <RiDownloadLine className="size-4 shrink-0" aria-hidden="true" />
+              {exportLabel}
+            </Button>
+          )}
+          {showViewOptions && <ViewOptions table={table} />}
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === "global") {
+    const containerClasses = variant === "contained" 
+      ? "flex flex-wrap items-center justify-between gap-6 rounded-lg bg-gray-50/50 p-6 ring-1 ring-gray-200 dark:bg-[#090E1A] dark:ring-gray-800"
+      : "flex flex-wrap items-center justify-between gap-6"
+
+    return (
+      <div className={`${containerClasses} ${className}`}>
+        <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:items-center">
+          <Input
+            ref={searchInputRef}
+            type="search"
+            placeholder={placeholder}
+            value={searchTerm}
+            onChange={handleSearchChange}
+            disabled={disabled}
+            variant="tremor"
+            className="w-full sm:w-96"
+            enableStepper={false}
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              onClick={handleClear}
+              disabled={disabled}
+              className="border border-gray-200 px-2.5 font-semibold text-blue-500 sm:border-none sm:py-1 dark:border-gray-800 dark:text-blue-500"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        {setRegisteredOnly && (
+          <div className="flex items-center gap-2.5">
+            <Switch
+              id={switchId}
+              checked={registeredOnly}
+              onCheckedChange={setRegisteredOnly}
+              disabled={disabled}
+              size="small"
+              variant="tremor"
+            />
+            <Label
+              htmlFor={switchId}
+              disabled={disabled}
+              className="text-base text-gray-600 sm:text-sm"
+            >
+              {switchLabel}
+            </Label>
+          </div>
         )}
       </div>
-      <div className="flex items-center gap-2.5">
-        <Switch
-          size="small"
-          id="registered"
-          checked={registeredOnly}
-          onCheckedChange={setRegisteredOnly}
-        />
-        <Label
-          htmlFor="registered"
-          className="text-base text-gray-600 sm:text-sm"
-        >
-          Registered agents only
-        </Label>
-      </div>
-    </div>
-  )
+    )
+  }
+
+  return null
 }

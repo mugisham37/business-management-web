@@ -8,7 +8,7 @@ import { formatters } from "@/lib/utils"
 import { ColumnDef, createColumnHelper, Row } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { Ellipsis } from "lucide-react"
-import { DataTableColumnHeader } from "./DataTableColumnHeader"
+import { DataTableColumnHeader } from "@/components/Dashboard/data-table/DataTableColumnHeader"
 
 const columnHelper = createColumnHelper<Transaction>()
 

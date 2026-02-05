@@ -1,21 +1,30 @@
 "use client"
 
-import { TabNavigation, TabNavigationLink } from "@/components/TabNavigation"
+import { TabNavigation, TabNavigationLink } from "@/components/ui/TabNavigation"
 import Link from "next/link"
 import { Notifications } from "./Notifications"
-
 import { usePathname } from "next/navigation"
-import { Logo } from "../../../public/Logo"
+import { DatabaseLogo } from "../../../public/DatabaseLogo"
 import { DropdownUserProfile } from "./UserProfile"
 
 function Navigation() {
   const pathname = usePathname()
+  
+  const navigationItems = [
+    { href: "/agents/support", label: "Support", path: "/agents/support" },
+    { href: "/agents/retention", label: "Retention", path: "/agents/retention" },
+    { href: "/agents/workflow", label: "Workflow", path: "/agents/workflow" },
+    { href: "/agents/agents", label: "Agents", path: "/agents/agents" },
+  ]
+
   return (
     <div className="shadow-s sticky top-0 z-20 bg-white dark:bg-gray-950">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 pt-3">
         <div>
-          <span className="sr-only">Your Company</span>
-          <Logo className="h-6" />
+          <Link href="/" aria-label="Navigate to homepage">
+            <span className="sr-only">Your Company</span>
+            <DatabaseLogo className="h-6" />
+          </Link>
         </div>
         <div className="flex h-[42px] flex-nowrap gap-1">
           <Notifications />
@@ -24,34 +33,18 @@ function Navigation() {
       </div>
       <TabNavigation className="mt-5">
         <div className="mx-auto flex w-full max-w-7xl items-center px-6">
-          <TabNavigationLink
-            className="inline-flex gap-2"
-            asChild
-            active={pathname === "/support"}
-          >
-            <Link href="/support">Support</Link>
-          </TabNavigationLink>
-          <TabNavigationLink
-            className="inline-flex gap-2"
-            asChild
-            active={pathname === "/retention"}
-          >
-            <Link href="/retention">Retention</Link>
-          </TabNavigationLink>
-          <TabNavigationLink
-            className="inline-flex gap-2"
-            asChild
-            active={pathname === "/workflow"}
-          >
-            <Link href="/workflow">Workflow</Link>
-          </TabNavigationLink>
-          <TabNavigationLink
-            className="inline-flex gap-2"
-            asChild
-            active={pathname === "/agents"}
-          >
-            <Link href="/agents">Agents</Link>
-          </TabNavigationLink>
+          {navigationItems.map((item) => (
+            <TabNavigationLink
+              key={item.href}
+              className="inline-flex gap-2"
+              asChild
+              data-active={pathname === item.path ? "true" : undefined}
+            >
+              <Link href={item.href} aria-current={pathname === item.path ? "page" : undefined}>
+                {item.label}
+              </Link>
+            </TabNavigationLink>
+          ))}
         </div>
       </TabNavigation>
     </div>

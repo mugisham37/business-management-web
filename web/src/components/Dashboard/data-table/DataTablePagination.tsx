@@ -11,165 +11,103 @@ import { Table } from "@tanstack/react-table"
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
   pageSize: number
+  showSelection?: boolean
+  showRowInfo?: boolean
+  isLoading?: boolean
 }
 
 export function DataTablePagination<TData>({
   table,
   pageSize,
+  showSelection = true,
+  showRowInfo = true,
+  isLoading = false,
 }: DataTablePaginationProps<TData>) {
   const paginationButtons = [
     {
       icon: RiArrowLeftDoubleLine,
       onClick: () => table.setPageIndex(0),
       disabled: !table.getCanPreviousPage(),
-      srText: "First page",
-      mobileView: "hidden sm:block",
+      srText: "Go to first page",
+      ariaLabel: "Go to first page",
+      mobileView: "hidden sm:flex",
     },
     {
       icon: RiArrowLeftSLine,
       onClick: () => table.previousPage(),
       disabled: !table.getCanPreviousPage(),
-      srText: "Previous page",
+      srText: "Go to previous page",
+      ariaLabel: "Go to previous page",
       mobileView: "",
     },
     {
       icon: RiArrowRightSLine,
       onClick: () => table.nextPage(),
       disabled: !table.getCanNextPage(),
-      srText: "Next page",
+      srText: "Go to next page",
+      ariaLabel: "Go to next page",
       mobileView: "",
     },
     {
       icon: RiArrowRightDoubleLine,
       onClick: () => table.setPageIndex(table.getPageCount() - 1),
       disabled: !table.getCanNextPage(),
-      srText: "Last page",
-      mobileView: "hidden sm:block",
+      srText: "Go to last page",
+      ariaLabel: "Go to last page",
+      mobileView: "hidden sm:flex",
     },
   ]
 
   const totalRows = table.getFilteredRowModel().rows.length
+  const selectedRows = table.getFilteredSelectedRowModel().rows.length
   const currentPage = table.getState().pagination.pageIndex
-  const firstRowIndex = currentPage * pageSize + 1
+  const firstRowIndex = totalRows > 0 ? currentPage * pageSize + 1 : 0
   const lastRowIndex = Math.min(totalRows, firstRowIndex + pageSize - 1)
 
-  return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm tabular-nums text-gray-500">
-        {table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s)
-        selected.
-      </div>
-      <div className="flex items-center gap-x-6 lg:gap-x-8">
-        <p className="hidden text-sm tabular-nums text-gray-500 sm:block">
-          Showing{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
-            {firstRowIndex}-{lastRowIndex}
-          </span>{" "}
-          of{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
-            {totalRows}
-          </span>
-        </p>
-        <div className="flex items-center gap-x-1.5">
-          {paginationButtons.map((button, index) => (
-            <Button
-              key={index}
-              variant="secondary"
-              className={cx(button.mobileView, "p-1.5")}
-              onClick={() => {
-                button.onClick()
-                table.resetRowSelection()
-              }}
-              disabled={button.disabled}
-            >
-              <span className="sr-only">{button.srText}</span>
-              <button.icon className="size-4 shrink-0" aria-hidden="true" />
-            </Button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-import { Button } from "@/components/Button"
-import { cx } from "@/lib/utils"
-import {
-  RiArrowLeftDoubleLine,
-  RiArrowLeftSLine,
-  RiArrowRightDoubleLine,
-  RiArrowRightSLine,
-} from "@remixicon/react"
-import { Table } from "@tanstack/react-table"
-
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>
-  pageSize: number
-}
-
-export function DataTablePagination<TData>({
-  table,
-  pageSize,
-}: DataTablePaginationProps<TData>) {
-  const paginationButtons = [
-    {
-      icon: RiArrowLeftDoubleLine,
-      onClick: () => table.setPageIndex(0),
-      disabled: !table.getCanPreviousPage(),
-      srText: "First page",
-      mobileView: "hidden sm:block",
-    },
-    {
-      icon: RiArrowLeftSLine,
-      onClick: () => table.previousPage(),
-      disabled: !table.getCanPreviousPage(),
-      srText: "Previous page",
-      mobileView: "",
-    },
-    {
-      icon: RiArrowRightSLine,
-      onClick: () => table.nextPage(),
-      disabled: !table.getCanNextPage(),
-      srText: "Next page",
-      mobileView: "",
-    },
-    {
-      icon: RiArrowRightDoubleLine,
-      onClick: () => table.setPageIndex(table.getPageCount() - 1),
-      disabled: !table.getCanNextPage(),
-      srText: "Last page",
-      mobileView: "hidden sm:block",
-    },
-  ]
-
-  // const totalRows = table.getFilteredRowModel().rows.length
-  const totalRows = table.getCoreRowModel().rows.length
-  const currentPage = table.getState().pagination.pageIndex
-  const firstRowIndex = currentPage * pageSize + 1
-  const lastRowIndex = Math.min(totalRows, firstRowIndex + pageSize - 1)
+  const handlePageNavigation = (onClick: () => void) => {
+    onClick()
+    table.resetRowSelection()
+  }
 
   return (
-    <div className="flex items-center justify-between">
-      <p className="hidden text-sm tabular-nums text-gray-500 sm:block dark:text-gray-500">
-        Showing{" "}
-        <span className="font-medium text-gray-900 dark:text-gray-50">
-          {firstRowIndex}-{lastRowIndex}
-        </span>{" "}
-        of{" "}
-        <span className="font-medium text-gray-900 dark:text-gray-50">
-          {totalRows}
-        </span>
-      </p>
-      <div className="flex items-center gap-x-1.5">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-6">
+        {showSelection && selectedRows > 0 && (
+          <div className="text-sm tabular-nums text-gray-500 dark:text-gray-400">
+            {selectedRows} of {totalRows} row{totalRows !== 1 ? "s" : ""} selected
+          </div>
+        )}
+        {showRowInfo && (
+          <p className="text-sm tabular-nums text-gray-500 dark:text-gray-400">
+            {totalRows > 0 ? (
+              <>
+                Showing{" "}
+                <span className="font-medium text-gray-900 dark:text-gray-50">
+                  {firstRowIndex}–{lastRowIndex}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-gray-900 dark:text-gray-50">
+                  {totalRows}
+                </span>
+              </>
+            ) : (
+              "No results"
+            )}
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-center gap-1.5 sm:justify-end">
         {paginationButtons.map((button, index) => (
           <Button
             key={index}
             variant="secondary"
-            className={cx(button.mobileView, "p-1.5")}
-            onClick={() => {
-              button.onClick()
-              table.resetRowSelection()
-            }}
-            disabled={button.disabled}
+            size="icon"
+            className={cx(button.mobileView)}
+            onClick={() => handlePageNavigation(button.onClick)}
+            disabled={button.disabled || isLoading}
+            isLoading={isLoading && !button.disabled}
+            aria-label={button.ariaLabel}
           >
             <span className="sr-only">{button.srText}</span>
             <button.icon className="size-4 shrink-0" aria-hidden="true" />

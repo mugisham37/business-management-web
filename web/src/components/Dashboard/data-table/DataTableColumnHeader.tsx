@@ -1,102 +1,130 @@
+import * as React from "react"
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react"
 import { Column } from "@tanstack/react-table"
 
-import { cx } from "@/lib/utils"
+import { Button } from "@/components/ui/Button"
+import { Tooltip } from "@/components/ui/Tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/DropdownMenu"
+import { cx, focusRing } from "@/lib/utils"
 
 interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
   column: Column<TData, TValue>
   title: string
+  showTooltip?: boolean
+  enableDropdownMenu?: boolean
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
   className,
+  showTooltip = true,
+  enableDropdownMenu = false,
+  ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort()) {
-    return <div className={cx(className)}>{title}</div>
+    return (
+      <div className={cx("select-none", className)} {...props}>
+        {title}
+      </div>
+    )
   }
 
-  return (
-    <div
-      onClick={column.getToggleSortingHandler()}
-      className={cx(
-        column.columnDef.enableSorting === true
-          ? "-mx-2 inline-flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-50 hover:dark:bg-gray-900"
-          : "",
-      )}
-    >
-      <span>{title}</span>
-      {column.getCanSort() ? (
-        <div className="-space-y-2">
-          <RiArrowUpSLine
-            className={cx(
-              "size-3.5 text-gray-900 dark:text-gray-50",
-              column.getIsSorted() === "desc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-          <RiArrowDownSLine
-            className={cx(
-              "size-3.5 text-gray-900 dark:text-gray-50",
-              column.getIsSorted() === "asc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-        </div>
-      ) : null}
-    </div>
-  )
-}
-import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react"
-import { Column } from "@tanstack/react-table"
-
-import { cx } from "@/lib/utils"
-
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
-  title: string
-}
-
-export function DataTableColumnHeader<TData, TValue>({
-  column,
-  title,
-  className,
-}: DataTableColumnHeaderProps<TData, TValue>) {
-  if (!column.getCanSort()) {
-    return <div className={cx(className)}>{title}</div>
+  const getSortTooltipContent = () => {
+    const sortState = column.getIsSorted()
+    if (sortState === "asc") return `Sorted ascending. Click to sort descending.`
+    if (sortState === "desc") return `Sorted descending. Click to clear sorting.`
+    return `Click to sort ascending.`
   }
 
-  return (
-    <button
-      onClick={column.getToggleSortingHandler()}
+  const handleSort = (direction?: "asc" | "desc") => {
+    if (direction) {
+      column.toggleSorting(direction === "desc")
+    } else {
+      const handler = column.getToggleSortingHandler()
+      if (handler) {
+        handler({} as React.MouseEvent<HTMLButtonElement>)
+      }
+    }
+  }
+
+  const sortButton = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={(e) => {
+        const handler = column.getToggleSortingHandler()
+        if (handler) {
+          handler(e)
+        }
+      }}
       className={cx(
-        column.columnDef.enableSorting === true
-          ? "-mx-2 inline-flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-50 hover:dark:bg-gray-900"
-          : "",
+        "-mx-2 h-auto justify-start gap-2 px-2 py-1 font-medium",
+        "hover:bg-gray-50 hover:dark:bg-gray-900",
+        "data-[state=open]:bg-gray-100 data-[state=open]:dark:bg-gray-900",
+        focusRing,
+        className
       )}
+      aria-label={`Sort by ${title}`}
     >
-      <span>{title}</span>
-      {column.getCanSort() ? (
-        <div className="-space-y-2">
-          <RiArrowUpSLine
-            className={cx(
-              "size-3.5 text-gray-900 dark:text-gray-50",
-              column.getIsSorted() === "desc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-          <RiArrowDownSLine
-            className={cx(
-              "size-3.5 text-gray-900 dark:text-gray-50",
-              column.getIsSorted() === "asc" ? "opacity-30" : "",
-            )}
-            aria-hidden="true"
-          />
-        </div>
-      ) : null}
-    </button>
+      <span className="truncate">{title}</span>
+      <div className="ml-auto flex flex-col -space-y-2">
+        <RiArrowUpSLine
+          className={cx(
+            "size-3.5 transition-opacity",
+            "text-gray-900 dark:text-gray-50",
+            column.getIsSorted() === "desc" ? "opacity-30" : "opacity-100",
+          )}
+          aria-hidden="true"
+        />
+        <RiArrowDownSLine
+          className={cx(
+            "size-3.5 transition-opacity",
+            "text-gray-900 dark:text-gray-50",
+            column.getIsSorted() === "asc" ? "opacity-30" : "opacity-100",
+          )}
+          aria-hidden="true"
+        />
+      </div>
+    </Button>
   )
+
+  if (enableDropdownMenu) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {sortButton}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-40">
+          <DropdownMenuItem onClick={() => handleSort("asc")}>
+            <RiArrowUpSLine className="mr-2 size-4" />
+            Sort ascending
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSort("desc")}>
+            <RiArrowDownSLine className="mr-2 size-4" />
+            Sort descending
+          </DropdownMenuItem>
+          {column.getIsSorted() && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => column.clearSorting()}>
+                Clear sorting
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+
+  if (showTooltip) {
+    return (
+      <Tooltip content={getSortTooltipContent()} side="top" delayDuration={500}>
+        {sortButton}
+      </Tooltip>
+    )
+  }
+
+  return sortButton
 }

@@ -1,6 +1,6 @@
 "use client"
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
+import { Button } from "@/components/ui/Button"
+import { Card } from "@/components/ui/Card"
 import {
   Dialog,
   DialogBody,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/Dialog"
-import { Divider } from "@/components/Divider"
+} from "@/components/ui/Dialog"
+import { Divider } from "@/components/ui/Divider"
 import {
   Table,
   TableBody,
@@ -20,7 +20,7 @@ import {
   TableHeaderCell,
   TableRoot,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/Table"
 import { cohorts } from "@/data/retention/cohorts"
 import { cohortsAggregate } from "@/data/retention/cohortsAggregate"
 import {

@@ -1,6 +1,4 @@
 "use client"
-import { Divider } from "@/components/ui/Divider"
-import { Input } from "@/components/ui/Input"
 import {
   Sidebar,
   SidebarContent,
@@ -8,17 +6,21 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
+  SidebarInput,
   SidebarLink,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarSeparator,
   SidebarSubLink,
 } from "@/components/ui/Sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
 import { BookText, House, PackageSearch } from "lucide-react"
 import * as React from "react"
-import { Logo } from "../../../../public/Logo"
+import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import { UserProfile } from "./UserProfile"
 
 const navigation = [
@@ -90,6 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navigation2[0].name,
     navigation2[1].name,
   ])
+  
   const toggleMenu = (name: string) => {
     setOpenMenus((prev: string[]) =>
       prev.includes(name)
@@ -97,12 +100,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         : [...prev, name],
     )
   }
+  
   return (
     <Sidebar {...props} className="bg-gray-50 dark:bg-gray-925">
       <SidebarHeader className="px-3 py-4">
         <div className="flex items-center gap-3">
           <span className="flex size-9 items-center justify-center rounded-md bg-white p-1.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
-            <Logo className="size-6 text-blue-500 dark:text-blue-500" />
+            <DatabaseLogo className="size-6 text-blue-500 dark:text-blue-500" />
           </span>
           <div>
             <span className="block text-sm font-semibold text-gray-900 dark:text-gray-50">
@@ -117,7 +121,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <Input
+            <SidebarInput
               type="search"
               placeholder="Search items..."
               className="[&>input]:sm:py-1.5"
@@ -142,16 +146,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <div className="px-3">
-          <Divider className="my-0 py-0" />
-        </div>
+        <SidebarSeparator />
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-4">
               {navigation2.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  {/* @CHRIS/SEV: discussion whether to componentize (-> state mgmt) */}
-                  <button
+                  <SidebarMenuButton
                     onClick={() => toggleMenu(item.name)}
                     className={cx(
                       "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-gray-900 transition hover:bg-gray-200/50 sm:text-sm dark:text-gray-400 hover:dark:bg-gray-900 hover:dark:text-gray-50",
@@ -174,19 +175,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       )}
                       aria-hidden="true"
                     />
-                  </button>
+                  </SidebarMenuButton>
                   {item.children && openMenus.includes(item.name) && (
                     <SidebarMenuSub>
                       <div className="absolute inset-y-0 left-4 w-px bg-gray-300 dark:bg-gray-800" />
                       {item.children.map((child) => (
-                        <SidebarMenuItem key={child.name}>
+                        <SidebarMenuSubItem key={child.name}>
                           <SidebarSubLink
                             href={child.href}
                             isActive={child.active}
                           >
                             {child.name}
                           </SidebarSubLink>
-                        </SidebarMenuItem>
+                        </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>
                   )}
@@ -197,7 +198,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="border-t border-gray-200 dark:border-gray-800" />
+        <SidebarSeparator />
         <UserProfile />
       </SidebarFooter>
     </Sidebar>

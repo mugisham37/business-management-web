@@ -14,7 +14,7 @@ import {
   DropdownMenuSubMenuContent,
   DropdownMenuSubMenuTrigger,
   DropdownMenuTrigger,
-} from "@/components/DropdownMenu"
+} from "@/components/ui/DropdownMenu"
 import { cx, focusRing } from "@/lib/utils"
 import {
   RiArrowRightUpLine,

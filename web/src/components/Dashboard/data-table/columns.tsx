@@ -2,18 +2,141 @@
 
 import { Badge, BadgeProps } from "@/components/ui/Badge"
 import { Checkbox } from "@/components/ui/Checkbox"
+import { ProgressCircle } from "@/components/ui/ProgressCircle"
+import { Agent } from "@/data/agents/schema"
 import { statuses } from "@/data/data"
 import { Usage } from "@/data/schema"
-import { formatters, isValidNumber } from "@/lib/utils"
+import { Ticket } from "@/data/support/schema"
+import { cx, formatters, isValidNumber } from "@/lib/utils"
+import {
+  RiAlarmWarningLine,
+  RiFileCheckLine,
+  RiFileListLine,
+  RiFolderReduceLine,
+  RiShieldCheckFill,
+} from "@remixicon/react"
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table"
+import { ButtonTicketGeneration } from "./ButtonTicketGeneration"
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import { ConditionFilter } from "./DataTableFilter"
 import { DataTableRowActions } from "./DataTableRowActions"
 
-const columnHelper = createColumnHelper<Usage>()
+// =============================================================================
+// SHARED COMPONENTS
+// =============================================================================
 
-export const columns = [
-  columnHelper.display({
+const StabilityIndicator = ({ number }: { number: number }) => {
+  if (!isValidNumber(number)) {
+    return (
+      <div className="flex gap-0.5" aria-label="Stability unknown">
+        {[0, 1, 2].map((index) => (
+          <div 
+            key={index}
+            className="h-3.5 w-1 rounded-sm bg-gray-300 dark:bg-gray-800" 
+          />
+        ))}
+      </div>
+    )
+  }
+
+  let category: "zero" | "bad" | "ok" | "good"
+  let ariaLabel: string
+
+  if (number === 0) {
+    category = "zero"
+    ariaLabel = "No stability data"
+  } else if (number < 9) {
+    category = "bad"
+    ariaLabel = "Poor stability"
+  } else if (number >= 9 && number <= 15) {
+    category = "ok"
+    ariaLabel = "Moderate stability"
+  } else {
+    category = "good"
+    ariaLabel = "Good stability"
+  }
+
+  const getBarClass = (index: number) => {
+    if (category === "zero") {
+      return "bg-gray-300 dark:bg-gray-800"
+    } else if (category === "good") {
+      return "bg-emerald-500 dark:bg-emerald-400"
+    } else if (category === "ok" && index < 2) {
+      return "bg-yellow-500 dark:bg-yellow-400"
+    } else if (category === "bad" && index < 1) {
+      return "bg-red-500 dark:bg-red-400"
+    }
+    return "bg-gray-300 dark:bg-gray-800"
+  }
+
+  return (
+    <div className="flex gap-0.5" aria-label={ariaLabel}>
+      {[0, 1, 2].map((index) => (
+        <div 
+          key={index}
+          className={`h-3.5 w-1 rounded-sm transition-colors ${getBarClass(index)}`} 
+        />
+      ))}
+    </div>
+  )
+}
+
+const DurationCell = ({ minutes }: { minutes: string | null }) => {
+  if (minutes === null) return null
+  const mins = parseInt(minutes)
+  const hours = Math.floor(mins / 60)
+  const remainingMins = mins % 60
+
+  return (
+    <span className="ml-auto text-gray-600 dark:text-gray-300 tabular-nums">
+      {hours > 0 ? `${hours}h ` : ""}
+      {remainingMins}m
+    </span>
+  )
+}
+
+const PriorityBadge = ({ priority }: { priority: string }) => (
+  <Badge
+    variant="neutral"
+    size="sm"
+    className="gap-1.5 font-normal capitalize text-gray-700 dark:text-gray-300"
+  >
+    <span
+      className={cx(
+        "size-2 shrink-0 rounded-sm transition-colors",
+        "bg-gray-500 dark:bg-gray-500",
+        {
+          "bg-emerald-600 dark:bg-emerald-400": priority === "low",
+          "bg-gray-500 dark:bg-gray-500": priority === "medium",
+          "bg-orange-500 dark:bg-orange-500": priority === "high",
+          "bg-red-500 dark:bg-red-500": priority === "emergency",
+        },
+      )}
+      aria-hidden="true"
+    />
+    {priority}
+  </Badge>
+)
+
+// =============================================================================
+// ICON MAPPINGS
+// =============================================================================
+
+const typeIconMapping: Record<string, React.ElementType> = {
+  "fnol-contact": RiFolderReduceLine,
+  "policy-contact": RiFileListLine,
+  "claims-contact": RiFileCheckLine,
+  "emergency-contact": RiAlarmWarningLine,
+}
+
+// =============================================================================
+// USAGE COLUMNS
+// =============================================================================
+
+const usageColumnHelper = createColumnHelper<Usage>()
+
+export const usageColumns = [
+  usageColumnHelper.display({
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -45,7 +168,7 @@ export const columns = [
       displayName: "Select",
     },
   }),
-  columnHelper.accessor("owner", {
+  usageColumnHelper.accessor("owner", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Owner" />
     ),
@@ -64,7 +187,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("status", {
+  usageColumnHelper.accessor("status", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
@@ -80,7 +203,7 @@ export const columns = [
 
       if (!status) {
         return (
-          <Badge variant="neutral" size="sm">
+          <Badge variant="neutral" size="sm" aria-label="Status: Unknown">
             Unknown
           </Badge>
         )
@@ -97,7 +220,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("region", {
+  usageColumnHelper.accessor("region", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Region" />
     ),
@@ -116,74 +239,17 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("stability", {
+  usageColumnHelper.accessor("stability", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Stability" />
     ),
-    enableSorting: false,
+    enableSorting: true,
     meta: {
       className: "text-left",
       displayName: "Stability",
     },
     cell: ({ getValue }) => {
       const value = getValue()
-
-      function StabilityIndicator({ number }: { number: number }) {
-        if (!isValidNumber(number)) {
-          return (
-            <div className="flex gap-0.5" aria-label="Stability unknown">
-              {[0, 1, 2].map((index) => (
-                <div 
-                  key={index}
-                  className="h-3.5 w-1 rounded-sm bg-gray-300 dark:bg-gray-800" 
-                />
-              ))}
-            </div>
-          )
-        }
-
-        let category: "zero" | "bad" | "ok" | "good"
-        let ariaLabel: string
-
-        if (number === 0) {
-          category = "zero"
-          ariaLabel = "No stability data"
-        } else if (number < 9) {
-          category = "bad"
-          ariaLabel = "Poor stability"
-        } else if (number >= 9 && number <= 15) {
-          category = "ok"
-          ariaLabel = "Moderate stability"
-        } else {
-          category = "good"
-          ariaLabel = "Good stability"
-        }
-
-        const getBarClass = (index: number) => {
-          if (category === "zero") {
-            return "bg-gray-300 dark:bg-gray-800"
-          } else if (category === "good") {
-            return "bg-emerald-500 dark:bg-emerald-400"
-          } else if (category === "ok" && index < 2) {
-            return "bg-yellow-500 dark:bg-yellow-400"
-          } else if (category === "bad" && index < 1) {
-            return "bg-red-500 dark:bg-red-400"
-          }
-          return "bg-gray-300 dark:bg-gray-800"
-        }
-
-        return (
-          <div className="flex gap-0.5" aria-label={ariaLabel}>
-            {[0, 1, 2].map((index) => (
-              <div 
-                key={index}
-                className={`h-3.5 w-1 rounded-sm transition-colors ${getBarClass(index)}`} 
-              />
-            ))}
-          </div>
-        )
-      }
-
       return (
         <div className="flex items-center gap-2">
           <span className="w-6 text-sm font-medium tabular-nums">
@@ -194,7 +260,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("costs", {
+  usageColumnHelper.accessor("costs", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Costs" />
     ),
@@ -249,11 +315,11 @@ export const columns = [
       }
     },
   }),
-  columnHelper.accessor("lastEdited", {
+  usageColumnHelper.accessor("lastEdited", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last edited" />
     ),
-    enableSorting: false,
+    enableSorting: true,
     meta: {
       className: "tabular-nums",
       displayName: "Last edited",
@@ -267,7 +333,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.display({
+  usageColumnHelper.display({
     id: "edit",
     header: "Edit",
     enableSorting: false,
@@ -279,21 +345,15 @@ export const columns = [
     cell: ({ row }) => <DataTableRowActions row={row} />,
   }),
 ] as ColumnDef<Usage>[]
-"use client"
 
-import { Badge } from "@/components/Badge"
-import { ProgressCircle } from "@/components/ProgressCircle"
-import { Agent } from "@/data/agents/schema"
-import { cx } from "@/lib/utils"
-import { RiShieldCheckFill } from "@remixicon/react"
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table"
-import { ButtonTicketGeneration } from "./ButtonTicketGeneration"
-import { DataTableColumnHeader } from "./DataTableColumnHeader"
+// =============================================================================
+// AGENT COLUMNS
+// =============================================================================
 
-const columnHelper = createColumnHelper<Agent>()
+const agentColumnHelper = createColumnHelper<Agent>()
 
-export const columns = [
-  columnHelper.accessor("registered", {
+export const agentColumns = [
+  agentColumnHelper.accessor("registered", {
     enableColumnFilter: true,
     enableSorting: true,
     enableHiding: true,
@@ -302,11 +362,12 @@ export const columns = [
       className: "hidden",
     },
   }),
-  columnHelper.accessor("full_name", {
+  agentColumnHelper.accessor("full_name", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Agent" />
     ),
     enableSorting: true,
+    enableHiding: false,
     meta: {
       className: "text-left",
       displayName: "Agent",
@@ -324,18 +385,19 @@ export const columns = [
             </span>
             <RiShieldCheckFill
               className={cx(
-                "size-3 shrink-0",
+                "size-3 shrink-0 transition-colors",
                 row.original.registered
                   ? "text-emerald-600 dark:text-emerald-400"
                   : "text-gray-400 dark:text-gray-600",
               )}
+              aria-label={row.original.registered ? "Registered" : "Not registered"}
             />
           </div>
         </div>
       )
     },
   }),
-  columnHelper.accessor("number", {
+  agentColumnHelper.accessor("number", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Contact Information" />
     ),
@@ -347,7 +409,7 @@ export const columns = [
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span className="text-gray-900 dark:text-gray-50">
+          <span className="text-gray-900 dark:text-gray-50 tabular-nums">
             {row.original.number.replace(
               /(\+41)(\d{2})(\d{3})(\d{2})(\d{2})/,
               "$1 $2 $3 $4 $5",
@@ -360,7 +422,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("end_date", {
+  agentColumnHelper.accessor("end_date", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Contract Dates" />
     ),
@@ -383,7 +445,7 @@ export const columns = [
                 })}
               </>
             ) : (
-              <Badge className="px-1.5 py-0.5" variant="success">
+              <Badge size="sm" variant="success" aria-label="Contract status: Active">
                 Active
               </Badge>
             )}
@@ -400,7 +462,7 @@ export const columns = [
       )
     },
   }),
-  columnHelper.accessor("account", {
+  agentColumnHelper.accessor("account", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Account" />
     ),
@@ -423,8 +485,7 @@ export const columns = [
       )
     },
   }),
-
-  columnHelper.accessor("minutes_called", {
+  agentColumnHelper.accessor("minutes_called", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Capacity (mins)" />
     ),
@@ -443,7 +504,7 @@ export const columns = [
 
       const capacity = calculatePercentage()
 
-      const getColorByCapacity = (value: number) => {
+      const getColorByCapacity = (value: number): "default" | "warning" | "error" => {
         const fixedValue = parseFloat(value.toFixed(0))
         if (fixedValue >= 85) return "error"
         if (fixedValue > 60) return "warning"
@@ -458,9 +519,10 @@ export const columns = [
               radius={14}
               strokeWidth={3}
               variant={getColorByCapacity(capacity)}
-              aria-hidden={true}
+              showAnimation={true}
+              aria-label={`Capacity: ${capacity.toFixed(0)}%`}
             >
-              <span className="text-[11px] font-semibold">
+              <span className="text-[11px] font-semibold tabular-nums">
                 {capacity.toFixed(0)}
               </span>
             </ProgressCircle>
@@ -468,19 +530,19 @@ export const columns = [
           <div className="flex flex-col gap-0">
             <span className="text-gray-900 dark:text-gray-50">
               <span className="text-gray-500 dark:text-gray-500">Called </span>
-              <span className="font-medium">
-                {new Intl.NumberFormat().format(minutes_called)}
+              <span className="font-medium tabular-nums">
+                {formatters.unit({ number: minutes_called, maxFractionDigits: 0 })}
               </span>
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-500">
-              Booked {new Intl.NumberFormat().format(minutes_booked)}
+            <span className="text-xs text-gray-500 dark:text-gray-500 tabular-nums">
+              Booked {formatters.unit({ number: minutes_booked, maxFractionDigits: 0 })}
             </span>
           </div>
         </div>
       )
     },
   }),
-  columnHelper.accessor("ticket_generation", {
+  agentColumnHelper.accessor("ticket_generation", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ticket Generation" />
     ),
@@ -491,38 +553,27 @@ export const columns = [
     },
     cell: ({ row }) => {
       return (
-        <ButtonTicketGeneration initalState={row.original.ticket_generation} />
+        <ButtonTicketGeneration initialState={row.original.ticket_generation} />
       )
     },
   }),
 ] as ColumnDef<Agent>[]
-import { Badge } from "@/components/Badge"
-import { Ticket } from "@/data/support/schema"
-import { cx } from "@/lib/utils"
-import {
-  RiAlarmWarningLine,
-  RiFileCheckLine,
-  RiFileListLine,
-  RiFolderReduceLine,
-} from "@remixicon/react"
-import { ColumnDef } from "@tanstack/react-table"
 
-const typeIconMapping: Record<string, React.ElementType> = {
-  "fnol-contact": RiFolderReduceLine,
-  "policy-contact": RiFileListLine,
-  "claims-contact": RiFileCheckLine,
-  "emergency-contact": RiAlarmWarningLine,
-}
+// =============================================================================
+// TICKET COLUMNS
+// =============================================================================
 
-export const columns = [
+export const ticketColumns = [
   {
     header: "Created at",
     accessorKey: "created",
+    enableSorting: true,
     meta: {
       className: "text-left",
+      displayName: "Created at",
     },
-    cell: ({ row }) => (
-      <>
+    cell: ({ row }: { row: { original: Ticket } }) => (
+      <span className="tabular-nums text-gray-900 dark:text-gray-50">
         {new Date(row.original.created).toLocaleDateString("en-GB", {
           day: "2-digit",
           month: "2-digit",
@@ -530,37 +581,57 @@ export const columns = [
           hour: "2-digit",
           minute: "2-digit",
         })}
-      </>
+      </span>
     ),
   },
   {
     header: "Description",
     accessorKey: "description",
+    enableSorting: false,
     meta: {
       className: "text-left",
-      cell: "font-medium text-gray-900 dark:text-gray-50",
+      displayName: "Description",
     },
+    cell: ({ row }: { row: { original: Ticket } }) => (
+      <span className="font-medium text-gray-900 dark:text-gray-50">
+        {row.original.description}
+      </span>
+    ),
   },
   {
     header: "Policy Info",
     accessorKey: "policyNumber",
+    enableSorting: true,
     meta: {
       className: "text-left",
-      cell: "font-medium",
+      displayName: "Policy Info",
     },
+    cell: ({ row }: { row: { original: Ticket } }) => (
+      <span className="font-medium tabular-nums text-gray-900 dark:text-gray-50">
+        {row.original.policyNumber}
+      </span>
+    ),
   },
   {
     header: "Contact Type",
     accessorKey: "type",
+    enableSorting: true,
+    filterFn: "arrIncludesSome",
     meta: {
       className: "text-left",
+      displayName: "Contact Type",
     },
-    cell: ({ row }) => {
+    cell: ({ row }: { row: { original: Ticket } }) => {
       const Icon = typeIconMapping[row.original.type]
       return (
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="size-4 shrink-0" aria-hidden="true" />}
-          <span className="capitalize">
+          {Icon && (
+            <Icon 
+              className="size-4 shrink-0 text-gray-500 dark:text-gray-400" 
+              aria-hidden="true" 
+            />
+          )}
+          <span className="capitalize text-gray-900 dark:text-gray-50">
             {row.original.type.replace("-contact", "")}
           </span>
         </div>
@@ -570,66 +641,34 @@ export const columns = [
   {
     header: "Duration",
     accessorKey: "duration",
+    enableSorting: true,
     meta: {
       className: "text-right",
+      displayName: "Duration",
     },
-    cell: ({ row }) => {
-      const DurationCell = (props: { minutes: string | null }) => {
-        if (props.minutes === null) return null
-        const mins = parseInt(props.minutes)
-        const hours = Math.floor(mins / 60)
-        const remainingMins = mins % 60
-
-        return (
-          <span className="ml-auto text-gray-600 dark:text-gray-300">
-            {hours > 0 ? `${hours}h ` : ""}
-            {remainingMins}m
-          </span>
-        )
-      }
-      return (
-        <div className="flex items-center gap-2">
-          <DurationCell minutes={row.original.duration} />
-        </div>
-      )
-    },
+    cell: ({ row }: { row: { original: Ticket } }) => (
+      <div className="flex items-center justify-end gap-2">
+        <DurationCell minutes={row.original.duration} />
+      </div>
+    ),
   },
   {
     header: "Assessed Priority",
     accessorKey: "priority",
+    enableSorting: true,
+    filterFn: "arrIncludesSome",
     meta: {
       className: "text-left",
+      displayName: "Assessed Priority",
     },
-    cell: ({ row }) => (
-      <Badge
-        variant="neutral"
-        className="gap-1.5 font-normal capitalize text-gray-700 dark:text-gray-300"
-      >
-        <span
-          className={cx(
-            "size-2 shrink-0 rounded-sm",
-            "bg-gray-500 dark:bg-gray-500",
-            {
-              "bg-emerald-600 dark:bg-emerald-400":
-                row.original.priority === "low",
-            },
-            {
-              "bg-gray-500 dark:bg-gray-500":
-                row.original.priority === "medium",
-            },
-            {
-              "bg-orange-500 dark:bg-orange-500":
-                row.original.priority === "high",
-            },
-            {
-              "bg-red-500 dark:bg-red-500":
-                row.original.priority === "emergency",
-            },
-          )}
-          aria-hidden="true"
-        />
-        {row.original.priority}
-      </Badge>
+    cell: ({ row }: { row: { original: Ticket } }) => (
+      <PriorityBadge priority={row.original.priority} />
     ),
   },
 ] as ColumnDef<Ticket>[]
+
+// =============================================================================
+// LEGACY EXPORTS (Backward Compatibility)
+// =============================================================================
+
+export const columns = usageColumns

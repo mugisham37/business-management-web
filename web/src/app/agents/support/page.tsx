@@ -1,14 +1,14 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { CategoryBar } from "@/components/CategoryBar"
-import { Divider } from "@/components/Divider"
-import { LineChartSupport } from "@/components/LineChartSupport"
-import { ProgressCircle } from "@/components/ProgressCircle"
-import { TicketDrawer } from "@/components/ui/TicketDrawer"
-import { DataTable } from "@/components/ui/data-table-support/DataTable"
-import { columns } from "@/components/ui/data-table-support/columns"
+import { Button } from "@/components/ui/Button"
+import { Card } from "@/components/ui/Card"
+import { CategoryBar } from "@/components/ui/CategoryBar"
+import { Divider } from "@/components/ui/Divider"
+import { LineChartSupport } from "@/components/ui/LineChartSupport"
+import { ProgressCircle } from "@/components/ui/ProgressCircle"
+import { TicketDrawer } from "@/components/Agents/TicketDrawer"
+import { DataTable } from "@/components/Dashboard/data-table/DataTable"
+import { ticketColumns } from "@/components/Dashboard/data-table/columns"
 import { tickets } from "@/data/support/tickets"
 import { volume } from "@/data/support/volume"
 import { RiAddLine } from "@remixicon/react"
@@ -177,7 +177,7 @@ export default function SupportDashboard() {
           </div>
         </Card>
       </dl>
-      <DataTable data={tickets} columns={columns} />
+      <DataTable data={tickets} columns={ticketColumns} />
     </main>
   )
 }

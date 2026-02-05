@@ -1,11 +1,11 @@
 "use client"
-import { Button } from "@/components/Button"
-import { CheckboxExclude } from "@/components/Checkbox"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { ProgressCircle } from "@/components/ProgressCircle"
-import { Slider } from "@/components/Slider"
+import { Button } from "@/components/ui/Button"
+import { Checkbox } from "@/components/ui/Checkbox"
+import { Divider } from "@/components/ui/Divider"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
+import { ProgressCircle } from "@/components/ui/ProgressCircle"
+import { Slider } from "@/components/ui/Slider"
 import { departments } from "@/data/workflow/schema"
 import { workflowStats } from "@/data/workflow/workflow-data"
 import { valueFormatter } from "@/lib/formatters"
@@ -195,7 +195,7 @@ export default function Workflow() {
           <div className="mt-2 flex items-center gap-4">
             <Slider
               value={[scenarioQuota]}
-              onValueChange={([value]) => setScenarioQuota(value)}
+              onValueChange={([value]: number[]) => setScenarioQuota(value)}
               min={0}
               max={100}
               step={5}
@@ -242,7 +242,7 @@ export default function Workflow() {
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {data[0].department_stats.map((dept) => (
               <div key={dept.department} className="flex items-center gap-2.5">
-                <CheckboxExclude
+                <Checkbox
                   id={dept.department}
                   checked={excludedDepartments.has(dept.department)}
                   onCheckedChange={() =>

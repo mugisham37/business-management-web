@@ -43,6 +43,9 @@ interface DataTableFilterProps<TData, TValue> {
   }[]
   type?: FilterType
   formatter?: (value: any) => string
+  disabled?: boolean
+  hasError?: boolean
+  isLoading?: boolean
 }
 
 const ColumnFiltersLabel = ({
@@ -92,6 +95,9 @@ export function DataTableFilter<TData, TValue>({
   options,
   type = "select",
   formatter = (value) => value.toString(),
+  disabled = false,
+  hasError = false,
+  isLoading = false,
 }: DataTableFilterProps<TData, TValue>) {
   const columnFilters = column?.getFilterValue() as FilterValues
 
@@ -137,13 +143,23 @@ export function DataTableFilter<TData, TValue>({
             onValueChange={(value) => {
               setSelectedValues(value)
             }}
+            disabled={disabled}
           >
-            <SelectTrigger className="mt-2 sm:py-1">
+            <SelectTrigger 
+              className="mt-2 sm:py-1" 
+              hasError={hasError}
+              variant="tremor"
+              disabled={disabled}
+            >
               <SelectValue placeholder="Select" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent variant="tremor">
               {options?.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
+                <SelectItem 
+                  key={item.value} 
+                  value={item.value}
+                  variant="tremor"
+                >
                   {item.label}
                 </SelectItem>
               ))}
@@ -174,10 +190,13 @@ export function DataTableFilter<TData, TValue>({
                         }
                       })
                     }}
+                    disabled={disabled}
+                    variant="tremor"
                   />
                   <Label
                     htmlFor={option.value}
                     className="text-base sm:text-sm"
+                    disabled={disabled}
                   >
                     {option.label}
                   </Label>
@@ -204,13 +223,23 @@ export function DataTableFilter<TData, TValue>({
                   }
                 })
               }}
+              disabled={disabled}
             >
-              <SelectTrigger className="mt-2 sm:py-1">
+              <SelectTrigger 
+                className="mt-2 sm:py-1"
+                hasError={hasError}
+                variant="tremor"
+                disabled={disabled}
+              >
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent variant="tremor">
                 {options?.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
+                  <SelectItem 
+                    key={item.value} 
+                    value={item.value}
+                    variant="tremor"
+                  >
                     {item.label}
                   </SelectItem>
                 ))}
@@ -223,10 +252,11 @@ export function DataTableFilter<TData, TValue>({
                 aria-hidden="true"
               />
               <Input
-                disabled={!(selectedValues as ConditionFilter)?.condition}
+                disabled={disabled || !(selectedValues as ConditionFilter)?.condition}
                 type="number"
                 placeholder="$0"
                 className="sm:[&>input]:py-1"
+                inputClassName="sm:py-1"
                 value={(selectedValues as ConditionFilter)?.value?.[0]}
                 onChange={(e) => {
                   setSelectedValues((prev) => {
@@ -239,16 +269,20 @@ export function DataTableFilter<TData, TValue>({
                     }
                   })
                 }}
+                hasError={hasError}
+                variant="tremor"
+                enableStepper={false}
               />
               {(selectedValues as ConditionFilter)?.condition ===
                 "is-between" && (
                 <>
                   <span className="text-xs font-medium text-gray-500">and</span>
                   <Input
-                    disabled={!(selectedValues as ConditionFilter)?.condition}
+                    disabled={disabled || !(selectedValues as ConditionFilter)?.condition}
                     type="number"
                     placeholder="$0"
                     className="sm:[&>input]:py-1"
+                    inputClassName="sm:py-1"
                     value={(selectedValues as ConditionFilter)?.value?.[1]}
                     onChange={(e) => {
                       setSelectedValues((prev) => {
@@ -261,6 +295,9 @@ export function DataTableFilter<TData, TValue>({
                         }
                       })
                     }}
+                    hasError={hasError}
+                    variant="tremor"
+                    enableStepper={false}
                   />
                 </>
               )}
@@ -289,13 +326,17 @@ export function DataTableFilter<TData, TValue>({
                 (Array.isArray(selectedValues) && selectedValues.length > 0))
               ? ""
               : "border-dashed",
+            disabled && "opacity-50 cursor-not-allowed",
+            hasError && "border-red-500 dark:border-red-400",
             focusRing,
           )}
+          disabled={disabled}
+          aria-label={`Filter by ${title}`}
         >
           <span
             aria-hidden="true"
             onClick={(e) => {
-              if (selectedValues) {
+              if (selectedValues && !disabled) {
                 e.stopPropagation()
                 column?.setFilterValue("")
                 setSelectedValues("")
@@ -305,7 +346,8 @@ export function DataTableFilter<TData, TValue>({
             <RiAddLine
               className={cx(
                 "-ml-px size-5 shrink-0 transition sm:size-4",
-                selectedValues && "rotate-45 hover:text-red-500",
+                selectedValues && !disabled && "rotate-45 hover:text-red-500",
+                disabled && "opacity-50",
               )}
               aria-hidden="true"
             />
@@ -336,6 +378,9 @@ export function DataTableFilter<TData, TValue>({
         align="start"
         sideOffset={7}
         className="min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))] sm:min-w-56 sm:max-w-56"
+        variant="tremor"
+        collisionPadding={10}
+        avoidCollisions={true}
         onInteractOutside={() => {
           if (
             !columnFilters ||
@@ -358,13 +403,24 @@ export function DataTableFilter<TData, TValue>({
         >
           <div className="space-y-2">
             <div>
-              <Label className="text-base font-medium sm:text-sm">
+              <Label 
+                className="text-base font-medium sm:text-sm"
+                disabled={disabled}
+              >
                 Filter by {title}
               </Label>
               {getDisplayedFilter()}
             </div>
             <PopoverClose className="w-full" asChild>
-              <Button type="submit" className="w-full sm:py-1">
+              <Button 
+                type="submit" 
+                className="w-full sm:py-1"
+                disabled={disabled}
+                isLoading={isLoading}
+                loadingText="Applying..."
+                variant="primary"
+                size="sm"
+              >
                 Apply
               </Button>
             </PopoverClose>
@@ -373,6 +429,8 @@ export function DataTableFilter<TData, TValue>({
                 variant="secondary"
                 className="w-full sm:py-1"
                 type="button"
+                size="sm"
+                disabled={disabled}
                 onClick={() => {
                   column?.setFilterValue("")
                   setSelectedValues(
