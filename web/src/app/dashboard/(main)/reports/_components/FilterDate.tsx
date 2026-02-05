@@ -1,11 +1,11 @@
-import { Label } from "@/components/Label"
+import { Label } from "@/components/ui/Label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import { useQueryState } from "nuqs"
 import { DEFAULT_RANGE, RANGE_DAYS, RANGE_LABELS, RangeKey } from "./dateRanges"
 

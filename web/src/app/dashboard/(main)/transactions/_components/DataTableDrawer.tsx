@@ -1,6 +1,6 @@
 "use client"
-import { DataTableDrawerFeed } from "@/app/(dashboard)/transactions/_components/DataTableDrawerFeed"
-import { Button } from "@/components/Button"
+import { DataTableDrawerFeed } from "./DataTableDrawerFeed"
+import { Button } from "@/components/ui/Button"
 import {
   Drawer,
   DrawerBody,
@@ -9,17 +9,17 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/Drawer"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+} from "@/components/ui/Drawer"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs"
+} from "@/components/ui/Select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs"
 import { Transaction, expense_statuses } from "@/data/schema"
 import { Download, File, Trash2 } from "lucide-react"
 import React from "react"
@@ -31,7 +31,7 @@ interface DataTableDrawerProps {
   datas: Transaction | undefined
 }
 
-import { Badge, BadgeProps } from "@/components/Badge"
+import { Badge, BadgeProps } from "@/components/ui/Badge"
 import { categories } from "@/data/schema"
 import { formatters } from "@/lib/utils"
 import { format } from "date-fns"

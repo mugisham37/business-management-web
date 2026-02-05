@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/Table"
 import { cx } from "@/lib/utils"
 import * as React from "react"
 
@@ -53,6 +53,9 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    filterFns: {} as any,
+    sortingFns: {} as any,
+    aggregationFns: {} as any,
   })
 
   return (

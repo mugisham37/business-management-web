@@ -19,9 +19,10 @@ export const siteConfig = {
       audits: "/business/quotes/audits",
     },
     settings: {
-      general: "/settings/general",
-      billing: "/settings/billing",
-      users: "/settings/users",
+      general: "/dashboard/settings/general",
+      audit: "/dashboard/settings/audit",
+      billing: "/dashboard/settings/billing",
+      users: "/dashboard/settings/users",
     },
   },
 }

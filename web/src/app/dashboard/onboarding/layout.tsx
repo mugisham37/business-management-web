@@ -1,9 +1,10 @@
 "use client"
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/Button"
 import { Logo } from "@/components/ui/Logo"
-import useScroll from "@/lib/useScroll"
+import { useScrollPosition } from "@/hooks/useScroll"
 import { cx } from "@/lib/utils"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import React from "react"
 
 interface Step {
@@ -12,9 +13,9 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { name: "Product selection", href: "/onboarding/product" },
-  { name: "Employees", href: "/onboarding/employees" },
-  { name: "Infrastructure", href: "/onboarding/infrastructure" },
+  { name: "Product selection", href: "/dashboard/onboarding/products" },
+  { name: "Infrastructure", href: "/dashboard/onboarding/infrastructure" },
+  { name: "Employees", href: "/dashboard/onboarding/employees" },
 ]
 
 interface StepProgressProps {
@@ -34,7 +35,7 @@ const StepProgress = ({ steps }: StepProgressProps) => {
           <li
             key={step.name}
             className={cx(
-              "h-1 w-12 rounded-full",
+              "h-1 w-12 rounded-full transition-colors duration-200",
               index <= currentStepIndex
                 ? "bg-blue-500"
                 : "bg-gray-300 dark:bg-gray-700",
@@ -51,6 +52,11 @@ const StepProgress = ({ steps }: StepProgressProps) => {
           </li>
         ))}
       </ol>
+      <div className="mt-2 text-center">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          Step {Math.max(0, currentStepIndex) + 1} of {steps.length}
+        </span>
+      </div>
     </div>
   )
 }
@@ -60,14 +66,15 @@ const Layout = ({
 }: Readonly<{
   children: React.ReactNode
 }>) => {
-  const scrolled = useScroll(15)
+  const { y: scrollY } = useScrollPosition()
+  const scrolled = scrollY > 15
 
   return (
     <>
       <header
         className={cx(
-          "fixed inset-x-0 top-0 isolate z-50 flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 transition-all md:grid md:grid-cols-[200px_auto_200px] md:px-6 dark:border-gray-900 dark:bg-gray-925",
-          scrolled ? "h-12" : "h-20",
+          "fixed inset-x-0 top-0 isolate z-50 flex items-center justify-between border-b border-gray-200 bg-gray-50/80 backdrop-blur-sm px-4 transition-all md:grid md:grid-cols-[200px_auto_200px] md:px-6 dark:border-gray-900 dark:bg-gray-925/80",
+          scrolled ? "h-12 shadow-sm" : "h-20",
         )}
       >
         <div
@@ -83,11 +90,16 @@ const Layout = ({
           </span>
         </div>
         <StepProgress steps={steps} />
-        <Button variant="ghost" className="ml-auto w-fit" asChild>
-          <a href="/reports">Skip to dashboard</a>
+        <Button 
+          variant="ghost" 
+          className="ml-auto w-fit" 
+          size="sm"
+          asChild
+        >
+          <Link href="/dashboard/overview">Skip to dashboard</Link>
         </Button>
       </header>
-      <main id="main-content" className="mx-auto mb-20 mt-28 max-w-lg">
+      <main id="main-content" className="mx-auto mb-20 mt-28 max-w-lg px-4">
         {children}
       </main>
     </>

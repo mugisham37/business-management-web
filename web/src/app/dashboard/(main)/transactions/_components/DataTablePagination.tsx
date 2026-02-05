@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/Button"
 import { cx, formatters } from "@/lib/utils"
 
 import {
@@ -69,7 +69,7 @@ export function DataTablePagination<TData>({
           </span>{" "}
           of{" "}
           <span className="font-medium text-gray-900 dark:text-gray-50">
-            {formatters.unit(totalRows)}
+            {formatters.unit({ number: totalRows })}
           </span>
         </p>
         <div className="flex items-center gap-x-1.5">

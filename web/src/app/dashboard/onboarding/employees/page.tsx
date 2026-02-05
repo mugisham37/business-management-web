@@ -1,10 +1,10 @@
 "use client"
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/Button"
 import {
   RadioCardGroup,
   RadioCardIndicator,
   RadioCardItem,
-} from "@/components/RadioCardGroup"
+} from "@/components/ui/RadioGroup"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"

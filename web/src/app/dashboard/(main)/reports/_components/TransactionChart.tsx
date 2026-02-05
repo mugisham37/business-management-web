@@ -1,6 +1,6 @@
 "use client"
-import { BarChartVariant } from "@/components/BarChartVariant"
-import { Tooltip } from "@/components/Tooltip"
+import { BarChartVariant } from "@/components/ui/BarChartVariant"
+import { Tooltip } from "@/components/ui/Tooltip"
 import { Transaction } from "@/data/schema"
 import { transactions } from "@/data/transactions"
 import { AvailableChartColorsKeys } from "@/lib/chartUtils"
@@ -200,7 +200,7 @@ export function TransactionChart({
   const chartData = useMemo(() => {
     const currentDate = new Date()
     const filterDate = new Date(currentDate)
-    const daysToSubtract = RANGE_DAYS[range] || RANGE_DAYS[DEFAULT_RANGE]
+    const daysToSubtract = RANGE_DAYS[range as keyof typeof RANGE_DAYS] || RANGE_DAYS[DEFAULT_RANGE]
     filterDate.setDate(currentDate.getDate() - daysToSubtract)
 
     const filters: Filters = {

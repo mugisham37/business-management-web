@@ -1,6 +1,6 @@
-import { Card } from "@/components/Card"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
+import { Card } from "@/components/ui/Card"
+import { Divider } from "@/components/ui/Divider"
+import { Input } from "@/components/ui/Input"
 import { cx } from "@/lib/utils"
 import {
   ArrowDownToDot,
@@ -19,16 +19,16 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/Accordion"
-import { Button } from "@/components/Button"
-import { Label } from "@/components/Label"
+} from "@/components/ui/Accordion"
+import { Button } from "@/components/ui/Button"
+import { Label } from "@/components/ui/Label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 
 const users = [
   {

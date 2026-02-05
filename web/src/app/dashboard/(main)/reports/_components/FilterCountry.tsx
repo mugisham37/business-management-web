@@ -1,8 +1,8 @@
-import { Button } from "@/components/Button"
-import { Checkbox } from "@/components/Checkbox"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
+import { Button } from "@/components/ui/Button"
+import { Checkbox } from "@/components/ui/Checkbox"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover"
 import { locations } from "@/data/schema"
 import { cx } from "@/lib/utils"
 import { useQueryState } from "nuqs"
@@ -140,7 +140,7 @@ function FilterCountry() {
 
   const handleSelectionChange = (continent: string, countries: string[]) => {
     const otherSelectedCountries = selectedCountries.filter(
-      (country) =>
+      (country: string) =>
         !locations
           .find((loc) => loc.name === continent)
           ?.countries.includes(country),
@@ -179,7 +179,7 @@ function FilterCountry() {
             <Input
               placeholder="Search for continent or country"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               className="sm:[&>input]:py-1.5"
             />
             <div className="flex-grow overflow-y-auto">

@@ -2,8 +2,7 @@
 import React from "react"
 
 import { cx } from "@/lib/utils"
-
-import { Sidebar } from "@/components/ui/navigation/Sidebar"
+import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
 
 export default function Layout({
   children,
@@ -27,19 +26,6 @@ export default function Layout({
           {children}
         </div>
       </main>
-    </div>
-  )
-}
-export default function Layout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <div className="relative">
-      <div className="p-4 sm:px-6 sm:pb-10 sm:pt-10 lg:px-10 lg:pt-7">
-        {children}
-      </div>
     </div>
   )
 }

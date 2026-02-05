@@ -1,11 +1,11 @@
-import { Label } from "@/components/Label"
+import { Label } from "@/components/ui/Label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/Select"
 import { expense_statuses } from "@/data/schema"
 import { cx } from "@/lib/utils"
 import { useQueryState } from "nuqs"

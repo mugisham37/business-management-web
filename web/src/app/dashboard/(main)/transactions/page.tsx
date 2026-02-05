@@ -1,7 +1,7 @@
 "use client"
-import { getColumns } from "@/app/(dashboard)/transactions/_components/Columns"
-import { DataTable } from "@/app/(dashboard)/transactions/_components/DataTable"
-import { DataTableDrawer } from "@/app/(dashboard)/transactions/_components/DataTableDrawer"
+import { getColumns } from "@/app/dashboard/(main)/transactions/_components/Columns"
+import { DataTable } from "@/app/dashboard/(main)/transactions/_components/DataTable"
+import { DataTableDrawer } from "@/app/dashboard/(main)/transactions/_components/DataTableDrawer"
 import { Transaction } from "@/data/schema"
 import { transactions } from "@/data/transactions"
 import { Row } from "@tanstack/react-table"
@@ -13,7 +13,7 @@ export default function Example() {
   const datas = row?.original
 
   const columns = getColumns({
-    onEditClick: (row) => {
+    onEditClick: (row: Row<Transaction>) => {
       setRow(row)
       setIsOpen(true)
     },
@@ -28,7 +28,7 @@ export default function Example() {
         <DataTable
           data={transactions}
           columns={columns}
-          onRowClick={(row) => {
+          onRowClick={(row: Row<Transaction>) => {
             setRow(row)
             setIsOpen(true)
           }}

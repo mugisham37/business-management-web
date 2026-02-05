@@ -1,18 +1,18 @@
 "use client"
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { RadioCardGroup, RadioCardItem } from "@/components/RadioCardGroup"
-import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup"
+import { Button } from "@/components/ui/Button"
+import { Card } from "@/components/ui/Card"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
+import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Slider } from "@/components/Slider"
+} from "@/components/ui/Select"
+import { Slider } from "@/components/ui/Slider"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { SVGProps } from "react"

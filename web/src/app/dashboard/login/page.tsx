@@ -1,27 +1,51 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+import { Button } from "@/components/ui/Button"
+import { Divider } from "@/components/ui/Divider"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 import { Logo } from "@/components/ui/Logo"
-import { RiGithubFill, RiGoogleFill } from "@remixicon/react"
+import { Alert } from "@/components/ui/Alert"
+import { RiGithubFill, RiGoogleFill, RiAlertLine } from "@remixicon/react"
 import { useRouter } from "next/navigation"
 import React from "react"
 
 export default function Login() {
-
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [formData, setFormData] = React.useState({
+    email: "",
+    password: ""
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    if (error) setError(null)
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!formData.email || !formData.password) {
+      setError("Please fill in all fields")
+      return
+    }
+
     setLoading(true)
+    setError(null)
+    
     setTimeout(() => {
-      console.log("Form submitted")
-      router.push("/reports")
+      console.log("Form submitted", formData)
+      router.push("/dashboard/overview")
     }, 1200)
   }
 
   const router = useRouter()
+  
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6">
       <div className="flex w-full flex-col items-start sm:max-w-sm">
@@ -61,6 +85,17 @@ export default function Login() {
             </Button>
           </div>
           <Divider className="my-6">or</Divider>
+          
+          {error && (
+            <Alert className="mb-4" variant="destructive">
+              <RiAlertLine className="h-4 w-4" />
+              <div>
+                <h4 className="font-medium">Error</h4>
+                <p className="text-sm">{error}</p>
+              </div>
+            </Alert>
+          )}
+          
           <form
             onSubmit={handleSubmit}
             className="flex w-full flex-col gap-y-6"
@@ -76,6 +111,11 @@ export default function Login() {
                   name="email"
                   id="email-form-item"
                   placeholder="emily.ross@acme.ch"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  hasError={!!error}
+                  variant="tremor"
+                  required
                 />
               </div>
               <div className="flex flex-col space-y-2">
@@ -88,12 +128,20 @@ export default function Login() {
                   name="password"
                   id="password-form-item"
                   placeholder="Password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  hasError={!!error}
+                  variant="tremor"
+                  required
                 />
               </div>
             </div>
             <Button
               type="submit"
               isLoading={loading}
+              loadingText="Signing in..."
+              variant="primary"
+              disabled={!formData.email || !formData.password}
             >
               {loading ? "" : "Continue"}
             </Button>

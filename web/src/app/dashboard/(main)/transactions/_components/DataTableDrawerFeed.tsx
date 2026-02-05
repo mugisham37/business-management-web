@@ -1,5 +1,5 @@
-import { Label } from "@/components/Label"
-import { Textarea } from "@/components/Textarea"
+import { Label } from "@/components/ui/Label"
+import { Textarea } from "@/components/ui/TextArea"
 import { cx } from "@/lib/utils"
 import { CircleCheck } from "lucide-react"
 import Image from "next/image"

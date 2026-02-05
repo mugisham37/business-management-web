@@ -1,8 +1,8 @@
 "use client"
-import { CategoryBarCard } from "@/components/ui/overview/DashboardCategoryBarCard"
-import { ChartCard } from "@/components/ui/overview/DashboardChartCard"
-import { Filterbar } from "@/components/ui/overview/DashboardFilterbar"
-import { ProgressBarCard } from "@/components/ui/overview/DashboardProgressBarCard"
+import { CategoryBarCard } from "@/components/Dashboard/overview/DashboardCategoryBarCard"
+import { ChartCard } from "@/components/Dashboard/overview/DashboardChartCard"
+import { Filterbar } from "@/components/Dashboard/overview/DashboardFilterbar"
+import { ProgressBarCard } from "@/components/Dashboard/overview/DashboardProgressBarCard"
 import { overviews } from "@/data/overview-data"
 import { OverviewData } from "@/data/schema"
 import { cx } from "@/lib/utils"
@@ -147,7 +147,7 @@ export default function Overview() {
   const [selectedPeriod, setSelectedPeriod] =
     React.useState<PeriodValue>("last-year")
 
-  const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
+  const [selectedCategories, setSelectedCategories] = React.useState<(keyof OverviewData)[]>(
     categories.map((category) => category.title),
   )
 
@@ -206,9 +206,9 @@ export default function Overview() {
             maxDate={maxDate}
             minDate={new Date(2024, 0, 1)}
             selectedDates={selectedDates}
-            onDatesChange={(dates) => setSelectedDates(dates)}
+            onDatesChange={(dates: DateRange | undefined) => setSelectedDates(dates)}
             selectedPeriod={selectedPeriod}
-            onPeriodChange={(period) => setSelectedPeriod(period)}
+            onPeriodChange={(period: PeriodValue) => setSelectedPeriod(period)}
             categories={categories}
             setSelectedCategories={setSelectedCategories}
             selectedCategories={selectedCategories}
