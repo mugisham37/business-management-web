@@ -16,9 +16,11 @@ import {
   SidebarSeparator,
   SidebarSubLink,
 } from "@/components/ui/Sidebar"
+import { siteConfig } from "@/app/siteConfig"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
 import { BookText, House, PackageSearch } from "lucide-react"
+import { usePathname } from "next/navigation"
 import * as React from "react"
 import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import { UserProfile } from "./UserProfile"
@@ -26,17 +28,15 @@ import { UserProfile } from "./UserProfile"
 const navigation = [
   {
     name: "Home",
-    href: "#",
+    href: siteConfig.baseLinks.quotes.overview,
     icon: House,
     notifications: false,
-    active: false,
   },
   {
     name: "Inbox",
     href: "#",
     icon: PackageSearch,
     notifications: 2,
-    active: false,
   },
 ] as const
 
@@ -48,18 +48,15 @@ const navigation2 = [
     children: [
       {
         name: "Quotes",
-        href: "#",
-        active: true,
+        href: siteConfig.baseLinks.quotes.overview,
       },
       {
         name: "Orders",
         href: "#",
-        active: false,
       },
       {
         name: "Insights & Reports",
         href: "#",
-        active: false,
       },
     ],
   },
@@ -71,23 +68,21 @@ const navigation2 = [
       {
         name: "Items",
         href: "#",
-        active: false,
       },
       {
         name: "Variants",
         href: "#",
-        active: false,
       },
       {
         name: "Suppliers",
         href: "#",
-        active: false,
       },
     ],
   },
 ] as const
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
   const [openMenus, setOpenMenus] = React.useState<string[]>([
     navigation2[0].name,
     navigation2[1].name,
@@ -134,8 +129,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarLink
-                    href="#"
-                    isActive={item.active}
+                    href={item.href}
+                    isActive={pathname === item.href}
                     icon={item.icon}
                     notifications={item.notifications}
                   >
@@ -183,7 +178,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <SidebarMenuSubItem key={child.name}>
                           <SidebarSubLink
                             href={child.href}
-                            isActive={child.active}
+                            isActive={pathname === child.href || pathname.startsWith(child.href)}
                           >
                             {child.name}
                           </SidebarSubLink>

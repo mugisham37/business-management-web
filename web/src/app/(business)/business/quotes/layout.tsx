@@ -4,7 +4,7 @@ import { MetricsCards } from "@/components/Business/homepage/MetricsCards"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import React from "react"
-import { siteConfig } from "../../siteConfig"
+import { siteConfig } from "@/app/siteConfig"
 
 const navigation = [
   { name: "Overview", href: siteConfig.baseLinks.quotes.overview },

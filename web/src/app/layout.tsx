@@ -1,5 +1,3 @@
-import Footer from "@/components/Landing/Footer"
-import { Navigation } from "@/components/Landing/Navbar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
@@ -60,9 +58,7 @@ export default function RootLayout({
             defaultTheme="system"
             disableTransitionOnChange
           >
-            <Navigation />
             {children}
-            <Footer />
           </ThemeProvider>
         </NuqsAdapter>
       </body>
