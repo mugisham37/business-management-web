@@ -22,7 +22,7 @@ import { RiArrowDownSFill } from "@remixicon/react"
 import { BookText, House, PackageSearch } from "lucide-react"
 import { usePathname } from "next/navigation"
 import * as React from "react"
-import { DatabaseLogo } from "../../../../public/DatabaseLogo"
+import { DatabaseLogo } from "@/components/DatabaseLogo"
 import { UserProfile } from "./UserProfile"
 
 const navigation = [

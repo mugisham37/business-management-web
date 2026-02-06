@@ -4,7 +4,7 @@ import { TabNavigation, TabNavigationLink } from "@/components/ui/TabNavigation"
 import Link from "next/link"
 import { Notifications } from "./Notifications"
 import { usePathname } from "next/navigation"
-import { DatabaseLogo } from "../../../public/DatabaseLogo"
+import { DatabaseLogo } from "@/components/DatabaseLogo"
 import { DropdownUserProfile } from "./UserProfile"
 
 function Navigation() {

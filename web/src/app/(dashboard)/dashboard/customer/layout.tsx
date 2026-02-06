@@ -1,4 +1,4 @@
-import { Navigation } from "@/components/Agents/Navigation"
+import { Navigation } from "@/components/Dashboard/customer/Navigation"
 
 export default function RootLayout({
   children,

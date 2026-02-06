@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
@@ -42,6 +43,17 @@ export const metadata: Metadata = {
   },
 }
 
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+})
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} min-h-screen scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
+        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans min-h-screen scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
       >
         <NuqsAdapter>
           <ThemeProvider

@@ -7,12 +7,15 @@ import { Tooltip } from "@/components/ui/Tooltip"
 import { cx, focusRing } from "@/lib/utils"
 import {
   BarChartBig,
-  Compass,
+  Building2,
   ExternalLink,
+  FileText,
   PanelRightClose,
   PanelRightOpen,
+  Receipt,
   Settings2,
   Table2,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -41,7 +44,6 @@ interface SidebarProps {
   isCollapsed?: boolean
   toggleSidebar?: () => void
   navigation?: NavigationSection[]
-  shortcuts?: NavigationItem[]
   brandName?: string
   brandHref?: string
   isLoading?: boolean
@@ -59,42 +61,14 @@ const defaultNavigation: NavigationSection[] = [
     items: [
       { name: "Overview", href: siteConfig.baseLinks.overview, icon: BarChartBig },
       { name: "Details", href: siteConfig.baseLinks.details, icon: Table2 },
+      { name: "Transactions", href: siteConfig.baseLinks.transactions, icon: Receipt },
+      { name: "Reports", href: siteConfig.baseLinks.reports, icon: FileText },
+      { name: "Business Management", href: siteConfig.baseLinks.business, icon: Building2 },
+      { name: "Customer", href: siteConfig.baseLinks.customer, icon: Users },
       { name: "Settings", href: siteConfig.baseLinks.settings.general, icon: Settings2 },
     ],
   },
-  {
-    title: "Setup",
-    items: [
-      { name: "Onboarding", href: "/dashboard/onboarding/products", icon: Compass },
-    ],
-  },
-] as const
-
-const defaultShortcuts: NavigationItem[] = [
-  {
-    name: "Add new user",
-    href: "/dashboard/settings/users",
-    icon: ExternalLink,
-    isExternal: true,
-  },
-  {
-    name: "Workspace usage",
-    href: "/dashboard/settings/billing#billing-overview",
-    icon: ExternalLink,
-    isExternal: true,
-  },
-  {
-    name: "Cost spend control",
-    href: "/dashboard/settings/billing#cost-spend-control",
-    icon: ExternalLink,
-    isExternal: true,
-  },
-  {
-    name: "Overview – Rows written",
-    href: "/dashboard/overview#usage-overview",
-    icon: ExternalLink,
-    isExternal: true,
-  },
+  
 ] as const
 
 // =============================================================================
@@ -208,7 +182,6 @@ export function Sidebar({
   isCollapsed = false,
   toggleSidebar,
   navigation = defaultNavigation,
-  shortcuts = defaultShortcuts,
   brandName = "Acme Corp.",
   brandHref = "/",
   isLoading = false,
@@ -237,7 +210,7 @@ export function Sidebar({
       <nav
         className={cx(
           isCollapsed ? "lg:w-[60px]" : "lg:w-64",
-          "hidden overflow-x-hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col",
+          "hidden overflow-x-hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:flex-col",
           "transform-gpu transition-all duration-200 ease-in-out will-change-transform",
           "bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800",
           className,
@@ -321,32 +294,6 @@ export function Sidebar({
                 </ul>
               </div>
             ))}
-            
-            {/* Shortcuts Section */}
-            {shortcuts && shortcuts.length > 0 && (
-              <div>
-                <span
-                  aria-hidden={isCollapsed}
-                  className={cx(
-                    "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity duration-200 dark:text-gray-400",
-                    isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100",
-                  )}
-                >
-                  Shortcuts
-                </span>
-                <ul role="list" className="mt-1 space-y-1">
-                  {shortcuts.map((item) => (
-                    <li key={item.name}>
-                      <NavigationItemComponent
-                        item={item}
-                        isActive={isActive(item.href)}
-                        isCollapsed={isCollapsed}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </nav>
           
           {/* User Profile */}
@@ -375,7 +322,6 @@ export function Sidebar({
           <MobileSidebar 
             title={brandName}
             sections={navigation}
-            shortcuts={shortcuts}
           />
         </div>
       </div>
