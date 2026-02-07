@@ -8,77 +8,75 @@ import {
 import { Badge } from "../ui/Badge"
 import CodeExampleTabs from "./CodeExampleTabs"
 
-const code = `CREATE TABLE Customers (
-    customer_id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    gender CHAR(1),
-    rewards_member BOOLEAN
-);
+const code = `Employee Management
+• Track employee information and roles
+• Monitor department assignments
+• Manage hiring and onboarding processes
+• Set up role-based permissions
 
-CREATE TABLE Orders (
-    order_id SERIAL PRIMARY KEY,
-    sales_date DATE,
-    customer_id INT REFERENCES Customers(customer_id)
-);
+Expense Tracking
+• Submit and approve expense reports
+• Categorize business expenses
+• Track spending by department
+• Generate expense analytics
 
-CREATE TABLE Items (
-    item_id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    price DECIMAL(10, 2)
-);
+Project Management
+• Create and assign projects
+• Set budgets and deadlines
+• Monitor project progress
+• Track team collaboration
 
-CREATE TABLE Order_Items (
-    order_id INT REFERENCES Orders(order_id),
-    item_id INT REFERENCES Items(item_id),
-);`
+Time & Attendance
+• Log work hours and timesheets
+• Track project time allocation
+• Generate attendance reports
+• Calculate billable hours`
 
-const code2 = `async function fetchCustomerOrders() {
-    const result = await prisma.orders.findMany({
-        where: {
-            customer: {
-                name: 'Jack Beanstalk'
-            },
-            segmentation: {
-                type: 'young professional',
-                joinedYear: 2024,
-                region: 'us-west-01',
-            }
-        },
-        include: {
-            customer: true,
-            order_items: {
-                include: {
-                    item: true
-                }
-            }
-        }
-    });
-    return result;
-}`
+const code2 = `Financial Overview
+
+Revenue & Expenses
+Track all business income and expenses in real-time. 
+Monitor cash flow, profit margins, and financial health 
+with automated reporting and analytics.
+
+Approval Workflows
+Set up multi-level approval processes for expenses, 
+purchase orders, and budget requests. Ensure compliance 
+and maintain control over business spending.
+
+Team Collaboration
+Enable seamless communication between departments. 
+Share documents, assign tasks, and track progress 
+across all your business operations.
+
+Reporting & Analytics
+Generate comprehensive reports on expenses, revenue, 
+employee performance, and project metrics. Export data 
+for accounting and compliance purposes.`
 
 const features = [
   {
-    name: "Use Database with your stack",
+    name: "Integrate with your stack",
     description:
-      "We offer client and server libraries in everything from React and Ruby to iOS.",
+      "Connect seamlessly with your existing tools using our APIs and SDKs for all major platforms.",
     icon: RiStackLine,
   },
   {
-    name: "Try plug & play options",
+    name: "Ready-to-use workflows",
     description:
-      "Customize and deploy data infrastructure directly from the Database Dashboard.",
+      "Deploy automated approval workflows, expense tracking, and reporting directly from your dashboard.",
     icon: RiPlugLine,
   },
   {
-    name: "Explore pre-built integrations",
+    name: "Pre-built integrations",
     description:
-      "Connect Database to over a hundred tools including Stripe, Salesforce, or Quickbooks.",
+      "Connect to accounting software, payroll systems, and business tools like Stripe, QuickBooks, and Xero.",
     icon: RiLinksLine,
   },
   {
-    name: "Security & privacy",
+    name: "Enterprise security",
     description:
-      "Database supports PII data encrypted with AES-256 at rest or explicit user consent flows.",
+      "Bank-level encryption with AES-256, role-based access control, and full audit trails for compliance.",
     icon: RiShieldKeyholeLine,
   },
 ]
@@ -102,8 +100,8 @@ export default function CodeExample() {
         Built by developers, <br /> for developers
       </h2>
       <p className="text-landing-body max-w-2xl text-lg" style={{ marginTop: 'var(--spacing-content-gap)' }}>
-        Rich and expressive query language that allows you to filter and sort by
-        any field, no matter how nested it may be.
+        Powerful query capabilities that let you filter expenses, track employee time, 
+        and generate reports across all your business data with ease.
       </p>
       <CodeExampleTabs
         tab1={

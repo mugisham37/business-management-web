@@ -1,32 +1,60 @@
+"use client"
+
 import { RiArrowRightUpLine } from "@remixicon/react"
 import Link from "next/link"
+import { useState } from "react"
 import { DatabaseLogo } from "../DatabaseLogo"
 import ThemeSwitch from "../ui/ThemeSwitch"
+import ContactModal from "./ContactModal"
+
+type NavigationItem = {
+  name: string
+  href: string
+  external: boolean
+  isModal?: boolean
+}
 
 const navigation = {
   product: [
     { name: "Pricing", href: "/pricing", external: false },
     { name: "Changelog", href: "/changelog", external: false },
-  ],
+  ] as NavigationItem[],
   resources: [
     { name: "FAQs", href: "/pricing#faq-title", external: false },
     { name: "Instagram", href: "#", external: true },
     { name: "Youtube", href: "#", external: true },
     { name: "Tiktok", href: "#", external: true },
-  ],
+  ] as NavigationItem[],
   company: [
     { name: "About", href: "/about", external: false },
-    { name: "Contact", href: "#", external: false },
-  ],
+    { name: "Contact", href: "#contact", external: false, isModal: true },
+  ] as NavigationItem[],
   legal: [
-    { name: "Privacy", href: "#", external: false },
-    { name: "Terms", href: "#", external: false },
-  ],
+    { name: "Privacy", href: "/legal#privacy", external: false },
+    { name: "Terms", href: "/legal#terms", external: false },
+  ] as NavigationItem[],
 }
 
 export default function Footer() {
+  const [contactModalOpen, setContactModalOpen] = useState(false)
+
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    item: NavigationItem,
+  ) => {
+    if (item.isModal) {
+      e.preventDefault()
+      setContactModalOpen(true)
+    }
+  }
+
   return (
-    <footer id="footer">
+    <>
+      <ContactModal
+        open={contactModalOpen}
+        onOpenChange={setContactModalOpen}
+      />
+      <footer id="footer">
       <div className="mx-auto max-w-6xl px-3 pb-8 pt-16 sm:pt-24 lg:pt-32">
         <div className="xl:grid xl:grid-cols-3 xl:gap-20">
           <div className="space-y-8">
@@ -58,6 +86,7 @@ export default function Footer() {
                         href={item.href}
                         target={item.external ? "_blank" : undefined}
                         rel={item.external ? "noopener noreferrer" : undefined}
+                        onClick={(e) => handleLinkClick(e, item)}
                       >
                         <span>{item.name}</span>
                         {item.external && (
@@ -89,6 +118,7 @@ export default function Footer() {
                         href={item.href}
                         target={item.external ? "_blank" : undefined}
                         rel={item.external ? "noopener noreferrer" : undefined}
+                        onClick={(e) => handleLinkClick(e, item)}
                       >
                         <span>{item.name}</span>
                         {item.external && (
@@ -123,6 +153,7 @@ export default function Footer() {
                         href={item.href}
                         target={item.external ? "_blank" : undefined}
                         rel={item.external ? "noopener noreferrer" : undefined}
+                        onClick={(e) => handleLinkClick(e, item)}
                       >
                         <span>{item.name}</span>
                         {item.external && (
@@ -154,6 +185,7 @@ export default function Footer() {
                         href={item.href}
                         target={item.external ? "_blank" : undefined}
                         rel={item.external ? "noopener noreferrer" : undefined}
+                        onClick={(e) => handleLinkClick(e, item)}
                       >
                         <span>{item.name}</span>
                         {item.external && (
@@ -191,5 +223,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   )
 }
