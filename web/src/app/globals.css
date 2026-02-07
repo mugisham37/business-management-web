@@ -713,6 +713,67 @@ a {
     --form-success-bg: color-mix(in oklch, var(--status-good) 10%, transparent);
     
     /* ============================================
+       LANDING PAGE DESIGN TOKENS
+       Added: 2026-02-07
+       Tokens for landing/about pages
+       ============================================ */
+    
+    /* Landing Page Typography Tokens */
+    --text-hero-sm: 2.25rem;        /* 36px - text-4xl mobile */
+    --text-hero-md: 3.75rem;        /* 60px - text-6xl tablet/desktop */
+    --text-section-heading: 2.25rem; /* 36px - text-4xl */
+    --text-section-heading-md: 3rem; /* 48px - text-5xl */
+    
+    /* Landing Page Line Heights */
+    --leading-hero: 1.1;            /* Tight for large headings */
+    --leading-section: 1.2;         /* For section headings */
+    
+    /* Text Gradient Patterns - Light Mode */
+    --gradient-heading-from: oklch(0 0 0);              /* gray-900 */
+    --gradient-heading-to: oklch(0.3211 0 0);           /* gray-800 */
+    --gradient-heading-from-dark: oklch(1.0000 0 0);    /* gray-50 */
+    --gradient-heading-to-dark: oklch(0.8452 0 0);      /* gray-300 */
+    
+    /* Signature/Handwriting Text Color */
+    --text-signature: oklch(0.5106 0.2301 276.9656);    /* indigo-600 */
+    --text-signature-dark: oklch(0.6801 0.1583 276.9349); /* indigo-400 */
+    
+    /* Landing Page Body Text Colors */
+    --text-landing-body: oklch(0.4459 0 0);             /* gray-700 */
+    --text-landing-body-dark: oklch(0.6559 0 0);        /* gray-400 */
+    
+    /* Landing Page Spacing Tokens */
+    --spacing-section-top: 10rem;      /* 160px - mt-40 between major sections */
+    --spacing-section-top-sm: 11rem;   /* 176px - mt-44 for Benefits */
+    --spacing-hero-top: 9rem;          /* 144px - mt-36 page top */
+    --spacing-content-gap: 1.5rem;     /* 24px - mt-6 between heading and content */
+    --spacing-prose-gap: 1rem;         /* 16px - space-y-4 in prose */
+    
+    /* Landing Gallery Spacing */
+    --spacing-gallery-top: 5rem;       /* 80px - mt-20 */
+    --spacing-gallery-row: 2rem;       /* 32px - mt-8 */
+    --spacing-gallery-final: 7rem;     /* 112px - mt-28 */
+    
+    /* Content Max Widths - Landing Specific */
+    --container-max-width-prose: 42rem;    /* 672px - max-w-prose */
+    --container-max-width-content: 48rem;  /* 768px - max-w-2xl */
+    --container-max-width-gallery: 56rem;  /* 896px - max-w-4xl */
+    --container-max-width-page: 72rem;     /* 1152px - max-w-6xl */
+    
+    /* Animation Tokens */
+    --animation-slide-up-fade-duration: 600ms;
+    --animation-slide-up-fade-delay: 200ms;
+    --animation-fill-mode: backwards;
+    
+    /* Rotation Transforms for Gallery */
+    --rotate-slight-left: -6deg;
+    --rotate-slight-right: 3deg;
+    --rotate-medium: 8deg;
+    
+    /* Shadow Tokens for Landing CTAs */
+    --shadow-cta-indigo: 0 20px 25px -5px rgb(99 102 241 / 0.2);
+    
+    /* ============================================
        BUTTON SYSTEM DESIGN TOKENS
        Added: 2026-02-07
        Universal tokens for button components
@@ -877,6 +938,12 @@ a {
     --avatar-status-online: oklch(0.8003 0.1821 151.7110);    /* green - brighter for dark mode */
     --avatar-status-away: oklch(0.8790 0.1534 91.6054);       /* orange - brighter for dark mode */
     --avatar-status-busy: oklch(0.7106 0.1661 22.2162);       /* red - brighter for dark mode */
+    
+    /* Landing Page - Dark Mode Overrides */
+    --gradient-heading-from: var(--gradient-heading-from-dark);
+    --gradient-heading-to: var(--gradient-heading-to-dark);
+    --text-signature: var(--text-signature-dark);
+    --text-landing-body: var(--text-landing-body-dark);
   }
 }
 
@@ -2111,6 +2178,117 @@ a {
     border-radius: var(--radius-badge);
     width: fit-content;
   }
+  
+  /* ============================================
+     LANDING PAGE UTILITY CLASSES
+     Reusable patterns for landing/about pages
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Landing Page Heading Gradient Pattern - Bottom Right */
+  .heading-gradient {
+    display: inline-block;
+    background-image: linear-gradient(to bottom right, var(--gradient-heading-from), var(--gradient-heading-to));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-tighter);
+  }
+  
+  .dark .heading-gradient {
+    background-image: linear-gradient(to bottom right, var(--gradient-heading-from-dark), var(--gradient-heading-to-dark));
+  }
+  
+  /* Heading Gradient Top Variant */
+  .heading-gradient-top {
+    display: inline-block;
+    background-image: linear-gradient(to top, var(--gradient-heading-from), var(--gradient-heading-to));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-tighter);
+  }
+  
+  .dark .heading-gradient-top {
+    background-image: linear-gradient(to top, var(--gradient-heading-from-dark), var(--gradient-heading-to-dark));
+  }
+  
+  /* Signature/Handwriting Text Pattern */
+  .text-signature {
+    font-family: 'NanumPenScript', cursive;
+    color: var(--text-signature);
+    font-size: 1.875rem; /* 30px - text-3xl */
+    width: fit-content;
+  }
+  
+  .dark .text-signature {
+    color: var(--text-signature-dark);
+  }
+  
+  /* Landing Page Body Text Pattern */
+  .text-landing-body {
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--text-landing-body);
+  }
+  
+  .dark .text-landing-body {
+    color: var(--text-landing-body-dark);
+  }
+  
+  /* Landing Page Prose Pattern */
+  .prose-landing {
+    max-width: var(--container-max-width-prose);
+  }
+  
+  .prose-landing p {
+    font-size: var(--text-lg);
+    line-height: 2rem; /* leading-8 */
+    color: oklch(0.5555 0 0); /* gray-600 */
+  }
+  
+  .dark .prose-landing p {
+    color: oklch(0.6559 0 0); /* gray-400 */
+  }
+  
+  /* Animation: Slide Up Fade */
+  .animate-slide-up-fade {
+    animation: slide-up-fade var(--animation-slide-up-fade-duration) var(--ease-out) var(--animation-fill-mode);
+  }
+  
+  @keyframes slide-up-fade {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Animation: Slide Down Fade (for navbar) */
+  @keyframes slide-down-fade {
+    from {
+      opacity: 0;
+      transform: translateY(-1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* CTA Button Shadow Pattern */
+  .shadow-cta-indigo {
+    box-shadow: var(--shadow-cta-indigo);
+  }
 }
 
 /* Dual Sidebar Layout System */
@@ -2124,22 +2302,6 @@ a {
     width: 0 !important;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-ng: -0.01em;
-}
-
 /* Status badge outer */
 .footer-status-badge {
   border-radius: 9999px;
@@ -3593,859 +3755,3 @@ ng: -0.01em;
   font-weight: 600;
 }
 
-/* ============================================
-   ABOUT PAGE COMPONENT STYLES
-   100% Precise Tailwind to CSS Conversion
-   ============================================ */
-
-/* Main container - Root div */
-.about-page-container {
-  margin-top: 9rem; /* 144px - mt-36 */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding-left: 0.75rem; /* 12px - px-3 */
-  padding-right: 0.75rem; /* 12px - px-3 */
-}
-
-/* Section element with animation */
-.about-overview-section {
-  animation-name: slide-up-fade;
-  animation-duration: 600ms;
-  animation-fill-mode: backwards;
-  animation-timing-function: ease-in-out;
-}
-
-/* Main heading - h1 element */
-.about-main-heading {
-  margin-top: 0.5rem; /* 8px - mt-2 */
-  display: inline-block;
-  background-image: linear-gradient(to bottom right, var(--foreground), var(--muted-foreground)); /* Uses theme colors */
-  background-clip: text;
-  -webkit-background-clip: text;
-  padding-top: 0.5rem; /* 8px - py-2 */
-  padding-bottom: 0.5rem; /* 8px - py-2 */
-  font-size: 2.25rem; /* 36px - text-4xl */
-  line-height: 2.5rem; /* 40px */
-  font-weight: 700;
-  letter-spacing: -0.05em; /* tracking-tighter */
-  color: transparent;
-}
-
-@media (min-width: 640px) {
-  .about-main-heading {
-    font-size: 3.75rem; /* 60px - sm:text-6xl */
-    line-height: 1;
-  }
-}
-
-@media (min-width: 768px) {
-  .about-main-heading {
-    font-size: 3.75rem; /* 60px - md:text-6xl */
-    line-height: 1;
-  }
-}
-
-/* Description paragraph */
-.about-description {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-  max-width: 42rem; /* 672px - max-w-2xl */
-  font-size: 1.125rem; /* 18px - text-lg */
-  line-height: 1.75rem; /* 28px */
-  color: var(--muted-foreground); /* Uses theme color */
-}
-
-/* Vision section container */
-.about-vision-section {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 10rem; /* 160px - mt-40 */
-}
-
-/* Vision heading - h2 element */
-.about-vision-heading {
-  display: inline-block;
-  background-image: linear-gradient(to top, var(--foreground), var(--muted-foreground)); /* Uses theme colors */
-  background-clip: text;
-  -webkit-background-clip: text;
-  padding-top: 0.5rem; /* 8px - py-2 */
-  padding-bottom: 0.5rem; /* 8px - py-2 */
-  font-size: 2.25rem; /* 36px - text-4xl */
-  line-height: 2.5rem; /* 40px */
-  font-weight: 700;
-  letter-spacing: -0.05em; /* tracking-tighter */
-  color: transparent;
-}
-
-@media (min-width: 768px) {
-  .about-vision-heading {
-    font-size: 3rem; /* 48px - md:text-5xl */
-    line-height: 1;
-  }
-}
-
-/* Vision content wrapper */
-.about-vision-content {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-  max-width: 65ch; /* max-w-prose */
-  display: flex;
-  flex-direction: column;
-  gap: 1rem; /* 16px - space-y-4 */
-  color: var(--muted-foreground); /* Uses theme color */
-}
-
-/* Vision paragraphs */
-.about-vision-paragraph {
-  font-size: 1.125rem; /* 18px - text-lg */
-  line-height: 2rem; /* 32px - leading-8 */
-}
-
-/* Signature paragraph */
-.about-vision-signature {
-  width: fit-content;
-  transform: rotate(3deg);
-  font-family: 'NanumPenScript', cursive;
-  font-size: 1.875rem; /* 30px - text-3xl */
-  line-height: 2.25rem; /* 36px */
-  color: var(--primary); /* Uses theme primary color */
-}
-
-/* ============================================
-   PRICING PAGE ENHANCEMENTS
-   Business Management Theme Integration
-   ============================================ */
-
-/* Pricing tier badge enhancement */
-.pricing-tier-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
-  color: var(--primary);
-  border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
-}
-
-/* Pricing card hover effect */
-.pricing-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pricing-card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px color-mix(in oklch, var(--primary) 10%, transparent);
-}
-
-/* Feature highlight */
-.pricing-feature-highlight {
-  position: relative;
-  padding-left: 1.5rem;
-}
-
-.pricing-feature-highlight::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  width: 0.25rem;
-  height: 1rem;
-  background: linear-gradient(to bottom, var(--primary), var(--accent));
-  border-radius: 0.125rem;
-}
-
-/* Price display enhancement */
-.pricing-amount {
-  background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-/* Comparison table row hover */
-.pricing-comparison-row {
-  transition: background-color 0.2s ease;
-}
-
-.pricing-comparison-row:hover {
-  background-color: color-mix(in oklch, var(--primary) 3%, transparent);
-}
-
-/* Business tier indicator */
-.business-tier-solo {
-  border-left: 3px solid var(--accent);
-}
-
-.business-tier-retail {
-  border-left: 3px solid var(--secondary);
-}
-
-.business-tier-wholesale {
-  border-left: 3px solid var(--primary);
-}
-
-/* ============================================
-   Pricing Component Styles
-   100% Precise Tailwind to CSS Conversion
-   Using Theme Variables for Perfect Consistency
-   ============================================ */
-
-/* Root container */
-.pricing-root {
-  padding-left: 0.75rem; /* 12px - px-3 */
-  padding-right: 0.75rem;
-}
-
-/* Header section */
-.pricing-header-section {
-  animation: slide-up-fade 600ms backwards;
-}
-
-/* Main title */
-.pricing-title {
-  margin-top: 0.5rem; /* 8px - mt-2 */
-  display: inline-block;
-  background-image: linear-gradient(to bottom right, var(--foreground), var(--muted-foreground));
-  background-clip: text;
-  -webkit-background-clip: text;
-  padding-top: 0.5rem; /* 8px - py-2 */
-  padding-bottom: 0.5rem;
-  font-size: 2.25rem; /* 36px - text-4xl */
-  line-height: 2.5rem;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  color: transparent;
-}
-
-@media (min-width: 640px) {
-  .pricing-title {
-    font-size: 3.75rem; /* 60px - sm:text-6xl */
-    line-height: 1;
-  }
-}
-
-@media (min-width: 768px) {
-  .pricing-title {
-    font-size: 3.75rem; /* 60px - md:text-6xl */
-    line-height: 1;
-  }
-}
-
-/* Description paragraph */
-.pricing-description {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-  max-width: 42rem; /* 672px - max-w-2xl */
-  font-size: 1.125rem; /* 18px - text-lg */
-  line-height: 1.75rem;
-  color: var(--muted-foreground);
-}
-
-/* Pricing overview section */
-.pricing-overview-section {
-  margin-top: 5rem; /* 80px - mt-20 */
-  animation: slide-up-fade 600ms 200ms backwards;
-}
-
-/* Billing toggle container */
-.billing-toggle-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem; /* 8px - gap-2 */
-}
-
-/* Billing label */
-.billing-label {
-  font-size: 1rem; /* 16px - text-base */
-  line-height: 1.5rem;
-  font-weight: 500;
-}
-
-@media (min-width: 640px) {
-  .billing-label {
-    font-size: 0.875rem; /* 14px - sm:text-sm */
-    line-height: 1.25rem;
-  }
-}
-
-/* Save text */
-.save-text {
-  color: var(--primary);
-}
-
-/* Pricing cards grid */
-.pricing-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  column-gap: 3.5rem; /* 56px - gap-x-14 */
-  row-gap: 2rem; /* 32px - gap-y-8 */
-}
-
-@media (min-width: 1024px) {
-  .pricing-cards-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-/* Plan card */
-.plan-card {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-}
-
-/* Plan header divider */
-.plan-header-divider {
-  display: flex;
-  height: 1rem; /* 16px - h-4 */
-  align-items: center;
-}
-
-/* Recommended badge container */
-.recommended-badge-container {
-  position: relative;
-  width: 100%;
-}
-
-/* Recommended line wrapper */
-.recommended-line-wrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-}
-
-/* Recommended line */
-.recommended-line {
-  width: 100%;
-  border-top-width: 1px;
-  border-color: var(--primary);
-}
-
-/* Recommended text wrapper */
-.recommended-text-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-}
-
-/* Recommended text */
-.recommended-text {
-  background-color: var(--background);
-  padding-left: 0.75rem; /* 12px - px-3 */
-  padding-right: 0.75rem;
-  font-size: 0.75rem; /* 12px - text-xs */
-  line-height: 1rem;
-  font-weight: 500;
-  color: var(--primary);
-}
-
-/* Plan divider line */
-.plan-divider-line {
-  height: 1px;
-  width: 100%;
-  background-color: var(--border);
-}
-
-/* Plan content */
-.plan-content {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 28rem; /* 448px - max-w-md */
-}
-
-/* Plan name */
-.plan-name {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.25rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-/* Plan price container */
-.plan-price-container {
-  margin-top: 0.75rem; /* 12px - mt-3 */
-  display: flex;
-  align-items: center;
-  column-gap: 0.75rem; /* 12px - gap-x-3 */
-}
-
-/* Plan price */
-.plan-price {
-  font-size: 3rem; /* 48px - text-5xl */
-  line-height: 1;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground);
-}
-
-/* Plan billing period */
-.plan-billing-period {
-  font-size: 0.75rem; /* 12px - text-xs */
-  line-height: 1rem;
-  color: var(--muted-foreground);
-}
-
-/* Plan description container */
-.plan-description-container {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* Plan description text */
-.plan-description-text {
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  color: var(--muted-foreground);
-}
-
-/* Plan button container */
-.plan-button-container {
-  margin-top: 1.5rem; /* 24px - mt-6 */
-}
-
-/* Plan capacity list */
-.plan-capacity-list {
-  margin-top: 2rem; /* 32px - mt-8 */
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.25rem;
-  color: var(--muted-foreground);
-}
-
-/* Plan capacity item */
-.plan-capacity-item {
-  display: flex;
-  align-items: center;
-  column-gap: 0.75rem; /* 12px - gap-x-3 */
-  padding-top: 0.375rem; /* 6px - py-1.5 */
-  padding-bottom: 0.375rem;
-}
-
-/* Capacity icon */
-.capacity-icon {
-  width: 1rem; /* 16px - size-4 */
-  height: 1rem;
-  flex-shrink: 0;
-  color: var(--muted-foreground);
-}
-
-/* Plan features list */
-.plan-features-list {
-  margin-top: 1rem; /* 16px - mt-4 */
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.25rem;
-  color: var(--muted-foreground);
-}
-
-/* Plan feature item */
-.plan-feature-item {
-  display: flex;
-  align-items: center;
-  column-gap: 0.75rem; /* 12px - gap-x-3 */
-  padding-top: 0.375rem; /* 6px - py-1.5 */
-  padding-bottom: 0.375rem;
-}
-
-/* Feature check icon */
-.feature-check-icon {
-  width: 1rem; /* 16px - size-4 */
-  height: 1rem;
-  flex-shrink: 0;
-  color: var(--primary);
-}
-
-/* Testimonial section */
-.testimonial-section {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 5rem; /* 80px - mt-20 */
-  max-width: 36rem; /* 576px - max-w-xl */
-}
-
-@media (min-width: 640px) {
-  .testimonial-section {
-    margin-top: 8rem; /* 128px - sm:mt-32 */
-  }
-}
-
-@media (min-width: 1024px) {
-  .testimonial-section {
-    max-width: 72rem; /* 1152px - lg:max-w-6xl */
-  }
-}
-
-/* Pricing details section */
-.pricing-details-section {
-  margin-top: 5rem; /* 80px - mt-20 */
-}
-
-@media (min-width: 640px) {
-  .pricing-details-section {
-    margin-top: 9rem; /* 144px - sm:mt-36 */
-  }
-}
-
-/* Pricing details mobile */
-.pricing-details-mobile {
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-}
-
-.pricing-details-mobile > * + * {
-  margin-top: 2rem; /* 32px - space-y-8 */
-}
-
-@media (min-width: 640px) {
-  .pricing-details-mobile {
-    max-width: 28rem; /* 448px - sm:max-w-md */
-  }
-}
-
-@media (min-width: 1024px) {
-  .pricing-details-mobile {
-    display: none;
-  }
-}
-
-/* Plan details card */
-.plan-details-card {
-  border-radius: 0.75rem; /* 12px - rounded-xl */
-  background-color: color-mix(in oklch, var(--muted) 5%, transparent);
-  padding: 1.5rem; /* 24px - p-6 */
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-/* Plan details name */
-.plan-details-name {
-  font-size: 1rem; /* 16px - text-base */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-/* Plan details price */
-.plan-details-price {
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.25rem;
-  font-weight: 400;
-  color: var(--muted-foreground);
-}
-
-/* Plan sections list */
-.plan-sections-list {
-  margin-top: 2.5rem; /* 40px - mt-10 */
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  color: var(--foreground);
-}
-
-.plan-sections-list > * + * {
-  margin-top: 2.5rem; /* 40px - space-y-10 */
-}
-
-/* Section heading */
-.section-heading {
-  font-weight: 600;
-}
-
-/* Section features list */
-.section-features-list {
-  margin-top: 0.5rem; /* 8px - mt-2 */
-  border-top: 1px solid var(--border);
-}
-
-.section-features-list > * + * {
-  border-top: 1px solid var(--border);
-}
-
-/* Section feature item */
-.section-feature-item {
-  display: flex;
-  column-gap: 0.75rem; /* 12px - gap-x-3 */
-  padding-top: 0.625rem; /* 10px - py-2.5 */
-  padding-bottom: 0.625rem;
-}
-
-/* Section check icon */
-.section-check-icon {
-  width: 1.25rem; /* 20px - size-5 */
-  height: 1.25rem;
-  flex: none;
-  color: var(--primary);
-}
-
-/* Feature value text */
-.feature-value-text {
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  color: var(--muted-foreground);
-}
-
-/* Pricing table section */
-.pricing-table-section {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 5rem; /* 80px - mt-20 */
-}
-
-/* Pricing table wrapper */
-.pricing-table-wrapper {
-  margin-top: 5rem; /* 80px - mt-20 */
-  display: none;
-}
-
-@media (min-width: 640px) {
-  .pricing-table-wrapper {
-    margin-top: 7rem; /* 112px - sm:mt-28 */
-  }
-}
-
-@media (min-width: 1024px) {
-  .pricing-table-wrapper {
-    display: block;
-  }
-}
-
-/* Table container */
-.table-container {
-  position: relative;
-}
-
-/* Table sticky header spacer */
-.table-sticky-header-spacer {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: 7rem; /* 112px - h-28 */
-  width: 100%;
-  background-color: var(--background);
-}
-
-/* Pricing table */
-.pricing-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0;
-  text-align: left;
-}
-
-/* Column widths */
-.col-feature-name {
-  width: 40%; /* w-2/5 */
-}
-
-.col-plan {
-  width: 20%; /* w-1/5 */
-}
-
-/* Table header */
-.table-header {
-  position: sticky;
-  top: 7rem; /* 112px - top-28 */
-}
-
-/* Table header cell first */
-.table-header-cell-first {
-  border-bottom-width: 1px;
-  border-color: color-mix(in oklch, var(--border) 50%, transparent);
-  background-color: var(--background);
-  padding-bottom: 2rem; /* 32px - pb-8 */
-}
-
-/* Table header title */
-.table-header-title {
-  font-weight: 600;
-  line-height: 1.75rem; /* 28px - leading-7 */
-  color: var(--foreground);
-}
-
-/* Table header subtitle */
-.table-header-subtitle {
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.25rem;
-  font-weight: 400;
-  color: var(--muted-foreground);
-}
-
-/* Table header cell plan */
-.table-header-cell-plan {
-  border-bottom-width: 1px;
-  border-color: color-mix(in oklch, var(--border) 50%, transparent);
-  background-color: var(--background);
-  padding-left: 1.5rem; /* 24px - px-6 */
-  padding-right: 1.5rem;
-  padding-bottom: 2rem; /* 32px - pb-8 */
-}
-
-@media (min-width: 1024px) {
-  .table-header-cell-plan {
-    padding-left: 2rem; /* 32px - lg:px-8 */
-    padding-right: 2rem;
-  }
-}
-
-/* Table plan name premium */
-.table-plan-name-premium {
-  color: var(--primary);
-  font-weight: 600;
-  line-height: 1.75rem; /* 28px - leading-7 */
-}
-
-/* Table plan name starter */
-.table-plan-name-starter {
-  color: var(--foreground);
-  font-weight: 600;
-  line-height: 1.75rem; /* 28px - leading-7 */
-}
-
-/* Section header first */
-.section-header-first {
-  padding-top: 3.5rem; /* 56px - pt-14 */
-}
-
-/* Section header other */
-.section-header-other {
-  padding-top: 2.5rem; /* 40px - pt-10 */
-}
-
-/* Section header cell */
-.section-header-cell {
-  border-bottom-width: 1px;
-  border-color: color-mix(in oklch, var(--border) 50%, transparent);
-  padding-bottom: 1rem; /* 16px - pb-4 */
-  font-size: 1rem; /* 16px - text-base */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-/* Feature row */
-.feature-row {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.feature-row:hover {
-  background-color: color-mix(in oklch, var(--primary) 5%, transparent);
-}
-
-/* Feature name cell */
-.feature-name-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem; /* 8px - gap-2 */
-  border-bottom-width: 1px;
-  border-color: color-mix(in oklch, var(--border) 50%, transparent);
-  padding-top: 1rem; /* 16px - py-4 */
-  padding-bottom: 1rem;
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  font-weight: 400;
-  color: var(--foreground);
-}
-
-/* Info icon */
-.info-icon {
-  width: 1rem; /* 16px - size-4 */
-  height: 1rem;
-  flex-shrink: 0;
-  color: var(--muted-foreground);
-}
-
-/* Feature value cell */
-.feature-value-cell {
-  border-bottom-width: 1px;
-  border-color: color-mix(in oklch, var(--border) 50%, transparent);
-  padding-left: 1.5rem; /* 24px - px-6 */
-  padding-right: 1.5rem;
-  padding-top: 1rem; /* 16px - py-4 */
-  padding-bottom: 1rem;
-}
-
-@media (min-width: 1024px) {
-  .feature-value-cell {
-    padding-left: 2rem; /* 32px - lg:px-8 */
-    padding-right: 2rem;
-  }
-}
-
-/* Feature value string */
-.feature-value-string {
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  color: var(--muted-foreground);
-}
-
-/* Check icon table */
-.check-icon-table {
-  height: 1.25rem; /* 20px - h-5 */
-  width: 1.25rem; /* 20px - w-5 */
-  color: var(--primary);
-}
-
-/* Subtract icon */
-.subtract-icon {
-  height: 1.25rem; /* 20px - h-5 */
-  width: 1.25rem; /* 20px - w-5 */
-  color: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
-}
-
-/* Table footer row header */
-.table-footer-row-header {
-  padding-top: 1.5rem; /* 24px - pt-6 */
-  font-size: 0.875rem; /* 14px - text-sm */
-  line-height: 1.5rem; /* 24px - leading-6 */
-  font-weight: 400;
-  color: var(--foreground);
-}
-
-/* Table footer cell */
-.table-footer-cell {
-  padding-left: 1.5rem; /* 24px - px-6 */
-  padding-right: 1.5rem;
-  padding-top: 1.5rem; /* 24px - pt-6 */
-}
-
-@media (min-width: 1024px) {
-  .table-footer-cell {
-    padding-left: 2rem; /* 32px - lg:px-8 */
-    padding-right: 2rem;
-  }
-}
-
-/* Table button starter */
-.table-button-starter {
-  background-color: transparent;
-  padding-left: 0;
-  padding-right: 0;
-  font-size: 1rem; /* 16px - text-base */
-  line-height: 1.5rem;
-}
-
-.table-button-starter:hover {
-  background-color: transparent;
-}
-
-/* Table button premium */
-.table-button-premium {
-  background-color: transparent;
-  padding-left: 0;
-  padding-right: 0;
-  font-size: 1rem; /* 16px - text-base */
-  line-height: 1.5rem;
-  color: var(--primary);
-}
-
-.table-button-premium:hover {
-  background-color: transparent;
-}

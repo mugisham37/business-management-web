@@ -25,11 +25,11 @@ export default function Features() {
       <Badge>Security at Scale</Badge>
       <h2
         id="features-title"
-        className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300"
+        className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl"
       >
         Architected for speed and reliability
       </h2>
-      <p className="mt-6 max-w-3xl text-lg leading-7 text-gray-600 dark:text-gray-400">
+      <p className="text-landing-body mt-6 max-w-3xl leading-7">
         Database&rsquo; innovative architecture avoids the central bottlenecks
         of traditional systems, enhancing system reliability. This design
         ensures high productivity and security, minimizing the risk of service
@@ -42,7 +42,7 @@ export default function Features() {
               <dd className="inline-block bg-gradient-to-t from-indigo-900 to-indigo-600 bg-clip-text text-5xl font-bold tracking-tight text-transparent lg:text-6xl dark:from-indigo-700 dark:to-indigo-400">
                 {stat.value}
               </dd>
-              <dt className="mt-1 text-gray-600 dark:text-gray-400">
+              <dt className="text-landing-body mt-1">
                 {stat.name}
               </dt>
             </div>

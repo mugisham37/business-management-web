@@ -5,12 +5,12 @@ export default function Testimonial() {
   return (
     <section id="testimonial" aria-label="Testimonial">
       <figure className="mx-auto">
-        <blockquote className="mx-auto max-w-2xl text-center text-xl font-semibold leading-8 text-gray-900 sm:text-2xl sm:leading-9 dark:text-gray-50">
+        <blockquote className="text-foreground mx-auto max-w-2xl text-center text-xl font-semibold leading-8 sm:text-2xl sm:leading-9">
           <p>
             <Balancer>
-              “Thanks to this robust database solution, our organization has
+              "Thanks to this robust database solution, our organization has
               streamlined data management processes, leading to increased
-              efficiency and accuracy in our operations.”
+              efficiency and accuracy in our operations."
             </Balancer>
           </p>
         </blockquote>
@@ -23,10 +23,10 @@ export default function Testimonial() {
             alt="Image of Dima Coil"
           />
           <div>
-            <p className="font-semibold text-gray-900 dark:text-gray-50">
+            <p className="text-foreground font-semibold">
               Dima Coil
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-landing-body text-sm">
               CEO Hornertools
             </p>
           </div>

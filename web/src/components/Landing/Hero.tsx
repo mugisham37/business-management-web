@@ -11,13 +11,13 @@ export default function Hero() {
     >
       <h1
         id="hero-title"
-        className="inline-block animate-slide-up-fade bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text p-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-7xl dark:from-gray-50 dark:to-gray-300"
+        className="heading-gradient animate-slide-up-fade p-2 text-4xl sm:text-6xl md:text-7xl"
         style={{ animationDuration: "700ms" }}
       >
         The database for <br /> modern applications
       </h1>
       <p
-        className="mt-6 max-w-lg animate-slide-up-fade text-lg text-gray-700 dark:text-gray-400"
+        className="text-landing-body mt-6 max-w-lg animate-slide-up-fade"
         style={{ animationDuration: "900ms" }}
       >
         Database is a general purpose, relational database built for modern

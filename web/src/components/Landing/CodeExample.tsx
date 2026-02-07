@@ -92,7 +92,7 @@ export default function CodeExample() {
       <Badge>Developer-first</Badge>
       <h2
         id="code-example-title"
-        className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300"
+        className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl"
       >
         Built by developers, <br /> for developers
       </h2>
