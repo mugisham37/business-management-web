@@ -1069,6 +1069,126 @@ a {
     --pricing-toggle-label: var(--muted-foreground);
     --pricing-toggle-label-size: var(--text-base);
     --pricing-toggle-discount-color: var(--primary);
+    
+    /* ============================================
+       REPORTS DASHBOARD DESIGN TOKENS
+       Added: 2026-02-07
+       Semantic tokens for reports, filters, and charts
+       ============================================ */
+    
+    /* Reports Layout Dimensions */
+    --reports-header-height: 4rem;                    /* 64px - sticky header */
+    --reports-header-top-offset: 4rem;                /* 64px - top-16 for mobile, 0 for desktop */
+    --reports-content-padding-y: 2rem;                /* 32px - my-8 */
+    --reports-chart-spacing: 3rem;                    /* 48px - space-y-12 */
+    --reports-chart-grid-gap: 3rem;                   /* 48px - gap-12 */
+    --reports-chart-grid-gap-lg: 5rem;                /* 80px - lg:gap-20 */
+    
+    /* Reports Filter Section */
+    --reports-filter-gap: 0.75rem;                    /* 12px - gap-3 between filters */
+    --reports-filter-button-height: 2.5rem;           /* 40px - h-fit with padding */
+    --reports-filter-accordion-padding: 1rem;         /* 16px - p-4 */
+    --reports-filter-label-margin: 0.5rem;            /* 8px - mt-2 */
+    
+    /* Reports Chart Dimensions */
+    --reports-chart-height: 12rem;                    /* 192px - h-48 */
+    --reports-chart-y-axis-width-default: 70px;       /* Default Y-axis width */
+    --reports-chart-y-axis-width-large: 100px;        /* For category/merchant charts */
+    --reports-chart-bar-gap: 6%;                      /* barCategoryGap */
+    
+    /* Reports Filter Popover Dimensions */
+    --reports-popover-min-width-sm: 18rem;            /* 288px - sm:min-w-72 */
+    --reports-popover-padding: 1rem;                  /* 16px - p-4 */
+    --reports-filter-distribution-height: 3rem;       /* 48px - h-12 for histogram */
+    
+    /* Reports Filter Amount Slider */
+    --reports-slider-track-height: 0.375rem;          /* 6px */
+    --reports-slider-thumb-size: 1rem;                /* 16px */
+    --reports-slider-min-steps: 10;                   /* minStepsBetweenThumbs */
+    
+    /* Reports Filter Country Search */
+    --reports-country-list-max-height: 24rem;         /* 384px - max-h-96 */
+    --reports-continent-header-padding: 0.25rem;      /* 4px - px-1 py-1 */
+    --reports-country-item-margin: 1rem;              /* 16px - ml-4 */
+    
+    /* Reports Loading Skeleton */
+    --reports-skeleton-header-height: 1rem;           /* 16px - h-4 */
+    --reports-skeleton-button-height: 2rem;           /* 32px - h-8 */
+    --reports-skeleton-chart-height: 16rem;           /* 256px - h-64 */
+    --reports-skeleton-section-height: 8rem;          /* 128px - h-32 */
+    
+    /* Reports Chart Colors - Semantic Mapping */
+    --reports-chart-primary: var(--chart-1);          /* blue for amount/count */
+    --reports-chart-category: var(--chart-5);         /* emerald for categories */
+    --reports-chart-merchant: var(--chart-3);         /* orange for merchants */
+    --reports-chart-distribution-active: oklch(0.5106 0.2301 276.9656);    /* blue-500 */
+    --reports-chart-distribution-inactive: oklch(0.8452 0 0);              /* gray-200 */
+    --reports-chart-distribution-inactive-dark: oklch(0.4459 0 0);         /* gray-800 */
+    
+    /* Reports Filter Distribution Histogram */
+    --reports-histogram-bar-width: 100%;              /* w-full */
+    --reports-histogram-bar-radius: var(--radius-sm); /* rounded-sm */
+    --reports-histogram-bar-spacing: 0.125rem;        /* space-x-0.5 */
+    --reports-histogram-transition: all var(--transition-base) var(--ease-in-out);
+    
+    /* Reports Header Scroll State */
+    --reports-header-border-scrolled: 1px solid var(--border);
+    --reports-header-bg: var(--background);
+    --reports-header-bg-dark: oklch(0.1455 0.0217 257.2823);  /* gray-925 */
+    
+    /* Reports Filter Button States */
+    --reports-filter-button-bg: oklch(0.0909 0.0217 257.2823);           /* #090E1A dark */
+    --reports-filter-button-bg-light: var(--background);
+    --reports-filter-button-border: var(--border);
+    --reports-filter-button-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent);
+    --reports-filter-button-hover-bg-dark: oklch(0.2455 0.0217 257.2823); /* gray-950/50 */
+    
+    /* Reports Preset Options */
+    --reports-preset-button-bg: var(--secondary);
+    --reports-preset-button-bg-dark: oklch(0.2455 0.0217 257.2823);  /* gray-950 */
+    --reports-preset-button-hover: color-mix(in oklch, var(--secondary) 90%, var(--foreground));
+    
+    /* Reports Info Icon */
+    --reports-info-icon-size: 1rem;                   /* 16px - size-4 */
+    --reports-info-icon-color: var(--muted-foreground);
+    
+    /* Reports Typography Patterns */
+    --text-reports-title: var(--text-lg);
+    --text-reports-subtitle: var(--text-sm);
+    --text-reports-chart-title: var(--text-sm);
+    --text-reports-chart-value: var(--text-2xl);
+    --text-reports-filter-label: var(--text-sm);
+    --text-reports-preset-label: var(--text-sm);
+    
+    /* Reports Spacing Patterns */
+    --spacing-reports-header-gap: 1.5rem;             /* 24px - gap-6 */
+    --spacing-reports-title-gap: 0.25rem;             /* 4px - space-y-1 */
+    --spacing-reports-chart-title-gap: 0.5rem;        /* 8px - mt-2 */
+    --spacing-reports-chart-content-gap: 1.5rem;      /* 24px - mt-6 */
+    --spacing-reports-filter-section-gap: 0.5rem;     /* 8px - space-y-2 */
+    --spacing-reports-preset-section-gap: 0.5rem;     /* 8px - space-y-2 */
+    
+    /* Reports Z-Index Layers */
+    --z-reports-header: var(--z-sticky);              /* 20 */
+    --z-reports-popover: var(--z-popover);            /* 60 */
+    --z-reports-continent-header: 50;                 /* Sticky continent headers */
+    
+    /* Reports Transitions */
+    --transition-reports-header-border: border-color var(--transition-base) var(--ease-in-out);
+    --transition-reports-filter-open: opacity var(--transition-fast) var(--ease-out),
+                                      transform var(--transition-fast) var(--ease-out);
+    --transition-reports-histogram-bar: background-color var(--transition-base) var(--ease-in-out),
+                                        height var(--transition-base) var(--ease-in-out);
+    
+    /* Reports Status Colors - Semantic Mapping */
+    --reports-status-pending: oklch(0.4459 0 0);      /* gray-500 */
+    --reports-status-approved: oklch(0.6559 0.1821 151.7110);   /* emerald-600 */
+    --reports-status-action-required: oklch(0.5906 0.2078 25.3313);  /* rose-600 */
+    --reports-status-in-audit: oklch(0.6559 0.1647 70.0804);    /* yellow-600 */
+    --reports-status-pending-dark: oklch(0.4459 0 0);           /* gray-500 */
+    --reports-status-approved-dark: oklch(0.7227 0.1920 149.5793);  /* emerald-500 */
+    --reports-status-action-required-dark: oklch(0.6368 0.2078 25.3313);  /* rose-500 */
+    --reports-status-in-audit-dark: oklch(0.7686 0.1647 70.0804);   /* yellow-500 */
   }
   
   .dark {
@@ -1214,6 +1334,17 @@ a {
     --cohort-cell-empty-bg: var(--cohort-cell-empty-bg-dark);
     --cohort-cell-empty-border: var(--cohort-cell-empty-border-dark);
     --workflow-filter-section-bg: var(--workflow-filter-section-bg-dark);
+    
+    /* Reports Dashboard - Dark Mode Overrides */
+    --reports-header-bg: var(--reports-header-bg-dark);
+    --reports-filter-button-bg-light: var(--reports-filter-button-bg);
+    --reports-filter-button-hover-bg: var(--reports-filter-button-hover-bg-dark);
+    --reports-chart-distribution-inactive: var(--reports-chart-distribution-inactive-dark);
+    --reports-preset-button-bg: var(--reports-preset-button-bg-dark);
+    --reports-status-pending: var(--reports-status-pending-dark);
+    --reports-status-approved: var(--reports-status-approved-dark);
+    --reports-status-action-required: var(--reports-status-action-required-dark);
+    --reports-status-in-audit: var(--reports-status-in-audit-dark);
   }
 }
 
@@ -2691,6 +2822,183 @@ a {
     padding: 0.125rem 0.5rem;
     border-radius: var(--radius-badge);
     width: fit-content;
+  }
+  
+  /* ============================================
+     REPORTS DASHBOARD UTILITY CLASSES
+     Added: 2026-02-07
+     Reusable patterns for reports dashboard
+     ============================================ */
+  
+  /* Reports Header Pattern */
+  .reports-header-sticky {
+    position: sticky;
+    top: var(--reports-header-top-offset);
+    z-index: var(--z-reports-header);
+    background-color: var(--reports-header-bg);
+    transition: var(--transition-reports-header-border);
+  }
+  
+  .dark .reports-header-sticky {
+    background-color: var(--reports-header-bg-dark);
+  }
+  
+  .reports-header-scrolled {
+    border-bottom: var(--reports-header-border-scrolled);
+  }
+  
+  /* Reports Title Pattern */
+  .reports-title {
+    font-size: var(--text-reports-title);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  /* Reports Subtitle Pattern */
+  .reports-subtitle {
+    font-size: var(--text-reports-subtitle);
+    color: var(--muted-foreground);
+  }
+  
+  /* Reports Chart Title Pattern */
+  .reports-chart-title {
+    font-size: var(--text-reports-chart-title);
+    color: var(--muted-foreground);
+  }
+  
+  /* Reports Chart Value Pattern */
+  .reports-chart-value {
+    font-size: var(--text-reports-chart-value);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  /* Reports Filter Label Pattern */
+  .reports-filter-label {
+    font-size: var(--text-reports-filter-label);
+    font-weight: var(--font-medium);
+    color: var(--foreground);
+  }
+  
+  /* Reports Filter Button Pattern */
+  .reports-filter-button {
+    background-color: var(--reports-filter-button-bg-light);
+    border: 1px solid var(--reports-filter-button-border);
+    transition: var(--transition-colors);
+  }
+  
+  .dark .reports-filter-button {
+    background-color: var(--reports-filter-button-bg);
+  }
+  
+  .reports-filter-button:hover {
+    background-color: var(--reports-filter-button-hover-bg);
+  }
+  
+  .dark .reports-filter-button:hover {
+    background-color: var(--reports-filter-button-hover-bg-dark);
+  }
+  
+  /* Reports Histogram Bar Pattern */
+  .reports-histogram-bar {
+    width: var(--reports-histogram-bar-width);
+    border-radius: var(--reports-histogram-bar-radius);
+    transition: var(--reports-histogram-transition);
+  }
+  
+  .reports-histogram-bar-active {
+    background-color: var(--reports-chart-distribution-active);
+  }
+  
+  .reports-histogram-bar-inactive {
+    background-color: var(--reports-chart-distribution-inactive);
+  }
+  
+  .dark .reports-histogram-bar-inactive {
+    background-color: var(--reports-chart-distribution-inactive-dark);
+  }
+  
+  /* Reports Preset Button Pattern */
+  .reports-preset-button {
+    background-color: var(--reports-preset-button-bg);
+    transition: var(--transition-colors);
+  }
+  
+  .dark .reports-preset-button {
+    background-color: var(--reports-preset-button-bg-dark);
+  }
+  
+  .reports-preset-button:hover {
+    background-color: var(--reports-preset-button-hover);
+  }
+  
+  /* Reports Loading Skeleton Pattern */
+  .reports-skeleton {
+    background-color: var(--business-loading-skeleton-bg);
+    border-radius: var(--radius-md);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Reports Continent Header Sticky */
+  .reports-continent-header-sticky {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-reports-continent-header);
+    background-color: var(--muted);
+    border-radius: var(--radius-md);
+    padding: var(--reports-continent-header-padding);
+  }
+  
+  .dark .reports-continent-header-sticky {
+    background-color: var(--muted);
+  }
+  
+  /* Reports Status Dot Pattern */
+  .reports-status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+  }
+  
+  .reports-status-dot-pending {
+    background-color: var(--reports-status-pending);
+  }
+  
+  .reports-status-dot-approved {
+    background-color: var(--reports-status-approved);
+  }
+  
+  .reports-status-dot-action-required {
+    background-color: var(--reports-status-action-required);
+  }
+  
+  .reports-status-dot-in-audit {
+    background-color: var(--reports-status-in-audit);
+  }
+  
+  .dark .reports-status-dot-pending {
+    background-color: var(--reports-status-pending-dark);
+  }
+  
+  .dark .reports-status-dot-approved {
+    background-color: var(--reports-status-approved-dark);
+  }
+  
+  .dark .reports-status-dot-action-required {
+    background-color: var(--reports-status-action-required-dark);
+  }
+  
+  .dark .reports-status-dot-in-audit {
+    background-color: var(--reports-status-in-audit-dark);
+  }
+  
+  /* Reports Info Icon Pattern */
+  .reports-info-icon {
+    width: var(--reports-info-icon-size);
+    height: var(--reports-info-icon-size);
+    color: var(--reports-info-icon-color);
   }
   
   /* ============================================

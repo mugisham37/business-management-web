@@ -66,7 +66,7 @@ const ContinentCheckbox = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="sticky top-0 z-50 flex items-center gap-2 rounded-md bg-gray-100 px-1 py-1 dark:bg-gray-900">
+      <div className="reports-continent-header-sticky flex items-center gap-2 px-1 py-1">
         <Checkbox
           id={continent.name}
           checked={allSelected ? true : someSelected ? "indeterminate" : false}
@@ -150,7 +150,7 @@ function FilterCountry() {
 
   return (
     <div>
-      <Label htmlFor="location-filter" className="block font-medium">
+      <Label htmlFor="location-filter" className="reports-filter-label block">
         Locations
       </Label>
       <Popover modal={true}>
@@ -162,7 +162,7 @@ function FilterCountry() {
           <Button
             variant="secondary"
             className={cx(
-              "flex justify-start gap-1.5 font-normal md:justify-center dark:bg-[#090E1A] hover:dark:bg-gray-950/50",
+              "reports-filter-button flex justify-start gap-1.5 font-normal md:justify-center",
             )}
           >
             Selected Locations

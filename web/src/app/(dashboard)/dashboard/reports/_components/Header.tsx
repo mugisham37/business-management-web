@@ -34,7 +34,7 @@ function FormattedDate() {
   }, [])
 
   return (
-    <p className="whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+    <p className="reports-subtitle whitespace-nowrap">
       Last refresh: {dateString}
     </p>
   )
@@ -59,15 +59,14 @@ export default function Header() {
     <section
       aria-labelledby="reports-title"
       className={cx(
-        "sticky top-16 z-50 -my-6 flex flex-col gap-6 bg-white py-6 md:flex-row md:flex-wrap md:items-center md:justify-between lg:top-0 dark:bg-gray-925",
-        scrolled &&
-          "border-b border-gray-200 transition-all dark:border-gray-900",
+        "reports-header-sticky -my-6 flex flex-col gap-6 py-6 md:flex-row md:flex-wrap md:items-center md:justify-between lg:top-0",
+        scrolled && "reports-header-scrolled",
       )}
     >
       <div className="space-y-1">
         <h1
           id="reports-title"
-          className="text-lg font-semibold text-gray-900 dark:text-gray-50"
+          className="reports-title"
         >
           Reports
         </h1>

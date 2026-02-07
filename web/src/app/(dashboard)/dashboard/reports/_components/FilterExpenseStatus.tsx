@@ -15,10 +15,10 @@ type ExpenseStatus = (typeof expense_statuses)[number]
 const statusColorMap: {
   [key in ExpenseStatus["value"]]?: string
 } = {
-  pending: "bg-gray-500 dark:bg-gray-500",
-  approved: "bg-emerald-600 dark:bg-emerald-500",
-  actionRequired: "bg-rose-600 dark:bg-rose-500",
-  inAudit: "bg-yellow-600 dark:bg-yellow-500",
+  pending: "reports-status-dot-pending",
+  approved: "reports-status-dot-approved",
+  actionRequired: "reports-status-dot-action-required",
+  inAudit: "reports-status-dot-in-audit",
 }
 
 function FilterExpenseStatus() {
@@ -37,7 +37,7 @@ function FilterExpenseStatus() {
 
   return (
     <div>
-      <Label htmlFor="expense-filter" className="font-medium">
+      <Label htmlFor="expense-filter" className="reports-filter-label">
         Expense Status
       </Label>
       <Select value={status} onValueChange={handleValueChange}>
@@ -53,9 +53,8 @@ function FilterExpenseStatus() {
               <div className="flex items-center gap-x-2.5">
                 <span
                   className={cx(
-                    statusColorMap[status.value] ||
-                      "bg-gray-600 dark:bg-gray-500",
-                    "inline-block size-2 shrink-0 rounded-full",
+                    "reports-status-dot",
+                    statusColorMap[status.value] || "reports-status-dot-pending",
                   )}
                   aria-hidden="true"
                 />

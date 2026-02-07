@@ -24,7 +24,7 @@ const FilterDate = () => {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="date-range" className="font-medium">
+      <Label htmlFor="date-range" className="reports-filter-label">
         Date Range
       </Label>
       <Select value={range} onValueChange={handleValueChange}>

@@ -111,7 +111,7 @@ function FilterAmount() {
 
   return (
     <div>
-      <Label htmlFor="amount-filter" className="font-medium">
+      <Label htmlFor="amount-filter" className="reports-filter-label">
         Transaction Amount
       </Label>
       <Popover>
@@ -119,8 +119,8 @@ function FilterAmount() {
           <Button
             variant="secondary"
             className={cx(
+              "reports-filter-button mt-2 block w-full text-left font-normal tabular-nums md:w-36",
               focusRing,
-              "mt-2 block w-full text-left font-normal tabular-nums md:w-36 dark:bg-[#090E1A] hover:dark:bg-gray-950/50",
             )}
           >
             {formatters.currency({ number: localMin, maxFractionDigits: 0 })} -{" "}
@@ -135,7 +135,10 @@ function FilterAmount() {
             {distributionData.map((bin, index) => (
               <div
                 key={index}
-                className={`w-full rounded-sm ${bin.isInRange ? "bg-blue-500 dark:bg-blue-500" : "bg-gray-200 dark:bg-gray-800"} transition-all`}
+                className={cx(
+                  "reports-histogram-bar",
+                  bin.isInRange ? "reports-histogram-bar-active" : "reports-histogram-bar-inactive"
+                )}
                 style={{ height: `${bin.height}%` }}
               />
             ))}
@@ -159,7 +162,7 @@ function FilterAmount() {
               <Button
                 key={option.label}
                 variant="secondary"
-                className="w-full justify-start font-normal dark:bg-gray-950"
+                className="reports-preset-button w-full justify-start font-normal"
                 onClick={() => handlePresetClick(option.min, option.max)}
               >
                 {option.label}
