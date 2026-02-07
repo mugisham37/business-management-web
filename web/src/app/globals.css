@@ -2822,7 +2822,7 @@ a {
 .about-main-heading {
   margin-top: 0.5rem; /* 8px - mt-2 */
   display: inline-block;
-  background-image: linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55)); /* from-gray-900 to-gray-800 */
+  background-image: linear-gradient(to bottom right, var(--foreground), var(--muted-foreground)); /* Uses theme colors */
   background-clip: text;
   -webkit-background-clip: text;
   padding-top: 0.5rem; /* 8px - py-2 */
@@ -2832,10 +2832,6 @@ a {
   font-weight: 700;
   letter-spacing: -0.05em; /* tracking-tighter */
   color: transparent;
-}
-
-.dark .about-main-heading {
-  background-image: linear-gradient(to bottom right, rgb(249, 250, 251), rgb(209, 213, 219)); /* dark:from-gray-50 dark:to-gray-300 */
 }
 
 @media (min-width: 640px) {
@@ -2858,11 +2854,7 @@ a {
   max-width: 42rem; /* 672px - max-w-2xl */
   font-size: 1.125rem; /* 18px - text-lg */
   line-height: 1.75rem; /* 28px */
-  color: rgb(55, 65, 81); /* text-gray-700 */
-}
-
-.dark .about-description {
-  color: rgb(156, 163, 175); /* dark:text-gray-400 */
+  color: var(--muted-foreground); /* Uses theme color */
 }
 
 /* Vision section container */
@@ -2875,7 +2867,7 @@ a {
 /* Vision heading - h2 element */
 .about-vision-heading {
   display: inline-block;
-  background-image: linear-gradient(to top, rgb(17, 24, 39), rgb(31, 41, 55)); /* from-gray-900 to-gray-800 */
+  background-image: linear-gradient(to top, var(--foreground), var(--muted-foreground)); /* Uses theme colors */
   background-clip: text;
   -webkit-background-clip: text;
   padding-top: 0.5rem; /* 8px - py-2 */
@@ -2885,10 +2877,6 @@ a {
   font-weight: 700;
   letter-spacing: -0.05em; /* tracking-tighter */
   color: transparent;
-}
-
-.dark .about-vision-heading {
-  background-image: linear-gradient(to top, rgb(249, 250, 251), rgb(209, 213, 219)); /* dark:from-gray-50 dark:to-gray-300 */
 }
 
 @media (min-width: 768px) {
@@ -2905,11 +2893,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 1rem; /* 16px - space-y-4 */
-  color: rgb(75, 85, 99); /* text-gray-600 */
-}
-
-.dark .about-vision-content {
-  color: rgb(156, 163, 175); /* dark:text-gray-400 */
+  color: var(--muted-foreground); /* Uses theme color */
 }
 
 /* Vision paragraphs */
@@ -2925,17 +2909,5 @@ a {
   font-family: 'NanumPenScript', cursive;
   font-size: 1.875rem; /* 30px - text-3xl */
   line-height: 2.25rem; /* 36px */
-  color: rgb(79, 70, 229); /* text-indigo-600 */
-}
-
-.dark .about-vision-signature {
-  color: rgb(129, 140, 248); /* dark:text-indigo-400 */
-}
-
-/* Call-to-action button */
-.about-cta-button {
-  margin-top: 8rem; /* 128px - mt-32 */
-  height: 2.5rem; /* 40px - h-10 */
-  width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.2), 0 8px 10px -6px rgba(99, 102, 241, 0.2); /* shadow-xl shadow-indigo-500/20 */
+  color: var(--primary); /* Uses theme primary color */
 }
