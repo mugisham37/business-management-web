@@ -75,15 +75,9 @@ const CategoryItem = ({
     <Card
       asChild
       className={cx(
-        "cursor-pointer border-gray-300 p-5 transition-all active:scale-[99%] dark:border-gray-800",
-        "has-[:checked]:border-blue-500",
-        "duration-500 has-[:checked]:dark:border-blue-500",
-        // base
-        "focus-within:ring-2",
-        // ring color
-        "focus-within:ring-blue-200 focus-within:dark:ring-blue-700/30",
-        // border color
-        "focus-within:border-blue-500 focus-within:dark:border-blue-700",
+        "cursor-pointer border-border p-5 transition-standard active:scale-[99%]",
+        "has-[:checked]:border-primary",
+        "focus-ring",
       )}
     >
       <Label className="block" htmlFor={category.id}>
@@ -146,10 +140,10 @@ export default function Products() {
         style={{ animationDuration: "500ms" }}
         className="motion-safe:animate-revealBottom"
       >
-        <h1 className="text-2xl font-semibold text-gray-900 sm:text-xl dark:text-gray-50">
+        <h1 className="text-2xl font-semibold text-foreground sm:text-xl">
           Which products are you interested in?
         </h1>
-        <p className="mt-6 text-gray-700 sm:text-sm dark:text-gray-300">
+        <p className="mt-6 text-muted-foreground sm:text-sm">
           You can choose multiple. This will help us customize the experience.
         </p>
       </div>
@@ -181,7 +175,7 @@ export default function Products() {
         </fieldset>
         <div className="mt-6 flex justify-end">
           <Button
-            className="disabled:bg-gray-200 disabled:text-gray-500"
+            className="state-disabled"
             type="submit"
             disabled={!isAnyItemChecked || loading}
             aria-disabled={!isAnyItemChecked || loading}

@@ -263,10 +263,10 @@ export default function PricingCalculator() {
         style={{ animationDuration: "500ms" }}
         className="motion-safe:animate-revealBottom"
       >
-        <h1 className="text-2xl font-semibold text-gray-900 sm:text-xl dark:text-gray-50">
+        <h1 className="text-2xl font-semibold text-foreground sm:text-xl">
           Create a new compute cluster
         </h1>
-        <p className="mt-6 text-gray-700 sm:text-sm dark:text-gray-300">
+        <p className="mt-6 text-muted-foreground sm:text-sm">
           You have full control over the resources provisioned.
         </p>
       </div>
@@ -281,7 +281,7 @@ export default function PricingCalculator() {
               animationFillMode: "backwards",
             }}
           >
-            <legend className="font-medium text-gray-900 sm:text-sm dark:text-gray-50">
+            <legend className="font-medium text-foreground sm:text-sm">
               Cloud provider
             </legend>
             <RadioCardGroup
@@ -307,7 +307,7 @@ export default function PricingCalculator() {
                           {provider.toUpperCase()}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-gray-500 sm:text-xs dark:text-gray-500">
+                      <p className="mt-1 text-sm text-muted-foreground sm:text-xs">
                         {
                           regionOptions[provider as keyof typeof regionOptions]
                             .length
@@ -331,7 +331,7 @@ export default function PricingCalculator() {
           >
             <div className="space-y-2">
               <Label
-                className="whitespace-nowrap text-base font-medium text-gray-900 sm:text-sm/7 dark:text-gray-50"
+                className="whitespace-nowrap text-base font-medium text-foreground sm:text-sm/7"
                 htmlFor="storage"
               >
                 Storage (GB)
@@ -350,7 +350,7 @@ export default function PricingCalculator() {
               </p>
             </div>
             <fieldset className="space-y-2">
-              <legend className="block font-medium text-gray-900 sm:text-sm/7 dark:text-gray-50">
+              <legend className="block font-medium text-foreground sm:text-sm/7">
                 Would you like to auto compress your data?
               </legend>
               <RadioGroup
@@ -381,7 +381,7 @@ export default function PricingCalculator() {
             }}
           >
             <Label
-              className="text-base font-medium text-gray-900 sm:text-sm dark:text-gray-50"
+              className="text-base font-medium text-foreground sm:text-sm"
               htmlFor="region"
             >
               Region
@@ -411,7 +411,7 @@ export default function PricingCalculator() {
             }}
           >
             <Label
-              className="text-base font-medium text-gray-900 sm:text-sm dark:text-gray-50"
+              className="text-base font-medium text-foreground sm:text-sm"
               htmlFor="hours"
             >
               Active hours per day
@@ -426,25 +426,25 @@ export default function PricingCalculator() {
                 step={1}
                 aria-valuetext={`${activeHours[0]} hours`}
               />
-              <div className="flex h-8 w-12 items-center justify-center rounded border border-gray-300 bg-white text-sm font-medium text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-50">
+              <div className="flex h-8 w-12 items-center justify-center rounded border border-border bg-card text-sm font-medium text-foreground">
                 <span aria-hidden="true">{activeHours}h</span>
               </div>
             </div>
           </div>
 
           <Card
-            className="mt-4 space-y-1 border-gray-300 motion-safe:animate-revealBottom dark:border-gray-800"
+            className="mt-4 space-y-1 border-border motion-safe:animate-revealBottom"
             style={{
               animationDuration: "500ms",
               animationDelay: `1000ms`,
               animationFillMode: "backwards",
             }}
           >
-            <p className="text-gray-700 sm:text-sm dark:text-gray-300">
+            <p className="text-muted-foreground sm:text-sm">
               Estimated monthly cost
             </p>
             <p
-              className="text-3xl font-medium text-gray-900 sm:text-2xl dark:text-gray-50"
+              className="text-3xl font-medium text-foreground sm:text-2xl"
               aria-live="polite"
             >
               {calculatePrice()}
@@ -456,7 +456,7 @@ export default function PricingCalculator() {
               <Link href="/onboarding/employees">Back</Link>
             </Button>
             <Button
-              className="disabled:bg-gray-200 disabled:text-gray-500"
+              className="state-disabled"
               type="submit"
               disabled={
                 !cloudProvider ||

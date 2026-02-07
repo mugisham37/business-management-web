@@ -35,10 +35,10 @@ const StepProgress = ({ steps }: StepProgressProps) => {
           <li
             key={step.name}
             className={cx(
-              "h-1 w-12 rounded-full transition-colors duration-200",
+              "h-1 w-12 rounded-full transition-colors-standard",
               index <= currentStepIndex
-                ? "bg-blue-500"
-                : "bg-gray-300 dark:bg-gray-700",
+                ? "bg-primary"
+                : "bg-muted",
             )}
           >
             <span className="sr-only">
@@ -53,7 +53,7 @@ const StepProgress = ({ steps }: StepProgressProps) => {
         ))}
       </ol>
       <div className="mt-2 text-center">
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-muted-foreground">
           Step {Math.max(0, currentStepIndex) + 1} of {steps.length}
         </span>
       </div>
@@ -73,7 +73,7 @@ const Layout = ({
     <>
       <header
         className={cx(
-          "fixed inset-x-0 top-0 isolate z-50 flex items-center justify-between border-b border-gray-200 bg-gray-50/80 backdrop-blur-sm px-4 transition-all md:grid md:grid-cols-[200px_auto_200px] md:px-6 dark:border-gray-900 dark:bg-gray-925/80",
+          "fixed inset-x-0 top-0 isolate z-50 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-sm px-4 transition-standard md:grid md:grid-cols-[200px_auto_200px] md:px-6",
           scrolled ? "h-12 shadow-sm" : "h-20",
         )}
       >
@@ -82,10 +82,10 @@ const Layout = ({
           aria-hidden="true"
         >
           <Logo
-            className="w-7 p-px text-blue-500 dark:text-blue-500"
+            className="w-7 p-px text-primary"
             aria-hidden="true"
           />
-          <span className="mt-0.5 text-lg font-semibold text-gray-900 dark:text-gray-50">
+          <span className="mt-0.5 text-lg font-semibold text-foreground">
             Insights
           </span>
         </div>
