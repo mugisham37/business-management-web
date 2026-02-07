@@ -42,12 +42,12 @@ const plans: Plan[] = [
     name: "Starter",
     price: "$0",
     description:
-      "For individuals and freelancers that need a scalable database.",
-    capacity: ["Up to 5 users, 1 admin", "1 workspace"],
+      "For solo entrepreneurs and freelancers managing their business.",
+    capacity: ["Up to 5 users, 1 admin", "1 location"],
     features: [
-      "Up to 1000/req. per day",
-      "5 GB max storage",
-      "Community Slack Support",
+      "Up to 500 transactions/month",
+      "Basic inventory tracking",
+      "Community support",
     ],
     isStarter: true,
     isRecommended: false,
@@ -57,13 +57,13 @@ const plans: Plan[] = [
   {
     name: "Teams",
     price: { monthly: "$49", annually: "$39" },
-    description: "For small teams and start-ups that need a scalable database.",
-    capacity: ["Up to 100 users, 3 admins", "Up to 20 workspaces"],
+    description: "For growing businesses with multiple team members and needs.",
+    capacity: ["Up to 100 users, 3 admins", "Up to 5 locations"],
     features: [
-      "Unlimited requests",
-      "$0.07 per processed GB",
-      "$0.34 per stored GB",
-      "Slack Connect",
+      "Unlimited transactions",
+      "Advanced inventory & POS",
+      "Multi-location support",
+      "Priority email support",
     ],
     isStarter: false,
     isRecommended: false,
@@ -74,13 +74,13 @@ const plans: Plan[] = [
     name: "Business",
     price: { monthly: "$99", annually: "$79" },
     description:
-      "For larger teams that need more advanced controls and features.",
-    capacity: ["Up to 500 users, 10 admins", "Unlimited workspaces"],
+      "For established enterprises requiring comprehensive management tools.",
+    capacity: ["Up to 500 users, 10 admins", "Unlimited locations"],
     features: [
-      "Unlimited requests",
-      "Volume discount",
-      "$0.03 per processed GB",
-      "$0.1 per stored GB",
+      "Unlimited transactions",
+      "Enterprise features",
+      "Custom integrations",
+      "B2B wholesale tools",
       "Single Sign-On (SSO)",
     ],
     isStarter: false,
@@ -103,84 +103,84 @@ interface Section {
 
 const sections: Section[] = [
   {
-    name: "Workspace Features",
+    name: "Core Business Features",
     features: [
       {
-        name: "Email notifications & webhooks",
+        name: "Inventory management",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Track stock levels, manage SKUs, and automate reordering across locations.",
         plans: { Starter: true, Teams: true, Business: true },
       },
       {
-        name: "Workspaces",
+        name: "Business locations",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: "5", Teams: "10", Business: "Unlimited" },
+          "Manage multiple stores, warehouses, or facilities from one platform.",
+        plans: { Starter: "1", Teams: "5", Business: "Unlimited" },
       },
       {
-        name: "Storage",
+        name: "Data storage",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Secure cloud storage for all your business data and documents.",
         plans: {
-          Starter: "$0.65 per stored GB",
-          Teams: "$0.34 per stored GB",
-          Business: "Customized¹",
+          Starter: "5 GB included",
+          Teams: "50 GB included",
+          Business: "Unlimited",
         },
       },
       {
-        name: "Seats",
+        name: "User accounts",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Employee and staff accounts with role-based access controls.",
         plans: {
           Starter: "5 users",
-          Teams: "Up to 20 users",
+          Teams: "Up to 100 users",
           Business: "Unlimited",
         },
       },
     ],
   },
   {
-    name: "Automation",
+    name: "Sales & Operations",
     features: [
       {
-        name: "Service accounts",
+        name: "Point of Sale (POS)",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Complete POS system with offline mode and payment processing.",
         plans: { Starter: true, Teams: true, Business: true },
       },
       {
-        name: "Admin API",
+        name: "Customer relationship management",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Track customer interactions, purchase history, and preferences.",
         plans: { Teams: true, Business: true },
       },
       {
-        name: "No-Code workflow builder",
+        name: "B2B wholesale features",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Custom pricing tiers, bulk orders, and business customer portals.",
         plans: { Starter: "Limited", Teams: "Standard", Business: "Enhanced" },
       },
     ],
   },
   {
-    name: "Analytics",
+    name: "Analytics & Reporting",
     features: [
       {
-        name: "Analytics retention",
+        name: "Report history retention",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: "7 days", Teams: "1 year", Business: "Unlimited" },
+          "How long your business analytics and reports are stored.",
+        plans: { Starter: "30 days", Teams: "1 year", Business: "Unlimited" },
       },
       {
-        name: "Anomaly detection",
+        name: "Real-time dashboards",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Live business metrics and performance monitoring across locations.",
         plans: { Teams: true, Business: true },
       },
       {
         name: "Custom report builder",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Create tailored reports for any aspect of your business operations.",
         plans: { Business: true },
       },
     ],
@@ -189,11 +189,11 @@ const sections: Section[] = [
     name: "Support",
     features: [
       {
-        name: "Slack",
+        name: "Chat support",
         plans: {
           Starter: "Community",
-          Teams: "Connect",
-          Business: "Dedicated agent",
+          Teams: "Business hours",
+          Business: "24/7 dedicated",
         },
       },
       {
@@ -226,12 +226,12 @@ export default function Pricing() {
       >
         <Badge>Pricing</Badge>
         <h1 className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl">
-          Our plans scale with you
+          Plans that grow with your business
         </h1>
         <p className="text-landing-body mt-6 max-w-2xl">
-          Plans that empower you and your team to ship without friction. Our
-          flexible pricing models ensure that efficiency doesn&rsquo;t come at
-          the cost of your budget.
+          From solo entrepreneur to enterprise operation, our flexible pricing
+          scales with your needs. Powerful business management that fits your
+          budget at every stage of growth.
         </p>
       </section>
       <section

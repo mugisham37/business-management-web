@@ -3,15 +3,15 @@ import { Badge } from "../ui/Badge"
 
 const stats = [
   {
-    name: "Bandwith increase",
+    name: "Average efficiency gain",
     value: "+162%",
   },
   {
-    name: "Better storage efficiency",
+    name: "Faster operations",
     value: "2-3x",
   },
   {
-    name: "Rows ingested / second",
+    name: "Transactions processed daily",
     value: "Up to 9M",
   },
 ]
@@ -32,13 +32,13 @@ export default function Features() {
           lineHeight: 'var(--leading-section)'
         }}
       >
-        Architected for speed and reliability
+        Built for reliability and growth
       </h2>
       <p className="text-landing-body max-w-3xl leading-7" style={{ marginTop: 'var(--spacing-content-gap)' }}>
-        Database&rsquo; innovative architecture avoids the central bottlenecks
-        of traditional systems, enhancing system reliability. This design
-        ensures high productivity and security, minimizing the risk of service
-        disruptions and outages.
+        Our multi-tenant architecture ensures complete data isolation while
+        delivering enterprise-grade performance. This design guarantees your
+        business operations run smoothly with bank-level security, minimizing
+        downtime and protecting every transaction.
       </p>
       <dl className="mt-12 grid grid-cols-1 gap-y-8 md:grid-cols-3 md:border-y md:border-border md:py-14">
         {stats.map((stat, index) => (

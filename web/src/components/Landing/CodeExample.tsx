@@ -8,75 +8,75 @@ import {
 import { Badge } from "../ui/Badge"
 import CodeExampleTabs from "./CodeExampleTabs"
 
-const code = `Employee Management
-• Track employee information and roles
-• Monitor department assignments
-• Manage hiring and onboarding processes
-• Set up role-based permissions
+const code = `Inventory Management
+• Track stock levels across locations
+• Manage SKUs and product variants
+• Automate reordering processes
+• Monitor lot numbers and expiration dates
 
-Expense Tracking
-• Submit and approve expense reports
-• Categorize business expenses
-• Track spending by department
-• Generate expense analytics
+Sales & Point of Sale
+• Process transactions online and offline
+• Accept multiple payment methods
+• Handle returns and exchanges
+• Apply discounts and loyalty rewards
 
-Project Management
-• Create and assign projects
-• Set budgets and deadlines
-• Monitor project progress
-• Track team collaboration
+Customer Management
+• Track purchase history and preferences
+• Segment customers by behavior
+• Run targeted marketing campaigns
+• Manage loyalty programs
 
-Time & Attendance
-• Log work hours and timesheets
-• Track project time allocation
-• Generate attendance reports
-• Calculate billable hours`
+Financial Operations
+• Generate invoices and track payments
+• Monitor cash flow and profitability
+• Manage accounts receivable/payable
+• Export data for accounting`
 
-const code2 = `Financial Overview
+const code2 = `Business Operations Dashboard
 
-Revenue & Expenses
-Track all business income and expenses in real-time. 
-Monitor cash flow, profit margins, and financial health 
-with automated reporting and analytics.
+Inventory & Stock Control
+Monitor real-time inventory levels across all locations. 
+Track product movements, automate reordering, and manage 
+suppliers with intelligent purchasing workflows.
 
-Approval Workflows
-Set up multi-level approval processes for expenses, 
-purchase orders, and budget requests. Ensure compliance 
-and maintain control over business spending.
+Multi-Location Management
+Coordinate operations across unlimited stores, warehouses, 
+and facilities. Each location maintains independent settings 
+while providing centralized oversight and reporting.
 
-Team Collaboration
-Enable seamless communication between departments. 
-Share documents, assign tasks, and track progress 
-across all your business operations.
+Sales & Customer Insights
+Process transactions through integrated POS systems. 
+Track customer relationships, purchase patterns, and 
+loyalty programs to drive repeat business growth.
 
-Reporting & Analytics
-Generate comprehensive reports on expenses, revenue, 
-employee performance, and project metrics. Export data 
-for accounting and compliance purposes.`
+Financial Management
+Access comprehensive financial reporting with real-time 
+profit analysis by product, location, and time period. 
+Integrate with accounting software for seamless operations.`
 
 const features = [
   {
     name: "Integrate with your stack",
     description:
-      "Connect seamlessly with your existing tools using our APIs and SDKs for all major platforms.",
+      "Connect seamlessly with payment processors, shipping carriers, and accounting software through our comprehensive APIs.",
     icon: RiStackLine,
   },
   {
     name: "Ready-to-use workflows",
     description:
-      "Deploy automated approval workflows, expense tracking, and reporting directly from your dashboard.",
+      "Deploy automated inventory tracking, sales processing, and customer management directly from your dashboard.",
     icon: RiPlugLine,
   },
   {
     name: "Pre-built integrations",
     description:
-      "Connect to accounting software, payroll systems, and business tools like Stripe, QuickBooks, and Xero.",
+      "Connect to essential business tools like Stripe, QuickBooks, Xero, Shopify, and major shipping carriers instantly.",
     icon: RiLinksLine,
   },
   {
     name: "Enterprise security",
     description:
-      "Bank-level encryption with AES-256, role-based access control, and full audit trails for compliance.",
+      "Bank-level encryption with AES-256, multi-factor authentication, and complete audit trails for regulatory compliance.",
     icon: RiShieldKeyholeLine,
   },
 ]
@@ -97,11 +97,11 @@ export default function CodeExample() {
           lineHeight: 'var(--leading-section)'
         }}
       >
-        Built by developers, <br /> for developers
+        Designed for business, <br /> built for scale
       </h2>
       <p className="text-landing-body max-w-2xl text-lg" style={{ marginTop: 'var(--spacing-content-gap)' }}>
-        Powerful query capabilities that let you filter expenses, track employee time, 
-        and generate reports across all your business data with ease.
+        Powerful management capabilities that let you track inventory, process sales, 
+        manage customers, and analyze performance across your entire business operation.
       </p>
       <CodeExampleTabs
         tab1={

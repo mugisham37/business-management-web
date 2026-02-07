@@ -21,7 +21,7 @@ export default function TeamGallery() {
             alt="Two employees working with computers"
             width={640}
             height={427}
-            caption="At Database we use computers"
+            caption="Managing operations from anywhere"
           />
           <InstaxImage
             className="w-[15rem]"
@@ -30,7 +30,7 @@ export default function TeamGallery() {
             alt="Office with a phone booth"
             width={640}
             height={853}
-            caption="Our phone booths are nuts"
+            caption="Built for modern workplaces"
           />
           <InstaxImage
             className="-mr-10 w-[15rem]"
@@ -39,7 +39,7 @@ export default function TeamGallery() {
             alt="Picture of the Fraumunster Zurich"
             width={640}
             height={960}
-            caption="Home sweet home"
+            caption="Your business, your way"
           />
         </div>
         <div className="hidden w-full justify-between gap-4 md:flex" style={{ marginTop: 'var(--spacing-gallery-row)' }}>
@@ -50,7 +50,7 @@ export default function TeamGallery() {
             alt="Team having a break in the lunch room"
             width={640}
             height={360}
-            caption="Sometimes we take a break"
+            caption="Real-time insights for better decisions"
           />
           <InstaxImage
             className="-mt-10 w-[15rem]"
@@ -59,7 +59,7 @@ export default function TeamGallery() {
             alt="Personw with headphones"
             width={640}
             height={965}
-            caption="Robin handels the playlist"
+            caption="Seamless team collaboration"
           />
           <InstaxImage
             className="-mr-20 -mt-2 w-[30rem]"
@@ -68,7 +68,7 @@ export default function TeamGallery() {
             alt="Picture of a party with confetti"
             width={1920}
             height={1281}
-            caption="v1.0 Release party. Our US intern, Mike, had his first alcohol-free beer"
+            caption="Celebrating milestones together. Our first customer hit $1M in sales using our platform"
           />
         </div>
       </div>
@@ -78,10 +78,10 @@ export default function TeamGallery() {
             className="w-full"
             style={{ transform: 'rotate(1deg)' }}
             src="/images/founders.webp"
-            alt=" Join Database, be yourself."
+            alt="Join us, grow your business."
             width={1819}
             height={998}
-            caption=" Join Database, be yourself."
+            caption="Join us, grow your business."
           />
         </div>
       </div>

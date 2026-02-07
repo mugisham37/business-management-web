@@ -19,7 +19,7 @@ export default function Hero() {
           animationDuration: "var(--animation-slide-up-fade-duration)"
         }}
       >
-        The database for <br /> modern applications
+        Complete business <br /> management platform
       </h1>
       <p
         className="text-landing-body max-w-lg animate-slide-up-fade"
@@ -28,8 +28,8 @@ export default function Hero() {
           animationDuration: "900ms"
         }}
       >
-        Database is a general purpose, relational database built for modern
-        application developers and for the cloud era.
+        All-in-one solution for inventory, sales, customers, and finances built
+        to scale from solo entrepreneur to enterprise operation.
       </p>
       <div
         className="mt-8 flex w-full animate-slide-up-fade flex-col justify-center gap-3 px-3 sm:flex-row"

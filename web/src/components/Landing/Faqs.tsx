@@ -9,32 +9,32 @@ import {
 const faqs = [
   {
     question:
-      "How secure is the database software in terms of protecting sensitive data?",
+      "How secure is the platform in terms of protecting my business data?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "We implement enterprise-grade security with multi-layer authentication, end-to-end encryption, and continuous monitoring. Every action is logged, data is encrypted both in transit and at rest, and we maintain SOC 2 compliance to ensure your business information stays protected.",
   },
   {
-    question: "Can the database be self-hosted?",
+    question: "Can I start small and upgrade as my business grows?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
-  },
-  {
-    question:
-      "Does the software support integration with other systems and applications?",
-    answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Absolutely. Our platform is designed to scale with you. Start with the Starter plan as a solo entrepreneur, then seamlessly upgrade to Teams or Business as you add locations, employees, and need more advanced features. Your data and settings transfer automatically with no disruption.",
   },
   {
     question:
-      "How easy is it to back up and restore data using the database software?",
+      "Does the software integrate with my existing tools and services?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Yes. We offer pre-built integrations with popular payment processors, shipping carriers, accounting software, e-commerce platforms, and marketing tools. Our API also allows custom integrations with industry-specific systems you already use.",
   },
   {
     question:
-      "What level of technical support and maintenance is provided for the software?",
+      "What happens to my data if I need to export or migrate?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Your data is always yours. We provide comprehensive export tools in standard formats (CSV, Excel, JSON) for all your business information. Automated backups run continuously, and you can restore your entire business to any point in time within your plan's retention period.",
+  },
+  {
+    question:
+      "What kind of support can I expect with each plan?",
+    answer:
+      "Starter plans include community support and email responses within 2-4 days. Teams plans get priority email support with 1-2 day response times plus business hours chat. Business plans receive 24/7 dedicated support with priority handling and a dedicated account manager.",
   },
 ]
 

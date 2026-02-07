@@ -16,18 +16,18 @@ export default function About() {
           animationFillMode: "backwards",
         }}
       >
-        <Badge>about database</Badge>
+        <Badge>about our platform</Badge>
         <h1
           id="about-overview"
           className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl"
         >
           <Balancer>
-            We are engineers, building the database platform we always wanted
+            We are builders, creating the business management platform that grows with you
           </Balancer>
         </h1>
         <p className="text-landing-body mt-6 max-w-2xl">
-          Data is changing every aspect of running a business, and it is
-          happening now. <br /> Database is at the core of this revolution.
+          Business operations are evolving rapidly, and the right tools make all
+          the difference. <br /> Our platform is at the heart of this transformation.
         </p>
       </section>
       <TeamGallery />
@@ -41,21 +41,21 @@ export default function About() {
         </h2>
         <div className="prose-landing mt-6 space-y-4">
           <p className="text-lg leading-8">
-            We envision a world where data management is no longer a complex
-            challenge but a powerful advantage. By integrating cutting-edge AI
-            into database solutions, we aim to transform raw data into strategic
-            assets, empowering businesses to innovate faster and more
-            efficiently.
+            We envision a world where business management is no longer fragmented
+            across multiple tools but unified in one powerful platform. By creating
+            software that scales from solo entrepreneurs to enterprise operations,
+            we aim to transform how businesses operate, empowering teams to grow
+            faster and work more efficiently.
           </p>
           <p className="text-lg leading-8">
-            We believe in removing the barriers of data complexity and
-            scalability, enabling teams to focus on insights and innovations
-            rather than maintenance and management. Our goal is to equip every
-            organization with the tools they need to harness the full potential
-            of their data, driving growth and excellence in every interaction.
+            We believe in removing the barriers of complexity and disconnected
+            systems, enabling businesses to focus on growth and customer success
+            rather than wrestling with software. Our goal is to equip every
+            organization with the complete toolkit they need to manage operations
+            seamlessly, driving profitability and excellence in every transaction.
           </p>
           <p className={cx("text-signature rotate-3")}>
-            – Alex and Robin
+            – The Team
           </p>
         </div>
       </section>

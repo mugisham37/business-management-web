@@ -12,7 +12,7 @@ export default function LogoCloud() {
       }}
     >
       <p className="text-lg font-medium tracking-tighter text-foreground">
-        Trusted by the world&rsquo;s best engineering teams
+        Trusted by businesses worldwide across every industry
       </p>
       <div className="grid grid-cols-2 gap-10 gap-y-4 text-foreground md:grid-cols-4 md:gap-x-20">
         <Logos.Biosynthesis className="w-28" />

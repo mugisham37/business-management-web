@@ -1,74 +1,75 @@
 <ChangelogEntry version="v3.17.0" date="Apr 27, 2024">
-## Safe migrations on development branches
+## Multi-Location Inventory Synchronization
 
-After months of development, Safe migrations can now be activated on development
-branches. Activating this feature ensures zero-downtime schema migrations, the
-ability to revert schemas, and safeguards against unintended schema
-modifications.
+After months of development, Real-time inventory sync can now be activated across
+all business locations. Activating this feature ensures instant stock updates, the
+ability to transfer inventory seamlessly, and safeguards against overselling or
+stock discrepancies.
 
 <ChangelogImage src="/changelog/v317.webp" />
 
 ### New & Improved:
 
-- <Bold>Filters:</Bold> [AI Filters](#) will now enhance your existing
-  compatible filters rather than replacing them.
-- <Bold>Comments:</Bold> When you open a notification about a comment, the reply
-  input field will now automatically appear.
-- <Bold>Editor:</Bold> It's now possible to browse through multiple images in
-  the editor without needing to zoom out.
-- <Bold>Templates:</Bold> When using an existing document to [create a
-  template](#), users can now choose which team to create it in, rather than it
-  defaulting to the first available team.
+- <Bold>Inventory:</Bold> [Smart Reorder](#) will now enhance your existing
+  reorder points rather than replacing them with automated suggestions.
+- <Bold>Notifications:</Bold> When you open a notification about low stock, the purchase
+  order form will now automatically appear with suggested quantities.
+- <Bold>Product Gallery:</Bold> It's now possible to browse through multiple product images in
+  the catalog without needing to open separate windows.
+- <Bold>Pricing Rules:</Bold> When using an existing product to [create a
+  pricing tier](#), users can now choose which customer segment to apply it to, rather than it
+  defaulting to the first available tier.
 
 ### Fixes:
 
-- <Bold>Dashboard:</Bold> Now, when you move database projects in a list or
-  board layout grouped by date within the [dashboard](#), the start and end
-  dates will update automatically.
+- <Bold>Dashboard:</Bold> Now, when you move inventory items in a list or
+  grid layout grouped by category within the [dashboard](#), the stock levels and location
+  assignments will update automatically.
 - <Bold>Dashboard:</Bold> The sequence of columns on dashboards organized by
-  [database milestones](#) will now match the order of milestones displayed in
+  [sales milestones](#) will now match the order of targets displayed in
   the sidebar.
-- <Bold>Desktop Application:</Bold> Fixed a glitch that allowed PDF printing
-  even in the absence of connected printers.
-- <Bold>Help Center:</Bold> Enhanced the capability for accessing documentation
-  links directly from the in-app help center.
-- <Bold>Editor:</Bold> The user mention feature in the SQL editor now respects
-  the 'Display full names' setting.
-- <Bold>Filters:</Bold> Resolved an inconsistency where filter queries with
-  'includes any' settings sometimes delivered incorrect results.
+- <Bold>Mobile App:</Bold> Fixed a glitch that allowed receipt printing
+  even in the absence of connected printers or offline mode.
+- <Bold>Help Center:</Bold> Enhanced the capability for accessing tutorial
+  videos directly from the in-app help center for common tasks.
+- <Bold>POS System:</Bold> The customer lookup feature in the checkout screen now respects
+  the 'Display full names' privacy setting for staff members.
+- <Bold>Reports:</Bold> Resolved an inconsistency where sales reports with
+  'date range' filters sometimes delivered incorrect totals.
 
 For more information, refer to our [the documentation](#).
 
 </ChangelogEntry>
 
 <ChangelogEntry version="v3.16.0" date="Apr 10, 2024">
-## New Regions and Replicas
+## Advanced Customer Segmentation & Loyalty Programs
 
-Database introduces the capability to set up same-region read replicas. These
-replicas are separate, read-only compute units designed to conduct read
-operations on the same dataset as their corresponding read-write compute
-instances.
+The platform introduces the capability to set up intelligent customer segments. These
+segments are dynamic, behavior-based groups designed to target
+customers with personalized experiences based on their purchase history and engagement
+patterns with your business.
 
 <ChangelogImage src="/changelog/v316.webp" />
 
-### Use Regions to advance:
+### Use Segmentation to advance:
 
-- <Bold>Enhanced Throughput:</Bold> Spread read operations across several
-  replicas to improve throughput for all types of workloads, both read-write and
-  read-only.
-- <Bold>Dedicated Read-only Workloads:</Bold> Assign analytical and reporting
-  tasks to a read replica to preserve the performance of your main application
-  workload.
-- <Bold>Controlled Data Access:</Bold> Grant read-only access to specific
-  applications or users who don't require write permissions.
-- <Bold>Resource Customization:</Bold> Tailor the CPU and memory resources for
-  each read replica according to the specific requirements of different
-  applications or users.
-- <Bold>Customization Features:</Bold> Instantly create and tailor the resources
-  of one or more read replicas for any project branch, adjusting the allocated
-  vCPU and memory as needed.
+- <Bold>Enhanced Engagement:</Bold> Spread marketing campaigns across several
+  segments to improve conversion rates for all types of promotions, both seasonal and
+  year-round.
+- <Bold>Dedicated Loyalty Tiers:</Bold> Assign rewards and exclusive benefits
+  to premium segments to preserve relationships with your most valuable
+  customers.
+- <Bold>Controlled Pricing Access:</Bold> Grant special pricing to specific
+  customer groups or wholesale buyers who qualify for volume
+  discounts.
+- <Bold>Reward Customization:</Bold> Tailor the points earning and redemption rules for
+  each loyalty tier according to the specific purchasing behaviors of different
+  customer segments.
+- <Bold>Automation Features:</Bold> Instantly create and tailor the criteria
+  of one or more customer segments for any location or channel, adjusting the qualification
+  rules and rewards as needed.
 
-For more information, refer to our docs post on read replicas or the read
-replicas section in [the documentation](#).
+For more information, refer to our docs post on customer loyalty or the customer
+segmentation section in [the documentation](#).
 
 </ChangelogEntry>

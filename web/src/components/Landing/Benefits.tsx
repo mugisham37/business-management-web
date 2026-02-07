@@ -1,42 +1,42 @@
 const benefits = [
   {
-    title: "Work in Zurich",
+    title: "Scales with your business",
     description:
-      "We are in-person first and have a fantastic office in Zurich.",
+      "From solo freelancer to enterprise operation, our platform grows with you.",
   },
   {
-    title: "Competitive salary & equity",
+    title: "Multi-location ready",
     description:
-      "We pay competitive salary and option packages to attract the very best talent.",
+      "Manage one storefront or hundreds of locations from a single dashboard.",
   },
   {
-    title: "Health, dental, vision",
+    title: "Complete inventory control",
     description:
-      "Database pays all of your health, dental, and vision insurance.",
+      "Track every product movement with real-time visibility across all locations.",
   },
   {
-    title: "Yearly off-sites",
+    title: "Integrated point-of-sale",
     description:
-      "We bring everyone together at an interesting location to discuss the big picture.",
+      "Process sales seamlessly online and offline with automatic syncing.",
   },
   {
-    title: "Book budget",
+    title: "Customer relationships",
     description:
-      "We provide every employee with a 350 dollar budget for books.",
+      "Build lasting connections with comprehensive CRM and loyalty programs.",
   },
   {
-    title: "Tasty snacks",
+    title: "Financial clarity",
     description:
-      "The fridge and pantry are stocked + free dinner catered every night (incl. weekends).",
+      "Know exactly where your business stands with real-time financial insights.",
   },
   {
-    title: "20 PTO days per year",
-    description: "Take time off to recharge and come back refreshed.",
+    title: "Team management",
+    description: "Handle scheduling, time tracking, and permissions effortlessly.",
   },
   {
-    title: "Spotify Premium",
+    title: "Enterprise security",
     description:
-      "We really have the best fringe benefits, even a Spotify subscription is included.",
+      "Bank-level encryption and multi-factor authentication protect your data.",
   },
 ]
 
@@ -55,7 +55,7 @@ export default function Benefits() {
           lineHeight: 'var(--leading-section)'
         }}
       >
-        What&rsquo;s in for you
+        What&rsquo;s included
       </h2>
       <dl className="mt-8 grid grid-cols-4 gap-x-10 gap-y-8 sm:mt-12 sm:gap-y-10">
         {benefits.map((benefit, index) => (

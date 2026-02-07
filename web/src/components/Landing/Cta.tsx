@@ -53,8 +53,8 @@ export default function Cta() {
                 </h3>
                 <p className="text-landing-body mx-auto max-w-2xl sm:text-lg" style={{ marginTop: 'var(--spacing-xs)' }}>
                   <Balancer>
-                    Launch a new cluster or migrate to Database with zero
-                    downtime.
+                    Start managing your business today or migrate your existing
+                    data seamlessly.
                   </Balancer>
                 </p>
               </div>

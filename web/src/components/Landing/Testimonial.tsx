@@ -13,9 +13,9 @@ export default function Testimonial() {
         >
           <p>
             <Balancer>
-              "Thanks to this robust database solution, our organization has
-              streamlined data management processes, leading to increased
-              efficiency and accuracy in our operations."
+              "This comprehensive business platform transformed how we operate.
+              We've streamlined inventory, sales, and customer management,
+              leading to remarkable efficiency gains across all locations."
             </Balancer>
           </p>
         </blockquote>
