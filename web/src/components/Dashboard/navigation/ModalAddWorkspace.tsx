@@ -246,8 +246,8 @@ export function ModalAddWorkspace({
 
           <div className="mt-6 space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="workspace-name" className="font-medium">
+              <div className="form-field-container">
+                <Label htmlFor="workspace-name" className="form-label-standard">
                   Workspace name <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -269,8 +269,8 @@ export function ModalAddWorkspace({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="starter-kit" className="font-medium">
+              <div className="form-field-container">
+                <Label htmlFor="starter-kit" className="form-label-standard">
                   Starter kit <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -302,8 +302,8 @@ export function ModalAddWorkspace({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="database-region" className="font-medium">
+            <div className="form-field-container">
+              <Label htmlFor="database-region" className="form-label-standard">
                 Database region <span className="text-destructive">*</span>
               </Label>
               <Select
@@ -334,7 +334,7 @@ export function ModalAddWorkspace({
                   ))}
                 </SelectContent>
               </Select>
-              <p id="database-region-help" className="text-xs text-muted-foreground">
+              <p id="database-region-help" className="form-helper-text">
                 For best performance, choose a region closest to your application.
               </p>
               {errors.databaseRegion && (
@@ -344,8 +344,8 @@ export function ModalAddWorkspace({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label className="font-medium">
+            <div className="form-field-container">
+              <Label className="form-label-standard">
                 Database configuration <span className="text-destructive">*</span>
               </Label>
               <RadioCardGroup
@@ -383,7 +383,7 @@ export function ModalAddWorkspace({
                   </RadioCardItem>
                 ))}
               </RadioCardGroup>
-              <p id="database-config-help" className="text-xs text-muted-foreground">
+              <p id="database-config-help" className="form-helper-text">
                 You can upgrade your database configuration later in workspace settings.
               </p>
               {errors.databaseConfig && (

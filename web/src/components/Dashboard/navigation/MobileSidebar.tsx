@@ -73,10 +73,8 @@ export default function MobileSidebar({
         <Link
           href={item.href}
           className={cx(
-            isActive(item.href)
-              ? "text-blue-600 dark:text-blue-500"
-              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-            "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+            "nav-item-base",
+            isActive(item.href) ? "nav-item-active" : "nav-item-inactive",
             focusRing,
           )}
         >
@@ -124,9 +122,7 @@ export default function MobileSidebar({
             {sections.map((section) => (
               <div key={section.title}>
                 <span
-                  className={cx(
-                    "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity dark:text-gray-400",
-                  )}
+                  className="nav-section-label"
                 >
                   {section.title}
                 </span>

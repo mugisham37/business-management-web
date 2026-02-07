@@ -114,13 +114,9 @@ const NavigationItemComponent = React.memo(({
     <Link
       href={item.href}
       className={cx(
-        isActive
-          ? "text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-950/50"
-          : "text-gray-700 dark:text-gray-300",
+        "nav-item-base",
+        isActive ? "nav-item-active" : "nav-item-inactive",
         isCollapsed ? "inline-flex justify-center" : "flex",
-        "items-center gap-x-2.5 rounded-md p-2 text-sm font-medium transition-all duration-200",
-        "hover:bg-gray-200/50 hover:dark:bg-gray-900",
-        "hover:text-gray-900 hover:dark:text-gray-50",
         focusRing,
         className,
       )}
@@ -136,7 +132,7 @@ const NavigationItemComponent = React.memo(({
         <>
           <span className="truncate">{item.name}</span>
           {item.badge && (
-            <span className="ml-auto rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            <span className="nav-badge">
               {item.badge}
             </span>
           )}
@@ -211,7 +207,7 @@ export function Sidebar({
         className={cx(
           isCollapsed ? "lg:w-[60px]" : "lg:w-64",
           "hidden overflow-x-hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:flex lg:flex-col",
-          "transform-gpu transition-all duration-200 ease-in-out will-change-transform",
+          "sidebar-transition",
           "bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800",
           className,
         )}
@@ -275,7 +271,7 @@ export function Sidebar({
                 <span
                   aria-hidden={isCollapsed}
                   className={cx(
-                    "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity duration-200 dark:text-gray-400",
+                    "nav-section-label",
                     isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100",
                   )}
                 >
@@ -304,7 +300,7 @@ export function Sidebar({
       </nav>
       
       {/* Mobile Header */}
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:hidden dark:border-gray-800 dark:bg-gray-950">
+      <div className="mobile-nav-header flex shrink-0 items-center justify-between px-4 sm:px-6 lg:hidden">
         <Link 
           href={brandHref}
           aria-label={`${brandName} home`}

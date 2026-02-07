@@ -52,13 +52,13 @@ export const WorkspacesDropdownDesktop = () => {
         <button
           ref={dropdownTriggerRef}
           className={cx(
-            "flex w-full items-center gap-x-2.5 rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm transition-all hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 hover:dark:bg-gray-900",
+            "workspace-dropdown-button",
             focusInput,
           )}
           aria-label="Select workspace"
         >
           <span
-            className="flex aspect-square size-8 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500"
+            className="workspace-avatar bg-indigo-600 dark:bg-indigo-500"
             aria-hidden="true"
           >
             RA
@@ -102,8 +102,8 @@ export const WorkspacesDropdownDesktop = () => {
               <div className="flex w-full items-center gap-x-2.5">
                 <span
                   className={cx(
+                    "workspace-avatar",
                     workspace.color,
-                    "flex aspect-square size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                   )}
                   aria-hidden="true"
                 >
@@ -160,7 +160,8 @@ export const WorkspacesDropdownMobile = () => {
         >
           <span
             className={cx(
-              "flex aspect-square size-7 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500",
+              "workspace-avatar workspace-avatar-mobile",
+              "bg-indigo-600 dark:bg-indigo-500",
             )}
             aria-hidden="true"
           >
@@ -205,8 +206,8 @@ export const WorkspacesDropdownMobile = () => {
               <div className="flex w-full items-center gap-x-2.5">
                 <span
                   className={cx(
+                    "workspace-avatar",
                     workspace.color,
-                    "flex size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                   )}
                   aria-hidden="true"
                 >
