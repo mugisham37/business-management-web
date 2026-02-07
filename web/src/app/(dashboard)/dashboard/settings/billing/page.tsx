@@ -559,8 +559,8 @@ export default function Billing() {
                             className={cx(
                               "size-4",
                               card.isActive
-                                ? "text-emerald-600 dark:text-emerald-500"
-                                : "text-gray-400 dark:text-gray-600"
+                                ? "text-[var(--billing-active-indicator)]"
+                                : "text-[var(--muted-foreground)]"
                             )}
                             aria-hidden="true"
                           />

@@ -22,19 +22,19 @@ const blacklist = [
     category: "Blocked transactions",
     value: "$4,653 volume",
     description: "1,234",
-    color: "bg-rose-600 dark:bg-rose-500",
+    color: "bg-[var(--policy-blocked-color)]",
   },
   {
     category: "Suspicious transactions",
     value: "$1,201 volume",
     description: "319",
-    color: "bg-orange-500 dark:bg-orange-500",
+    color: "bg-[var(--policy-suspicious-color)]",
   },
   {
     category: "Successful transactions",
     value: "$213,642 volume",
     description: "10,546",
-    color: "bg-gray-500 dark:bg-gray-500",
+    color: "bg-[var(--muted)]",
   },
 ]
 
@@ -74,12 +74,12 @@ const keywords = [
 const keywordCategories = [
   {
     value: "Block",
-    color: "bg-rose-600 dark:bg-rose-500",
+    color: "bg-[var(--policy-blocked-color)]",
     description: "Blocks transactions, preventing payment.",
   },
   {
     value: "Suspicious",
-    color: "bg-orange-500 dark:bg-orange-500",
+    color: "bg-[var(--policy-suspicious-color)]",
     description: "Processes transactions but flags for audit.",
   },
 ]
@@ -170,11 +170,11 @@ export default function TransactionPolicy() {
           <div>
             <h2
               id="transaction-policy-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Transaction policy
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Block transactions by keywords or merchant category.
             </p>
             

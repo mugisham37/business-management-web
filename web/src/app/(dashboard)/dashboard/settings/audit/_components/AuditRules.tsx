@@ -165,11 +165,11 @@ export default function AuditRules() {
           <div>
             <h2
               id="audit-rules-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Configure audit trails
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Enable comprehensive audit trails to track expenses, ensuring
               compliance and enhancing security.
             </p>
@@ -229,7 +229,7 @@ export default function AuditRules() {
                                 {rule.type === "event" ? (
                                   <>
                                     <span
-                                      className="relative flex aspect-square h-9 items-center justify-center rounded-lg bg-orange-600 dark:bg-orange-500"
+                                      className="relative flex aspect-square h-9 items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-event-color)]"
                                       aria-hidden="true"
                                     >
                                       <ArrowDownToDot
@@ -238,10 +238,10 @@ export default function AuditRules() {
                                       />
                                     </span>
                                     <div>
-                                      <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                                      <p className="text-[length:var(--text-settings-table-cell)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                                         {ruleIndex + 1}. {rule.method.title}
                                       </p>
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      <p className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                                         {rule.method.description}
                                       </p>
                                     </div>
@@ -249,7 +249,7 @@ export default function AuditRules() {
                                 ) : rule.type === "function" ? (
                                   <>
                                     <span
-                                      className="relative flex aspect-square h-9 items-center justify-center rounded-lg bg-sky-500 dark:bg-sky-500"
+                                      className="relative flex aspect-square h-9 items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-function-color)]"
                                       aria-hidden="true"
                                     >
                                       <SquareFunction
@@ -258,10 +258,10 @@ export default function AuditRules() {
                                       />
                                     </span>
                                     <div>
-                                      <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                                      <p className="text-[length:var(--text-settings-table-cell)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                                         {ruleIndex + 1}. {rule.method.title}
                                       </p>
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      <p className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                                         {rule.method.description}
                                       </p>
                                     </div>
@@ -269,7 +269,7 @@ export default function AuditRules() {
                                 ) : (
                                   <>
                                     <span
-                                      className="relative flex aspect-square h-9 items-center justify-center rounded-lg bg-emerald-500 dark:bg-emerald-500"
+                                      className="relative flex aspect-square h-9 items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-action-color)]"
                                       aria-hidden="true"
                                     >
                                       <CircleArrowOutUpRight
@@ -278,10 +278,10 @@ export default function AuditRules() {
                                       />
                                     </span>
                                     <div>
-                                      <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                                      <p className="text-[length:var(--text-settings-table-cell)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                                         {ruleIndex + 1}. {rule.method.title}
                                       </p>
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      <p className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                                         {rule.method.description}
                                       </p>
                                     </div>
@@ -362,10 +362,10 @@ export default function AuditRules() {
                         </div>
                       )}
                       {rule.type === "event" ? (
-                        <Card className="relative mt-4 overflow-hidden border-gray-300 p-0 dark:border-gray-800">
+                        <Card className="relative mt-4 overflow-hidden border-[var(--border)] p-0">
                           <Button
                             variant="ghost"
-                            className="absolute right-4 top-4 p-2.5 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-red-500 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-red-500"
+                            className="absolute right-4 top-4 p-2.5 text-[var(--muted-foreground)] hover:border hover:border-[var(--border)] hover:bg-[var(--settings-section-bg-elevated)] hover:text-[var(--status-critical)]"
                             aria-label="Remove event"
                           >
                             <Trash2
@@ -373,10 +373,10 @@ export default function AuditRules() {
                               aria-hidden="true"
                             />
                           </Button>
-                          <div className="overflow-hidden border-l-4 border-orange-600 p-6 dark:border-orange-500">
-                            <div className="flex items-center gap-4 pr-4">
+                          <div className="overflow-hidden border-l-[length:var(--audit-rule-card-border-width)] border-[var(--audit-event-color)] p-[length:var(--spacing-audit-rule-card-padding)]">
+                            <div className="flex items-center gap-[length:var(--spacing-audit-rule-icon-gap)] pr-4">
                               <span
-                                className="flex aspect-square h-10 items-center justify-center rounded-lg bg-orange-600 dark:bg-orange-500"
+                                className="flex aspect-square h-[length:var(--icon-size-audit-rule-container)] items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-event-color)]"
                                 aria-hidden="true"
                               >
                                 <ArrowDownToDot
@@ -385,10 +385,10 @@ export default function AuditRules() {
                                 />
                               </span>
                               <div className="truncate">
-                                <h4 className="text-sm font-medium capitalize text-gray-900 dark:text-gray-50">
+                                <h4 className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] capitalize text-[var(--foreground)]">
                                   {rule.type}
                                 </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                <p className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)] truncate">
                                   {rule.description}
                                 </p>
                               </div>

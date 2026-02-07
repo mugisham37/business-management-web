@@ -1189,6 +1189,226 @@ a {
     --reports-status-approved-dark: oklch(0.7227 0.1920 149.5793);  /* emerald-500 */
     --reports-status-action-required-dark: oklch(0.6368 0.2078 25.3313);  /* rose-500 */
     --reports-status-in-audit-dark: oklch(0.7686 0.1647 70.0804);   /* yellow-500 */
+    
+    /* ============================================
+       SETTINGS DASHBOARD DESIGN TOKENS
+       Added: 2026-02-07
+       Comprehensive tokens for all settings components
+       ============================================ */
+    
+    /* Settings-Specific Semantic Colors */
+    --settings-section-bg: var(--background);
+    --settings-section-bg-elevated: oklch(0.9789 0.0082 121.6272); /* gray-50 */
+    --settings-section-bg-elevated-dark: oklch(0.0909 0.0217 257.2823); /* #090E1A */
+    --settings-card-bg-muted: oklch(0.9789 0.0082 121.6272); /* gray-50 */
+    --settings-card-bg-muted-dark: oklch(0.2455 0.0217 257.2823); /* gray-900/40 */
+    
+    /* Audit Rule Type Colors - Semantic Mapping */
+    --audit-event-color: oklch(0.6559 0.1647 70.0804); /* orange-600 */
+    --audit-event-color-dark: oklch(0.7686 0.1647 70.0804); /* orange-500 */
+    --audit-function-color: oklch(0.4306 0.2301 276.9656); /* sky-500 */
+    --audit-function-color-dark: oklch(0.5906 0.2301 276.9656); /* sky-500 */
+    --audit-action-color: oklch(0.6559 0.1821 151.7110); /* emerald-500 */
+    --audit-action-color-dark: oklch(0.7227 0.1920 149.5793); /* emerald-500 */
+    
+    /* Billing Status Colors */
+    --billing-active-indicator: oklch(0.6559 0.1821 151.7110); /* emerald-600 */
+    --billing-active-indicator-dark: oklch(0.7227 0.1920 149.5793); /* emerald-500 */
+    --billing-inactive-indicator: var(--muted-foreground);
+    
+    /* User Status Colors - Semantic Mapping */
+    --user-status-active: var(--status-good);
+    --user-status-pending: var(--status-warning);
+    --user-status-inactive: var(--muted);
+    
+    /* Transaction Policy Colors */
+    --policy-blocked-color: oklch(0.6368 0.2078 25.3313); /* rose-600 */
+    --policy-blocked-color-dark: oklch(0.7106 0.1661 22.2162); /* rose-500 */
+    --policy-suspicious-color: oklch(0.6559 0.1647 70.0804); /* orange-500 */
+    --policy-suspicious-color-dark: oklch(0.7686 0.1647 70.0804); /* orange-500 */
+    
+    /* Settings Typography Patterns */
+    --text-settings-section-heading: var(--text-base); /* 16px - section headings */
+    --text-settings-section-description: var(--text-sm); /* 14px - section descriptions */
+    --text-settings-subsection-heading: var(--text-sm); /* 14px - subsection headings */
+    --text-settings-label: var(--text-sm); /* 14px - form labels */
+    --text-settings-helper: var(--text-xs); /* 12px - helper text */
+    --text-settings-table-header: var(--text-xs); /* 12px - table headers */
+    --text-settings-table-cell: var(--text-sm); /* 14px - table cells */
+    --text-settings-badge: var(--text-xs); /* 12px - badges */
+    --text-settings-button: var(--text-sm); /* 14px - buttons */
+    
+    /* Settings Line Heights */
+    --leading-settings-section-description: 1.5; /* leading-6 for descriptions */
+    --leading-settings-label: 1.25; /* leading-tight for labels */
+    --leading-settings-helper: 1.5; /* leading-normal for helper text */
+    
+    /* Settings Font Weights */
+    --font-settings-section-heading: var(--font-semibold); /* 600 */
+    --font-settings-subsection-heading: var(--font-medium); /* 500 */
+    --font-settings-label: var(--font-medium); /* 500 */
+    --font-settings-table-header: var(--font-medium); /* 500 */
+    
+    /* Settings Layout Spacing */
+    --spacing-settings-section-gap: 2.5rem; /* 40px - gap between major sections */
+    --spacing-settings-section-vertical: 2.5rem; /* 40px - space-y-10 */
+    --spacing-settings-grid-gap-x: 3.5rem; /* 56px - gap-x-14 between columns */
+    --spacing-settings-grid-gap-y: 2rem; /* 32px - gap-y-8 between rows */
+    --spacing-settings-subsection-gap: 1.5rem; /* 24px - mt-6 between subsections */
+    --spacing-settings-list-item-gap: 0.75rem; /* 12px - py-3 for list items */
+    --spacing-settings-card-padding: 1rem; /* 16px - p-4 for cards */
+    --spacing-settings-card-padding-lg: 1.5rem; /* 24px - p-6 for larger cards */
+    
+    /* Settings Form Spacing */
+    --spacing-settings-form-field-gap: 1rem; /* 16px - space-y-4 between form fields */
+    --spacing-settings-form-label-margin: 0.5rem; /* 8px - mt-2 below label */
+    --spacing-settings-form-section-gap: 1.5rem; /* 24px - mt-6 between form sections */
+    --spacing-settings-form-footer-margin: 1.5rem; /* 24px - mt-6 above footer */
+    
+    /* Settings Table Spacing */
+    --spacing-settings-table-cell-x: 0.75rem; /* 12px - px-3 */
+    --spacing-settings-table-cell-y: 0.625rem; /* 10px - py-2.5 */
+    --spacing-settings-table-header-y: 0.5rem; /* 8px - py-2 */
+    
+    /* Settings Audit Rule Spacing */
+    --spacing-audit-rule-step-gap: 1.5rem; /* 24px - space-y-6 between rule steps */
+    --spacing-audit-rule-card-padding: 1.5rem; /* 24px - p-6 */
+    --spacing-audit-rule-icon-gap: 1rem; /* 16px - gap-4 between icon and text */
+    --spacing-audit-rule-connector-height: 1.75rem; /* 28px - h-7 for vertical connector */
+    
+    /* Settings Billing Spacing */
+    --spacing-billing-overview-gap: 1.5rem; /* 24px - space-y-6 */
+    --spacing-billing-usage-item-padding: 1rem; /* 16px - p-4 */
+    --spacing-billing-card-footer-padding: 1rem; /* 16px - p-4 */
+    
+    /* Settings User Management Spacing */
+    --spacing-user-list-item-gap: 1rem; /* 16px - gap-4 between avatar and content */
+    --spacing-user-action-gap: 0.75rem; /* 12px - gap-3 between actions */
+    
+    /* Settings Component Radius */
+    --radius-settings-card: var(--radius-lg); /* 16px - rounded-lg */
+    --radius-settings-badge: var(--radius-full); /* 9999px - rounded-full */
+    --radius-settings-avatar: var(--radius-full); /* 9999px - rounded-full */
+    --radius-settings-audit-rule-card: var(--radius-md); /* 14px - rounded-md */
+    --radius-settings-audit-icon: var(--radius-lg); /* 16px - rounded-lg for icon containers */
+    --radius-settings-table: var(--radius-lg); /* 16px - rounded-lg */
+    --radius-settings-alert: var(--radius-md); /* 14px - rounded-md */
+    
+    /* Settings Component Shadows */
+    --shadow-settings-card: var(--shadow-sm); /* Subtle elevation for cards */
+    --shadow-settings-card-hover: var(--shadow-md); /* Hover state for interactive cards */
+    --shadow-settings-modal: var(--shadow-xl); /* Modal/dialog elevation */
+    --shadow-settings-dropdown: var(--shadow-lg); /* Dropdown menu elevation */
+    --shadow-settings-table: var(--shadow-sm); /* Table container elevation */
+    
+    /* Settings Component Transitions */
+    --transition-settings-card-hover: box-shadow var(--transition-base) var(--ease-in-out),
+                                      border-color var(--transition-base) var(--ease-in-out);
+    
+    --transition-settings-accordion: height var(--transition-base) var(--ease-in-out),
+                                     opacity var(--transition-base) var(--ease-in-out);
+    
+    --transition-settings-badge: background-color var(--transition-fast) var(--ease-in-out),
+                                color var(--transition-fast) var(--ease-in-out);
+    
+    --transition-settings-button-hover: background-color var(--transition-fast) var(--ease-in-out),
+                                       color var(--transition-fast) var(--ease-in-out),
+                                       border-color var(--transition-fast) var(--ease-in-out);
+    
+    --transition-settings-input-focus: border-color var(--transition-fast) var(--ease-in-out),
+                                      box-shadow var(--transition-fast) var(--ease-in-out);
+    
+    --transition-settings-switch: background-color var(--transition-base) var(--ease-in-out),
+                                 transform var(--transition-base) var(--ease-spring);
+    
+    --transition-settings-audit-rule-expand: height var(--transition-slow) var(--ease-spring),
+                                            opacity var(--transition-base) var(--ease-in-out);
+    
+    /* Settings Animation Keyframes */
+    --animation-settings-slide-down-duration: 300ms;
+    --animation-settings-slide-down-delay: 100ms;
+    --animation-settings-slide-down-easing: var(--ease-spring);
+    
+    /* Settings Z-Index Layers */
+    --z-settings-sticky-header: var(--z-sticky); /* 20 - for sticky section headers */
+    --z-settings-modal: var(--z-modal); /* 50 - for modals/dialogs */
+    --z-settings-dropdown: var(--z-dropdown); /* 10 - for dropdown menus */
+    --z-settings-tooltip: var(--z-tooltip); /* 70 - for tooltips */
+    --z-settings-audit-rule-connector: 1; /* Relative z-index for rule connectors */
+    
+    /* Settings Focus Ring Patterns */
+    --focus-ring-settings-input: 0 0 0 2px var(--background), 
+                                0 0 0 4px var(--focus-ring-color);
+    
+    --focus-ring-settings-button: 0 0 0 2px var(--background), 
+                                 0 0 0 4px var(--focus-ring-color);
+    
+    --focus-ring-settings-card: 0 0 0 2px var(--focus-ring-color);
+    
+    --focus-ring-settings-switch: 0 0 0 2px var(--background), 
+                                 0 0 0 4px var(--focus-ring-color);
+    
+    /* Settings Icon Sizes */
+    --icon-size-settings-xs: 0.75rem; /* 12px - size-3 */
+    --icon-size-settings-sm: 1rem; /* 16px - size-4 */
+    --icon-size-settings-default: 1.25rem; /* 20px - size-5 */
+    --icon-size-settings-lg: 1.5rem; /* 24px - size-6 */
+    --icon-size-settings-xl: 2rem; /* 32px - size-8 */
+    
+    /* Settings Audit Rule Icon Sizes */
+    --icon-size-audit-rule-type: 1.5rem; /* 24px - size-6 for event/function/action icons */
+    --icon-size-audit-rule-container: 2.5rem; /* 40px - h-10 for icon containers */
+    
+    /* Settings Status Icon Sizes */
+    --icon-size-status-indicator: 0.75rem; /* 12px - h-3 w-3 */
+    --icon-size-badge-icon: 0.75rem; /* 12px - h-3 w-3 */
+    
+    /* Settings Grid Layout */
+    --settings-grid-cols-mobile: 1;
+    --settings-grid-cols-desktop: 3;
+    --settings-content-col-span: 2; /* md:col-span-2 for content area */
+    
+    /* Settings Avatar Sizes */
+    --avatar-size-settings-sm: 2rem; /* 32px - size-8 */
+    --avatar-size-settings-default: 2.25rem; /* 36px - size-9 */
+    --avatar-size-settings-lg: 2.5rem; /* 40px - size-10 */
+    
+    /* Settings Badge Dimensions */
+    --badge-padding-x-sm: 0.5rem; /* 8px - px-2 */
+    --badge-padding-y-sm: 0.125rem; /* 2px - py-0.5 */
+    --badge-padding-x-default: 0.625rem; /* 10px - px-2.5 */
+    --badge-padding-y-default: 0.25rem; /* 4px - py-1 */
+    
+    /* Settings Table Dimensions */
+    --table-min-width-settings: 100%; /* w-full */
+    --table-cell-min-width-user: 100%; /* w-full for user column */
+    --table-cell-width-action: auto; /* w-fit for action column */
+    
+    /* Settings Audit Rule Card Dimensions */
+    --audit-rule-card-border-width: 4px; /* border-l-4 for type indicator */
+    --audit-rule-icon-container-size: 2.5rem; /* 40px - h-10 aspect-square */
+    --audit-rule-connector-width: 1px; /* w-px for vertical line */
+    
+    /* Settings Billing Table Dimensions */
+    --billing-table-caption-text-align: left;
+    --billing-table-footer-row-height: auto;
+    
+    /* Settings User Management Dimensions */
+    --user-dropdown-min-width: 12rem; /* 192px - w-48 */
+    --user-select-width-mobile: 100%; /* w-full */
+    --user-select-width-desktop: 10rem; /* 160px - sm:w-40 */
+    
+    /* Settings Modal Dimensions */
+    --modal-max-width-settings: 32rem; /* 512px - sm:max-w-lg */
+    --modal-content-min-height: auto;
+    
+    /* Settings Progress Circle Dimensions */
+    --progress-circle-radius-settings: 20px;
+    --progress-circle-stroke-width-settings: 4.5px;
+    
+    /* Settings Category Bar Dimensions */
+    --category-bar-height-settings: 0.5rem; /* 8px - h-2 */
+    --category-bar-indicator-size-settings: 0.625rem; /* 10px - size-2.5 */
   }
   
   .dark {
@@ -1345,6 +1565,16 @@ a {
     --reports-status-approved: var(--reports-status-approved-dark);
     --reports-status-action-required: var(--reports-status-action-required-dark);
     --reports-status-in-audit: var(--reports-status-in-audit-dark);
+    
+    /* Settings Dashboard - Dark Mode Overrides */
+    --settings-section-bg-elevated: var(--settings-section-bg-elevated-dark);
+    --settings-card-bg-muted: var(--settings-card-bg-muted-dark);
+    --audit-event-color: var(--audit-event-color-dark);
+    --audit-function-color: var(--audit-function-color-dark);
+    --audit-action-color: var(--audit-action-color-dark);
+    --billing-active-indicator: var(--billing-active-indicator-dark);
+    --policy-blocked-color: var(--policy-blocked-color-dark);
+    --policy-suspicious-color: var(--policy-suspicious-color-dark);
   }
 }
 
@@ -5227,4 +5457,158 @@ a {
   .dark .retention-stat-value-change {
     color: oklch(0.8003 0.1821 151.7110); /* emerald-500 */
   }
+}
+
+/* ============================================
+   UTILITY CLASSES FOR SETTINGS COMPONENTS
+   Reusable class patterns for consistent styling
+   ============================================ */
+
+/* Settings Section Headings */
+.settings-section-heading {
+  font-size: var(--text-settings-section-heading);
+  font-weight: var(--font-settings-section-heading);
+  color: var(--foreground);
+  scroll-margin-top: 2.5rem;
+}
+
+.settings-section-description {
+  font-size: var(--text-settings-section-description);
+  line-height: var(--leading-settings-section-description);
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+.settings-subsection-heading {
+  font-size: var(--text-settings-subsection-heading);
+  font-weight: var(--font-settings-subsection-heading);
+  color: var(--foreground);
+}
+
+/* Settings Form Elements */
+.settings-form-label {
+  font-size: var(--text-settings-label);
+  font-weight: var(--font-settings-label);
+  line-height: var(--leading-settings-label);
+  color: var(--foreground);
+}
+
+.settings-form-helper {
+  font-size: var(--text-settings-helper);
+  line-height: var(--leading-settings-helper);
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* Settings Table Styles */
+.settings-table-header {
+  font-size: var(--text-settings-table-header);
+  font-weight: var(--font-settings-table-header);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.settings-table-cell {
+  font-size: var(--text-settings-table-cell);
+  color: var(--foreground);
+}
+
+/* Settings Card Styles */
+.settings-card {
+  background-color: var(--card);
+  border-radius: var(--radius-settings-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-settings-card);
+  transition: var(--transition-settings-card-hover);
+}
+
+.settings-card:hover {
+  box-shadow: var(--shadow-settings-card-hover);
+}
+
+.settings-card-muted {
+  background-color: var(--settings-card-bg-muted);
+  border-radius: var(--radius-settings-card);
+  border: 1px solid var(--border);
+}
+
+/* Audit Rule Type Icons */
+.audit-event-icon {
+  background-color: var(--audit-event-color);
+  border-radius: var(--radius-settings-audit-icon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  height: var(--icon-size-audit-rule-container);
+  color: white;
+}
+
+.audit-function-icon {
+  background-color: var(--audit-function-color);
+  border-radius: var(--radius-settings-audit-icon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  height: var(--icon-size-audit-rule-container);
+  color: white;
+}
+
+.audit-action-icon {
+  background-color: var(--audit-action-color);
+  border-radius: var(--radius-settings-audit-icon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  height: var(--icon-size-audit-rule-container);
+  color: white;
+}
+
+/* Status Indicators */
+.status-indicator-active {
+  color: var(--billing-active-indicator);
+}
+
+.status-indicator-inactive {
+  color: var(--billing-inactive-indicator);
+}
+
+/* Policy Colors */
+.policy-blocked {
+  background-color: var(--policy-blocked-color);
+}
+
+.policy-suspicious {
+  background-color: var(--policy-suspicious-color);
+}
+
+/* User Status Badges */
+.user-status-active {
+  background-color: var(--user-status-active);
+  color: var(--status-good-foreground);
+}
+
+.user-status-pending {
+  background-color: var(--user-status-pending);
+  color: var(--status-warning-foreground);
+}
+
+.user-status-inactive {
+  background-color: var(--user-status-inactive);
+  color: var(--muted-foreground);
+}
+
+/* Link Styles */
+.settings-link {
+  color: var(--link-color);
+  transition: var(--transition-colors);
+}
+
+.settings-link:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }

@@ -198,11 +198,11 @@ export default function Users() {
           <div>
             <h2
               id="users-heading"
-              className="scroll-mt-10 text-lg font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-lg text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               User Management
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Invite team members to your workspace and manage their roles and permissions. 
               Control access levels to ensure proper security and collaboration.
             </p>
@@ -288,12 +288,12 @@ export default function Users() {
                                 {user.name}
                               </p>
                               {user.status === "pending" && (
-                                <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-500 dark:ring-yellow-400/20">
+                                <span className="inline-flex items-center rounded-[var(--radius-settings-badge)] bg-[var(--user-status-pending)] px-[length:var(--badge-padding-x-sm)] py-[length:var(--badge-padding-y-sm)] text-[length:var(--text-settings-badge)] font-[var(--font-settings-subsection-heading)] text-[var(--status-warning-foreground)] ring-1 ring-inset ring-[var(--user-status-pending)]">
                                   Pending
                                 </span>
                               )}
                               {user.role === "admin" && (
-                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/30">
+                                <span className="inline-flex items-center rounded-[var(--radius-settings-badge)] bg-[var(--nav-item-active-bg)] px-[length:var(--badge-padding-x-sm)] py-[length:var(--badge-padding-y-sm)] text-[length:var(--text-settings-badge)] font-[var(--font-settings-subsection-heading)] text-[var(--nav-item-active-text)] ring-1 ring-inset ring-[var(--nav-item-active-text)]">
                                   Admin
                                 </span>
                               )}

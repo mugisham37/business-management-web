@@ -26,11 +26,11 @@ export default function General() {
               <div>
                 <h2
                   id="personal-information"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
                 >
                   Personal information
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                   Manage your personal information and role.
                 </p>
               </div>
@@ -132,11 +132,11 @@ export default function General() {
               <div>
                 <h2
                   id="notification-settings"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
                 >
                   Notification settings
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                   Configure the types of notifications you want to receive.
                 </p>
               </div>
@@ -222,16 +222,16 @@ export default function General() {
               <div>
                 <h2
                   id="danger-zone"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
                 >
                   Danger zone
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                   Manage general workspace. Contact system admin for more
                   information.{" "}
                   <a
                     href="#"
-                    className="inline-flex items-center gap-1 text-indigo-600 hover:underline hover:underline-offset-4 dark:text-indigo-400"
+                    className="inline-flex items-center gap-1 text-[var(--link-color)] hover:underline hover:underline-offset-4"
                   >
                     Learn more
                     <RiExternalLinkLine

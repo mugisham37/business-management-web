@@ -182,11 +182,11 @@ export default function Approvers() {
           <div>
             <h2
               id="approver-list-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Approvers
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Define people who can approve bills and expenses.
             </p>
             
