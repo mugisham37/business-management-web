@@ -51,7 +51,7 @@ const SummaryItem = ({
   value: string | number | null | undefined
 }) => (
   <div className="space-y-1">
-    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+    <p className="form-helper-text font-medium">
       {label}
     </p>
     <p className="text-sm">{value ?? "Not provided"}</p>
@@ -65,8 +65,8 @@ const FormField = ({
   label: string
   children: React.ReactNode
 }) => (
-  <div>
-    <Label className="font-medium">{label}</Label>
+  <div className="form-field-container">
+    <Label className="form-label-standard">{label}</Label>
     <div className="mt-2">{children}</div>
   </div>
 )
@@ -76,12 +76,12 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
     <DrawerHeader>
       <DrawerTitle>
         <p>Create Support Ticket</p>
-        <span className="text-sm font-normal text-gray-500 dark:text-gray-500">
+        <span className="text-sm font-normal text-[var(--muted-foreground)]">
           Ticket Type & Category
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="-mx-6 space-y-6 overflow-y-scroll border-t border-gray-200 px-6 dark:border-gray-800">
+    <DrawerBody className="drawer-section space-y-6 overflow-y-scroll">
       <FormField label="Contact Type">
         <RadioCardGroup
           defaultValue={formData.type}
@@ -92,7 +92,7 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
             <RadioCardItem
               key={type.value}
               value={type.value}
-              className="flex flex-col justify-start p-2.5 text-base duration-75 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[state=checked]:border-transparent data-[state=checked]:bg-blue-500 data-[state=checked]:text-white sm:text-sm dark:focus:ring-blue-500"
+              className="flex flex-col justify-start p-2.5 text-base duration-75 focus-ring-blue data-[state=checked]:checked-state sm:text-sm"
             >
               {type.name}
               <span className="block text-sm opacity-75 sm:text-xs">
@@ -166,12 +166,12 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
     <DrawerHeader>
       <DrawerTitle>
         <p>Ticket Details</p>
-        <span className="text-sm font-normal text-gray-500 dark:text-gray-500">
+        <span className="text-sm font-normal text-[var(--muted-foreground)]">
           Priority & Description
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="-mx-6 space-y-6 overflow-y-scroll border-t border-gray-200 px-6 dark:border-gray-800">
+    <DrawerBody className="drawer-section space-y-6 overflow-y-scroll">
       <FormField label="Priority Level">
         <RadioCardGroup
           defaultValue={formData.priority}
@@ -182,7 +182,7 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
             <RadioCardItem
               key={priority.value}
               value={priority.value}
-              className="p-2.5 text-base duration-75 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 data-[state=checked]:border-transparent data-[state=checked]:bg-blue-500 data-[state=checked]:text-white sm:text-sm dark:focus:ring-blue-500"
+              className="p-2.5 text-base duration-75 focus-ring-blue data-[state=checked]:checked-state sm:text-sm"
             >
               <div className="flex items-center justify-between">
                 <span>{priority.label}</span>
@@ -232,14 +232,14 @@ const SummaryPage = ({ formData }: { formData: TicketFormData }) => (
     <DrawerHeader>
       <DrawerTitle>
         <p>Review Ticket</p>
-        <span className="text-sm font-normal text-gray-500 dark:text-gray-500">
+        <span className="text-sm font-normal text-[var(--muted-foreground)]">
           Please review all details before submitting
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="-mx-6 space-y-4 overflow-y-scroll border-t border-gray-200 px-6 dark:border-gray-800">
-      <div className="rounded-md border border-gray-200 dark:border-gray-800">
-        <div className="border-b border-gray-200 p-4 dark:border-gray-800">
+    <DrawerBody className="drawer-section space-y-4 overflow-y-scroll">
+      <div className="rounded-md border border-[var(--border)]">
+        <div className="divider-horizontal p-4">
           <h3 className="font-medium">Ticket Information</h3>
           <div className="mt-4 space-y-4">
             <SummaryItem

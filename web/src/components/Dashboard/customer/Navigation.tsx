@@ -19,7 +19,7 @@ function Navigation() {
   ]
 
   return (
-    <div className="shadow-s sticky top-0 z-20 bg-white dark:bg-gray-950">
+    <div className="sticky-header">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 pt-3">
         <div>
           <Link href="/" aria-label="Navigate to homepage">
@@ -34,11 +34,11 @@ function Navigation() {
               aria-label="open settings"
               className={cx(
                 focusRing,
-                "group rounded-full p-1 hover:bg-gray-100 data-[state=open]:bg-gray-100 hover:dark:bg-gray-400/10 data-[state=open]:dark:bg-gray-400/10",
+                "interactive-button-base group data-[state=open]:bg-[var(--interactive-active-bg)]",
               )}
             >
               <span
-                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                className="avatar-circle size-8 shrink-0 text-xs font-medium"
                 aria-hidden="true"
               >
                 ES

@@ -104,23 +104,23 @@ const formatDate = (dateString: string): string => {
 const NotificationItem = ({ notification }: { notification: Notification }) => {
   const { message, date, read } = notification
   return (
-    <li className="py-2.5">
+    <li className="notification-item">
       <a
         href="#"
-        className="relative block rounded-md px-1 py-1.5 hover:bg-gray-100/90 focus:outline-none hover:dark:bg-gray-900"
+        className="notification-item-link focus:outline-none"
       >
         {/* Extend touch target to entire field */}
         <span aria-hidden="true" className="absolute inset-0" />
-        <p className="text-sm text-gray-900 dark:text-gray-50">
+        <p className="text-sm text-[var(--foreground)]">
           {!read && (
             <span
               aria-hidden="true"
-              className="mb-px mr-1.5 inline-flex size-2 shrink-0 rounded-full bg-blue-500 sm:text-sm dark:bg-blue-500"
+              className="unread-indicator mb-px mr-1.5 sm:text-sm"
             />
           )}
           {message}
         </p>
-        <p className="mt-2.5 text-xs text-gray-500 dark:text-gray-500">
+        <p className="mt-2.5 text-xs text-[var(--muted-foreground)]">
           {formatDate(date)}
         </p>
       </a>
@@ -136,7 +136,7 @@ const NotificationList = ({ showAll = false }: { showAll?: boolean }) => {
   return (
     <ol
       aria-label="Unread notifications"
-      className="flex max-h-96 flex-col divide-y divide-gray-200 overflow-y-scroll dark:divide-gray-800"
+      className="scrollable-container flex flex-col divide-y divide-[var(--border)]"
     >
       {filteredNotifications.map((notification) => (
         <NotificationItem key={notification.id} notification={notification} />
@@ -156,18 +156,18 @@ export function Notifications() {
           aria-label="open notifications"
           className={cx(
             focusRing,
-            "group rounded-full p-1 hover:bg-gray-100 data-[state=open]:bg-gray-100 hover:dark:bg-gray-400/10 data-[state=open]:dark:bg-gray-400/10",
+            "interactive-button-base group data-[state=open]:bg-[var(--interactive-active-bg)]",
           )}
         >
-          <span className="flex size-8 items-center justify-center rounded-full border border-gray-300 bg-white p-1 dark:border-gray-700 dark:bg-gray-900 hover:dark:bg-gray-400/10">
+          <span className="avatar-circle size-8 p-1">
             {unreadCount > 0 && (
               <span
-                className="absolute right-2.5 top-2.5 size-2 shrink-0 rounded-full bg-blue-500"
+                className="unread-indicator absolute right-2.5 top-2.5"
                 aria-hidden="true"
               />
             )}
             <RiNotification2Line
-              className="-ml-px size-4 shrink-0 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 group-hover:dark:text-gray-50"
+              className="-ml-px size-4 shrink-0 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"
               aria-hidden="true"
             />
           </span>
@@ -178,7 +178,7 @@ export function Notifications() {
         className="z-20 ml-2 max-w-[95vw] px-3 sm:ml-0 sm:max-w-sm"
       >
         <div className="flex items-center justify-between gap-16">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-50">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">
             Notifications
           </h2>
           <Button variant="ghost">Mark {unreadCount} as read</Button>
@@ -196,7 +196,7 @@ export function Notifications() {
               <div className="relative">
                 <NotificationList showAll />
                 <div
-                  className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-white dark:to-gray-950"
+                  className="gradient-overlay-bottom"
                   aria-hidden="true"
                 />
               </div>
