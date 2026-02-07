@@ -27,42 +27,42 @@ interface CategoryItemProps {
 const categories: Category[] = [
   {
     id: "1",
-    title: "User Analytics",
+    title: "Inventory Management",
     subcategories: [
-      "User Segmentation",
-      "Cohort Analysis",
-      "Retention Analysis",
+      "Stock Tracking",
+      "Multi-Location",
+      "Auto Reordering",
     ],
   },
   {
     id: "2",
-    title: "Event Tracking",
-    subcategories: ["Custom Events", "Automated Events", "Event Funnels"],
+    title: "Point of Sale",
+    subcategories: ["Retail POS", "Payment Processing", "Receipt Management"],
   },
   {
     id: "3",
-    title: "A/B Testing",
-    subcategories: ["Experiment Setup", "Variant Analysis", "Reporting"],
+    title: "Customer Relations",
+    subcategories: ["CRM System", "Loyalty Programs", "Customer Insights"],
   },
   {
     id: "4",
-    title: "User Journeys",
-    subcategories: ["Journey Mapping", "Conversion Paths", "Drop-off Analysis"],
+    title: "Financial Management",
+    subcategories: ["Invoicing", "Expense Tracking", "Financial Reports"],
   },
   {
     id: "5",
-    title: "Engagement Tracking",
-    subcategories: ["Email Campaigns", "Push Notifications", "In-app Messages"],
+    title: "Supplier Management",
+    subcategories: ["Purchase Orders", "Vendor Tracking", "Price Comparison"],
   },
   {
     id: "6",
-    title: "Data Management",
-    subcategories: ["Data Import", "Data Export", "Integrations"],
+    title: "Employee Management",
+    subcategories: ["Time Tracking", "Shift Scheduling", "Payroll Integration"],
   },
   {
     id: "7",
-    title: "Security & Compliance",
-    subcategories: ["Data Encryption", "User Permissions", "GDPR Compliance"],
+    title: "Security & Access",
+    subcategories: ["Role Permissions", "Data Encryption", "Audit Logging"],
   },
 ]
 

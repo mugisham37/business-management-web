@@ -52,12 +52,12 @@ export default function Login() {
         <div className="relative flex items-center justify-center rounded-lg bg-white p-3 shadow-lg ring-1 ring-black/5">
           <Logo
             className="size-8 text-blue-500 dark:text-blue-500"
-            aria-label="Insights logo"
+            aria-label="Business platform logo"
           />
         </div>
         <div className="mt-6 flex flex-col">
           <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-            Log in to Insights
+            Log in to your business
           </h1>
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
             Don&rsquo;t have an account?{" "}

@@ -1,7 +1,7 @@
 export const siteConfig = {
-  name: "Database",
-  url: "https://database.tremor.so",
-  description: "The database for modern applications.",
+  name: "BizCore",
+  url: "https://bizcore.example.com",
+  description: "Complete business management platform for modern enterprises.",
   baseLinks: {
     home: "/",
     about: "/about",
