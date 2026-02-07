@@ -3749,6 +3749,162 @@ a {
   .pricing-discount-badge {
     color: var(--pricing-discount-color);
   }
+  
+  /* Pricing Plan Name */
+  .pricing-plan-name {
+    margin-top: var(--spacing-pricing-plan-header);
+    font-size: var(--text-pricing-plan-name);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  /* Pricing Description */
+  .pricing-description {
+    font-size: var(--text-pricing-description);
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Feature Value */
+  .pricing-feature-value {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Section Header */
+  .pricing-section-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+  
+  /* Pricing Section Spacing */
+  .pricing-section-spacing {
+    margin-top: var(--spacing-pricing-section-top);
+  }
+  
+  @media (min-width: 640px) {
+    .pricing-section-spacing {
+      margin-top: var(--spacing-pricing-section-top-lg);
+    }
+  }
+  
+  /* Pricing Card Grid */
+  .pricing-card-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    column-gap: var(--spacing-pricing-card-gap);
+    row-gap: 2rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .pricing-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  /* Pricing Table Column Widths */
+  .pricing-table-col-feature {
+    width: var(--pricing-table-col-feature);
+  }
+  
+  .pricing-table-col-plan {
+    width: var(--pricing-table-col-plan);
+  }
+  
+  /* Pricing Card Mobile */
+  .pricing-card-mobile {
+    border-radius: var(--radius-xl);
+    background-color: color-mix(in oklch, var(--muted) 5%, transparent);
+    padding: 1.5rem;
+    box-shadow: 0 0 0 1px var(--border) inset;
+  }
+  
+  /* Pricing Divider Line */
+  .pricing-divider {
+    height: 1px;
+    width: 100%;
+    background-color: var(--border);
+  }
+  
+  /* Pricing Table Header Text */
+  .pricing-table-header-title {
+    font-weight: var(--font-semibold);
+    line-height: 1.75;
+    color: var(--foreground);
+  }
+  
+  .pricing-table-header-subtitle {
+    font-size: var(--text-sm);
+    font-weight: var(--font-normal);
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Plan Header Text */
+  .pricing-plan-header-name {
+    font-weight: var(--font-semibold);
+    line-height: 1.75;
+    color: var(--foreground);
+  }
+  
+  .pricing-plan-header-name-popular {
+    color: var(--primary);
+  }
+  
+  .pricing-plan-header-price {
+    font-size: var(--text-sm);
+    font-weight: var(--font-normal);
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Mobile Section */
+  .pricing-mobile-section-title {
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  .pricing-mobile-section-list {
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
+  
+  .pricing-mobile-section-list > li {
+    border-bottom: 1px solid var(--border);
+  }
+  
+  /* Pricing Mobile Plan Header */
+  .pricing-mobile-plan-header {
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+  
+  .pricing-mobile-plan-price {
+    font-size: var(--text-sm);
+    font-weight: var(--font-normal);
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Mobile Feature List */
+  .pricing-mobile-feature-list {
+    margin-top: 2.5rem;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+  
+  .pricing-mobile-feature-list > li {
+    margin-top: 2.5rem;
+  }
+  
+  .pricing-mobile-feature-list > li:first-child {
+    margin-top: 0;
+  }
 }
 
 /* Dual Sidebar Layout System */

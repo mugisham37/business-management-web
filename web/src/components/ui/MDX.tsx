@@ -60,7 +60,11 @@ function CustomHeading({ level, children, className, ...props }: HeadingProps) {
 export const H1 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={1}
-    className={clsx("text-3xl font-bold normal-case tracking-tight text-gray-900 sm:text-4xl dark:text-gray-50", className)}
+    className={clsx("text-3xl font-bold normal-case sm:text-4xl", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -70,7 +74,11 @@ export const H1 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 export const H2 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={2}
-    className={clsx("mb-4 text-2xl font-semibold normal-case tracking-tight text-gray-900 dark:text-gray-50", className)}
+    className={clsx("mb-4 text-2xl font-semibold normal-case", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -80,7 +88,11 @@ export const H2 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 export const H3 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={3}
-    className={clsx("mb-2 text-xl font-semibold normal-case tracking-tight text-gray-900 dark:text-gray-50", className)}
+    className={clsx("mb-2 text-xl font-semibold normal-case", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -90,7 +102,11 @@ export const H3 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 export const H4 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={4}
-    className={clsx("mb-2 text-lg font-semibold normal-case tracking-tight text-gray-900 dark:text-gray-50", className)}
+    className={clsx("mb-2 text-lg font-semibold normal-case", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -100,7 +116,11 @@ export const H4 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 export const H5 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={5}
-    className={clsx("mb-2 text-base font-semibold normal-case tracking-tight text-gray-900 dark:text-gray-50", className)}
+    className={clsx("mb-2 text-base font-semibold normal-case", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -110,7 +130,11 @@ export const H5 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 export const H6 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadingElement>) => (
   <CustomHeading
     level={6}
-    className={clsx("mb-2 text-sm font-semibold normal-case tracking-tight text-gray-900 dark:text-gray-50", className)}
+    className={clsx("mb-2 text-sm font-semibold normal-case", className)}
+    style={{
+      letterSpacing: "var(--tracking-tight)",
+      color: "var(--foreground)",
+    }}
     {...props}
   >
     {children}
@@ -119,21 +143,30 @@ export const H6 = ({ children, className, ...props }: React.HTMLProps<HTMLHeadin
 
 export const P = ({ className, ...props }: React.HTMLProps<HTMLParagraphElement>) => (
   <p 
-    className={clsx("mb-8 leading-7 text-gray-600 dark:text-gray-400", className)} 
+    className={clsx("mb-8 leading-7", className)}
+    style={{
+      color: "var(--text-landing-body)",
+    }}
     {...props} 
   />
 )
 
 export const Ul = ({ className, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
   <ul
-    className={clsx("mb-10 ml-[30px] list-['–__'] space-y-1 leading-8 text-gray-600 dark:text-gray-400", className)}
+    className={clsx("mb-10 ml-[30px] list-['–__'] space-y-1 leading-8", className)}
+    style={{
+      color: "var(--text-landing-body)",
+    }}
     {...props}
   />
 )
 
 export const Ol = ({ className, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
   <ol
-    className={clsx("mb-10 ml-[30px] list-decimal space-y-1 leading-8 text-gray-600 dark:text-gray-400", className)}
+    className={clsx("mb-10 ml-[30px] list-decimal space-y-1 leading-8", className)}
+    style={{
+      color: "var(--text-landing-body)",
+    }}
     {...props}
   />
 )
@@ -147,7 +180,10 @@ export const Li = ({ className, ...props }: React.HTMLAttributes<HTMLLIElement>)
 
 export const Strong = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
   <strong 
-    className={clsx("font-semibold text-gray-900 dark:text-gray-50", className)} 
+    className={clsx("font-semibold", className)}
+    style={{
+      color: "var(--foreground)",
+    }}
     {...props} 
   />
 )
@@ -156,35 +192,52 @@ export const Bold = Strong
 
 export const Em = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
   <em 
-    className={clsx("italic text-gray-700 dark:text-gray-300", className)} 
+    className={clsx("italic", className)}
+    style={{
+      color: "var(--muted-foreground)",
+    }}
     {...props} 
   />
 )
 
 export const Code = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
   <code
-    className={clsx("rounded bg-gray-100 px-1.5 py-0.5 text-sm font-mono text-gray-800 dark:bg-gray-800 dark:text-gray-200", className)}
+    className={clsx("rounded px-1.5 py-0.5 text-sm font-mono", className)}
+    style={{
+      backgroundColor: "var(--muted)",
+      color: "var(--foreground)",
+    }}
     {...props}
   />
 )
 
 export const Pre = ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
   <pre
-    className={clsx("mb-8 overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-900", className)}
+    className={clsx("mb-8 overflow-x-auto rounded-lg p-4 text-sm", className)}
+    style={{
+      backgroundColor: "var(--muted)",
+    }}
     {...props}
   />
 )
 
 export const Blockquote = ({ className, ...props }: React.HTMLAttributes<HTMLQuoteElement>) => (
   <blockquote
-    className={clsx("mb-8 border-l-4 border-indigo-500 pl-4 italic text-gray-700 dark:text-gray-300", className)}
+    className={clsx("mb-8 border-l-4 pl-4 italic", className)}
+    style={{
+      borderColor: "var(--primary)",
+      color: "var(--muted-foreground)",
+    }}
     {...props}
   />
 )
 
 export const Hr = ({ className, ...props }: React.HTMLAttributes<HTMLHRElement>) => (
   <hr
-    className={clsx("my-12 border-gray-200 dark:border-gray-800", className)}
+    className={clsx("my-12", className)}
+    style={{
+      borderColor: "var(--border)",
+    }}
     {...props}
   />
 )
@@ -192,7 +245,10 @@ export const Hr = ({ className, ...props }: React.HTMLAttributes<HTMLHRElement>)
 export const Table = ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
   <div className="mb-8 overflow-x-auto">
     <table
-      className={clsx("min-w-full divide-y divide-gray-200 dark:divide-gray-800", className)}
+      className={clsx("min-w-full divide-y", className)}
+      style={{
+        borderColor: "var(--border)",
+      }}
       {...props}
     />
   </div>
@@ -200,14 +256,21 @@ export const Table = ({ className, ...props }: React.HTMLAttributes<HTMLTableEle
 
 export const Thead = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
   <thead
-    className={clsx("bg-gray-50 dark:bg-gray-900", className)}
+    className={clsx(className)}
+    style={{
+      backgroundColor: "var(--muted)",
+    }}
     {...props}
   />
 )
 
 export const Tbody = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
   <tbody
-    className={clsx("divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950", className)}
+    className={clsx("divide-y", className)}
+    style={{
+      backgroundColor: "var(--card)",
+      borderColor: "var(--border)",
+    }}
     {...props}
   />
 )
@@ -221,14 +284,20 @@ export const Tr = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowEle
 
 export const Th = ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
   <th
-    className={clsx("px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400", className)}
+    className={clsx("px-6 py-3 text-left text-xs font-medium uppercase tracking-wider", className)}
+    style={{
+      color: "var(--muted-foreground)",
+    }}
     {...props}
   />
 )
 
 export const Td = ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
   <td
-    className={clsx("whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100", className)}
+    className={clsx("whitespace-nowrap px-6 py-4 text-sm", className)}
+    style={{
+      color: "var(--foreground)",
+    }}
     {...props}
   />
 )
@@ -236,12 +305,17 @@ export const Td = ({ className, ...props }: React.HTMLAttributes<HTMLTableCellEl
 export function CustomLink({ href, className, children, ...props }: LinkProps) {
   if (!href) return <span {...props}>{children}</span>
 
-  const linkStyles = "text-indigo-600 font-medium hover:text-indigo-500 dark:text-indigo-500 hover:dark:text-indigo-400 transition-colors"
+  const linkStyles = "font-medium transition-colors"
   const combinedClassName = clsx(linkStyles, className)
+  
+  const linkStyle = {
+    color: "var(--primary)",
+    transition: "var(--transition-colors)",
+  }
 
   if (href.startsWith("/")) {
     return (
-      <Link href={href} className={combinedClassName} {...props}>
+      <Link href={href} className={combinedClassName} style={linkStyle} {...props}>
         {children}
       </Link>
     )
@@ -249,7 +323,7 @@ export function CustomLink({ href, className, children, ...props }: LinkProps) {
 
   if (href.startsWith("#")) {
     return (
-      <a href={href} className={combinedClassName} {...props}>
+      <a href={href} className={combinedClassName} style={linkStyle} {...props}>
         {children}
       </a>
     )
@@ -258,7 +332,8 @@ export function CustomLink({ href, className, children, ...props }: LinkProps) {
   return (
     <a 
       href={href} 
-      className={combinedClassName} 
+      className={combinedClassName}
+      style={linkStyle}
       target="_blank" 
       rel="noopener noreferrer" 
       {...props}
@@ -271,18 +346,57 @@ export function CustomLink({ href, className, children, ...props }: LinkProps) {
 export const A = CustomLink
 
 export const ChangelogEntry = ({ version, date, children }: ChangelogEntryProps) => (
-  <article className="relative my-20 flex flex-col justify-center gap-x-14 border-b border-gray-200 md:flex-row dark:border-gray-800">
-    <header className="mb-4 md:mb-10 md:w-1/3">
-      <div className="sticky top-24 flex items-center space-x-2 md:block md:space-x-0 md:space-y-1.5">
-        <span className="inline-flex items-center rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-500/20 dark:text-indigo-400 dark:ring-indigo-400/10">
+  <article 
+    className="relative flex flex-col justify-center md:flex-row"
+    style={{
+      marginTop: "var(--spacing-section-top)",
+      marginBottom: "var(--spacing-section-top)",
+      gap: "var(--spacing-gallery-row)",
+      borderBottom: "1px solid var(--border)",
+    }}
+  >
+    <header 
+      className="md:w-1/3"
+      style={{
+        marginBottom: "var(--spacing-content-gap)",
+      }}
+    >
+      <div 
+        className="sticky flex items-center space-x-2 md:block md:space-x-0"
+        style={{
+          top: "var(--spacing-lg)",
+          gap: "var(--spacing-xs)",
+        }}
+      >
+        <span
+          className="inline-flex items-center rounded-lg font-medium ring-1 ring-inset"
+          style={{
+            backgroundColor: "color-mix(in oklch, var(--primary) 10%, transparent)",
+            color: "var(--primary)",
+            padding: "var(--badge-padding-y-default) var(--badge-padding-x-default)",
+            fontSize: "var(--text-badge)",
+            borderRadius: "var(--radius-badge)",
+            // @ts-ignore - CSS variable for ring color
+            "--tw-ring-color": "color-mix(in oklch, var(--primary) 10%, transparent)",
+          } as React.CSSProperties}
+        >
           {version}
         </span>
-        <time className="block whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+        <time
+          className="block whitespace-nowrap"
+          style={{
+            fontSize: "var(--text-sm)",
+            color: "var(--muted-foreground)",
+            marginTop: "var(--spacing-xs)",
+          }}
+        >
           {date}
         </time>
       </div>
     </header>
-    <div className="mb-12">{children}</div>
+    <div style={{ marginBottom: "var(--spacing-section-gap)" }}>
+      {children}
+    </div>
   </article>
 )
 
@@ -292,7 +406,13 @@ export const ChangelogImage = ({ alt, width = 1200, height = 675, src, className
     alt={alt}
     width={width}
     height={height}
-    className={clsx("mb-10 overflow-hidden rounded-xl shadow-md shadow-black/15 ring-1 ring-gray-200/50 dark:ring-gray-800", className)}
+    className={clsx("mb-10 overflow-hidden ring-1", className)}
+    style={{
+      borderRadius: "var(--radius-xl)",
+      boxShadow: "var(--shadow-lg)",
+      // @ts-ignore - CSS variable for ring color
+      "--tw-ring-color": "color-mix(in oklch, var(--border) 50%, transparent)",
+    } as React.CSSProperties}
     {...props}
   />
 )

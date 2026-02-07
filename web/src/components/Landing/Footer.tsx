@@ -5,28 +5,22 @@ import ThemeSwitch from "../ui/ThemeSwitch"
 
 const navigation = {
   product: [
-    { name: "Enterprise", href: "#", external: false },
     { name: "Pricing", href: "/pricing", external: false },
-    { name: "Docs", href: "#", external: false },
     { name: "Changelog", href: "/changelog", external: false },
   ],
   resources: [
     { name: "FAQs", href: "/pricing#faq-title", external: false },
-    { name: "GitHub", href: "#", external: true },
-    { name: "Discord", href: "#", external: true },
-    { name: "YouTube", href: "#", external: true },
+    { name: "Instagram", href: "#", external: true },
+    { name: "Youtube", href: "#", external: true },
+    { name: "Tiktok", href: "#", external: true },
   ],
   company: [
     { name: "About", href: "/about", external: false },
-    { name: "Careers", href: "#", external: true },
     { name: "Contact", href: "#", external: false },
-    { name: "Status", href: "#", external: false },
   ],
   legal: [
-    { name: "Imprint", href: "#", external: false },
     { name: "Privacy", href: "#", external: false },
     { name: "Terms", href: "#", external: false },
-    { name: "DPA", href: "#", external: false },
   ],
 }
 
@@ -48,37 +42,6 @@ export default function Footer() {
           </div>
           <div className="mt-16 grid grid-cols-1 gap-14 sm:gap-8 md:grid-cols-2 xl:col-span-2 xl:mt-0">
             <div className="grid grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-sm font-semibold leading-6 text-foreground">
-                  Product
-                </h3>
-                <ul
-                  role="list"
-                  className="mt-6 space-y-4"
-                  aria-label="Quick links Product"
-                >
-                  {navigation.product.map((item) => (
-                    <li key={item.name} className="w-fit">
-                      <Link
-                        className="flex rounded-md text-sm text-muted-foreground transition hover:text-foreground"
-                        href={item.href}
-                        target={item.external ? "_blank" : undefined}
-                        rel={item.external ? "noopener noreferrer" : undefined}
-                      >
-                        <span>{item.name}</span>
-                        {item.external && (
-                          <div className="ml-1 aspect-square size-3 rounded-full bg-muted p-px">
-                            <RiArrowRightUpLine
-                              aria-hidden="true"
-                              className="size-full shrink-0 text-foreground"
-                            />
-                          </div>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
               <div>
                 <h3 className="text-sm font-semibold leading-6 text-foreground">
                   Resources
@@ -110,6 +73,38 @@ export default function Footer() {
                   ))}
                 </ul>
               </div>
+              <div>
+                <h3 className="text-sm font-semibold leading-6 text-foreground">
+                  Product
+                </h3>
+                <ul
+                  role="list"
+                  className="mt-6 space-y-4"
+                  aria-label="Quick links Product"
+                >
+                  {navigation.product.map((item) => (
+                    <li key={item.name} className="w-fit">
+                      <Link
+                        className="flex rounded-md text-sm text-muted-foreground transition hover:text-foreground"
+                        href={item.href}
+                        target={item.external ? "_blank" : undefined}
+                        rel={item.external ? "noopener noreferrer" : undefined}
+                      >
+                        <span>{item.name}</span>
+                        {item.external && (
+                          <div className="ml-1 aspect-square size-3 rounded-full bg-muted p-px">
+                            <RiArrowRightUpLine
+                              aria-hidden="true"
+                              className="size-full shrink-0 text-foreground"
+                            />
+                          </div>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
             </div>
             <div className="grid grid-cols-2 gap-8">
               <div>

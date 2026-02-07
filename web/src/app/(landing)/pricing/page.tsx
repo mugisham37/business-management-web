@@ -236,7 +236,7 @@ export default function Pricing() {
       </section>
       <section
         id="pricing-overview"
-        className="mt-20 animate-slide-up-fade"
+        className="pricing-section-spacing animate-slide-up-fade"
         aria-labelledby="pricing-overview"
         style={{
           animationDuration: "600ms",
@@ -267,7 +267,7 @@ export default function Pricing() {
             Yearly <span className="pricing-discount-badge">(-20%)</span>
           </Label>
         </div>
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 lg:grid-cols-3">
+        <div className="pricing-card-grid">
           {plans.map((plan, planIdx) => (
             <div key={planIdx} className="mt-6">
               {plan.isRecommended ? (
@@ -286,11 +286,11 @@ export default function Pricing() {
                 </div>
               ) : (
                 <div className="flex h-4 items-center">
-                  <div className="h-px w-full bg-gray-200 dark:bg-gray-800" />
+                  <div className="pricing-divider" />
                 </div>
               )}
               <div className="pricing-plan-card">
-                <h2 className="mt-6 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                <h2 className="pricing-plan-name">
                   {plan.name}
                 </h2>
                 <div className="pricing-amount">
@@ -306,7 +306,7 @@ export default function Pricing() {
                   </div>
                 </div>
                 <div className="mt-6 flex flex-col justify-between">
-                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                  <p className="pricing-description">
                     {plan.description}
                   </p>
                   <div className="mt-6">
@@ -354,7 +354,7 @@ export default function Pricing() {
                 </ul>
                 <ul
                   role="list"
-                  className="mt-4 text-sm text-gray-700 dark:text-gray-400"
+                  className="pricing-feature-list text-muted-foreground"
                 >
                   {plan.features.map((feature) => (
                     <li
@@ -377,7 +377,7 @@ export default function Pricing() {
 
       <section
         id="testimonial"
-        className="mx-auto mt-20 max-w-xl sm:mt-32 lg:max-w-6xl"
+        className="mx-auto pricing-section-spacing max-w-xl sm:max-w-6xl"
         aria-labelledby="testimonial"
       >
         <Testimonial />
@@ -386,20 +386,20 @@ export default function Pricing() {
       {/* plan details (xs-lg)*/}
       <section
         id="pricing-details"
-        className="mt-20 sm:mt-36"
+        className="pricing-section-spacing"
         aria-labelledby="pricing-details"
       >
         <div className="mx-auto space-y-8 sm:max-w-md lg:hidden">
           {plans.map((plan) => (
             <div key={plan.name}>
-              <div className="rounded-xl bg-gray-400/5 p-6 ring-1 ring-inset ring-gray-200 dark:ring-gray-800">
+              <div className="pricing-card-mobile">
                 <h2
                   id={plan.name}
-                  className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-50"
+                  className="pricing-mobile-plan-header"
                 >
                   {plan.name}
                 </h2>
-                <p className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                <p className="pricing-mobile-plan-price">
                   {isVariablePrice(plan.price)
                     ? `${
                         billingFrequency === "monthly"
@@ -411,14 +411,14 @@ export default function Pricing() {
               </div>
               <ul
                 role="list"
-                className="mt-10 space-y-10 text-sm leading-6 text-gray-900 dark:text-gray-50"
+                className="pricing-mobile-feature-list"
               >
                 {sections.map((section) => (
                   <li key={section.name}>
-                    <h3 className="font-semibold">{section.name}</h3>
+                    <h3 className="pricing-mobile-section-title">{section.name}</h3>
                     <ul
                       role="list"
-                      className="mt-2 divide-y divide-gray-200 dark:divide-gray-800"
+                      className="pricing-mobile-section-list"
                     >
                       {section.features.map((feature) =>
                         feature.plans[plan.name] ? (
@@ -433,7 +433,7 @@ export default function Pricing() {
                             <span>
                               {feature.name}{" "}
                               {typeof feature.plans[plan.name] === "string" ? (
-                                <span className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                                <span className="pricing-feature-value">
                                   ({feature.plans[plan.name]})
                                 </span>
                               ) : null}
@@ -451,17 +451,17 @@ export default function Pricing() {
       </section>
 
       {/* plan details (lg+) */}
-      <section className="mx-auto mt-20">
+      <section className="mx-auto pricing-section-spacing">
         <div className="mt-20 hidden sm:mt-28 lg:block">
           <div className="relative">
             <div className="pricing-table-sticky-header-primary" />
             <table className="w-full table-fixed border-separate border-spacing-0 text-left">
               <caption className="sr-only">Pricing plan comparison</caption>
               <colgroup>
-                <col className="w-2/5" />
-                <col className="w-1/5" />
-                <col className="w-1/5" />
-                <col className="w-1/5" />
+                <col className="pricing-table-col-feature" />
+                <col className="pricing-table-col-plan" />
+                <col className="pricing-table-col-plan" />
+                <col className="pricing-table-col-plan" />
               </colgroup>
               <thead className="pricing-table-sticky-header">
                 <tr>
@@ -469,10 +469,10 @@ export default function Pricing() {
                     scope="col"
                     className="pricing-table-cell"
                   >
-                    <div className="font-semibold leading-7 text-gray-900 dark:text-gray-50">
+                    <div className="pricing-table-header-title">
                       Compare prices
                     </div>
-                    <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                    <div className="pricing-table-header-subtitle">
                       Price per month (billed yearly)
                     </div>
                   </th>
@@ -485,14 +485,14 @@ export default function Pricing() {
                       <div
                         className={cx(
                           !plan.isStarter
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-900 dark:text-gray-50",
-                          "font-semibold leading-7",
+                            ? "pricing-plan-header-name-popular"
+                            : "pricing-plan-header-name",
+                          "pricing-plan-header-name",
                         )}
                       >
                         {plan.name}
                       </div>
-                      <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                      <div className="pricing-plan-header-price">
                         {isVariablePrice(plan.price)
                           ? `${
                               billingFrequency === "monthly"
@@ -514,7 +514,7 @@ export default function Pricing() {
                         colSpan={4}
                         className={cx(
                           sectionIdx === 0 ? "pt-14" : "pt-10",
-                          "border-b border-gray-100 pb-4 text-base font-semibold leading-6 text-gray-900 dark:border-gray-800 dark:text-gray-50",
+                          "pricing-section-header",
                         )}
                       >
                         {section.name}
@@ -527,13 +527,13 @@ export default function Pricing() {
                       >
                         <th
                           scope="row"
-                          className="flex items-center gap-2 pricing-table-cell text-sm font-normal leading-6 text-gray-900 dark:text-gray-50"
+                          className="flex items-center gap-2 pricing-table-cell text-sm font-normal leading-6 text-foreground"
                         >
                           <span>{feature.name}</span>
                           {feature.tooltip ? (
                             <Tooltip side="right" content={feature.tooltip}>
                               <RiInformationLine
-                                className="pricing-feature-icon text-gray-700 dark:text-gray-400"
+                                className="pricing-feature-icon text-muted-foreground"
                                 aria-hidden="true"
                               />
                             </Tooltip>
@@ -545,7 +545,7 @@ export default function Pricing() {
                             className="pricing-table-cell lg:px-8"
                           >
                             {typeof feature.plans[plan.name] === "string" ? (
-                              <div className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                              <div className="pricing-feature-value">
                                 {feature.plans[plan.name]}
                               </div>
                             ) : (
@@ -557,7 +557,7 @@ export default function Pricing() {
                                   />
                                 ) : (
                                   <RiSubtractLine
-                                    className="pricing-feature-icon-unavailable h-5 w-5"
+                                    className="pricing-feature-icon-unavailable"
                                     aria-hidden="true"
                                   />
                                 )}
@@ -579,7 +579,7 @@ export default function Pricing() {
                 <tr>
                   <th
                     scope="row"
-                    className="pt-6 text-sm font-normal leading-6 text-gray-900 dark:text-gray-50"
+                    className="pt-6 text-sm font-normal leading-6 text-foreground"
                   >
                     <span className="sr-only">Link to activate plan</span>
                   </th>
@@ -600,7 +600,7 @@ export default function Pricing() {
                         <Button
                           variant="light"
                           asChild
-                          className="group bg-transparent px-0 text-base text-indigo-600 hover:bg-transparent dark:bg-transparent dark:text-indigo-400 hover:dark:bg-transparent"
+                          className="group bg-transparent px-0 text-base text-primary hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
                         >
                           <Link href={plan.buttonLink}>
                             {plan.buttonText}
