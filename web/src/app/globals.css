@@ -528,6 +528,131 @@ a {
     /* Focus Ring for Overview Interactive Elements */
     --focus-ring-overview: 2px solid var(--primary);
     --focus-ring-offset-overview: 2px;
+    
+    /* ============================================
+       USER PROFILE COMPONENT DESIGN TOKENS
+       Added: 2026-02-07
+       ============================================ */
+    
+    /* Avatar Sizes - Semantic Scale */
+    --avatar-size-xs: 1.5rem;        /* 24px */
+    --avatar-size-sm: 2rem;          /* 32px */
+    --avatar-size-default: 2.5rem;   /* 40px */
+    --avatar-size-lg: 3rem;          /* 48px */
+    --avatar-size-xl: 4rem;          /* 64px */
+    
+    /* Avatar Status Indicator */
+    --avatar-status-size: 0.625rem;  /* 10px - size-2.5 */
+    --avatar-status-border-width: 2px;
+    --avatar-status-border-color: var(--card);
+    
+    /* Avatar Status Colors - Semantic Mapping */
+    --avatar-status-online: oklch(0.7227 0.1920 149.5793);    /* green - maps to chart-5 */
+    --avatar-status-offline: var(--muted-foreground);
+    --avatar-status-away: oklch(0.7686 0.1647 70.0804);       /* orange - maps to accent */
+    --avatar-status-busy: oklch(0.6368 0.2078 25.3313);       /* red - maps to destructive */
+    --avatar-status-invisible: transparent;
+    
+    /* User Profile Button States */
+    --user-profile-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent);
+    --user-profile-hover-bg-dark: color-mix(in oklch, var(--muted-foreground) 20%, transparent);
+    --user-profile-active-bg: color-mix(in oklch, var(--muted) 70%, transparent);
+    --user-profile-active-bg-dark: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+    
+    /* User Profile Business Variant Colors */
+    --user-profile-business-hover-bg: color-mix(in oklch, var(--muted) 25%, transparent);
+    --user-profile-business-hover-bg-dark: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+    --user-profile-business-active-bg: color-mix(in oklch, var(--muted) 40%, transparent);
+    --user-profile-business-active-bg-dark: color-mix(in oklch, var(--muted-foreground) 15%, transparent);
+    
+    /* User Profile Avatar Border (Business Variant) */
+    --user-profile-avatar-border: oklch(0.8452 0 0);          /* gray-300 */
+    --user-profile-avatar-border-dark: oklch(0.4459 0 0);     /* gray-800 */
+    --user-profile-avatar-bg: var(--card);
+    --user-profile-avatar-bg-dark: oklch(0.2455 0.0217 257.2823); /* gray-900 */
+    
+    /* Dropdown Menu Item States */
+    --dropdown-item-hover-bg: color-mix(in oklch, var(--muted) 40%, transparent);
+    --dropdown-item-hover-bg-dark: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+    --dropdown-item-focus-bg: var(--dropdown-item-hover-bg);
+    
+    /* Dropdown Menu Destructive Item (Sign Out) */
+    --dropdown-item-destructive-text: oklch(0.6368 0.2078 25.3313);        /* red-600 */
+    --dropdown-item-destructive-text-dark: oklch(0.7106 0.1661 22.2162);   /* red-400 */
+    --dropdown-item-destructive-hover-bg: color-mix(in oklch, oklch(0.6368 0.2078 25.3313) 10%, transparent);  /* red-50 */
+    --dropdown-item-destructive-hover-bg-dark: color-mix(in oklch, oklch(0.6368 0.2078 25.3313) 10%, transparent); /* red-950/50 */
+    --dropdown-item-destructive-hover-text: oklch(0.5106 0.2301 25.3313);  /* red-700 */
+    --dropdown-item-destructive-hover-text-dark: oklch(0.7845 0.1325 22.2162); /* red-300 */
+    
+    /* Dropdown Menu Separator */
+    --dropdown-separator-color: var(--border);
+    
+    /* Dropdown Menu Label Padding */
+    --dropdown-label-padding-x: 0.75rem;  /* 12px - px-3 */
+    --dropdown-label-padding-y: 0.75rem;  /* 12px - py-3 */
+    
+    /* Dropdown Menu Item Padding */
+    --dropdown-item-padding-x: 0.5rem;    /* 8px - px-2 */
+    --dropdown-item-padding-y: 0.375rem;  /* 6px - py-1.5 */
+    
+    /* Dropdown Menu Icon Wrapper */
+    --dropdown-icon-wrapper-size: 1rem;   /* 16px - size-4 */
+    --dropdown-icon-wrapper-gap: 0.5rem;  /* 8px - gap-2 */
+    
+    /* External Link Icon */
+    --external-link-icon-size: 0.75rem;   /* 12px - size-3 */
+    --external-link-icon-color: var(--muted-foreground);
+    
+    /* Keyboard Shortcut Badge */
+    --shortcut-badge-padding-x: 0.375rem; /* 6px - px-1.5 */
+    --shortcut-badge-padding-y: 0.125rem; /* 2px - py-0.5 */
+    --shortcut-badge-font-size: var(--text-xs);
+    --shortcut-badge-bg: var(--muted);
+    --shortcut-badge-text: var(--muted-foreground);
+    --shortcut-badge-border-radius: var(--radius-sm);
+    
+    /* Badge Gradient Variant (Pro/Plan Badge) */
+    --badge-gradient-from: var(--primary);
+    --badge-gradient-to: var(--secondary);
+    
+    /* Badge Neutral Variant (Role Badge) */
+    --badge-neutral-bg: var(--muted);
+    --badge-neutral-text: var(--muted-foreground);
+    
+    /* User Profile Spacing Patterns */
+    --user-profile-gap: 0.75rem;          /* 12px - gap-3 between avatar and text */
+    --user-profile-gap-collapsed: 0;      /* No gap when collapsed */
+    --user-profile-padding-x: 0.5rem;     /* 8px - px-2 */
+    --user-profile-padding-y: 0.5rem;     /* 8px - py-2 */
+    --user-profile-business-padding-x: 0.25rem;  /* 4px - px-1 */
+    --user-profile-business-padding-y: 0.5rem;   /* 8px - py-2 */
+    
+    /* User Profile Dropdown Min Width */
+    --user-profile-dropdown-min-width: 280px;
+    --user-profile-dropdown-customer-min-width: calc(var(--radix-dropdown-menu-trigger-width));
+    
+    /* Chevron Icon */
+    --chevron-icon-size: 1rem;            /* 16px - size-4 */
+    --chevron-icon-color: var(--muted-foreground);
+    --chevron-icon-hover-color: oklch(0.3211 0 0);           /* gray-700 */
+    --chevron-icon-hover-color-dark: oklch(0.8452 0 0);      /* gray-400 */
+    
+    /* Loading Spinner */
+    --loading-spinner-size: 1.25rem;      /* 20px - size-5 */
+    --loading-spinner-color: var(--muted-foreground);
+    
+    /* Tooltip Content for User Profile */
+    --tooltip-user-profile-padding: 0.5rem;
+    --tooltip-user-profile-max-width: 12rem; /* 192px */
+    
+    /* User Profile Transitions */
+    --transition-user-profile-hover: background-color var(--transition-base) var(--ease-in-out),
+                                     color var(--transition-base) var(--ease-in-out),
+                                     transform var(--transition-base) var(--ease-in-out);
+    
+    --transition-avatar-scale: transform var(--transition-base) var(--ease-in-out);
+    
+    --transition-chevron-color: color var(--transition-base) var(--ease-in-out);
   }
   
   .dark {
@@ -636,6 +761,22 @@ a {
     --badge-neutral-fg: var(--muted-foreground);
     --chart-selection-card-bg-selected: color-mix(in oklch, var(--primary) 10%, transparent);
     --filter-select-hover-bg: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+    
+    /* User Profile - Dark Mode Overrides */
+    --user-profile-hover-bg: var(--user-profile-hover-bg-dark);
+    --user-profile-active-bg: var(--user-profile-active-bg-dark);
+    --user-profile-business-hover-bg: var(--user-profile-business-hover-bg-dark);
+    --user-profile-business-active-bg: var(--user-profile-business-active-bg-dark);
+    --user-profile-avatar-border: var(--user-profile-avatar-border-dark);
+    --user-profile-avatar-bg: var(--user-profile-avatar-bg-dark);
+    --dropdown-item-hover-bg: var(--dropdown-item-hover-bg-dark);
+    --dropdown-item-destructive-text: var(--dropdown-item-destructive-text-dark);
+    --dropdown-item-destructive-hover-bg: var(--dropdown-item-destructive-hover-bg-dark);
+    --dropdown-item-destructive-hover-text: var(--dropdown-item-destructive-hover-text-dark);
+    --chevron-icon-hover-color: var(--chevron-icon-hover-color-dark);
+    --avatar-status-online: oklch(0.8003 0.1821 151.7110);    /* green - brighter for dark mode */
+    --avatar-status-away: oklch(0.8790 0.1534 91.6054);       /* orange - brighter for dark mode */
+    --avatar-status-busy: oklch(0.7106 0.1661 22.2162);       /* red - brighter for dark mode */
   }
 }
 
@@ -1380,6 +1521,329 @@ a {
     .scrollable-grid-overview {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+  }
+  
+  /* ============================================
+     USER PROFILE UTILITY CLASSES
+     Reusable patterns for user profile components
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Avatar Base Pattern */
+  .avatar-base {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--radius-avatar);
+    overflow: hidden;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    font-weight: var(--font-medium);
+    user-select: none;
+  }
+  
+  /* Avatar Size Variants */
+  .avatar-xs {
+    width: var(--avatar-size-xs);
+    height: var(--avatar-size-xs);
+    font-size: calc(var(--avatar-size-xs) * 0.4);
+  }
+  
+  .avatar-sm {
+    width: var(--avatar-size-sm);
+    height: var(--avatar-size-sm);
+    font-size: calc(var(--avatar-size-sm) * 0.4);
+  }
+  
+  .avatar-default {
+    width: var(--avatar-size-default);
+    height: var(--avatar-size-default);
+    font-size: calc(var(--avatar-size-default) * 0.4);
+  }
+  
+  .avatar-lg {
+    width: var(--avatar-size-lg);
+    height: var(--avatar-size-lg);
+    font-size: calc(var(--avatar-size-lg) * 0.4);
+  }
+  
+  /* Avatar Outline Variant (Business) */
+  .avatar-outline {
+    border: 1px solid var(--user-profile-avatar-border);
+    background-color: var(--user-profile-avatar-bg);
+  }
+  
+  .dark .avatar-outline {
+    border-color: var(--user-profile-avatar-border-dark);
+    background-color: var(--user-profile-avatar-bg-dark);
+  }
+  
+  /* Avatar Status Indicator */
+  .avatar-status-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: var(--avatar-status-size);
+    height: var(--avatar-status-size);
+    border-radius: var(--radius-full);
+    border: var(--avatar-status-border-width) solid var(--avatar-status-border-color);
+  }
+  
+  /* Avatar Status Colors */
+  .avatar-status-online {
+    background-color: var(--avatar-status-online);
+  }
+  
+  .avatar-status-offline {
+    background-color: var(--avatar-status-offline);
+  }
+  
+  .avatar-status-away {
+    background-color: var(--avatar-status-away);
+  }
+  
+  .avatar-status-busy {
+    background-color: var(--avatar-status-busy);
+  }
+  
+  .avatar-status-invisible {
+    background-color: var(--avatar-status-invisible);
+  }
+  
+  /* Avatar Interactive State */
+  .avatar-interactive {
+    cursor: pointer;
+    transition: var(--transition-avatar-scale);
+  }
+  
+  .avatar-interactive:hover {
+    transform: scale(1.05);
+  }
+  
+  /* User Profile Button Base */
+  .user-profile-button-base {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    transition: var(--transition-user-profile-hover);
+    color: var(--foreground);
+  }
+  
+  /* User Profile Button Default Variant */
+  .user-profile-button-default {
+    padding: var(--user-profile-padding-y) var(--user-profile-padding-x);
+    justify-content: space-between;
+  }
+  
+  .user-profile-button-default:hover {
+    background-color: var(--user-profile-hover-bg);
+  }
+  
+  .user-profile-button-default[data-state="open"] {
+    background-color: var(--user-profile-active-bg);
+  }
+  
+  .dark .user-profile-button-default:hover {
+    background-color: var(--user-profile-hover-bg-dark);
+  }
+  
+  .dark .user-profile-button-default[data-state="open"] {
+    background-color: var(--user-profile-active-bg-dark);
+  }
+  
+  /* User Profile Button Business Variant */
+  .user-profile-button-business {
+    padding: var(--user-profile-business-padding-y) var(--user-profile-business-padding-x);
+    justify-content: space-between;
+  }
+  
+  .user-profile-button-business:hover {
+    background-color: var(--user-profile-business-hover-bg);
+  }
+  
+  .user-profile-button-business[data-state="open"] {
+    background-color: var(--user-profile-business-active-bg);
+  }
+  
+  .dark .user-profile-button-business:hover {
+    background-color: var(--user-profile-business-hover-bg-dark);
+  }
+  
+  .dark .user-profile-button-business[data-state="open"] {
+    background-color: var(--user-profile-business-active-bg-dark);
+  }
+  
+  /* User Profile Button Collapsed State */
+  .user-profile-button-collapsed {
+    justify-content: center;
+    padding: var(--user-profile-padding-y) var(--user-profile-padding-x);
+  }
+  
+  /* User Profile Content Container */
+  .user-profile-content {
+    display: flex;
+    align-items: center;
+    gap: var(--user-profile-gap);
+    min-width: 0;
+    flex: 1;
+  }
+  
+  /* User Profile Text Container */
+  .user-profile-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    flex: 1;
+  }
+  
+  /* User Profile Name */
+  .user-profile-name {
+    font-weight: var(--font-medium);
+    font-size: var(--text-sm);
+    color: var(--foreground);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* User Profile Email */
+  .user-profile-email {
+    font-size: var(--text-xs);
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  
+  /* Chevron Icon Pattern */
+  .user-profile-chevron {
+    width: var(--chevron-icon-size);
+    height: var(--chevron-icon-size);
+    flex-shrink: 0;
+    color: var(--chevron-icon-color);
+    transition: var(--transition-chevron-color);
+  }
+  
+  .user-profile-button-base:hover .user-profile-chevron {
+    color: var(--chevron-icon-hover-color);
+  }
+  
+  .dark .user-profile-button-base:hover .user-profile-chevron {
+    color: var(--chevron-icon-hover-color-dark);
+  }
+  
+  /* Dropdown Menu Item Destructive Pattern */
+  .dropdown-item-destructive {
+    color: var(--dropdown-item-destructive-text);
+  }
+  
+  .dropdown-item-destructive:hover,
+  .dropdown-item-destructive:focus {
+    background-color: var(--dropdown-item-destructive-hover-bg);
+    color: var(--dropdown-item-destructive-hover-text);
+  }
+  
+  .dark .dropdown-item-destructive {
+    color: var(--dropdown-item-destructive-text-dark);
+  }
+  
+  .dark .dropdown-item-destructive:hover,
+  .dark .dropdown-item-destructive:focus {
+    background-color: var(--dropdown-item-destructive-hover-bg-dark);
+    color: var(--dropdown-item-destructive-hover-text-dark);
+  }
+  
+  /* External Link Icon Pattern */
+  .external-link-icon {
+    width: var(--external-link-icon-size);
+    height: var(--external-link-icon-size);
+    flex-shrink: 0;
+    color: var(--external-link-icon-color);
+    margin-left: auto;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Keyboard Shortcut Badge Pattern */
+  .keyboard-shortcut-badge {
+    padding: var(--shortcut-badge-padding-y) var(--shortcut-badge-padding-x);
+    font-size: var(--shortcut-badge-font-size);
+    font-weight: var(--font-medium);
+    background-color: var(--shortcut-badge-bg);
+    color: var(--shortcut-badge-text);
+    border-radius: var(--shortcut-badge-border-radius);
+    margin-left: auto;
+  }
+  
+  /* Loading State Pattern */
+  .user-profile-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2rem; /* 32px - h-8 */
+  }
+  
+  .user-profile-loading-spinner {
+    width: var(--loading-spinner-size);
+    height: var(--loading-spinner-size);
+    color: var(--loading-spinner-color);
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Dropdown Label Pattern (User Info Header) */
+  .dropdown-user-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: var(--dropdown-label-padding-y) var(--dropdown-label-padding-x);
+  }
+  
+  .dropdown-user-label-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .dropdown-user-label-text {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Badge Gradient Pattern (Pro/Plan) */
+  .badge-gradient {
+    background: linear-gradient(135deg, var(--badge-gradient-from), var(--badge-gradient-to));
+    color: var(--primary-foreground);
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-badge);
+  }
+  
+  /* Badge Neutral Pattern (Role) */
+  .badge-neutral-user {
+    background-color: var(--badge-neutral-bg);
+    color: var(--badge-neutral-text);
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-badge);
+    width: fit-content;
   }
 }
 

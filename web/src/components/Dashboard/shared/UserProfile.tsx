@@ -116,23 +116,22 @@ export const UserProfileDesktop = React.forwardRef<
 
   const avatarSize = getAvatarSize("default", isCollapsed)
 
-  // Business variant styling
+  // Get button className using global utility classes
   const getButtonClassName = () => {
     if (variant === "business") {
       return cx(
-        "group flex w-full items-center justify-between rounded-md px-1 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200/50 data-[state=open]:bg-gray-200/50 hover:dark:bg-gray-800/50 data-[state=open]:dark:bg-gray-900",
+        "user-profile-button-base",
+        "user-profile-button-business",
         focusRing,
         className,
       )
     }
     
     return cx(
-      "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-all duration-200",
-      isCollapsed ? "justify-center" : "justify-between",
-      "text-gray-900 dark:text-gray-50",
-      "hover:bg-gray-100 data-[state=open]:bg-gray-100",
-      "hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80",
-      "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+      "user-profile-button-base",
+      "user-profile-button-default",
+      isCollapsed && "user-profile-button-collapsed",
+      focusRing,
       interactive && "cursor-pointer",
       className,
     )
@@ -151,8 +150,8 @@ export const UserProfileDesktop = React.forwardRef<
       {...props}
     >
       {isLoading ? (
-        <div className="flex h-8 items-center justify-center">
-          <Loader2 className="size-5 animate-spin text-gray-500" />
+        <div className="user-profile-loading">
+          <Loader2 className="user-profile-loading-spinner" />
         </div>
       ) : isCollapsed ? (
         <Avatar
@@ -168,7 +167,7 @@ export const UserProfileDesktop = React.forwardRef<
         />
       ) : (
         <>
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="user-profile-content">
             <Avatar
               size={avatarSize}
               src={userData.avatar}
@@ -183,10 +182,10 @@ export const UserProfileDesktop = React.forwardRef<
                 variant === "business" && "shrink-0 border-gray-300 bg-white text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
               )}
             />
-            <div className="flex flex-col items-start min-w-0 flex-1">
+            <div className="user-profile-text">
               <span className={cx(
-                "font-medium text-gray-900 dark:text-gray-50 truncate max-w-full",
-                variant === "business" ? "text-sm" : "text-sm"
+                "user-profile-name",
+                variant === "business" && "text-sm"
               )}>
                 {userData.name || 'User'}
               </span>
@@ -203,7 +202,7 @@ export const UserProfileDesktop = React.forwardRef<
           </div>
           {showChevron && (
             <ChevronsUpDown
-              className="size-4 shrink-0 text-gray-500 transition-colors duration-200 group-hover:text-gray-700 group-hover:dark:text-gray-400"
+              className="user-profile-chevron"
               aria-hidden="true"
             />
           )}
@@ -294,7 +293,7 @@ export const UserProfileMobile = React.forwardRef<
         "text-gray-900 dark:text-gray-50",
         "hover:bg-gray-100 data-[state=open]:bg-gray-100",
         "hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80",
-        "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+        focusRing,
         interactive && "cursor-pointer",
         className,
       )}
@@ -302,7 +301,7 @@ export const UserProfileMobile = React.forwardRef<
       {...props}
     >
       {isLoading ? (
-        <Loader2 className="size-6 animate-spin text-gray-500" />
+        <Loader2 className="user-profile-loading-spinner" />
       ) : (
         <Avatar
           size={avatarSize}

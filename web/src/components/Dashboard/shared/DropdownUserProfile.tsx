@@ -18,6 +18,7 @@ import {
   DropdownMenuIconWrapper,
 } from "@/components/ui/DropdownMenu"
 import { Badge } from "@/components/ui/Badge"
+import { cx } from "@/lib/utils"
 import { 
   ArrowUpRight, 
   Monitor, 
@@ -229,21 +230,21 @@ export function DropdownUserProfile({
                 <DropdownMenuItem>
                   Changelog
                   <ExternalLinkIcon
-                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    className="external-link-icon"
                     aria-hidden="true"
                   />
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   Documentation
                   <ExternalLinkIcon
-                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    className="external-link-icon"
                     aria-hidden="true"
                   />
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   Join Slack community
                   <ExternalLinkIcon
-                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    className="external-link-icon"
                     aria-hidden="true"
                   />
                 </DropdownMenuItem>
@@ -277,9 +278,9 @@ export function DropdownUserProfile({
         loop={loop}
         className="min-w-[280px]"
       >
-        <DropdownMenuLabel className="flex flex-col gap-1 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
+        <DropdownMenuLabel className="dropdown-user-label">
+          <div className="dropdown-user-label-header">
+            <div className="dropdown-user-label-text">
               <span className="font-medium text-gray-900 dark:text-gray-50">
                 {user.name}
               </span>
@@ -402,7 +403,7 @@ export function DropdownUserProfile({
                     </DropdownMenuIconWrapper>
                     Changelog
                     <ArrowUpRight
-                      className="ml-auto size-3 shrink-0 text-gray-500"
+                      className="external-link-icon"
                       aria-hidden="true"
                     />
                   </a>
@@ -421,7 +422,7 @@ export function DropdownUserProfile({
                     </DropdownMenuIconWrapper>
                     Documentation
                     <ArrowUpRight
-                      className="ml-auto size-3 shrink-0 text-gray-500"
+                      className="external-link-icon"
                       aria-hidden="true"
                     />
                   </a>
@@ -440,7 +441,7 @@ export function DropdownUserProfile({
                     </DropdownMenuIconWrapper>
                     Join Slack community
                     <ArrowUpRight
-                      className="ml-auto size-3 shrink-0 text-gray-500"
+                      className="external-link-icon"
                       aria-hidden="true"
                     />
                   </a>
@@ -465,7 +466,10 @@ export function DropdownUserProfile({
         <DropdownMenuGroup>
           <DropdownMenuItem 
             onClick={handleSignOut}
-            className="text-red-600 dark:text-red-400 focus:bg-red-50 focus:text-red-700 dark:focus:bg-red-950/50 dark:focus:text-red-300"
+            className={cx(
+              "dropdown-item-destructive",
+              "focus:bg-red-50 dark:focus:bg-red-950/50"
+            )}
             shortcut={showKeyboardShortcuts ? "⌘Q" : undefined}
           >
             <DropdownMenuIconWrapper>
