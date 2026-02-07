@@ -12,7 +12,7 @@ const benefits = [
   {
     title: "Health, dental, vision",
     description:
-      "Database pays all of your health, dental, and vision insurance.",
+      "Our company pays all of your health, dental, and vision insurance.",
   },
   {
     title: "Yearly off-sites",

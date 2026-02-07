@@ -14,7 +14,7 @@ export default function TeamGallery() {
             alt="Two employees working with computers"
             width={640}
             height={427}
-            caption="At Database we use computers"
+            caption="At our office we manage businesses"
           />
           <InstaxImage
             className="team-gallery-image-2"
@@ -22,7 +22,7 @@ export default function TeamGallery() {
             alt="Office with a phone booth"
             width={640}
             height={853}
-            caption="Our phone booths are nuts"
+            caption="Our meeting rooms are great"
           />
           <InstaxImage
             className="team-gallery-image-3"
@@ -48,7 +48,7 @@ export default function TeamGallery() {
             alt="Personw with headphones"
             width={640}
             height={965}
-            caption="Robin handels the playlist"
+            caption="Robin handles the workflow"
           />
           <InstaxImage
             className="team-gallery-image-6"
@@ -56,7 +56,7 @@ export default function TeamGallery() {
             alt="Picture of a party with confetti"
             width={1920}
             height={1281}
-            caption="v1.0 Release party. Our US intern, Mike, had his first alcohol-free beer"
+            caption="v1.0 Release party. Our US intern, Mike, celebrated his first major launch"
           />
         </div>
       </div>
@@ -65,10 +65,10 @@ export default function TeamGallery() {
           <InstaxImage
             className="team-gallery-image-7"
             src="/images/founders.webp"
-            alt=" Join Database, be yourself."
+            alt=" Join our team, be yourself."
             width={1819}
             height={998}
-            caption=" Join Database, be yourself."
+            caption=" Join our team, be yourself."
           />
         </div>
       </div>
