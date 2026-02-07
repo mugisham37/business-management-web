@@ -15,18 +15,38 @@ import { Link, SlidersHorizontal } from "lucide-react"
 const getStatusIcon = (status: string) => {
   if (status === "complete") {
     return (
-      <RiCheckboxCircleFill className="size-[18px] shrink-0 text-[var(--status-good)]" />
+      <RiCheckboxCircleFill 
+        className="shrink-0"
+        style={{
+          width: 'var(--nav-item-icon-size)',
+          height: 'var(--nav-item-icon-size)',
+          color: 'var(--status-good)'
+        }}
+      />
     )
   }
   return (
-    <RiErrorWarningFill className="size-[18px] shrink-0 text-[var(--status-critical)]" />
+    <RiErrorWarningFill 
+      className="shrink-0"
+      style={{
+        width: 'var(--nav-item-icon-size)',
+        height: 'var(--nav-item-icon-size)',
+        color: 'var(--status-critical)'
+      }}
+    />
   )
 }
 
 export default function Audits() {
   return (
     <section aria-label="Audits overview">
-      <div className="flex flex-col items-center justify-between gap-2 p-6 sm:flex-row">
+      <div 
+        className="flex flex-col items-center justify-between sm:flex-row"
+        style={{
+          gap: 'var(--spacing-sm)',
+          padding: 'var(--spacing-business-card-padding)'
+        }}
+      >
         <Input
           type="search"
           placeholder="Search audits..."
@@ -34,45 +54,87 @@ export default function Audits() {
         />
         <Button
           variant="secondary"
-          className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
+          className="w-full text-base sm:w-fit sm:text-sm"
+          style={{
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-xs) var(--spacing-md)'
+          }}
         >
           <SlidersHorizontal
-            className="-ml-0.5 size-4 shrink-0 text-[var(--muted-foreground)]"
+            className="-ml-0.5 shrink-0 text-muted-foreground"
+            style={{
+              width: 'var(--icon-size-settings-sm)',
+              height: 'var(--icon-size-settings-sm)'
+            }}
             aria-hidden="true"
           />
           Filters
         </Button>
       </div>
-      <div className="border-t border-[var(--business-accordion-border)] px-6 pb-6">
-        <Accordion type="multiple" className="mt-3">
+      <div 
+        style={{
+          borderTop: '1px solid var(--business-accordion-border)',
+          padding: '0 var(--spacing-business-card-padding) var(--spacing-business-card-padding)'
+        }}
+      >
+        <Accordion type="multiple" style={{ marginTop: 'var(--spacing-md)' }}>
           {sections.map((section) => (
             <AccordionItem key={section.id} value={section.id}>
-              <AccordionTrigger className="py-5">
-                <p className="flex w-full items-center justify-between pr-4">
-                  <span className="flex items-center gap-2.5">
+              <AccordionTrigger style={{ padding: 'var(--spacing-md) 0' }}>
+                <p className="flex w-full items-center justify-between" style={{ paddingRight: 'var(--spacing-md)' }}>
+                  <span className="flex items-center" style={{ gap: 'var(--nav-item-gap)' }}>
                     <span>{section.title}</span>
-                    <span className="inline-flex items-center rounded-full bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">
+                    <span 
+                      className="inline-flex items-center rounded-full bg-muted"
+                      style={{
+                        padding: 'var(--spacing-xs) var(--spacing-sm)',
+                        fontSize: 'var(--text-xs)',
+                        fontWeight: 'var(--font-medium)',
+                        color: 'var(--muted-foreground)'
+                      }}
+                    >
                       {section.certified}
                     </span>
                   </span>
-                  <span className="flex items-center gap-x-2 tabular-nums">
+                  <span className="flex items-center tabular-nums" style={{ gap: 'var(--spacing-sm)' }}>
                     {getStatusIcon(section.status)}
                     {section.progress.current}/{section.progress.total}
                   </span>
                 </p>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="mt-2 grid grid-cols-1 gap-8 md:grid-cols-2">
+                <div 
+                  className="grid grid-cols-1 md:grid-cols-2"
+                  style={{
+                    marginTop: 'var(--spacing-sm)',
+                    gap: 'var(--spacing-business-section-gap)'
+                  }}
+                >
                   <div>
-                    <p className="flex items-center justify-between text-sm font-medium text-[var(--foreground)]">
+                    <p 
+                      className="flex items-center justify-between"
+                      style={{
+                        fontSize: 'var(--text-sm)',
+                        fontWeight: 'var(--font-medium)',
+                        color: 'var(--foreground)'
+                      }}
+                    >
                       <span>Audit round</span>
                       <span>Auditor</span>
                     </p>
-                    <ul className="mt-1 divide-y divide-[var(--border)] text-sm text-[var(--muted-foreground)]">
+                    <ul 
+                      className="divide-y divide-border"
+                      style={{
+                        marginTop: 'var(--spacing-xs)',
+                        fontSize: 'var(--text-sm)',
+                        color: 'var(--muted-foreground)'
+                      }}
+                    >
                       {section.auditDates.map((audit, index) => (
                         <li
                           key={index}
-                          className="flex items-center justify-between py-2.5"
+                          className="flex items-center justify-between"
+                          style={{ padding: 'var(--spacing-business-table-cell-y) 0' }}
                         >
                           <span>{audit.date}</span>
                           <span>{audit.auditor}</span>
@@ -81,40 +143,69 @@ export default function Audits() {
                     </ul>
                   </div>
                   <div>
-                    <p className="flex items-center justify-between text-sm font-medium text-[var(--foreground)]">
+                    <p 
+                      className="flex items-center justify-between"
+                      style={{
+                        fontSize: 'var(--text-sm)',
+                        fontWeight: 'var(--font-medium)',
+                        color: 'var(--foreground)'
+                      }}
+                    >
                       <span>Related documents</span>
                       <span>Status</span>
                     </p>
-                    <ul className="mt-1 divide-y divide-[var(--border)] text-[var(--muted-foreground)]">
+                    <ul 
+                      className="divide-y divide-border"
+                      style={{
+                        marginTop: 'var(--spacing-xs)',
+                        color: 'var(--muted-foreground)'
+                      }}
+                    >
                       {section.documents.map((doc, index) => (
                         <li
                           key={index}
-                          className="flex items-center justify-between py-2.5 text-sm"
+                          className="flex items-center justify-between"
+                          style={{
+                            padding: 'var(--spacing-business-table-cell-y) 0',
+                            fontSize: 'var(--text-sm)'
+                          }}
                         >
                           <a
                             href="#"
-                            className="flex items-center gap-2 text-[var(--primary)] hover:underline hover:underline-offset-4"
+                            className="flex items-center hover:underline hover:underline-offset-4"
+                            style={{
+                              gap: 'var(--spacing-sm)',
+                              color: 'var(--primary)'
+                            }}
                           >
                             <Link
-                              className="size-4 shrink-0"
+                              className="shrink-0"
+                              style={{
+                                width: 'var(--icon-size-settings-sm)',
+                                height: 'var(--icon-size-settings-sm)'
+                              }}
                               aria-hidden="true"
                             />
                             {doc.name}
                           </a>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center" style={{ gap: 'var(--spacing-sm)' }}>
                             <button
                               type="button"
-                              className="hover:text-[var(--foreground)] hover:underline hover:underline-offset-4 transition-colors-standard"
+                              className="hover:text-foreground hover:underline hover:underline-offset-4 transition-colors-standard"
                             >
                               Edit
                             </button>
                             <span
-                              className="h-4 w-px bg-[var(--border)]"
+                              className="bg-border"
+                              style={{
+                                height: 'var(--spacing-md)',
+                                width: '1px'
+                              }}
                               aria-hidden="true"
                             />
                             <button
                               type="button"
-                              className="hover:text-[var(--foreground)] hover:underline hover:underline-offset-4 transition-colors-standard"
+                              className="hover:text-foreground hover:underline hover:underline-offset-4 transition-colors-standard"
                             >
                               Re-Upload
                             </button>

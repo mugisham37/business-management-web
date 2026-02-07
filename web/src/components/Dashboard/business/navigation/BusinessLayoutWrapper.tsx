@@ -22,14 +22,28 @@ export function BusinessLayoutWrapper({
         <AppSidebar />
         <div className="w-full">
           <header 
-            className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-background px-4"
-            style={{ zIndex: 'var(--z-sticky)' }}
+            className="sticky top-0 flex shrink-0 items-center border-b border-border bg-background"
+            style={{ 
+              height: 'var(--spacing-business-header-height)',
+              gap: 'var(--spacing-sm)',
+              padding: '0 var(--spacing-md)',
+              zIndex: 'var(--z-business-header)'
+            }}
           >
             <SidebarTrigger className="-ml-1" />
-            <div className="mr-2 h-4 w-px bg-border" />
+            <div 
+              className="bg-border"
+              style={{
+                height: 'var(--spacing-md)',
+                width: '1px',
+                marginRight: 'var(--spacing-sm)'
+              }}
+            />
             <Breadcrumbs />
           </header>
-          <main className="p-4 sm:p-6">{children}</main>
+          <main style={{ padding: 'var(--business-content-padding)' }}>
+            {children}
+          </main>
         </div>
       </SidebarProvider>
     </div>

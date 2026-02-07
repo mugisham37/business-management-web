@@ -41,13 +41,19 @@ const getRandomColor = (initials: string) => {
 export default function Overview() {
   return (
     <section aria-label="Overview Table">
-      <div className="flex flex-col justify-between gap-2 px-4 py-6 sm:flex-row sm:items-center sm:p-6">
+      <div 
+        className="flex flex-col justify-between sm:flex-row sm:items-center"
+        style={{
+          gap: 'var(--spacing-sm)',
+          padding: 'var(--spacing-business-card-padding)'
+        }}
+      >
         <Input
           type="search"
           placeholder="Search quotes..."
           className="sm:w-64 [&>input]:py-1.5"
         />
-        <div className="flex flex-col items-center gap-2 sm:flex-row">
+        <div className="flex flex-col items-center sm:flex-row" style={{ gap: 'var(--spacing-sm)' }}>
           <Select>
             <SelectTrigger className="w-full py-1.5 sm:w-44">
               <SelectValue placeholder="Assigned to..." />
@@ -60,17 +66,25 @@ export default function Overview() {
           </Select>
           <Button
             variant="secondary"
-            className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
+            className="w-full text-base sm:w-fit sm:text-sm"
+            style={{
+              gap: 'var(--spacing-sm)',
+              padding: 'var(--spacing-xs) var(--spacing-md)'
+            }}
           >
             <Download
-              className="-ml-0.5 size-4 shrink-0 text-[var(--muted-foreground)]"
+              className="-ml-0.5 shrink-0 text-muted-foreground"
+              style={{
+                width: 'var(--icon-size-settings-sm)',
+                height: 'var(--icon-size-settings-sm)'
+              }}
               aria-hidden="true"
             />
             Export
           </Button>
         </div>
       </div>
-      <TableRoot className="border-t border-[var(--business-table-border)]">
+      <TableRoot style={{ borderTop: '1px solid var(--business-table-border)' }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -89,10 +103,19 @@ export default function Overview() {
                   <TableHeaderCell
                     scope="colgroup"
                     colSpan={6}
-                    className="business-table-header-cell py-3 pl-4 sm:pl-6"
+                    className="business-table-header-cell"
+                    style={{
+                      padding: 'var(--spacing-md) var(--spacing-business-card-padding)'
+                    }}
                   >
                     {quote.region}
-                    <span className="ml-2 font-medium text-[var(--muted-foreground)]">
+                    <span 
+                      style={{ 
+                        marginLeft: 'var(--spacing-sm)',
+                        fontWeight: 'var(--font-medium)',
+                        color: 'var(--muted-foreground)'
+                      }}
+                    >
                       {quote.project.length}
                     </span>
                   </TableHeaderCell>
@@ -132,22 +155,19 @@ export default function Overview() {
                         className="rounded-full"
                       >
                         <span
-                          className={cx(
-                            "size-1.5 shrink-0 rounded-full",
-                            "bg-[var(--muted-foreground)]",
-                            {
-                              "bg-[var(--business-badge-closed)]":
-                                item.status === "Closed",
-                            },
-                            {
-                              "bg-[var(--muted-foreground)]":
-                                item.status === "Drafted",
-                            },
-                            {
-                              "bg-[var(--business-badge-sent)]":
-                                item.status === "Sent",
-                            },
-                          )}
+                          className="shrink-0 rounded-full"
+                          style={{
+                            width: 'var(--spacing-xs)',
+                            height: 'var(--spacing-xs)',
+                            backgroundColor: 
+                              item.status === "Closed" 
+                                ? 'var(--business-badge-closed)' 
+                                : item.status === "Drafted"
+                                  ? 'var(--business-badge-drafted)'
+                                  : item.status === "Sent"
+                                    ? 'var(--business-badge-sent)'
+                                    : 'var(--muted-foreground)'
+                          }}
                           aria-hidden="true"
                         />
                         {item.status}

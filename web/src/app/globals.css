@@ -1,3 +1,32 @@
+/* ============================================
+   GLOBAL STYLES - BRUTALIST THEME
+   Production-Ready Design System
+   ============================================
+   
+   COLOR PALETTE:
+   - Cyan:   #29CDF2 - oklch(0.72 0.15 195) - Primary, Links, Interactive
+   - Yellow: #F2CB05 - oklch(0.85 0.12 85)  - Secondary, Success, Active
+   - Cream:  #F2E9BB - oklch(0.92 0.08 85)  - Backgrounds, Highlights
+   - Orange: #F28705 - oklch(0.70 0.18 55)  - Accent, Warnings
+   - Red:    #F22D1B - oklch(0.58 0.24 25)  - Destructive, Critical
+   
+   THEME PHILOSOPHY:
+   - Bold, high-contrast brutalist aesthetic
+   - Consistent across light and dark modes
+   - Semantic color usage for accessibility
+   - Production-ready with comprehensive token system
+   
+   STRUCTURE:
+   1. Base Tailwind imports
+   2. Custom fonts
+   3. Root CSS variables (light mode)
+   4. Dark mode overrides
+   5. Component-specific tokens
+   6. Utility classes
+   7. Component styles
+   
+   ============================================ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -87,43 +116,44 @@ a {
 
 @layer base {
   :root {
-    /* Core theme colors using OKLCH */
-    --background: oklch(0.9789 0.0082 121.6272);
-    --foreground: oklch(0 0 0);
+    /* Core theme colors using OKLCH - Brutalist Palette */
+    /* Base Colors: Cyan (#29CDF2), Yellow (#F2CB05), Cream (#F2E9BB), Orange (#F28705), Red (#F22D1B) */
+    --background: oklch(0.98 0.01 90);
+    --foreground: oklch(0.15 0 0);
     --card: oklch(1.0000 0 0);
-    --card-foreground: oklch(0 0 0);
+    --card-foreground: oklch(0.15 0 0);
     --popover: oklch(1.0000 0 0);
-    --popover-foreground: oklch(0 0 0);
-    --primary: oklch(0.5106 0.2301 276.9656);
-    --primary-foreground: oklch(1.0000 0 0);
-    --secondary: oklch(0.7038 0.1230 182.5025);
-    --secondary-foreground: oklch(1.0000 0 0);
-    --muted: oklch(0.9551 0 0);
-    --muted-foreground: oklch(0.3211 0 0);
-    --accent: oklch(0.7686 0.1647 70.0804);
-    --accent-foreground: oklch(0 0 0);
-    --destructive: oklch(0.6368 0.2078 25.3313);
+    --popover-foreground: oklch(0.15 0 0);
+    --primary: oklch(0.72 0.15 195);
+    --primary-foreground: oklch(0.15 0 0);
+    --secondary: oklch(0.85 0.12 85);
+    --secondary-foreground: oklch(0.15 0 0);
+    --muted: oklch(0.94 0.01 85);
+    --muted-foreground: oklch(0.45 0 0);
+    --accent: oklch(0.70 0.18 55);
+    --accent-foreground: oklch(0.15 0 0);
+    --destructive: oklch(0.58 0.24 25);
     --destructive-foreground: oklch(1.0000 0 0);
-    --border: oklch(0 0 0);
-    --input: oklch(0.5555 0 0);
-    --ring: oklch(0.7853 0.1041 274.7134);
+    --border: oklch(0.25 0 0);
+    --input: oklch(0.45 0 0);
+    --ring: oklch(0.72 0.15 195);
     
-    /* Chart colors */
-    --chart-1: oklch(0.5106 0.2301 276.9656);
-    --chart-2: oklch(0.7038 0.1230 182.5025);
-    --chart-3: oklch(0.7686 0.1647 70.0804);
-    --chart-4: oklch(0.6559 0.2118 354.3084);
-    --chart-5: oklch(0.7227 0.1920 149.5793);
+    /* Chart colors - Brutalist Palette */
+    --chart-1: oklch(0.72 0.15 195);
+    --chart-2: oklch(0.85 0.12 85);
+    --chart-3: oklch(0.70 0.18 55);
+    --chart-4: oklch(0.58 0.24 25);
+    --chart-5: oklch(0.92 0.08 85);
     
-    /* Sidebar colors */
-    --sidebar: oklch(0.9789 0.0082 121.6272);
-    --sidebar-foreground: oklch(0 0 0);
-    --sidebar-primary: oklch(0.5106 0.2301 276.9656);
-    --sidebar-primary-foreground: oklch(1.0000 0 0);
-    --sidebar-accent: oklch(0.7686 0.1647 70.0804);
-    --sidebar-accent-foreground: oklch(0 0 0);
-    --sidebar-border: oklch(0 0 0);
-    --sidebar-ring: oklch(0.7853 0.1041 274.7134);
+    /* Sidebar colors - Brutalist Palette */
+    --sidebar: oklch(0.98 0.01 90);
+    --sidebar-foreground: oklch(0.15 0 0);
+    --sidebar-primary: oklch(0.72 0.15 195);
+    --sidebar-primary-foreground: oklch(0.15 0 0);
+    --sidebar-accent: oklch(0.70 0.18 55);
+    --sidebar-accent-foreground: oklch(0.15 0 0);
+    --sidebar-border: oklch(0.25 0 0);
+    --sidebar-ring: oklch(0.72 0.15 195);
     
     /* Typography */
     --font-sans: DM Sans, sans-serif;
@@ -160,15 +190,15 @@ a {
        Added: 2026-02-07
        ============================================ */
     
-    /* Status Colors - Semantic tokens for metric states */
-    --status-critical: oklch(0.6368 0.2078 25.3313); /* Maps to destructive/red */
+    /* Status Colors - Semantic tokens for metric states - Brutalist Palette */
+    --status-critical: oklch(0.58 0.24 25); /* Red */
     --status-critical-foreground: oklch(1.0000 0 0);
-    --status-warning: oklch(0.7686 0.1647 70.0804); /* Maps to accent/orange */
-    --status-warning-foreground: oklch(0 0 0);
-    --status-good: oklch(0.7227 0.1920 149.5793); /* Maps to chart-5/emerald */
-    --status-good-foreground: oklch(0 0 0);
-    --status-excellent: oklch(0.5106 0.2301 276.9656); /* Maps to primary/blue */
-    --status-excellent-foreground: oklch(1.0000 0 0);
+    --status-warning: oklch(0.70 0.18 55); /* Orange */
+    --status-warning-foreground: oklch(0.15 0 0);
+    --status-good: oklch(0.85 0.12 85); /* Yellow */
+    --status-good-foreground: oklch(0.15 0 0);
+    --status-excellent: oklch(0.72 0.15 195); /* Cyan */
+    --status-excellent-foreground: oklch(0.15 0 0);
     
     /* Navigation Colors */
     --nav-item-hover: color-mix(in oklch, var(--muted) 50%, transparent);
@@ -268,8 +298,8 @@ a {
     --customer-tab-nav-height: 3rem;            /* 48px - tab navigation */
     --customer-content-max-width: 80rem;        /* 1280px - max-w-7xl */
     
-    /* Notification States */
-    --notification-unread-indicator: oklch(0.5106 0.2301 276.9656); /* blue-500 */
+    /* Notification States - Brutalist Palette */
+    --notification-unread-indicator: oklch(0.72 0.15 195); /* cyan */
     --notification-hover-bg: color-mix(in oklch, var(--muted) 40%, transparent);
     
     /* Interactive Element States */
@@ -281,10 +311,10 @@ a {
     --drawer-border: var(--border);
     --drawer-divider: var(--border);
     
-    /* Form Element States */
-    --form-checked-bg: oklch(0.5106 0.2301 276.9656); /* blue-500 for checked states */
-    --form-checked-fg: oklch(1.0000 0 0);
-    --form-focus-ring: oklch(0.5106 0.2301 276.9656);
+    /* Form Element States - Brutalist Palette */
+    --form-checked-bg: oklch(0.72 0.15 195); /* cyan */
+    --form-checked-fg: oklch(0.12 0 0);
+    --form-focus-ring: oklch(0.72 0.15 195);
     
     /* Typography Scale - Additional Sizes */
     --text-2xs: 0.625rem;    /* 10px */
@@ -319,14 +349,14 @@ a {
     --cohort-header-sticky-top: 0;
     --cohort-header-min-width: 10rem;           /* 160px - min-w-40 */
     
-    /* Cohort Retention Heatmap Colors */
-    --cohort-color-1: oklch(0.9551 0.1230 276.9656);     /* blue-50 */
-    --cohort-color-2: oklch(0.8452 0.1583 276.9349);     /* blue-100 */
-    --cohort-color-3: oklch(0.7686 0.1647 276.9656);     /* blue-200 */
-    --cohort-color-4: oklch(0.6801 0.1583 276.9349);     /* blue-300 */
-    --cohort-color-5: oklch(0.5906 0.2301 276.9656);     /* blue-400 */
-    --cohort-color-6: oklch(0.5106 0.2301 276.9656);     /* blue-500 */
-    --cohort-color-7: oklch(0.4306 0.2301 276.9656);     /* blue-600 */
+    /* Cohort Retention Heatmap Colors - Brutalist Palette */
+    --cohort-color-1: oklch(0.96 0.03 195);     /* very light cyan */
+    --cohort-color-2: oklch(0.90 0.06 195);     /* light cyan */
+    --cohort-color-3: oklch(0.84 0.09 195);     /* medium-light cyan */
+    --cohort-color-4: oklch(0.78 0.12 195);     /* medium cyan */
+    --cohort-color-5: oklch(0.72 0.15 195);     /* cyan */
+    --cohort-color-6: oklch(0.66 0.15 195);     /* dark cyan */
+    --cohort-color-7: oklch(0.60 0.15 195);     /* darker cyan */
     
     /* Cohort Cell States */
     --cohort-cell-empty-bg: oklch(0.9789 0.0082 121.6272);           /* gray-50 */
@@ -426,9 +456,9 @@ a {
     --business-header-border: var(--border);
     --business-header-text: var(--foreground);
     
-    /* Business Sidebar Colors */
-    --business-sidebar-bg: oklch(0.9789 0.0082 121.6272);        /* gray-50 */
-    --business-sidebar-bg-dark: oklch(0.1455 0.0217 257.2823);   /* gray-925 */
+    /* Business Sidebar Colors - Brutalist Palette */
+    --business-sidebar-bg: oklch(0.98 0.01 90);        /* light cream */
+    --business-sidebar-bg-dark: oklch(0.15 0.01 0);    /* dark gray */
     --business-sidebar-border: var(--border);
     --business-sidebar-width: 16rem;                             /* 256px */
     --business-sidebar-collapsed-width: 0;
@@ -437,13 +467,13 @@ a {
     --business-content-bg: var(--background);
     --business-content-padding: var(--spacing-lg);
     
-    /* Business Table Colors */
-    --business-table-header-bg: oklch(0.9789 0.0082 121.6272);   /* gray-50 */
-    --business-table-header-bg-dark: oklch(0.2455 0.0217 257.2823); /* gray-900 */
+    /* Business Table Colors - Brutalist Palette */
+    --business-table-header-bg: oklch(0.98 0.01 90);   /* light cream */
+    --business-table-header-bg-dark: oklch(0.18 0.01 0); /* dark gray */
     --business-table-row-hover: color-mix(in oklch, var(--muted) 30%, transparent);
     --business-table-border: var(--border);
     
-    /* Business Badge Status Colors */
+    /* Business Badge Status Colors - Brutalist Palette */
     --business-badge-closed: var(--status-good);
     --business-badge-closed-fg: var(--status-good-foreground);
     --business-badge-drafted: var(--muted);
@@ -513,19 +543,19 @@ a {
     --nav-item-font-size: var(--text-sm);
     --nav-item-font-weight: var(--font-medium);
     
-    /* Navigation Active State Colors */
-    --nav-item-active-text: oklch(0.5106 0.2301 276.9656);        /* blue-600 */
-    --nav-item-active-text-dark: oklch(0.6801 0.1583 276.9349);   /* blue-500 dark */
-    --nav-item-active-bg: oklch(0.9551 0.1230 276.9656);          /* blue-50 */
-    --nav-item-active-bg-dark: color-mix(in oklch, oklch(0.6801 0.1583 276.9349) 10%, transparent); /* blue-950/50 */
+    /* Navigation Active State Colors - Brutalist Palette */
+    --nav-item-active-text: oklch(0.72 0.15 195);        /* cyan */
+    --nav-item-active-text-dark: oklch(0.72 0.15 195);   /* cyan */
+    --nav-item-active-bg: oklch(0.95 0.05 195);          /* light cyan tint */
+    --nav-item-active-bg-dark: color-mix(in oklch, oklch(0.72 0.15 195) 15%, transparent);
     
-    /* Navigation Inactive State Colors */
-    --nav-item-inactive-text: oklch(0.3211 0 0);                  /* gray-700 */
-    --nav-item-inactive-text-dark: oklch(0.8452 0 0);             /* gray-300 */
-    --nav-item-hover-text: oklch(0 0 0);                          /* gray-900 */
-    --nav-item-hover-text-dark: oklch(1.0000 0 0);                /* gray-50 */
-    --nav-item-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent);  /* gray-200/50 */
-    --nav-item-hover-bg-dark: color-mix(in oklch, var(--muted-foreground) 20%, transparent); /* gray-900 */
+    /* Navigation Inactive State Colors - Brutalist Palette */
+    --nav-item-inactive-text: oklch(0.40 0 0);                    /* dark gray */
+    --nav-item-inactive-text-dark: oklch(0.75 0.01 85);           /* light cream */
+    --nav-item-hover-text: oklch(0.15 0 0);                       /* almost black */
+    --nav-item-hover-text-dark: oklch(0.95 0.01 85);              /* cream white */
+    --nav-item-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent);
+    --nav-item-hover-bg-dark: color-mix(in oklch, var(--muted-foreground) 20%, transparent);
     
     /* Navigation Section Headers */
     --nav-section-label-size: var(--text-xs);
@@ -537,11 +567,11 @@ a {
     --nav-list-item-gap: 0.375rem;                /* 6px - space-y-1.5 (mobile) */
     --nav-list-item-gap-desktop: 0.25rem;         /* 4px - space-y-1 (desktop) */
     
-    /* Navigation Badge */
-    --nav-badge-bg: oklch(0.9551 0.1230 276.9656);                /* blue-100 */
-    --nav-badge-bg-dark: oklch(0.2455 0.1583 276.9349);           /* blue-900 */
-    --nav-badge-text: oklch(0.3211 0.2301 276.9656);              /* blue-800 */
-    --nav-badge-text-dark: oklch(0.8452 0.1583 276.9349);         /* blue-200 */
+    /* Navigation Badge - Brutalist Palette */
+    --nav-badge-bg: oklch(0.95 0.05 195);                /* light cyan */
+    --nav-badge-bg-dark: oklch(0.25 0.08 195);           /* dark cyan */
+    --nav-badge-text: oklch(0.72 0.15 195);              /* cyan */
+    --nav-badge-text-dark: oklch(0.72 0.15 195);         /* cyan */
     --nav-badge-padding-x: 0.5rem;                /* 8px - px-2 */
     --nav-badge-padding-y: 0.125rem;              /* 2px - py-0.5 */
     
@@ -702,7 +732,7 @@ a {
     --chart-selection-card-border-selected: var(--primary);
     --chart-selection-card-bg-selected: color-mix(in oklch, var(--primary) 5%, transparent);
     
-    /* Link Colors - Semantic */
+    /* Link Colors - Semantic - Brutalist Palette */
     --link-color: var(--primary);
     --link-hover-color: color-mix(in oklch, var(--primary) 80%, var(--foreground));
     
@@ -741,11 +771,11 @@ a {
     --avatar-status-border-width: 2px;
     --avatar-status-border-color: var(--card);
     
-    /* Avatar Status Colors - Semantic Mapping */
-    --avatar-status-online: oklch(0.7227 0.1920 149.5793);    /* green - maps to chart-5 */
+    /* Avatar Status Colors - Semantic Mapping - Brutalist Palette */
+    --avatar-status-online: oklch(0.85 0.12 85);    /* yellow - online */
     --avatar-status-offline: var(--muted-foreground);
-    --avatar-status-away: oklch(0.7686 0.1647 70.0804);       /* orange - maps to accent */
-    --avatar-status-busy: oklch(0.6368 0.2078 25.3313);       /* red - maps to destructive */
+    --avatar-status-away: oklch(0.70 0.18 55);       /* orange - away */
+    --avatar-status-busy: oklch(0.58 0.24 25);       /* red - busy */
     --avatar-status-invisible: transparent;
     
     /* User Profile Button States */
@@ -923,19 +953,19 @@ a {
     --leading-hero: 1.1;            /* Tight for large headings */
     --leading-section: 1.2;         /* For section headings */
     
-    /* Text Gradient Patterns - Light Mode */
-    --gradient-heading-from: oklch(0 0 0);              /* gray-900 */
-    --gradient-heading-to: oklch(0.3211 0 0);           /* gray-800 */
-    --gradient-heading-from-dark: oklch(1.0000 0 0);    /* gray-50 */
-    --gradient-heading-to-dark: oklch(0.8452 0 0);      /* gray-300 */
+    /* Text Gradient Patterns - Light Mode - Brutalist Palette */
+    --gradient-heading-from: oklch(0.15 0 0);              /* almost black */
+    --gradient-heading-to: oklch(0.45 0 0);                /* dark gray */
+    --gradient-heading-from-dark: oklch(0.95 0.01 85);     /* cream white */
+    --gradient-heading-to-dark: oklch(0.75 0.01 85);       /* light cream */
     
-    /* Signature/Handwriting Text Color */
-    --text-signature: oklch(0.5106 0.2301 276.9656);    /* indigo-600 */
-    --text-signature-dark: oklch(0.6801 0.1583 276.9349); /* indigo-400 */
+    /* Signature/Handwriting Text Color - Brutalist Palette */
+    --text-signature: oklch(0.72 0.15 195);    /* cyan */
+    --text-signature-dark: oklch(0.72 0.15 195); /* cyan */
     
-    /* Landing Page Body Text Colors */
-    --text-landing-body: oklch(0.4459 0 0);             /* gray-700 */
-    --text-landing-body-dark: oklch(0.6559 0 0);        /* gray-400 */
+    /* Landing Page Body Text Colors - Brutalist Palette */
+    --text-landing-body: oklch(0.45 0 0);             /* dark gray */
+    --text-landing-body-dark: oklch(0.75 0.01 85);    /* light cream */
     
     /* Landing Page Spacing Tokens */
     --spacing-section-top: 10rem;      /* 160px - mt-40 between major sections */
@@ -1022,7 +1052,7 @@ a {
     --pricing-card-border-popular: var(--primary);
     --pricing-card-hover-border: var(--muted);
     
-    /* Pricing Plan Highlight Colors */
+    /* Pricing Plan Highlight Colors - Brutalist Palette */
     --pricing-popular-indicator: var(--primary);
     --pricing-popular-text: var(--primary);
     --pricing-popular-bg: var(--background);
@@ -1056,7 +1086,7 @@ a {
     --icon-size-pricing-feature: 1rem; /* 16px - size-4 */
     --icon-size-pricing-check: 1.25rem; /* 20px - size-5 */
     
-    /* Pricing Feature Icon Colors */
+    /* Pricing Feature Icon Colors - Brutalist Palette */
     --pricing-icon-capacity: var(--muted-foreground);
     --pricing-icon-feature-check: var(--primary);
     --pricing-icon-feature-unavailable: var(--muted-foreground);
@@ -1065,7 +1095,7 @@ a {
     --pricing-table-col-feature: 40%; /* w-2/5 */
     --pricing-table-col-plan: 20%; /* w-1/5 */
     
-    /* Pricing Toggle/Switch Colors */
+    /* Pricing Toggle/Switch Colors - Brutalist Palette */
     --pricing-toggle-label: var(--muted-foreground);
     --pricing-toggle-label-size: var(--text-base);
     --pricing-toggle-discount-color: var(--primary);
@@ -1117,13 +1147,13 @@ a {
     --reports-skeleton-chart-height: 16rem;           /* 256px - h-64 */
     --reports-skeleton-section-height: 8rem;          /* 128px - h-32 */
     
-    /* Reports Chart Colors - Semantic Mapping */
-    --reports-chart-primary: var(--chart-1);          /* blue for amount/count */
-    --reports-chart-category: var(--chart-5);         /* emerald for categories */
-    --reports-chart-merchant: var(--chart-3);         /* orange for merchants */
-    --reports-chart-distribution-active: oklch(0.5106 0.2301 276.9656);    /* blue-500 */
-    --reports-chart-distribution-inactive: oklch(0.8452 0 0);              /* gray-200 */
-    --reports-chart-distribution-inactive-dark: oklch(0.4459 0 0);         /* gray-800 */
+    /* Reports Chart Colors - Semantic Mapping - Brutalist Palette */
+    --reports-chart-primary: var(--chart-1);          /* cyan */
+    --reports-chart-category: var(--chart-2);         /* yellow */
+    --reports-chart-merchant: var(--chart-3);         /* orange */
+    --reports-chart-distribution-active: oklch(0.72 0.15 195);    /* cyan */
+    --reports-chart-distribution-inactive: oklch(0.85 0.01 85);   /* light cream */
+    --reports-chart-distribution-inactive-dark: oklch(0.35 0 0);  /* dark gray */
     
     /* Reports Filter Distribution Histogram */
     --reports-histogram-bar-width: 100%;              /* w-full */
@@ -1180,15 +1210,15 @@ a {
     --transition-reports-histogram-bar: background-color var(--transition-base) var(--ease-in-out),
                                         height var(--transition-base) var(--ease-in-out);
     
-    /* Reports Status Colors - Semantic Mapping */
-    --reports-status-pending: oklch(0.4459 0 0);      /* gray-500 */
-    --reports-status-approved: oklch(0.6559 0.1821 151.7110);   /* emerald-600 */
-    --reports-status-action-required: oklch(0.5906 0.2078 25.3313);  /* rose-600 */
-    --reports-status-in-audit: oklch(0.6559 0.1647 70.0804);    /* yellow-600 */
-    --reports-status-pending-dark: oklch(0.4459 0 0);           /* gray-500 */
-    --reports-status-approved-dark: oklch(0.7227 0.1920 149.5793);  /* emerald-500 */
-    --reports-status-action-required-dark: oklch(0.6368 0.2078 25.3313);  /* rose-500 */
-    --reports-status-in-audit-dark: oklch(0.7686 0.1647 70.0804);   /* yellow-500 */
+    /* Reports Status Colors - Semantic Mapping - Brutalist Palette */
+    --reports-status-pending: oklch(0.45 0 0);      /* gray */
+    --reports-status-approved: oklch(0.85 0.12 85);   /* yellow */
+    --reports-status-action-required: oklch(0.58 0.24 25);  /* red */
+    --reports-status-in-audit: oklch(0.70 0.18 55);    /* orange */
+    --reports-status-pending-dark: oklch(0.45 0 0);           /* gray */
+    --reports-status-approved-dark: oklch(0.85 0.12 85);  /* yellow */
+    --reports-status-action-required-dark: oklch(0.58 0.24 25);  /* red */
+    --reports-status-in-audit-dark: oklch(0.70 0.18 55);   /* orange */
     
     /* ============================================
        SETTINGS DASHBOARD DESIGN TOKENS
@@ -1203,17 +1233,17 @@ a {
     --settings-card-bg-muted: oklch(0.9789 0.0082 121.6272); /* gray-50 */
     --settings-card-bg-muted-dark: oklch(0.2455 0.0217 257.2823); /* gray-900/40 */
     
-    /* Audit Rule Type Colors - Semantic Mapping */
-    --audit-event-color: oklch(0.6559 0.1647 70.0804); /* orange-600 */
-    --audit-event-color-dark: oklch(0.7686 0.1647 70.0804); /* orange-500 */
-    --audit-function-color: oklch(0.4306 0.2301 276.9656); /* sky-500 */
-    --audit-function-color-dark: oklch(0.5906 0.2301 276.9656); /* sky-500 */
-    --audit-action-color: oklch(0.6559 0.1821 151.7110); /* emerald-500 */
-    --audit-action-color-dark: oklch(0.7227 0.1920 149.5793); /* emerald-500 */
+    /* Audit Rule Type Colors - Semantic Mapping - Brutalist Palette */
+    --audit-event-color: oklch(0.70 0.18 55); /* orange */
+    --audit-event-color-dark: oklch(0.70 0.18 55); /* orange */
+    --audit-function-color: oklch(0.72 0.15 195); /* cyan */
+    --audit-function-color-dark: oklch(0.72 0.15 195); /* cyan */
+    --audit-action-color: oklch(0.85 0.12 85); /* yellow */
+    --audit-action-color-dark: oklch(0.85 0.12 85); /* yellow */
     
-    /* Billing Status Colors */
-    --billing-active-indicator: oklch(0.6559 0.1821 151.7110); /* emerald-600 */
-    --billing-active-indicator-dark: oklch(0.7227 0.1920 149.5793); /* emerald-500 */
+    /* Billing Status Colors - Brutalist Palette */
+    --billing-active-indicator: oklch(0.85 0.12 85); /* yellow */
+    --billing-active-indicator-dark: oklch(0.85 0.12 85); /* yellow */
     --billing-inactive-indicator: var(--muted-foreground);
     
     /* User Status Colors - Semantic Mapping */
@@ -1221,11 +1251,11 @@ a {
     --user-status-pending: var(--status-warning);
     --user-status-inactive: var(--muted);
     
-    /* Transaction Policy Colors */
-    --policy-blocked-color: oklch(0.6368 0.2078 25.3313); /* rose-600 */
-    --policy-blocked-color-dark: oklch(0.7106 0.1661 22.2162); /* rose-500 */
-    --policy-suspicious-color: oklch(0.6559 0.1647 70.0804); /* orange-500 */
-    --policy-suspicious-color-dark: oklch(0.7686 0.1647 70.0804); /* orange-500 */
+    /* Transaction Policy Colors - Brutalist Palette */
+    --policy-blocked-color: oklch(0.58 0.24 25); /* red */
+    --policy-blocked-color-dark: oklch(0.58 0.24 25); /* red */
+    --policy-suspicious-color: oklch(0.70 0.18 55); /* orange */
+    --policy-suspicious-color-dark: oklch(0.70 0.18 55); /* orange */
     
     /* Settings Typography Patterns */
     --text-settings-section-heading: var(--text-base); /* 16px - section headings */
@@ -1475,7 +1505,7 @@ a {
     --audit-feed-comment-border: oklch(0.8452 0 0); /* gray-300 */
     --audit-feed-comment-border-dark: oklch(0.4459 0 0); /* gray-800 */
     --audit-feed-comment-padding: 0.75rem; /* 12px - p-3 */
-    --audit-feed-icon-approved: var(--primary); /* blue-500 */
+    --audit-feed-icon-approved: var(--primary); /* cyan */
     --audit-feed-text-primary: var(--foreground);
     --audit-feed-text-secondary: var(--muted-foreground);
     --audit-feed-spacing-gap: 1.5rem; /* 24px - space-y-6 */
@@ -1574,43 +1604,43 @@ a {
   }
   
   .dark {
-    /* Core theme colors using OKLCH for dark mode */
-    --background: oklch(0 0 0);
-    --foreground: oklch(1.0000 0 0);
-    --card: oklch(0.2455 0.0217 257.2823);
-    --card-foreground: oklch(1.0000 0 0);
-    --popover: oklch(0.2455 0.0217 257.2823);
-    --popover-foreground: oklch(1.0000 0 0);
-    --primary: oklch(0.6801 0.1583 276.9349);
-    --primary-foreground: oklch(0 0 0);
-    --secondary: oklch(0.7845 0.1325 181.9120);
-    --secondary-foreground: oklch(0 0 0);
-    --muted: oklch(0.3211 0 0);
-    --muted-foreground: oklch(0.8452 0 0);
-    --accent: oklch(0.8790 0.1534 91.6054);
-    --accent-foreground: oklch(0 0 0);
-    --destructive: oklch(0.7106 0.1661 22.2162);
-    --destructive-foreground: oklch(0 0 0);
-    --border: oklch(0.4459 0 0);
-    --input: oklch(1.0000 0 0);
-    --ring: oklch(0.6801 0.1583 276.9349);
+    /* Core theme colors using OKLCH for dark mode - Brutalist Palette */
+    --background: oklch(0.12 0 0);
+    --foreground: oklch(0.95 0.01 85);
+    --card: oklch(0.18 0.01 0);
+    --card-foreground: oklch(0.95 0.01 85);
+    --popover: oklch(0.18 0.01 0);
+    --popover-foreground: oklch(0.95 0.01 85);
+    --primary: oklch(0.72 0.15 195);
+    --primary-foreground: oklch(0.12 0 0);
+    --secondary: oklch(0.85 0.12 85);
+    --secondary-foreground: oklch(0.12 0 0);
+    --muted: oklch(0.30 0 0);
+    --muted-foreground: oklch(0.75 0.01 85);
+    --accent: oklch(0.70 0.18 55);
+    --accent-foreground: oklch(0.12 0 0);
+    --destructive: oklch(0.58 0.24 25);
+    --destructive-foreground: oklch(0.95 0.01 85);
+    --border: oklch(0.35 0 0);
+    --input: oklch(0.95 0.01 85);
+    --ring: oklch(0.72 0.15 195);
     
-    /* Chart colors */
-    --chart-1: oklch(0.6801 0.1583 276.9349);
-    --chart-2: oklch(0.7845 0.1325 181.9120);
-    --chart-3: oklch(0.8790 0.1534 91.6054);
-    --chart-4: oklch(0.7253 0.1752 349.7607);
-    --chart-5: oklch(0.8003 0.1821 151.7110);
+    /* Chart colors - Dark Mode - Brutalist Palette */
+    --chart-1: oklch(0.72 0.15 195);
+    --chart-2: oklch(0.85 0.12 85);
+    --chart-3: oklch(0.70 0.18 55);
+    --chart-4: oklch(0.58 0.24 25);
+    --chart-5: oklch(0.92 0.08 85);
     
-    /* Sidebar colors */
-    --sidebar: oklch(0 0 0);
-    --sidebar-foreground: oklch(1.0000 0 0);
-    --sidebar-primary: oklch(0.6801 0.1583 276.9349);
-    --sidebar-primary-foreground: oklch(0 0 0);
-    --sidebar-accent: oklch(0.8790 0.1534 91.6054);
-    --sidebar-accent-foreground: oklch(0 0 0);
-    --sidebar-border: oklch(1.0000 0 0);
-    --sidebar-ring: oklch(0.6801 0.1583 276.9349);
+    /* Sidebar colors - Dark Mode - Brutalist Palette */
+    --sidebar: oklch(0.12 0 0);
+    --sidebar-foreground: oklch(0.95 0.01 85);
+    --sidebar-primary: oklch(0.72 0.15 195);
+    --sidebar-primary-foreground: oklch(0.12 0 0);
+    --sidebar-accent: oklch(0.70 0.18 55);
+    --sidebar-accent-foreground: oklch(0.12 0 0);
+    --sidebar-border: oklch(0.95 0.01 85);
+    --sidebar-ring: oklch(0.72 0.15 195);
     
     /* Typography (same as light mode) */
     --font-sans: DM Sans, sans-serif;
@@ -1636,11 +1666,11 @@ a {
     --shadow-xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.05);
     --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.13);
     
-    /* Status Colors - Dark Mode */
-    --status-critical: oklch(0.7106 0.1661 22.2162);
-    --status-warning: oklch(0.8790 0.1534 91.6054);
-    --status-good: oklch(0.8003 0.1821 151.7110);
-    --status-excellent: oklch(0.6801 0.1583 276.9349);
+    /* Status Colors - Dark Mode - Brutalist Palette */
+    --status-critical: oklch(0.58 0.24 25);
+    --status-warning: oklch(0.70 0.18 55);
+    --status-good: oklch(0.85 0.12 85);
+    --status-excellent: oklch(0.72 0.15 195);
     
     /* Navigation Colors - Dark Mode */
     --nav-item-hover: color-mix(in oklch, var(--muted) 50%, transparent);
@@ -1715,9 +1745,10 @@ a {
     --dropdown-item-destructive-hover-bg: var(--dropdown-item-destructive-hover-bg-dark);
     --dropdown-item-destructive-hover-text: var(--dropdown-item-destructive-hover-text-dark);
     --chevron-icon-hover-color: var(--chevron-icon-hover-color-dark);
-    --avatar-status-online: oklch(0.8003 0.1821 151.7110);    /* green - brighter for dark mode */
-    --avatar-status-away: oklch(0.8790 0.1534 91.6054);       /* orange - brighter for dark mode */
-    --avatar-status-busy: oklch(0.7106 0.1661 22.2162);       /* red - brighter for dark mode */
+    /* Avatar Status Colors - Dark Mode - Brutalist Palette */
+    --avatar-status-online: oklch(0.85 0.12 85);    /* yellow - brighter for dark mode */
+    --avatar-status-away: oklch(0.70 0.18 55);       /* orange - brighter for dark mode */
+    --avatar-status-busy: oklch(0.58 0.24 25);       /* red - brighter for dark mode */
     
     /* Landing Page - Dark Mode Overrides */
     --gradient-heading-from: var(--gradient-heading-from-dark);
@@ -1725,8 +1756,8 @@ a {
     --text-signature: var(--text-signature-dark);
     --text-landing-body: var(--text-landing-body-dark);
     
-    /* Pricing Page - Dark Mode Overrides */
-    --pricing-popular-bg: oklch(0 0 0); /* gray-950 */
+    /* Pricing Page - Dark Mode Overrides - Brutalist Palette */
+    --pricing-popular-bg: oklch(0.12 0 0); /* dark background */
     --pricing-table-header-bg: oklch(0 0 0); /* gray-950 */
     
     /* Business Dashboard - Dark Mode Overrides */
@@ -5642,7 +5673,6 @@ a {
   .dark .retention-stat-value-change {
     color: oklch(0.8003 0.1821 151.7110); /* emerald-500 */
   }
-}
 
 /* ============================================
    UTILITY CLASSES FOR SETTINGS COMPONENTS

@@ -98,16 +98,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   
   return (
     <Sidebar {...props} className="bg-sidebar">
-      <SidebarHeader className="px-3 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-md bg-card p-1.5 shadow-sm ring-1 ring-border">
-            <DatabaseLogo className="size-6 text-primary" />
+      <SidebarHeader style={{ padding: 'var(--spacing-md)' }}>
+        <div className="flex items-center" style={{ gap: 'var(--spacing-md)' }}>
+          <span 
+            className="flex items-center justify-center rounded-md bg-card shadow-sm ring-1 ring-border"
+            style={{
+              width: 'var(--avatar-size-settings-default)',
+              height: 'var(--avatar-size-settings-default)',
+              padding: 'var(--spacing-xs)'
+            }}
+          >
+            <DatabaseLogo 
+              className="text-primary"
+              style={{
+                width: 'var(--nav-item-icon-size)',
+                height: 'var(--nav-item-icon-size)'
+              }}
+            />
           </span>
           <div>
-            <span className="block text-sm font-semibold text-foreground">
+            <span 
+              className="block text-foreground"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)'
+              }}
+            >
               Innovex Systems
             </span>
-            <span className="block text-xs text-foreground">
+            <span 
+              className="block text-foreground"
+              style={{ fontSize: 'var(--text-xs)' }}
+            >
               Premium Starter Plan
             </span>
           </div>
@@ -125,7 +147,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
         <SidebarGroup className="pt-0">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu style={{ gap: 'var(--nav-list-item-gap-desktop)' }}>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarLink
@@ -144,19 +166,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarSeparator />
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-4">
+            <SidebarMenu style={{ gap: 'var(--spacing-md)' }}>
               {navigation2.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton
                     onClick={() => toggleMenu(item.name)}
                     className={cx(
-                      "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-foreground transition-standard hover-bg-muted sm:text-sm",
+                      "flex w-full items-center justify-between rounded-md text-foreground transition-standard hover-bg-muted",
                       "focus-ring",
                     )}
+                    style={{
+                      padding: 'var(--nav-item-padding-y) var(--nav-item-padding-x)',
+                      gap: 'var(--nav-item-gap)',
+                      fontSize: 'var(--nav-item-font-size)'
+                    }}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center" style={{ gap: 'var(--nav-item-gap)' }}>
                       <item.icon
-                        className="size-[18px] shrink-0"
+                        className="shrink-0"
+                        style={{
+                          width: 'var(--nav-item-icon-size)',
+                          height: 'var(--nav-item-icon-size)'
+                        }}
                         aria-hidden="true"
                       />
                       {item.name}
@@ -166,8 +197,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         openMenus.includes(item.name)
                           ? "rotate-0"
                           : "-rotate-90",
-                        "size-5 shrink-0 transform text-muted-foreground transition-transform-standard",
+                        "shrink-0 transform text-muted-foreground transition-transform-standard",
                       )}
+                      style={{
+                        width: 'var(--nav-item-icon-size)',
+                        height: 'var(--nav-item-icon-size)'
+                      }}
                       aria-hidden="true"
                     />
                   </SidebarMenuButton>

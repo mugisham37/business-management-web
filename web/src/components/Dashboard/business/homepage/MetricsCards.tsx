@@ -4,7 +4,6 @@ import React from "react"
 import { Badge } from "@/components/ui/Badge"
 import { ProgressBar } from "@/components/ui/ProgressBar"
 import { Tooltip } from "@/components/ui/Tooltip"
-import { getColorClassName, type AvailableChartColorsKeys } from "@/lib/chartUtils"
 import { cx } from "@/lib/utils"
 
 type MetricStatus = "critical" | "warning" | "good" | "excellent"
@@ -25,12 +24,12 @@ const getMetricStatus = (value: number): MetricStatus => {
   return "excellent"
 }
 
-const getStatusColor = (status: MetricStatus): AvailableChartColorsKeys => {
+const getStatusColor = (status: MetricStatus): string => {
   switch (status) {
-    case "critical": return "red"
-    case "warning": return "orange"
-    case "good": return "emerald"
-    case "excellent": return "blue"
+    case "critical": return "var(--status-critical)"
+    case "warning": return "var(--status-warning)"
+    case "good": return "var(--status-good)"
+    case "excellent": return "var(--status-excellent)"
   }
 }
 
@@ -70,9 +69,10 @@ function StatusIndicator({ value, showAnimation = true }: { value: number; showA
           key={index}
           className={cx(
             "business-metrics-indicator-bar",
-            index < bars ? getColorClassName(color, "bg") : "business-metrics-indicator-bar-inactive",
+            index >= bars && "business-metrics-indicator-bar-inactive",
             showAnimation && "transform-gpu"
           )}
+          style={index < bars ? { backgroundColor: color } : undefined}
         />
       ))}
     </div>
@@ -130,27 +130,32 @@ function MetricCard({ metric }: { metric: Metric }) {
           </Badge>
         )}
       </dt>
-      <dd className="mt-1.5 space-y-2">
-        <div className="flex items-center gap-2">
-          <StatusIndicator value={metric.value} />
-          <p className="text-lg font-semibold text-[var(--business-metrics-value)]">
-            {metric.percentage}{" "}
-            <span className="font-medium text-[var(--business-metrics-fraction)]">
-              - {metric.fraction}
-            </span>
-          </p>
+      <dd style={{ marginTop: 'var(--spacing-xs)' }}>
+        <div className="space-y-2">
+          <div className="flex items-center" style={{ gap: 'var(--spacing-sm)' }}>
+            <StatusIndicator value={metric.value} />
+            <p className="text-business-value">
+              {metric.percentage}{" "}
+              <span style={{ 
+                fontWeight: 'var(--font-medium)',
+                color: 'var(--business-metrics-fraction)'
+              }}>
+                - {metric.fraction}
+              </span>
+            </p>
+          </div>
+          {metric.target && (
+            <ProgressBar
+              value={metric.value * 100}
+              max={100}
+              variant={progressVariant}
+              size="sm"
+              showAnimation
+              className="group-hover-visible"
+              formatLabel={(value) => `${Math.round(value)}% of target`}
+            />
+          )}
         </div>
-        {metric.target && (
-          <ProgressBar
-            value={metric.value * 100}
-            max={100}
-            variant={progressVariant}
-            size="sm"
-            showAnimation
-            className="group-hover-visible"
-            formatLabel={(value) => `${Math.round(value)}% of target`}
-          />
-        )}
       </dd>
     </div>
   )
@@ -171,10 +176,23 @@ function MetricCard({ metric }: { metric: Metric }) {
 export function MetricsCards() {
   return (
     <div role="region" aria-labelledby="metrics-heading">
-      <h1 id="metrics-heading" className="text-lg font-semibold text-[var(--foreground)]">
+      <h1 
+        id="metrics-heading" 
+        style={{
+          fontSize: 'var(--text-business-section-heading)',
+          fontWeight: 'var(--font-semibold)',
+          color: 'var(--foreground)'
+        }}
+      >
         Overview
       </h1>
-      <dl className="mt-6 flex flex-wrap items-start gap-x-12 gap-y-8">
+      <dl 
+        className="flex flex-wrap items-start"
+        style={{
+          marginTop: 'var(--spacing-business-section-gap)',
+          gap: 'var(--spacing-business-section-gap)'
+        }}
+      >
         {metrics.map((metric) => (
           <MetricCard key={metric.label} metric={metric} />
         ))}

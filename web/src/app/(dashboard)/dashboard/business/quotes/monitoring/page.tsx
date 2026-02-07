@@ -23,7 +23,13 @@ import { SlidersHorizontal } from "lucide-react"
 export default function Monitoring() {
   return (
     <section aria-label="App Monitoring">
-      <div className="flex flex-col items-center justify-between gap-2 p-6 sm:flex-row">
+      <div 
+        className="flex flex-col items-center justify-between sm:flex-row"
+        style={{
+          gap: 'var(--spacing-sm)',
+          padding: 'var(--spacing-business-card-padding)'
+        }}
+      >
         <Select defaultValue="365-days">
           <SelectTrigger className="py-1.5 sm:w-44">
             <SelectValue placeholder="Assigned to..." />
@@ -37,16 +43,31 @@ export default function Monitoring() {
         </Select>
         <Button
           variant="secondary"
-          className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
+          className="w-full text-base sm:w-fit sm:text-sm"
+          style={{
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-xs) var(--spacing-md)'
+          }}
         >
           <SlidersHorizontal
-            className="-ml-0.5 size-4 shrink-0 text-[var(--muted-foreground)]"
+            className="-ml-0.5 shrink-0 text-muted-foreground"
+            style={{
+              width: 'var(--icon-size-settings-sm)',
+              height: 'var(--icon-size-settings-sm)'
+            }}
             aria-hidden="true"
           />
           Report Filters
         </Button>
       </div>
-      <dl className="grid grid-cols-1 gap-x-14 gap-y-10 border-t border-[var(--border)] p-6 md:grid-cols-2">
+      <dl 
+        className="grid grid-cols-1 md:grid-cols-2"
+        style={{
+          gap: 'var(--spacing-business-grid-gap-y) var(--spacing-business-grid-gap-x)',
+          borderTop: '1px solid var(--border)',
+          padding: 'var(--spacing-business-card-padding)'
+        }}
+      >
         <div className="business-chart-card">
           <div>
             <dt className="business-chart-title">
@@ -66,7 +87,11 @@ export default function Monitoring() {
             yAxisLabel="Number of inherent risks"
             barCategoryGap="20%"
             valueFormatter={(value: number) => formatters.unit({ number: value })}
-            className="mt-4 hidden h-60 md:block"
+            className="hidden md:block"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
           <BarChart
             data={dataChart}
@@ -76,7 +101,11 @@ export default function Monitoring() {
             showYAxis={false}
             customTooltip={CustomTooltip}
             barCategoryGap="20%"
-            className="mt-4 h-60 md:hidden"
+            className="md:hidden"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
         </div>
         <div className="business-chart-card">
@@ -104,7 +133,11 @@ export default function Monitoring() {
               showYAxis: false,
             }}
             customTooltip={CustomTooltip2}
-            className="mt-4 hidden h-60 md:block"
+            className="hidden md:block"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
           <ComboChart
             data={dataChart2}
@@ -120,7 +153,11 @@ export default function Monitoring() {
               showYAxis: false,
             }}
             customTooltip={CustomTooltip2}
-            className="mt-4 h-60 md:hidden"
+            className="md:hidden"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
         </div>
         <div className="business-chart-card">
@@ -142,7 +179,11 @@ export default function Monitoring() {
             yAxisWidth={55}
             yAxisLabel="% of criteria addressed"
             barCategoryGap="30%"
-            className="mt-4 hidden h-60 md:block"
+            className="hidden md:block"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
           <BarChart
             data={dataChart3}
@@ -153,7 +194,11 @@ export default function Monitoring() {
             showYAxis={false}
             type="percent"
             barCategoryGap="30%"
-            className="mt-4 h-60 md:hidden"
+            className="md:hidden"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
         </div>
         <div className="business-chart-card">
@@ -177,7 +222,11 @@ export default function Monitoring() {
             yAxisWidth={55}
             yAxisLabel="Competition density (%)"
             barCategoryGap="30%"
-            className="mt-4 hidden h-60 md:block"
+            className="hidden md:block"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
           <ConditionalBarChart
             data={dataChart4}
@@ -190,7 +239,11 @@ export default function Monitoring() {
             }
             showYAxis={false}
             barCategoryGap="30%"
-            className="mt-4 h-60 md:hidden"
+            className="md:hidden"
+            style={{ 
+              marginTop: 'var(--spacing-md)',
+              height: 'var(--reports-chart-height)'
+            }}
           />
         </div>
       </dl>
