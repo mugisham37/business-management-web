@@ -50,11 +50,11 @@ const SummaryItem = ({
   label: string
   value: string | number | null | undefined
 }) => (
-  <div className="space-y-1">
-    <p className="form-helper-text font-medium">
+  <div className="ticket-summary-item">
+    <p className="ticket-summary-label">
       {label}
     </p>
-    <p className="text-sm">{value ?? "Not provided"}</p>
+    <p className="ticket-summary-value">{value ?? "Not provided"}</p>
   </div>
 )
 
@@ -81,21 +81,21 @@ const FirstPage = ({ formData, onUpdateForm }: FormPageProps) => (
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="drawer-section space-y-6 overflow-y-scroll">
+    <DrawerBody className="ticket-drawer-body space-y-6 overflow-y-scroll">
       <FormField label="Contact Type">
         <RadioCardGroup
           defaultValue={formData.type}
-          className="grid grid-cols-2 gap-2 text-sm"
+          className="ticket-form-radio-grid-2"
           onValueChange={(value: string) => onUpdateForm({ type: value })}
         >
           {ticketTypes.map((type) => (
             <RadioCardItem
               key={type.value}
               value={type.value}
-              className="flex flex-col justify-start p-2.5 text-base duration-75 focus-ring-blue data-[state=checked]:checked-state sm:text-sm"
+              className="ticket-radio-card focus-ring-blue data-[state=checked]:checked-state"
             >
               {type.name}
-              <span className="block text-sm opacity-75 sm:text-xs">
+              <span className="ticket-radio-card-description">
                 {type.extended}
               </span>
             </RadioCardItem>
@@ -171,26 +171,26 @@ const SecondPage = ({ formData, onUpdateForm }: FormPageProps) => (
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="drawer-section space-y-6 overflow-y-scroll">
+    <DrawerBody className="ticket-drawer-body space-y-6 overflow-y-scroll">
       <FormField label="Priority Level">
         <RadioCardGroup
           defaultValue={formData.priority}
-          className="grid grid-cols-1 gap-2 text-sm"
+          className="ticket-form-radio-grid-1"
           onValueChange={(value: string) => onUpdateForm({ priority: value })}
         >
           {priorities.map((priority) => (
             <RadioCardItem
               key={priority.value}
               value={priority.value}
-              className="p-2.5 text-base duration-75 focus-ring-blue data-[state=checked]:checked-state sm:text-sm"
+              className="ticket-radio-card focus-ring-blue data-[state=checked]:checked-state"
             >
               <div className="flex items-center justify-between">
                 <span>{priority.label}</span>
-                <span className="text-sm opacity-75 sm:text-xs">
+                <span className="ticket-radio-card-description">
                   SLA: {priority.sla}
                 </span>
               </div>
-              <span className="block text-sm opacity-75 sm:text-xs">
+              <span className="ticket-radio-card-description">
                 {priority.description}
               </span>
             </RadioCardItem>
@@ -237,9 +237,9 @@ const SummaryPage = ({ formData }: { formData: TicketFormData }) => (
         </span>
       </DrawerTitle>
     </DrawerHeader>
-    <DrawerBody className="drawer-section space-y-4 overflow-y-scroll">
-      <div className="rounded-md border border-[var(--border)]">
-        <div className="divider-horizontal p-4">
+    <DrawerBody className="ticket-drawer-body space-y-4 overflow-y-scroll">
+      <div className="ticket-summary-section">
+        <div className="ticket-summary-header">
           <h3 className="font-medium">Ticket Information</h3>
           <div className="mt-4 space-y-4">
             <SummaryItem
@@ -272,7 +272,7 @@ const SummaryPage = ({ formData }: { formData: TicketFormData }) => (
             />
           </div>
         </div>
-        <div className="p-4">
+        <div className="ticket-summary-body">
           <h3 className="font-medium">Details</h3>
           <div className="mt-4 space-y-4">
             <SummaryItem
@@ -417,9 +417,9 @@ export function TicketDrawer({ open, onOpenChange }: TicketDrawerProps) {
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="overflow-x-hidden sm:max-w-lg">
+      <DrawerContent className="ticket-drawer-content">
         {renderPage()}
-        <DrawerFooter className="-mx-6 -mb-2 gap-2 px-6 sm:justify-between">
+        <DrawerFooter className="ticket-drawer-footer">
           {renderFooter()}
         </DrawerFooter>
       </DrawerContent>

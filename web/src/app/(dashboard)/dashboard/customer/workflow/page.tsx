@@ -172,19 +172,19 @@ export default function Workflow() {
 
   return (
     <main>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
+          <h1 className="page-title">
             Workflow
           </h1>
-          <p className="text-gray-500 sm:text-sm/6 dark:text-gray-500">
+          <p className="page-description">
             Analyze case testing efficiency and simulate cost impacts across
             departments
           </p>
         </div>
       </div>
       <Divider />
-      <div className="mt-8 flex w-full flex-wrap items-start gap-6 rounded-lg bg-gray-50/50 p-6 ring-1 ring-gray-200 dark:bg-[#090E1A] dark:ring-gray-800">
+      <div className="workflow-filter-section">
         <div className="w-full sm:w-96">
           <Label
             htmlFor="test-quota"
@@ -221,22 +221,22 @@ export default function Workflow() {
                 variant="ghost"
                 className="group -ml-2.5 py-2.5 sm:py-2"
               >
-                <RiResetLeftLine className="size-5 text-gray-500 transition group-hover:-rotate-45 group-hover:text-gray-700 dark:text-gray-500 group-hover:dark:text-gray-300" />
+                <RiResetLeftLine className="size-5 text-[var(--muted-foreground)] transition group-hover:-rotate-45 group-hover:text-[var(--foreground)]" />
                 <span className="sr-only">Reset</span>
               </Button>
             ) : null}
           </div>
           <p className="mt-1 flex items-center gap-2 text-sm tabular-nums">
-            <span className="text-gray-400 dark:text-gray-600">
+            <span className="text-[var(--muted-foreground)]">
               Current: {actualQuota}%
             </span>
-            <span className="text-gray-900 dark:text-gray-50">
+            <span className="text-[var(--foreground)]">
               Scenario: {scenarioQuota}%
             </span>
           </p>
         </div>
         <div>
-          <legend className="font-medium text-gray-900 sm:text-sm dark:text-gray-50">
+          <legend className="font-medium text-[var(--foreground)] sm:text-sm">
             Select department to exclude
           </legend>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -264,9 +264,9 @@ export default function Workflow() {
 
       <section className="relative mt-12 overflow-x-scroll p-4">
         {excludedDepartments.size === departments.length ? (
-          <div className="absolute inset-0 z-10 bg-white/10 backdrop-blur-sm dark:bg-gray-950/30">
-            <div className="flex h-full items-center justify-center">
-              <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-6 shadow-xl shadow-black/5 ring-1 ring-black/5 dark:bg-gray-900">
+          <div className="workflow-overlay-disabled">
+            <div className="workflow-overlay-message">
+              <div className="workflow-overlay-card">
                 You must include at least one department
                 <Button
                   className="w-full"
@@ -280,8 +280,8 @@ export default function Workflow() {
           </div>
         ) : null}
         <div className="relative grid min-w-[40rem] grid-cols-5">
-          <div className="flex flex-col items-center gap-6">
-            <h2 className="text-nowrap text-sm font-medium text-gray-900 dark:text-gray-50">
+          <div className="workflow-stage-container">
+            <h2 className="text-nowrap text-sm font-medium text-[var(--foreground)]">
               1. Completed Cases
             </h2>
             <div className="flex justify-center">
@@ -291,23 +291,23 @@ export default function Workflow() {
                 value={displayStats.total_cases}
               >
                 <div className="flex flex-col items-center">
-                  <span className="mt-1 font-medium tabular-nums text-gray-900 dark:text-gray-50">
+                  <span className="mt-1 font-medium tabular-nums text-[var(--foreground)]">
                     {valueFormatter(displayStats.total_cases)}
                   </span>
-                  <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-500">
+                  <span className="text-xs font-medium tabular-nums text-[var(--muted-foreground)]">
                     100%
                   </span>
                 </div>
               </ProgressCircle>
             </div>
           </div>
-          <div className="mt-24 min-w-32">
-            <div className="w-full border-t border-dashed border-gray-300 dark:border-gray-700" />
-            <div className="mx-auto h-48 w-px border-l border-dashed border-gray-300 dark:border-gray-700" />
-            <div className="ml-auto w-1/2 border-t border-dashed border-gray-300 dark:border-gray-700" />
+          <div className="workflow-connector">
+            <div className="workflow-connector-line-horizontal" />
+            <div className="workflow-connector-line-vertical" />
+            <div className="workflow-connector-line-split" />
           </div>
-          <div className="flex flex-col items-center gap-6">
-            <h2 className="text-nowrap text-sm font-medium text-gray-900 dark:text-gray-50">
+          <div className="workflow-stage-container">
+            <h2 className="text-nowrap text-sm font-medium text-[var(--foreground)]">
               2. Test Results
             </h2>
             <div>
@@ -321,10 +321,10 @@ export default function Workflow() {
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="mt-1 font-medium tabular-nums text-gray-900 dark:text-gray-50">
+                    <span className="mt-1 font-medium tabular-nums text-[var(--foreground)]">
                       {valueFormatter(displayStats.tested_cases)}
                     </span>
-                    <span className="text-xs font-medium tabular-nums text-gray-500">
+                    <span className="text-xs font-medium tabular-nums text-[var(--muted-foreground)]">
                       {calculatePercentage(
                         displayStats.tested_cases,
                         displayStats.total_cases,
@@ -334,7 +334,7 @@ export default function Workflow() {
                   </div>
                 </ProgressCircle>
               </div>
-              <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-4 text-sm text-[var(--foreground)]">
                 Tested Cases
               </p>
             </div>
@@ -349,10 +349,10 @@ export default function Workflow() {
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="mt-1 font-medium tabular-nums text-gray-900 dark:text-gray-50">
+                    <span className="mt-1 font-medium tabular-nums text-[var(--foreground)]">
                       {valueFormatter(displayStats.untested_cases)}
                     </span>
-                    <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-500">
+                    <span className="text-xs font-medium tabular-nums text-[var(--muted-foreground)]">
                       {(
                         (displayStats.untested_cases /
                           displayStats.total_cases) *
@@ -363,19 +363,19 @@ export default function Workflow() {
                   </div>
                 </ProgressCircle>
               </div>
-              <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-4 text-sm text-[var(--foreground)]">
                 Untested Cases
               </p>
             </div>
           </div>
-          <div className="mt-24 min-w-32">
-            <div className="w-full border-t border-dashed border-gray-300 dark:border-gray-700" />
-            <div className="mx-auto h-48 w-px border-l border-dashed border-gray-300 dark:border-gray-700" />
-            <div className="ml-auto w-1/2 border-t border-dashed border-gray-300 dark:border-gray-700" />
+          <div className="workflow-connector">
+            <div className="workflow-connector-line-horizontal" />
+            <div className="workflow-connector-line-vertical" />
+            <div className="workflow-connector-line-split" />
           </div>
-          <div className="flex flex-col items-center gap-6">
+          <div className="workflow-stage-container">
             <div>
-              <h2 className="text-nowrap text-sm font-medium text-gray-900 dark:text-gray-50">
+              <h2 className="text-nowrap text-sm font-medium text-[var(--foreground)]">
                 3. Impact
               </h2>
             </div>
@@ -391,10 +391,10 @@ export default function Workflow() {
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="mt-1 font-medium tabular-nums text-gray-900 dark:text-gray-50">
+                    <span className="mt-1 font-medium tabular-nums text-[var(--foreground)]">
                       {valueFormatter(displayStats.error_free_cases)}
                     </span>
-                    <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-500">
+                    <span className="text-xs font-medium tabular-nums text-[var(--muted-foreground)]">
                       {calculatePercentage(
                         displayStats.error_free_cases,
                         displayStats.total_cases,
@@ -404,7 +404,7 @@ export default function Workflow() {
                   </div>
                 </ProgressCircle>
               </div>
-              <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-4 text-sm text-[var(--foreground)]">
                 Error-free Cases
               </p>
             </div>
@@ -420,10 +420,10 @@ export default function Workflow() {
                   )}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="mt-1 font-medium tabular-nums text-gray-900 dark:text-gray-50">
+                    <span className="mt-1 font-medium tabular-nums text-[var(--foreground)]">
                       {valueFormatter(displayStats.corrected_cases)}
                     </span>
-                    <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-500">
+                    <span className="text-xs font-medium tabular-nums text-[var(--muted-foreground)]">
                       {calculatePercentage(
                         displayStats.corrected_cases,
                         displayStats.total_cases,
@@ -433,7 +433,7 @@ export default function Workflow() {
                   </div>
                 </ProgressCircle>
               </div>
-              <p className="mt-4 text-sm text-gray-700 dark:text-gray-300">
+              <p className="mt-4 text-sm text-[var(--foreground)]">
                 Corrected Cases
               </p>
             </div>
@@ -529,12 +529,12 @@ export default function Workflow() {
 
         <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
           <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">
+            <h3 className="text-sm font-medium text-[var(--foreground)]">
               Cost savings breakdown
             </h3>
             <ul
               role="list"
-              className="mt-2 divide-y divide-gray-200 text-sm dark:divide-gray-800"
+              className="mt-2 divide-y divide-[var(--border)] text-sm"
             >
               {[1, 5, 10].map((years) => {
                 const baseMultiplier = Math.pow(
@@ -600,12 +600,12 @@ export default function Workflow() {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">
+            <h3 className="text-sm font-medium text-[var(--foreground)]">
               FTE impact breakdown
             </h3>
             <ul
               role="list"
-              className="mt-2 divide-y divide-gray-200 text-sm dark:divide-gray-800"
+              className="mt-2 divide-y divide-[var(--border)] text-sm"
             >
               {[1, 5, 10].map((years) => {
                 const baseMultiplier = Math.pow(GROWTH_FACTORS.FTE_BASE, years)

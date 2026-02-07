@@ -6,12 +6,12 @@ import { agents } from "@/data/agents/agents"
 export default function Agents() {
   return (
     <main>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
+          <h1 className="page-title">
             Agents
           </h1>
-          <p className="text-gray-500 sm:text-sm/6 dark:text-gray-500">
+          <p className="page-description">
             Monitor agent performance and manage ticket generation
           </p>
         </div>

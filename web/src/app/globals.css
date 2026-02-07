@@ -260,7 +260,13 @@ a {
     /* ============================================
        CUSTOMER DASHBOARD COMPONENT DESIGN TOKENS
        Added: 2026-02-07
+       Enhanced: 2026-02-07
        ============================================ */
+    
+    /* Customer Dashboard Layout Dimensions */
+    --customer-header-height: 3.5rem;           /* 56px - consistent header */
+    --customer-tab-nav-height: 3rem;            /* 48px - tab navigation */
+    --customer-content-max-width: 80rem;        /* 1280px - max-w-7xl */
     
     /* Notification States */
     --notification-unread-indicator: oklch(0.5106 0.2301 276.9656); /* blue-500 */
@@ -298,6 +304,62 @@ a {
     --spacing-notification-item: var(--spacing-sm);      /* 8px vertical padding */
     --spacing-notification-gap: var(--spacing-md);       /* 16px between items */
     --spacing-drawer-section: var(--spacing-lg);         /* 24px between sections */
+    
+    /* Ticket Drawer Specific Dimensions */
+    --drawer-max-width-sm: 32rem;               /* 512px - sm:max-w-lg */
+    --drawer-header-padding: 1.5rem;            /* 24px */
+    --drawer-body-padding: 1.5rem;              /* 24px */
+    --drawer-footer-padding: 1.5rem;            /* 24px */
+    --drawer-section-spacing: 1.5rem;           /* 24px - between form sections */
+    
+    /* Retention Page Specific Dimensions */
+    --cohort-cell-min-width: 6rem;              /* 96px - min-w-24 */
+    --cohort-cell-height: 4rem;                 /* 64px - h-[64px] */
+    --cohort-header-sticky-left: 0;
+    --cohort-header-sticky-top: 0;
+    --cohort-header-min-width: 10rem;           /* 160px - min-w-40 */
+    
+    /* Cohort Retention Heatmap Colors */
+    --cohort-color-1: oklch(0.9551 0.1230 276.9656);     /* blue-50 */
+    --cohort-color-2: oklch(0.8452 0.1583 276.9349);     /* blue-100 */
+    --cohort-color-3: oklch(0.7686 0.1647 276.9656);     /* blue-200 */
+    --cohort-color-4: oklch(0.6801 0.1583 276.9349);     /* blue-300 */
+    --cohort-color-5: oklch(0.5906 0.2301 276.9656);     /* blue-400 */
+    --cohort-color-6: oklch(0.5106 0.2301 276.9656);     /* blue-500 */
+    --cohort-color-7: oklch(0.4306 0.2301 276.9656);     /* blue-600 */
+    
+    /* Cohort Cell States */
+    --cohort-cell-empty-bg: oklch(0.9789 0.0082 121.6272);           /* gray-50 */
+    --cohort-cell-empty-bg-dark: oklch(0.2455 0.0217 257.2823);      /* gray-900 */
+    --cohort-cell-empty-border: oklch(0.8452 0 0);                   /* gray-200 */
+    --cohort-cell-empty-border-dark: oklch(0.4459 0 0);              /* gray-800 */
+    --cohort-cell-padding: 0.875rem;                                 /* 14px - px-3.5 py-3 */
+    
+    /* Support Dashboard Specific */
+    --support-card-grid-gap: 1.5rem;            /* 24px - gap-6 */
+    --support-metric-value-size: 1.875rem;      /* 30px - text-3xl */
+    --support-legend-indicator-size: 0.625rem;  /* 10px - size-2.5 */
+    
+    /* Workflow Page Specific */
+    --workflow-progress-circle-radius: 45px;
+    --workflow-progress-circle-stroke: 6px;
+    --workflow-filter-section-bg: color-mix(in oklch, var(--muted) 5%, transparent);
+    --workflow-filter-section-bg-dark: oklch(0.0909 0.0217 257.2823); /* #090E1A */
+    --workflow-stage-gap: 1.5rem;               /* 24px - gap-6 */
+    --workflow-connector-width: 8rem;           /* 128px - min-w-32 */
+    --workflow-connector-margin-top: 6rem;      /* 96px - mt-24 */
+    
+    /* Ticket Status Semantic Colors */
+    --ticket-status-resolved: var(--status-good);
+    --ticket-status-in-progress: var(--muted);
+    --ticket-status-escalated: var(--status-critical);
+    --ticket-status-pending: var(--status-warning);
+    
+    /* Ticket Priority Colors */
+    --ticket-priority-critical: var(--status-critical);
+    --ticket-priority-high: var(--status-warning);
+    --ticket-priority-medium: var(--primary);
+    --ticket-priority-low: var(--muted);
     
     /* ============================================
        BUSINESS DASHBOARD SPECIFIC DESIGN TOKENS - ENHANCED
@@ -1147,6 +1209,11 @@ a {
     --business-table-header-bg: var(--business-table-header-bg-dark);
     --business-table-row-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
     --business-accordion-trigger-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+    
+    /* Customer Dashboard - Dark Mode Overrides */
+    --cohort-cell-empty-bg: var(--cohort-cell-empty-bg-dark);
+    --cohort-cell-empty-border: var(--cohort-cell-empty-border-dark);
+    --workflow-filter-section-bg: var(--workflow-filter-section-bg-dark);
   }
 }
 
@@ -4382,3 +4449,474 @@ a {
   font-weight: 600;
 }
 
+
+  /* ============================================
+     CUSTOMER DASHBOARD UTILITY CLASSES
+     Reusable patterns for customer components
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Cohort Table Utility Classes */
+  .cohort-table-header-sticky {
+    position: sticky;
+    left: var(--cohort-header-sticky-left);
+    top: var(--cohort-header-sticky-top);
+    z-index: var(--z-sticky);
+    min-width: var(--cohort-header-min-width);
+    border-color: transparent;
+    background-color: var(--card);
+    padding: 1px;
+  }
+  
+  .dark .cohort-table-header-sticky {
+    background-color: oklch(0 0 0); /* gray-950 */
+  }
+  
+  .cohort-cell-empty {
+    display: flex;
+    height: var(--cohort-cell-height);
+    flex-direction: column;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--cohort-cell-empty-border);
+    background-color: var(--cohort-cell-empty-bg);
+    padding: var(--cohort-cell-padding);
+    color: var(--cohort-cell-empty-border);
+  }
+  
+  .dark .cohort-cell-empty {
+    border-color: var(--cohort-cell-empty-border-dark);
+    background-color: var(--cohort-cell-empty-bg-dark);
+    color: var(--cohort-cell-empty-border-dark);
+  }
+  
+  .cohort-cell-empty-skeleton {
+    height: 0.75rem; /* 12px - h-3 */
+    border-radius: var(--radius-sm);
+    background-color: var(--cohort-cell-empty-border);
+  }
+  
+  .dark .cohort-cell-empty-skeleton {
+    background-color: color-mix(in oklch, var(--cohort-cell-empty-border-dark) 50%, transparent);
+  }
+  
+  .cohort-cell-value {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: var(--cohort-cell-padding);
+  }
+  
+  .cohort-cell-button {
+    position: relative;
+    margin-left: -0.5rem; /* -ml-2 */
+    height: 100%;
+    width: 100%;
+    border-radius: var(--radius-md);
+    padding: 0.5rem; /* p-2 */
+    text-align: left;
+    transition: var(--transition-colors);
+  }
+  
+  .cohort-cell-button:hover {
+    background-color: color-mix(in oklch, var(--muted) 100%, transparent);
+  }
+  
+  .dark .cohort-cell-button:hover {
+    background-color: color-mix(in oklch, var(--muted-foreground) 20%, transparent);
+  }
+  
+  .cohort-expand-icon {
+    position: absolute;
+    right: 1rem; /* right-4 */
+    top: 1rem; /* top-4 */
+    width: 1.25rem; /* 20px - size-5 */
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: transparent;
+    transition: var(--transition-colors);
+  }
+  
+  .cohort-cell-button:hover .cohort-expand-icon,
+  .cohort-cell-button:focus-visible .cohort-expand-icon {
+    color: var(--muted-foreground);
+  }
+  
+  /* Workflow Visualization Utilities */
+  .workflow-filter-section {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.5rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--workflow-filter-section-bg);
+    padding: 1.5rem;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  
+  .dark .workflow-filter-section {
+    background-color: var(--workflow-filter-section-bg-dark);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  
+  .workflow-stage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--workflow-stage-gap);
+  }
+  
+  .workflow-connector {
+    margin-top: var(--workflow-connector-margin-top);
+    min-width: var(--workflow-connector-width);
+  }
+  
+  .workflow-connector-line-horizontal {
+    width: 100%;
+    border-top: 1px dashed var(--border);
+  }
+  
+  .workflow-connector-line-vertical {
+    margin-left: auto;
+    margin-right: auto;
+    height: 12rem; /* 192px - h-48 */
+    width: 1px;
+    border-left: 1px dashed var(--border);
+  }
+  
+  .workflow-connector-line-split {
+    margin-left: auto;
+    width: 50%;
+    border-top: 1px dashed var(--border);
+  }
+  
+  .workflow-overlay-disabled {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-dropdown);
+    background-color: color-mix(in oklch, var(--background) 10%, transparent);
+    backdrop-filter: blur(2px);
+  }
+  
+  .dark .workflow-overlay-disabled {
+    background-color: color-mix(in oklch, oklch(0 0 0) 30%, transparent);
+  }
+  
+  .workflow-overlay-message {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .workflow-overlay-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--card);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-xl), 0 0 0 1px color-mix(in oklch, var(--foreground) 5%, transparent);
+  }
+  
+  .dark .workflow-overlay-card {
+    background-color: oklch(0.2455 0.0217 257.2823); /* gray-900 */
+  }
+  
+  /* Support Dashboard Utilities */
+  .support-metrics-grid {
+    margin-top: 2rem; /* mt-8 */
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: var(--support-card-grid-gap);
+  }
+  
+  @media (min-width: 640px) {
+    .support-metrics-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .support-metrics-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  .support-metric-value {
+    margin-top: 0.25rem; /* mt-1 */
+    font-size: var(--support-metric-value-size);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  .support-legend-indicator {
+    width: var(--support-legend-indicator-size);
+    height: var(--support-legend-indicator-size);
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+  }
+  
+  .support-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* gap-2 */
+  }
+  
+  .support-legend-label {
+    font-size: var(--text-sm);
+    color: var(--foreground);
+  }
+  
+  /* Ticket Drawer Utilities */
+  .ticket-drawer-content {
+    overflow-x: hidden;
+  }
+  
+  @media (min-width: 640px) {
+    .ticket-drawer-content {
+      max-width: 32rem; /* sm:max-w-lg */
+    }
+  }
+  
+  .ticket-drawer-body {
+    margin-left: -1.5rem; /* -mx-6 */
+    margin-right: -1.5rem;
+    padding-left: 1.5rem; /* px-6 */
+    padding-right: 1.5rem;
+    border-top: 1px solid var(--drawer-border);
+  }
+  
+  .ticket-drawer-footer {
+    margin-left: -1.5rem; /* -mx-6 */
+    margin-right: -1.5rem;
+    margin-bottom: -0.5rem; /* -mb-2 */
+    gap: 0.5rem; /* gap-2 */
+    padding-left: 1.5rem; /* px-6 */
+    padding-right: 1.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .ticket-drawer-footer {
+      justify-content: space-between;
+    }
+  }
+  
+  .ticket-form-radio-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem; /* gap-2 */
+    font-size: var(--text-sm);
+  }
+  
+  .ticket-form-radio-grid-1 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.5rem; /* gap-2 */
+    font-size: var(--text-sm);
+  }
+  
+  .ticket-radio-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0.625rem; /* p-2.5 */
+    font-size: var(--text-base);
+    transition-duration: 75ms;
+  }
+  
+  @media (min-width: 640px) {
+    .ticket-radio-card {
+      font-size: var(--text-sm);
+    }
+  }
+  
+  .ticket-radio-card-description {
+    display: block;
+    font-size: var(--text-sm);
+    opacity: 0.75;
+  }
+  
+  @media (min-width: 640px) {
+    .ticket-radio-card-description {
+      font-size: var(--text-xs);
+    }
+  }
+  
+  .ticket-summary-section {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+  
+  .ticket-summary-header {
+    padding: 1rem; /* p-4 */
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .ticket-summary-body {
+    padding: 1rem; /* p-4 */
+  }
+  
+  .ticket-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* space-y-1 */
+  }
+  
+  .ticket-summary-label {
+    font-size: var(--text-form-helper);
+    font-weight: var(--font-medium);
+    color: var(--muted-foreground);
+  }
+  
+  .ticket-summary-value {
+    font-size: var(--text-sm);
+    color: var(--foreground);
+  }
+  
+  /* Customer Page Card Utilities */
+  .customer-card-grid {
+    display: grid;
+    gap: 1rem; /* gap-4 */
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  @media (min-width: 768px) {
+    .customer-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .customer-card-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  
+  .customer-card {
+    padding: 1.5rem; /* p-6 */
+  }
+  
+  .customer-card-title {
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+    margin-bottom: 0.5rem; /* mb-2 */
+  }
+  
+  .customer-card-description {
+    font-size: var(--text-sm);
+    color: var(--muted-foreground);
+    margin-bottom: 1rem; /* mb-4 */
+  }
+  
+  /* Page Header Utilities */
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* gap-4 */
+  }
+  
+  @media (min-width: 640px) {
+    .page-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+  
+  .page-title {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  .page-description {
+    color: var(--muted-foreground);
+    font-size: var(--text-sm);
+    line-height: 1.5; /* sm:text-sm/6 */
+  }
+  
+  /* Retention Analytics Grid */
+  .retention-analytics-grid {
+    margin-top: 2rem; /* mt-8 */
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem; /* gap-5 */
+  }
+  
+  @media (min-width: 1024px) {
+    .retention-analytics-grid {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+  
+  .retention-analytics-main {
+    grid-column: span 1 / span 1;
+  }
+  
+  @media (min-width: 1024px) {
+    .retention-analytics-main {
+      grid-column: span 6 / span 6;
+    }
+  }
+  
+  .retention-analytics-sidebar {
+    grid-column: span 1 / span 1;
+  }
+  
+  @media (min-width: 1024px) {
+    .retention-analytics-sidebar {
+      grid-column: span 2 / span 2;
+    }
+  }
+  
+  .retention-stats-grid {
+    margin-top: 1rem; /* mt-4 */
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem; /* gap-6 */
+  }
+  
+  @media (min-width: 768px) {
+    .retention-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  .retention-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* space-y-6 */
+  }
+  
+  .retention-stat-label {
+    font-size: var(--text-sm);
+    color: var(--muted-foreground);
+  }
+  
+  .retention-stat-value {
+    display: flex;
+    align-items: baseline;
+  }
+  
+  .retention-stat-value-main {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+  }
+  
+  .retention-stat-value-change {
+    margin-left: 0.5rem; /* ml-2 */
+    font-size: var(--text-sm);
+    color: oklch(0.7227 0.1920 149.5793); /* emerald-600 */
+  }
+  
+  .dark .retention-stat-value-change {
+    color: oklch(0.8003 0.1821 151.7110); /* emerald-500 */
+  }
+}

@@ -8,20 +8,20 @@ export default function CustomerPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">
           Customer Management
         </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-[var(--muted-foreground)]">
           Manage your customers and track their interactions
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+      <div className="customer-card-grid">
+        <Card className="customer-card">
+          <h3 className="customer-card-title">
             Agents
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="customer-card-description">
             Manage customer service agents
           </p>
           <Link href="/dashboard/customer/agents">
@@ -31,11 +31,11 @@ export default function CustomerPage() {
           </Link>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+        <Card className="customer-card">
+          <h3 className="customer-card-title">
             Retention
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="customer-card-description">
             Track customer retention metrics
           </p>
           <Link href="/dashboard/customer/retention">
@@ -45,11 +45,11 @@ export default function CustomerPage() {
           </Link>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+        <Card className="customer-card">
+          <h3 className="customer-card-title">
             Support
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="customer-card-description">
             Customer support tickets and issues
           </p>
           <Link href="/dashboard/customer/support">
@@ -59,11 +59,11 @@ export default function CustomerPage() {
           </Link>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+        <Card className="customer-card">
+          <h3 className="customer-card-title">
             Workflow
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="customer-card-description">
             Customer workflow automation
           </p>
           <Link href="/dashboard/customer/workflow">
