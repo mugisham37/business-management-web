@@ -72,16 +72,18 @@ export function DataTableColumnHeader<TData, TValue>({
       <div className="ml-auto flex flex-col -space-y-2">
         <RiArrowUpSLine
           className={cx(
-            "size-3.5 text-gray-900 dark:text-gray-50",
+            "size-3.5",
             column.getIsSorted() === "desc" ? "sort-icon-inactive" : "sort-icon-active",
           )}
+          style={{ color: 'var(--foreground)' }}
           aria-hidden="true"
         />
         <RiArrowDownSLine
           className={cx(
-            "size-3.5 text-gray-900 dark:text-gray-50",
+            "size-3.5",
             column.getIsSorted() === "asc" ? "sort-icon-inactive" : "sort-icon-active",
           )}
+          style={{ color: 'var(--foreground)' }}
           aria-hidden="true"
         />
       </div>

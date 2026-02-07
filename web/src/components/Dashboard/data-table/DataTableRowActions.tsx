@@ -31,7 +31,7 @@ export function DataTableRowActions<TData>({
         <Button
           variant="ghost"
           size="icon"
-          className="group aspect-square p-1.5 hover:border hover:border-gray-300 data-[state=open]:border-gray-300 hover:dark:border-gray-700 data-[state=open]:dark:border-gray-700"
+          className="group aspect-square p-1.5 row-actions-button"
           style={{
             '--hover-bg': 'var(--interactive-hover-light)',
             '--open-bg': 'var(--table-row-selected-bg)',
@@ -39,7 +39,11 @@ export function DataTableRowActions<TData>({
           aria-label="Open row actions menu"
         >
           <RiMoreFill
-            className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-data-[state=open]:text-gray-700 group-hover:dark:text-gray-300 group-data-[state=open]:dark:text-gray-300"
+            className="size-4 shrink-0"
+            style={{
+              color: 'var(--muted-foreground)',
+              transition: 'color var(--transition-fast) var(--ease-in-out)'
+            }}
             aria-hidden="true"
           />
         </Button>
@@ -71,7 +75,7 @@ export function DataTableRowActions<TData>({
         {onDelete && (
           <DropdownMenuItem 
             onClick={() => onDelete(row)}
-            className="text-red-600 dark:text-red-500"
+            className=""
             style={{ color: 'var(--destructive)' }}
             shortcut="⌘⌫"
           >

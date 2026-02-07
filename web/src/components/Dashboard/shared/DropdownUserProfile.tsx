@@ -193,7 +193,7 @@ export function DropdownUserProfile({
                       value="light"
                       iconType="check"
                     >
-                      <SunIcon className="size-4 shrink-0" aria-hidden="true" />
+                      <SunIcon className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                       Light
                     </DropdownMenuRadioItem>
                     <DropdownMenuRadioItem
@@ -202,7 +202,7 @@ export function DropdownUserProfile({
                       iconType="check"
                     >
                       <MoonIcon
-                        className="size-4 shrink-0"
+                        className="size-[var(--dropdown-icon-wrapper-size)] shrink-0"
                         aria-hidden="true"
                       />
                       Dark
@@ -213,7 +213,7 @@ export function DropdownUserProfile({
                       iconType="check"
                     >
                       <MonitorIcon
-                        className="size-4 shrink-0"
+                        className="size-[var(--dropdown-icon-wrapper-size)] shrink-0"
                         aria-hidden="true"
                       />
                       System
@@ -281,10 +281,10 @@ export function DropdownUserProfile({
         <DropdownMenuLabel className="dropdown-user-label">
           <div className="dropdown-user-label-header">
             <div className="dropdown-user-label-text">
-              <span className="font-medium text-gray-900 dark:text-gray-50">
+              <span className="font-medium text-foreground">
                 {user.name}
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 {user.email}
               </span>
             </div>
@@ -310,7 +310,7 @@ export function DropdownUserProfile({
                 shortcut={showKeyboardShortcuts ? "⌘P" : undefined}
               >
                 <DropdownMenuIconWrapper>
-                  <User className="size-4 shrink-0" aria-hidden="true" />
+                  <User className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                 </DropdownMenuIconWrapper>
                 View Profile
               </DropdownMenuItem>
@@ -319,7 +319,7 @@ export function DropdownUserProfile({
                 shortcut={showKeyboardShortcuts ? "⌘," : undefined}
               >
                 <DropdownMenuIconWrapper>
-                  <Settings className="size-4 shrink-0" aria-hidden="true" />
+                  <Settings className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                 </DropdownMenuIconWrapper>
                 Settings
               </DropdownMenuItem>
@@ -334,10 +334,10 @@ export function DropdownUserProfile({
               <DropdownMenuSubMenu>
                 <DropdownMenuSubMenuTrigger iconType="lucide">
                   <DropdownMenuIconWrapper>
-                    <Monitor className="size-4 shrink-0" aria-hidden="true" />
+                    <Monitor className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                   </DropdownMenuIconWrapper>
                   Theme
-                  <span className="ml-auto text-xs text-gray-500 capitalize">
+                  <span className="ml-auto text-xs text-muted-foreground capitalize">
                     {theme}
                   </span>
                 </DropdownMenuSubMenuTrigger>
@@ -353,7 +353,7 @@ export function DropdownUserProfile({
                       aria-label="Switch to Light Mode"
                     >
                       <DropdownMenuIconWrapper>
-                        <Sun className="size-4 shrink-0" aria-hidden="true" />
+                        <Sun className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                       </DropdownMenuIconWrapper>
                       Light
                     </DropdownMenuRadioItem>
@@ -364,7 +364,7 @@ export function DropdownUserProfile({
                       aria-label="Switch to Dark Mode"
                     >
                       <DropdownMenuIconWrapper>
-                        <Moon className="size-4 shrink-0" aria-hidden="true" />
+                        <Moon className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                       </DropdownMenuIconWrapper>
                       Dark
                     </DropdownMenuRadioItem>
@@ -375,7 +375,7 @@ export function DropdownUserProfile({
                       aria-label="Switch to System Mode"
                     >
                       <DropdownMenuIconWrapper>
-                        <Monitor className="size-4 shrink-0" aria-hidden="true" />
+                        <Monitor className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                       </DropdownMenuIconWrapper>
                       System
                     </DropdownMenuRadioItem>
@@ -399,7 +399,7 @@ export function DropdownUserProfile({
                     rel="noopener noreferrer"
                   >
                     <DropdownMenuIconWrapper>
-                      <FileText className="size-4 shrink-0" aria-hidden="true" />
+                      <FileText className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                     </DropdownMenuIconWrapper>
                     Changelog
                     <ArrowUpRight
@@ -418,7 +418,7 @@ export function DropdownUserProfile({
                     rel="noopener noreferrer"
                   >
                     <DropdownMenuIconWrapper>
-                      <HelpCircle className="size-4 shrink-0" aria-hidden="true" />
+                      <HelpCircle className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                     </DropdownMenuIconWrapper>
                     Documentation
                     <ArrowUpRight
@@ -437,7 +437,7 @@ export function DropdownUserProfile({
                     rel="noopener noreferrer"
                   >
                     <DropdownMenuIconWrapper>
-                      <MessageSquare className="size-4 shrink-0" aria-hidden="true" />
+                      <MessageSquare className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                     </DropdownMenuIconWrapper>
                     Join Slack community
                     <ArrowUpRight
@@ -453,7 +453,7 @@ export function DropdownUserProfile({
                   shortcut="⌘K"
                 >
                   <DropdownMenuIconWrapper>
-                    <Keyboard className="size-4 shrink-0" aria-hidden="true" />
+                    <Keyboard className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
                   </DropdownMenuIconWrapper>
                   Keyboard shortcuts
                 </DropdownMenuItem>
@@ -467,13 +467,12 @@ export function DropdownUserProfile({
           <DropdownMenuItem 
             onClick={handleSignOut}
             className={cx(
-              "dropdown-item-destructive",
-              "focus:bg-red-50 dark:focus:bg-red-950/50"
+              "dropdown-item-destructive"
             )}
             shortcut={showKeyboardShortcuts ? "⌘Q" : undefined}
           >
             <DropdownMenuIconWrapper>
-              <LogOut className="size-4 shrink-0" aria-hidden="true" />
+              <LogOut className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
             </DropdownMenuIconWrapper>
             Sign out
           </DropdownMenuItem>

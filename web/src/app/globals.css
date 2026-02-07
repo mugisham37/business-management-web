@@ -674,6 +674,8 @@ a {
     --pagination-text-color: var(--muted-foreground);
     --pagination-text-emphasis: var(--foreground);
     --pagination-button-gap: 0.375rem; /* 6px */
+    --pagination-showing-text-size: var(--text-sm);
+    --pagination-showing-text-weight: var(--font-medium);
     
     /* Table Transitions */
     --transition-row-hover: background-color var(--transition-fast) var(--ease-in-out);
@@ -1950,6 +1952,110 @@ a {
     color: var(--foreground);
   }
   
+  .text-emphasis {
+    color: var(--foreground);
+    font-weight: var(--font-medium);
+  }
+  
+  /* ============================================
+     DATA TABLE UTILITY CLASSES
+     Added: 2026-02-07
+     Reusable patterns for data table components
+     ============================================ */
+  
+  /* Table Row States */
+  .table-row-hover {
+    transition: var(--transition-row-hover);
+  }
+  
+  .table-row-hover:hover {
+    background-color: var(--table-row-hover-bg);
+  }
+  
+  .table-row-selected {
+    background-color: var(--table-row-selected-bg);
+  }
+  
+  .table-row-striped:nth-child(even) {
+    background-color: var(--table-row-striped-bg);
+  }
+  
+  .table-row-selected-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--table-row-selected-indicator);
+  }
+  
+  /* Sort Button States */
+  .sort-button-base {
+    transition: var(--transition-colors);
+  }
+  
+  .sort-button-base:hover {
+    background-color: var(--sort-button-bg-hover);
+  }
+  
+  .sort-button-active {
+    background-color: var(--sort-button-bg-active);
+  }
+  
+  .sort-icon-inactive {
+    opacity: var(--sort-icon-opacity-inactive);
+    transition: var(--transition-sort-icon);
+  }
+  
+  .sort-icon-active {
+    opacity: var(--sort-icon-opacity-active);
+    transition: var(--transition-sort-icon);
+  }
+  
+  /* Filter Button States */
+  .filter-button-base {
+    border: 1px solid var(--filter-button-border);
+    background-color: var(--background);
+    border-radius: var(--radius-md);
+    transition: var(--transition-colors);
+  }
+  
+  .filter-button-base:hover {
+    background-color: var(--filter-button-bg-hover);
+  }
+  
+  .filter-button-active {
+    border-color: var(--filter-button-border-active);
+    color: var(--filter-button-text-active);
+  }
+  
+  .filter-button-inactive {
+    border-color: var(--filter-button-border);
+    color: var(--foreground);
+  }
+  
+  /* Pagination Text */
+  .pagination-text {
+    font-size: var(--pagination-showing-text-size);
+    font-weight: var(--pagination-showing-text-weight);
+    color: var(--pagination-text-color);
+  }
+  
+  .pagination-text-emphasis {
+    color: var(--pagination-text-emphasis);
+    font-weight: var(--font-semibold);
+  }
+  
+  /* Row Actions Button */
+  .row-actions-button {
+    transition: var(--transition-colors);
+  }
+  
+  .row-actions-button:hover,
+  .row-actions-button[data-state="open"] {
+    border: 1px solid var(--border);
+  }
+  
   /* ============================================
      BUSINESS COMPONENT UTILITY CLASSES
      Added: 2026-02-07
@@ -2665,104 +2771,6 @@ a {
   
   .focus-ring-light:focus-visible {
     outline-color: var(--card);
-  }
-  
-  /* ============================================
-     DATA TABLE UTILITY CLASSES
-     Universal patterns for table components
-     Added: 2026-02-07
-     ============================================ */
-  
-  /* Table Row States */
-  .table-row-hover {
-    transition: var(--transition-row-hover);
-  }
-  
-  .table-row-hover:hover {
-    background-color: var(--table-row-hover-bg);
-  }
-  
-  .table-row-selected {
-    background-color: var(--table-row-selected-bg);
-  }
-  
-  .table-row-striped:nth-child(odd) {
-    background-color: var(--table-row-striped-bg);
-  }
-  
-  /* Selected Row Indicator */
-  .table-row-selected-indicator {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: 0.125rem; /* 2px */
-    background-color: var(--table-row-selected-indicator);
-  }
-  
-  /* Filter Button States */
-  .filter-button-base {
-    border: 1px solid var(--filter-button-border);
-    border-radius: var(--radius-md);
-    transition: var(--transition-colors);
-  }
-  
-  .filter-button-base:hover {
-    background-color: var(--filter-button-bg-hover);
-  }
-  
-  .filter-button-active {
-    border-color: var(--filter-button-border-active);
-    color: var(--filter-button-text-active);
-  }
-  
-  .filter-button-inactive {
-    border-style: dashed;
-  }
-  
-  /* Sort Button States */
-  .sort-button-base {
-    transition: var(--transition-colors);
-  }
-  
-  .sort-button-base:hover {
-    background-color: var(--sort-button-bg-hover);
-  }
-  
-  .sort-button-active {
-    background-color: var(--sort-button-bg-active);
-  }
-  
-  /* Sort Icon States */
-  .sort-icon-inactive {
-    opacity: var(--sort-icon-opacity-inactive);
-    transition: var(--transition-sort-icon);
-  }
-  
-  .sort-icon-active {
-    opacity: var(--sort-icon-opacity-active);
-    transition: var(--transition-sort-icon);
-  }
-  
-  /* Pagination Text */
-  .pagination-text {
-    font-size: var(--text-sm);
-    color: var(--pagination-text-color);
-  }
-  
-  .pagination-text-emphasis {
-    font-weight: var(--font-medium);
-    color: var(--pagination-text-emphasis);
-  }
-  
-  /* Text Emphasis Utility */
-  .text-emphasis {
-    font-weight: var(--font-medium);
-    color: var(--foreground);
-  }
-  
-  /* Tabular Numbers (documenting existing Tailwind utility) */
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
   }
   
   /* ============================================

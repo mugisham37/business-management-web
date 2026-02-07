@@ -63,7 +63,8 @@ const ColumnFiltersLabel = ({
         {columnFilterLabels.map((value, index) => (
           <span
             key={value}
-            className="font-semibold text-indigo-600 dark:text-indigo-400"
+            style={{ color: 'var(--primary)' }}
+            className="font-semibold"
           >
             {value}
             {index < columnFilterLabels.length - 1 && ", "}
@@ -77,9 +78,10 @@ const ColumnFiltersLabel = ({
     <>
       <span
         className={cx(
-          "font-semibold text-indigo-600 dark:text-indigo-400",
+          "font-semibold",
           className,
         )}
+        style={{ color: 'var(--primary)' }}
       >
         {columnFilterLabels[0]} and {columnFilterLabels.length - 1} more
       </span>
@@ -248,7 +250,8 @@ export function DataTableFilter<TData, TValue>({
 
             <div className="flex w-full items-center gap-2">
               <RiCornerDownRightLine
-                className="size-4 shrink-0 text-gray-500"
+                className="size-4 shrink-0"
+                style={{ color: 'var(--muted-foreground)' }}
                 aria-hidden="true"
               />
               <Input
@@ -276,7 +279,7 @@ export function DataTableFilter<TData, TValue>({
               {(selectedValues as ConditionFilter)?.condition ===
                 "is-between" && (
                 <>
-                  <span className="text-xs font-medium text-gray-500">and</span>
+                  <span className="text-xs font-medium" style={{ color: 'var(--muted-foreground)' }}>and</span>
                   <Input
                     disabled={disabled || !(selectedValues as ConditionFilter)?.condition}
                     type="number"
@@ -328,7 +331,7 @@ export function DataTableFilter<TData, TValue>({
               ? "filter-button-active"
               : "filter-button-inactive",
             disabled && "opacity-50 cursor-not-allowed",
-            hasError && "border-red-500 dark:border-red-400",
+            hasError && "border-[var(--status-critical)]",
             focusRing,
           )}
           disabled={disabled}
@@ -347,9 +350,12 @@ export function DataTableFilter<TData, TValue>({
             <RiAddLine
               className={cx(
                 "-ml-px size-5 shrink-0 transition sm:size-4",
-                selectedValues && !disabled && "rotate-45 hover:text-red-500",
+                selectedValues && !disabled && "rotate-45",
                 disabled && "opacity-50",
               )}
+              style={{
+                color: selectedValues && !disabled ? 'var(--status-critical)' : 'currentColor'
+              }}
               aria-hidden="true"
             />
           </span>
@@ -361,7 +367,8 @@ export function DataTableFilter<TData, TValue>({
           )}
           {columnFilterLabels && columnFilterLabels.length > 0 && (
             <span
-              className="h-4 w-px bg-gray-300 dark:bg-gray-700"
+              className="h-4 w-px"
+              style={{ backgroundColor: 'var(--border)' }}
               aria-hidden="true"
             />
           )}
@@ -370,7 +377,8 @@ export function DataTableFilter<TData, TValue>({
             className="w-full text-left sm:w-fit"
           />
           <RiArrowDownSLine
-            className="size-5 shrink-0 text-gray-500 sm:size-4"
+            className="size-5 shrink-0 sm:size-4"
+            style={{ color: 'var(--muted-foreground)' }}
             aria-hidden="true"
           />
         </button>

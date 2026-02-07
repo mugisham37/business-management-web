@@ -262,7 +262,7 @@ function ListItem({
               }
             }}
           >
-            <RiDraggable className="size-4 text-gray-400 dark:text-gray-600" />
+            <RiDraggable className="size-4" style={{ color: 'var(--muted-foreground)' }} />
           </Button>
         </div>
         {closestEdge && <DropIndicator edge={closestEdge} gap="1px" />}
@@ -479,7 +479,7 @@ function ViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
                 aria-label="Column visibility and order settings"
               >
                 {items.length === 0 ? (
-                  <div className="text-sm text-gray-500 dark:text-gray-400 py-2">
+                  <div className="py-2 text-sm" style={{ color: 'var(--muted-foreground)' }}>
                     No configurable columns available
                   </div>
                 ) : (

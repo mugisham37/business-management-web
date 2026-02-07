@@ -90,7 +90,7 @@ const DurationCell = ({ minutes }: { minutes: string | null }) => {
   const remainingMins = mins % 60
 
   return (
-    <span className="ml-auto text-gray-600 dark:text-gray-300 tabular-nums">
+    <span className="ml-auto tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
       {hours > 0 ? `${hours}h ` : ""}
       {remainingMins}m
     </span>
@@ -115,7 +115,8 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
     <Badge
       variant="neutral"
       size="sm"
-      className="gap-1.5 font-normal capitalize text-gray-700 dark:text-gray-300"
+      className="gap-1.5 font-normal capitalize"
+      style={{ color: 'var(--foreground)' }}
     >
       <span
         className="size-2 shrink-0 rounded-sm transition-colors"
@@ -242,7 +243,7 @@ export const usageColumns = [
     cell: ({ getValue }) => {
       const value = getValue()
       return (
-        <span className="text-gray-700 dark:text-gray-300">
+        <span style={{ color: 'var(--foreground)' }}>
           {value}
         </span>
       )
@@ -283,7 +284,7 @@ export const usageColumns = [
       
       if (!isValidNumber(value)) {
         return (
-          <span className="font-medium text-gray-400 dark:text-gray-600">
+          <span className="font-medium" style={{ color: 'var(--muted-foreground)' }}>
             —
           </span>
         )
@@ -336,7 +337,7 @@ export const usageColumns = [
     cell: ({ getValue }) => {
       const value = getValue()
       return (
-        <span className="text-sm text-gray-600 dark:text-gray-400 tabular-nums">
+        <span className="text-sm tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
           {value || "—"}
         </span>
       )
@@ -388,16 +389,13 @@ export const agentColumns = [
             {row.original.full_name}
           </span>
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-gray-500 dark:text-gray-500">AgID </span>
+            <span style={{ color: 'var(--muted-foreground)' }}>AgID </span>
             <span className="font-mono font-medium uppercase tabular-nums text-emphasis">
               {row.original.agent_id}
             </span>
             <RiShieldCheckFill
               className={cx(
                 "size-3 shrink-0 transition-colors",
-                row.original.registered
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-gray-400 dark:text-gray-600",
               )}
               style={{
                 color: row.original.registered ? 'var(--status-good)' : 'var(--muted-foreground)'
@@ -427,7 +425,7 @@ export const agentColumns = [
               "$1 $2 $3 $4 $5",
             )}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-500">
+          <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
             {row.original.email}
           </span>
         </div>
@@ -462,7 +460,7 @@ export const agentColumns = [
               </Badge>
             )}
           </span>
-          <span className="text-xs tabular-nums text-gray-500 dark:text-gray-500">
+          <span className="text-xs tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
             Start:{" "}
             {new Date(row.original.start_date).toLocaleDateString("en-GB", {
               day: "2-digit",
@@ -490,7 +488,7 @@ export const agentColumns = [
           <span className="text-emphasis">
             {row.original.account}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-500">
+          <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
             Main division
           </span>
         </div>
@@ -541,12 +539,12 @@ export const agentColumns = [
           </div>
           <div className="flex flex-col gap-0">
             <span className="text-emphasis">
-              <span className="text-gray-500 dark:text-gray-500">Called </span>
+              <span style={{ color: 'var(--muted-foreground)' }}>Called </span>
               <span className="font-medium tabular-nums">
                 {formatters.unit({ number: minutes_called, maxFractionDigits: 0 })}
               </span>
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-500 tabular-nums">
+            <span className="text-xs tabular-nums" style={{ color: 'var(--muted-foreground)' }}>
               Booked {formatters.unit({ number: minutes_booked, maxFractionDigits: 0 })}
             </span>
           </div>
@@ -639,7 +637,8 @@ export const ticketColumns = [
         <div className="flex items-center gap-2">
           {Icon && (
             <Icon 
-              className="size-4 shrink-0 text-gray-500 dark:text-gray-400" 
+              className="size-4 shrink-0" 
+              style={{ color: 'var(--muted-foreground)' }}
               aria-hidden="true" 
             />
           )}

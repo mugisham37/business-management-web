@@ -98,7 +98,7 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg" showCloseButton={!isLoading}>
+      <DialogContent className="sm:max-w-[var(--modal-max-width-settings)]" showCloseButton={!isLoading}>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Invite people to your workspace</DialogTitle>
@@ -164,7 +164,7 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
           <DialogFooter className="modal-footer">
             <DialogClose asChild>
               <Button
-                className="mt-2 w-full sm:mt-0 sm:w-fit"
+                className="w-full sm:w-fit"
                 variant="secondary"
                 disabled={isLoading}
                 type="button"

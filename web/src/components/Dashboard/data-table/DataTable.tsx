@@ -200,7 +200,8 @@ export function DataTable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="border-y border-gray-200 dark:border-gray-800"
+                className="border-y"
+                style={{ borderColor: 'var(--border)' }}
               >
                 {headerGroup.headers.map((header) => (
                   <TableHeaderCell

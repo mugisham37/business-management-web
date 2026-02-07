@@ -60,7 +60,7 @@ const ButtonTicketGeneration = React.forwardRef<HTMLButtonElement, ButtonTicketG
               />
             ) : (
               <RiCloseCircleFill
-                className="text-gray-400 dark:text-gray-600"
+                style={{ color: 'var(--muted-foreground)' }}
                 aria-hidden="true"
               />
             )}

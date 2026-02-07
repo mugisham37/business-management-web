@@ -179,7 +179,7 @@ export const UserProfileDesktop = React.forwardRef<
               variant={variant === "business" ? "outline" : "default"}
               className={cx(
                 "transition-transform duration-200 group-hover:scale-105",
-                variant === "business" && "shrink-0 border-gray-300 bg-white text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                variant === "business" && "shrink-0 border-[var(--user-profile-avatar-border)] bg-[var(--user-profile-avatar-bg)] text-xs text-muted-foreground dark:border-[var(--user-profile-avatar-border-dark)] dark:bg-[var(--user-profile-avatar-bg-dark)]"
               )}
             />
             <div className="user-profile-text">
@@ -227,9 +227,9 @@ export const UserProfileDesktop = React.forwardRef<
         content={
           <div className="text-center">
             <div className="font-medium">{userData.name || 'User'}</div>
-            <div className="text-xs text-gray-400">{userData.email || 'No email'}</div>
+            <div className="text-xs text-muted-foreground">{userData.email || 'No email'}</div>
             {showRole && userData.role && (
-              <div className="text-xs text-gray-400 mt-1">{userData.role}</div>
+              <div className="text-xs text-muted-foreground mt-1">{userData.role}</div>
             )}
           </div>
         }
@@ -290,9 +290,9 @@ export const UserProfileMobile = React.forwardRef<
       className={cx(
         "group flex items-center justify-center rounded-md transition-all duration-200",
         size === "sm" ? "p-0.5" : size === "lg" ? "p-2" : "p-1",
-        "text-gray-900 dark:text-gray-50",
-        "hover:bg-gray-100 data-[state=open]:bg-gray-100",
-        "hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80",
+        "text-foreground",
+        "hover:bg-[var(--user-profile-hover-bg)] data-[state=open]:bg-[var(--user-profile-active-bg)]",
+        "dark:hover:bg-[var(--user-profile-hover-bg-dark)] dark:data-[state=open]:bg-[var(--user-profile-active-bg-dark)]",
         focusRing,
         interactive && "cursor-pointer",
         className,
@@ -338,9 +338,9 @@ export const UserProfileMobile = React.forwardRef<
         content={
           <div className="text-center">
             <div className="font-medium">{userData.name || 'User'}</div>
-            <div className="text-xs text-gray-400">{userData.email || 'No email'}</div>
+            <div className="text-xs text-muted-foreground">{userData.email || 'No email'}</div>
             {userData.role && (
-              <div className="text-xs text-gray-400 mt-1">{userData.role}</div>
+              <div className="text-xs text-muted-foreground mt-1">{userData.role}</div>
             )}
           </div>
         }

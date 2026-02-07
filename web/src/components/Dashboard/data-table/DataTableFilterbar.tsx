@@ -158,8 +158,11 @@ export function Filterbar<TData>({
               variant="ghost"
               onClick={handleClearAllFilters}
               disabled={disabled}
-              className="border border-gray-200 px-2 font-semibold sm:border-none sm:py-1 dark:border-gray-800"
-              style={{ color: 'var(--primary)' }}
+              className="border px-2 font-semibold sm:border-none sm:py-1"
+              style={{ 
+                color: 'var(--primary)',
+                borderColor: 'var(--border)'
+              }}
             >
               Clear filters
             </Button>
@@ -187,11 +190,18 @@ export function Filterbar<TData>({
 
   if (mode === "global") {
     const containerClasses = variant === "contained" 
-      ? "flex flex-wrap items-center justify-between gap-6 rounded-lg bg-gray-50/50 p-6 ring-1 ring-gray-200 dark:bg-[#090E1A] dark:ring-gray-800"
+      ? "flex flex-wrap items-center justify-between gap-6 rounded-lg p-6 ring-1"
       : "flex flex-wrap items-center justify-between gap-6"
+    
+    const containerStyle = variant === "contained"
+      ? {
+          backgroundColor: 'var(--settings-section-bg-elevated)',
+          '--ring-color': 'var(--border)',
+        } as React.CSSProperties & { '--ring-color': string }
+      : undefined
 
     return (
-      <div className={`${containerClasses} ${className}`}>
+      <div className={`${containerClasses} ${className}`} style={containerStyle}>
         <div className="flex w-full flex-col gap-2 sm:w-fit sm:flex-row sm:items-center">
           <Input
             ref={searchInputRef}
@@ -209,8 +219,11 @@ export function Filterbar<TData>({
               variant="ghost"
               onClick={handleClear}
               disabled={disabled}
-              className="border border-gray-200 px-2.5 font-semibold sm:border-none sm:py-1 dark:border-gray-800"
-              style={{ color: 'var(--primary)' }}
+              className="border px-2.5 font-semibold sm:border-none sm:py-1"
+              style={{ 
+                color: 'var(--primary)',
+                borderColor: 'var(--border)'
+              }}
             >
               Clear
             </Button>
@@ -229,7 +242,8 @@ export function Filterbar<TData>({
             <Label
               htmlFor={switchId}
               disabled={disabled}
-              className="text-base text-gray-600 sm:text-sm"
+              className="text-base sm:text-sm"
+              style={{ color: 'var(--muted-foreground)' }}
             >
               {switchLabel}
             </Label>
