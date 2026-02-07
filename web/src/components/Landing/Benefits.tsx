@@ -12,7 +12,7 @@ const benefits = [
   {
     title: "Health, dental, vision",
     description:
-      "Our company pays all of your health, dental, and vision insurance.",
+      "Database pays all of your health, dental, and vision insurance.",
   },
   {
     title: "Yearly off-sites",
@@ -42,20 +42,20 @@ const benefits = [
 
 export default function Benefits() {
   return (
-    <section aria-labelledby="benefits-title" className="benefits-section">
+    <section aria-labelledby="benefits-title" className="mx-auto mt-44">
       <h2
         id="benefits-title"
-        className="benefits-title"
+        className="inline-block bg-gradient-to-t from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent md:text-5xl dark:from-gray-50 dark:to-gray-300"
       >
         What&rsquo;s in for you
       </h2>
-      <dl className="benefits-grid">
+      <dl className="mt-8 grid grid-cols-4 gap-x-10 gap-y-8 sm:mt-12 sm:gap-y-10">
         {benefits.map((benefit, index) => (
-          <div key={index} className="benefit-item">
-            <dt className="benefit-title">
+          <div key={index} className="col-span-4 sm:col-span-2 lg:col-span-1">
+            <dt className="font-semibold text-gray-900 dark:text-gray-50">
               {benefit.title}
             </dt>
-            <dd className="benefit-description">
+            <dd className="mt-2 leading-7 text-gray-600 dark:text-gray-400">
               {benefit.description}
             </dd>
           </div>
