@@ -19,23 +19,42 @@ function Navigation() {
   ]
 
   return (
-    <div className="sticky-header">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 pt-3">
+    <div 
+      className="sticky-header"
+      style={{ height: 'var(--customer-header-height)' }}
+    >
+      <div 
+        className="mx-auto flex items-center justify-between px-4 sm:px-6"
+        style={{ 
+          maxWidth: 'var(--customer-content-max-width)',
+          paddingTop: 'var(--spacing-xs)'
+        }}
+      >
         <div>
           <Link href="/" aria-label="Navigate to homepage">
             <span className="sr-only">Your Company</span>
             <DatabaseLogo className="h-6" />
           </Link>
         </div>
-        <div className="flex h-[42px] flex-nowrap gap-1">
+        <div 
+          className="flex flex-nowrap"
+          style={{ 
+            height: 'var(--customer-header-height)',
+            gap: 'var(--spacing-xs)'
+          }}
+        >
           <Notifications />
           <DropdownUserProfile variant="customer" iconLibrary="remix">
             <button
               aria-label="open settings"
               className={cx(
                 focusRing,
-                "interactive-button-base group data-[state=open]:bg-[var(--interactive-active-bg)]",
+                "interactive-button-base group",
               )}
+              style={{
+                backgroundColor: 'var(--interactive-active-bg)'
+              }}
+              data-state="closed"
             >
               <span
                 className="avatar-circle size-8 shrink-0 text-xs font-medium"
@@ -47,8 +66,16 @@ function Navigation() {
           </DropdownUserProfile>
         </div>
       </div>
-      <TabNavigation className="mt-5">
-        <div className="mx-auto flex w-full max-w-7xl items-center px-6">
+      <TabNavigation 
+        style={{ 
+          marginTop: 'var(--spacing-md)',
+          height: 'var(--customer-tab-nav-height)'
+        }}
+      >
+        <div 
+          className="mx-auto flex w-full items-center px-6"
+          style={{ maxWidth: 'var(--customer-content-max-width)' }}
+        >
           {navigationItems.map((item) => (
             <TabNavigationLink
               key={item.href}

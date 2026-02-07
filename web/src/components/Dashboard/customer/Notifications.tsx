@@ -111,16 +111,26 @@ const NotificationItem = ({ notification }: { notification: Notification }) => {
       >
         {/* Extend touch target to entire field */}
         <span aria-hidden="true" className="absolute inset-0" />
-        <p className="text-sm text-[var(--foreground)]">
+        <p 
+          className="text-body"
+          style={{ fontSize: 'var(--text-notification-title)' }}
+        >
           {!read && (
             <span
               aria-hidden="true"
               className="unread-indicator mb-px mr-1.5 sm:text-sm"
+              style={{ backgroundColor: 'var(--notification-unread-indicator)' }}
             />
           )}
           {message}
         </p>
-        <p className="mt-2.5 text-xs text-[var(--muted-foreground)]">
+        <p 
+          className="text-body-secondary"
+          style={{ 
+            marginTop: 'var(--spacing-notification-item)',
+            fontSize: 'var(--text-notification-meta)'
+          }}
+        >
           {formatDate(date)}
         </p>
       </a>
@@ -136,7 +146,13 @@ const NotificationList = ({ showAll = false }: { showAll?: boolean }) => {
   return (
     <ol
       aria-label="Unread notifications"
-      className="scrollable-container flex flex-col divide-y divide-[var(--border)]"
+      className="scrollable-container flex flex-col"
+      style={{ 
+        borderTopWidth: '1px',
+        borderBottomWidth: '1px',
+        borderColor: 'var(--border)',
+        gap: 'var(--spacing-notification-gap)'
+      }}
     >
       {filteredNotifications.map((notification) => (
         <NotificationItem key={notification.id} notification={notification} />
@@ -156,18 +172,24 @@ export function Notifications() {
           aria-label="open notifications"
           className={cx(
             focusRing,
-            "interactive-button-base group data-[state=open]:bg-[var(--interactive-active-bg)]",
+            "interactive-button-base group",
           )}
+          style={{
+            backgroundColor: 'var(--interactive-active-bg)'
+          }}
+          data-state="closed"
         >
           <span className="avatar-circle size-8 p-1">
             {unreadCount > 0 && (
               <span
                 className="unread-indicator absolute right-2.5 top-2.5"
+                style={{ backgroundColor: 'var(--notification-unread-indicator)' }}
                 aria-hidden="true"
               />
             )}
             <RiNotification2Line
-              className="-ml-px size-4 shrink-0 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"
+              className="-ml-px size-4 shrink-0 group-hover:text-[var(--foreground)]"
+              style={{ color: 'var(--muted-foreground)' }}
               aria-hidden="true"
             />
           </span>
@@ -175,20 +197,33 @@ export function Notifications() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="z-20 ml-2 max-w-[95vw] px-3 sm:ml-0 sm:max-w-sm"
+        className="z-20 ml-2 max-w-[95vw] px-3 sm:ml-0"
+        style={{ maxWidth: 'var(--container-max-width-sm)' }}
       >
-        <div className="flex items-center justify-between gap-16">
-          <h2 className="text-base font-semibold text-[var(--foreground)]">
+        <div 
+          className="flex items-center justify-between"
+          style={{ gap: 'var(--spacing-lg)' }}
+        >
+          <h2 
+            className="text-heading"
+            style={{ 
+              fontSize: 'var(--text-base)',
+              fontWeight: 'var(--font-semibold)'
+            }}
+          >
             Notifications
           </h2>
           <Button variant="ghost">Mark {unreadCount} as read</Button>
         </div>
-        <Tabs defaultValue="unread" className="mt-4">
+        <Tabs 
+          defaultValue="unread" 
+          style={{ marginTop: 'var(--spacing-md)' }}
+        >
           <TabsList className="grid w-full grid-cols-2" variant="solid">
             <TabsTrigger value="unread">Unread</TabsTrigger>
             <TabsTrigger value="all">All</TabsTrigger>
           </TabsList>
-          <div className="mt-2">
+          <div style={{ marginTop: 'var(--spacing-sm)' }}>
             <TabsContent value="unread">
               <NotificationList />
             </TabsContent>
@@ -200,7 +235,11 @@ export function Notifications() {
                   aria-hidden="true"
                 />
               </div>
-              <Button variant="secondary" className="mt-2 w-full">
+              <Button 
+                variant="secondary" 
+                className="w-full"
+                style={{ marginTop: 'var(--spacing-sm)' }}
+              >
                 View all
               </Button>
             </TabsContent>
