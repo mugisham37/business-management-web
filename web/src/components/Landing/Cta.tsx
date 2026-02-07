@@ -35,12 +35,11 @@ export default function Cta() {
                 id="cta-title"
                 className="cta-heading"
               >
-                Ready to get started?
+                Ready to transform your business?
               </h3>
               <p className="cta-description">
                 <Balancer>
-                  Launch a new cluster or migrate to Database with zero
-                  downtime.
+                  Start managing smarter today with a free trial—no credit card required.
                 </Balancer>
               </p>
             </div>
@@ -74,7 +73,7 @@ export default function Cta() {
               </div>
             </div>
             <p className="cta-footer-text">
-              Not sure where to start?{" "}
+              Need help choosing a plan?{" "}
               <a
                 href="#"
                 className="cta-footer-link"

@@ -62,7 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans min-h-screen scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
+        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans min-h-screen scroll-auto antialiased selection:bg-primary/10 selection:text-primary`}
       >
         <NuqsAdapter>
           <ThemeProvider

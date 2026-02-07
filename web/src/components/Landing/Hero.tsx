@@ -13,13 +13,12 @@ export default function Hero() {
         id="hero-title"
         className="hero-title"
       >
-        The database for <br /> modern applications
+        Business management <br /> made simple
       </h1>
       <p
         className="hero-description"
       >
-        Database is a general purpose, relational database built for modern
-        application developers and for the cloud era.
+        A comprehensive management platform built for businesses of all sizes—from solopreneurs to industrial enterprises.
       </p>
       <div
         className="hero-buttons-container"
@@ -43,7 +42,7 @@ export default function Hero() {
                 className="hero-play-icon"
               />
             </span>
-            Watch video
+            Watch demo
           </Link>
         </Button>
       </div>

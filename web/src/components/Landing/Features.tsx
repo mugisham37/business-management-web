@@ -3,16 +3,16 @@ import { Badge } from "../ui/Badge"
 
 const stats = [
   {
-    name: "Bandwith increase",
-    value: "+162%",
+    name: "Time saved on admin tasks",
+    value: "+85%",
   },
   {
-    name: "Better storage efficiency",
-    value: "2-3x",
+    name: "Order processing speed",
+    value: "3x faster",
   },
   {
-    name: "Rows ingested / second",
-    value: "Up to 9M",
+    name: "System uptime guarantee",
+    value: "99.9%",
   },
 ]
 
@@ -22,18 +22,15 @@ export default function Features() {
       aria-labelledby="features-title"
       className="features-section"
     >
-      <Badge>Security at Scale</Badge>
+      <Badge>Proven Results</Badge>
       <h2
         id="features-title"
         className="features-heading"
       >
-        Architected for speed and reliability
+        Built for efficiency and growth
       </h2>
       <p className="features-description">
-        Database&rsquo; innovative architecture avoids the central bottlenecks
-        of traditional systems, enhancing system reliability. This design
-        ensures high productivity and security, minimizing the risk of service
-        disruptions and outages.
+        Our streamlined platform eliminates operational bottlenecks, helping businesses work smarter. Reduce manual tasks, improve accuracy, and scale confidently.
       </p>
       <dl className="features-stats-grid">
         {stats.map((stat, index) => (

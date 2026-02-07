@@ -4,29 +4,19 @@ import { DatabaseLogo } from "../DatabaseLogo"
 import ThemeSwitch from "../ui/ThemeSwitch"
 
 const navigation = {
-  product: [
-    { name: "Enterprise", href: "#", external: false },
-    { name: "Pricing", href: "/pricing", external: false },
-    { name: "Docs", href: "#", external: false },
-    { name: "Changelog", href: "/changelog", external: false },
-  ],
   resources: [
-    { name: "FAQs", href: "/pricing#faq-title", external: false },
-    { name: "GitHub", href: "#", external: true },
-    { name: "Discord", href: "#", external: true },
+    { name: "Instagram", href: "#", external: true },
+    { name: "Tiktok", href: "#", external: true },
     { name: "YouTube", href: "#", external: true },
   ],
   company: [
     { name: "About", href: "/about", external: false },
-    { name: "Careers", href: "#", external: true },
+    { name: "Pricing", href: "#", external: true },
     { name: "Contact", href: "#", external: false },
-    { name: "Status", href: "#", external: false },
   ],
   legal: [
-    { name: "Imprint", href: "#", external: false },
     { name: "Privacy", href: "#", external: false },
     { name: "Terms", href: "#", external: false },
-    { name: "DPA", href: "#", external: false },
   ],
 }
 
@@ -36,7 +26,9 @@ export default function Footer() {
       <div className="footer-container">
         <div className="footer-top-grid">
           <div className="footer-left-column">
-            <DatabaseLogo className="footer-logo" />
+            <Link href="/" aria-label="Home">
+              <DatabaseLogo className="footer-logo" />
+            </Link>
             <p className="footer-description">
               Redefining the way databases are built and managed. Built in
               Switzerland, made for the world.
@@ -44,41 +36,9 @@ export default function Footer() {
             <div className="footer-theme-switch-wrapper">
               <ThemeSwitch />
             </div>
-            <div></div>
           </div>
           <div className="footer-nav-grid">
             <div className="footer-nav-inner-grid">
-              <div>
-                <h3 className="footer-section-heading">
-                  Product
-                </h3>
-                <ul
-                  role="list"
-                  className="footer-nav-list"
-                  aria-label="Quick links Product"
-                >
-                  {navigation.product.map((item) => (
-                    <li key={item.name} className="footer-nav-item">
-                      <Link
-                        className="footer-nav-link"
-                        href={item.href}
-                        target={item.external ? "_blank" : undefined}
-                        rel={item.external ? "noopener noreferrer" : undefined}
-                      >
-                        <span>{item.name}</span>
-                        {item.external && (
-                          <div className="footer-external-icon-wrapper">
-                            <RiArrowRightUpLine
-                              aria-hidden="true"
-                              className="footer-external-icon"
-                            />
-                          </div>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
               <div>
                 <h3 className="footer-section-heading">
                   Resources

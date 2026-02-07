@@ -36,12 +36,11 @@ export default function CodeExampleTabs({
               <RiShapesLine aria-hidden="true" className="code-example-tabs-icon" />
             </div>
             <p className="code-example-tabs-title">
-              Model everything
+              Organize everything
             </p>
           </div>
           <p className="code-example-tabs-description">
-            Data integrity and query efficiency for diverse data types including
-            geospatial and time-series. Easy to create, effortless to maintain.
+            Track inventory, customers, orders, and finances in one place. Simple setup, powerful organization.
           </p>
         </Tabs.Trigger>
         <Tabs.Trigger
@@ -60,12 +59,11 @@ export default function CodeExampleTabs({
               <RiCodeSSlashLine aria-hidden="true" className="code-example-tabs-icon" />
             </div>
             <p className="code-example-tabs-title">
-              Query efficiently
+              Access instantly
             </p>
           </div>
           <p className="code-example-tabs-description">
-            Leverage a developer-native query API to efficiently manage
-            PostgreSQL data. Initialize once, scale infinitely.
+            Get the data you need with smart filters and reports. Find anything in seconds, not hours.
           </p>
         </Tabs.Trigger>
       </Tabs.List>

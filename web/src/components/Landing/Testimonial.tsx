@@ -8,9 +8,7 @@ export default function Testimonial() {
         <blockquote className="testimonial-blockquote">
           <p>
             <Balancer>
-              "Thanks to this robust database solution, our organization has
-              streamlined data management processes, leading to increased
-              efficiency and accuracy in our operations."
+              "This platform transformed how we run our business. We've cut admin time in half and can now focus on growth instead of paperwork."
             </Balancer>
           </p>
         </blockquote>
@@ -27,7 +25,7 @@ export default function Testimonial() {
               Dima Coil
             </p>
             <p className="testimonial-title">
-              CEO Hornertools
+              CEO, Hornertools
             </p>
           </div>
         </figcaption>

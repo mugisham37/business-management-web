@@ -58,27 +58,27 @@ const code2 = `async function fetchCustomerOrders() {
 
 const features = [
   {
-    name: "Use Database with your stack",
+    name: "Works with your tools",
     description:
-      "We offer client and server libraries in everything from React and Ruby to iOS.",
+      "Seamlessly integrates with accounting software, payment processors, and CRM systems.",
     icon: RiStackLine,
   },
   {
-    name: "Try plug & play options",
+    name: "Quick setup options",
     description:
-      "Customize and deploy data infrastructure directly from the Database Dashboard.",
+      "Choose from pre-configured templates for retail, wholesale, or industrial operations.",
     icon: RiPlugLine,
   },
   {
-    name: "Explore pre-built integrations",
+    name: "Popular integrations",
     description:
-      "Connect Database to over a hundred tools including Stripe, Salesforce, or Quickbooks.",
+      "Connect with tools like QuickBooks, Stripe, Shopify, and over a hundred more.",
     icon: RiLinksLine,
   },
   {
     name: "Security & privacy",
     description:
-      "Database supports PII data encrypted with AES-256 at rest or explicit user consent flows.",
+      "Bank-level encryption protects your business data with industry-standard security.",
     icon: RiShieldKeyholeLine,
   },
 ]
@@ -89,16 +89,15 @@ export default function CodeExample() {
       aria-labelledby="code-example-title"
       className="code-example-section"
     >
-      <Badge>Developer-first</Badge>
+      <Badge>User-friendly</Badge>
       <h2
         id="code-example-title"
         className="code-example-title"
       >
-        Built by developers, <br /> for developers
+        Designed for business owners, <br /> not just tech experts
       </h2>
       <p className="code-example-description">
-        Rich and expressive query language that allows you to filter and sort by
-        any field, no matter how nested it may be.
+        Intuitive interface that lets you manage inventory, finances, and operations without technical complexity.
       </p>
       <CodeExampleTabs
         tab1={

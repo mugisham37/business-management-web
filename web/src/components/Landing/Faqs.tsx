@@ -9,32 +9,32 @@ import {
 const faqs = [
   {
     question:
-      "How secure is the database software in terms of protecting sensitive data?",
+      "How secure is my business data with your platform?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "We use bank-level encryption and industry-standard security protocols to protect your data. All information is encrypted both in transit and at rest, with regular security audits and compliance certifications.",
   },
   {
-    question: "Can the database be self-hosted?",
+    question: "Can I use this for both retail and wholesale operations?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
-  },
-  {
-    question:
-      "Does the software support integration with other systems and applications?",
-    answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Absolutely! Our platform is designed to handle all business types—from retail stores and wholesale distributors to manufacturing and industrial operations. You can customize workflows to match your specific needs.",
   },
   {
     question:
-      "How easy is it to back up and restore data using the database software?",
+      "Does the software integrate with my existing accounting tools?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Yes, we integrate with popular accounting software like QuickBooks, Xero, and Sage, as well as payment processors, CRM systems, and over a hundred other business tools to streamline your operations.",
   },
   {
     question:
-      "What level of technical support and maintenance is provided for the software?",
+      "How easy is it to migrate my current business data?",
     answer:
-      "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat",
+      "Very easy! We provide guided import tools and templates for common data formats. Our support team can also assist with data migration to ensure a smooth transition with zero downtime.",
+  },
+  {
+    question:
+      "What kind of support and training do you provide?",
+    answer:
+      "We offer comprehensive onboarding, video tutorials, documentation, and live chat support. Premium plans include dedicated account managers and personalized training sessions for your team.",
   },
 ]
 
@@ -50,15 +50,14 @@ export function Faqs() {
             Frequently Asked Questions
           </h2>
           <p className="faqs-description">
-            Can&rsquo;t find the answer you&rsquo;re looking for? Don&rsquo;t
-            hesitate to get in touch with our{" "}
+            Can&rsquo;t find what you need? Our{" "}
             <a
               href="#"
               className="faqs-description-link"
             >
               customer support
             </a>{" "}
-            team.
+            team is here to help.
           </p>
         </div>
         <div className="faqs-right-column">

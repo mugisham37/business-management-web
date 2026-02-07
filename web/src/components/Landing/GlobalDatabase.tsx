@@ -41,17 +41,17 @@ export const GlobalDatabase: FunctionComponent = () => {
 
   const features = [
     {
-      name: "Global Clusters",
-      description: "Enable low-latency global access, enhancing performance.",
+      name: "Multi-location Support",
+      description: "Manage operations across multiple locations with real-time sync.",
     },
     {
-      name: "Serverless Triggers",
-      description: "Trigger functions automatically for dynamic app behavior.",
+      name: "Smart Automation",
+      description: "Automate workflows and reduce manual tasks across your business.",
     },
     {
-      name: "Monitoring & Alerts",
+      name: "Real-time Insights",
       description:
-        "Monitor health with key metrics or integrate third-party tools.",
+        "Track performance with live dashboards and custom alerts.",
     },
   ]
 
@@ -64,14 +64,14 @@ export const GlobalDatabase: FunctionComponent = () => {
         <div className="global-database-blur" />
         <div className="global-database-badge">
           <span className="global-database-badge-text">
-            Made for the cloud
+            Built for growth
           </span>
         </div>
         <h2
           id="global-database-title"
           className="global-database-heading"
         >
-          The global <br /> cloud database
+          Manage from <br /> anywhere
         </h2>
         <canvas
           className="global-database-canvas"

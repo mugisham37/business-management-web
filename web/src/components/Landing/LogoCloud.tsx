@@ -8,7 +8,7 @@ export default function LogoCloud() {
       className="logo-cloud-section"
     >
       <p className="logo-cloud-text">
-        Trusted by the world&rsquo;s best engineering teams
+        Trusted by businesses worldwide
       </p>
       <div className="logo-cloud-grid">
         <Logos.Biosynthesis className="logo-cloud-logo" />
