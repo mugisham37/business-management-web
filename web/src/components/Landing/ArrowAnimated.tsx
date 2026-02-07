@@ -6,7 +6,7 @@ export function ArrowAnimated({
 }: React.HTMLAttributes<SVGElement>) {
   return (
     <svg
-      className={cx("-mr-1 ml-1.5 stroke-[1.5px]", className)}
+      className={cx("arrow-animated", className)}
       fill="none"
       stroke="currentColor"
       width="11"
@@ -16,11 +16,11 @@ export function ArrowAnimated({
       {...props}
     >
       <path
-        className="opacity-0 transition group-hover:opacity-100"
+        className="arrow-animated-path-1"
         d="M0 5h7"
       />
       <path
-        className="transition group-hover:translate-x-[3px]"
+        className="arrow-animated-path-2"
         d="M1 1l4 4-4 4"
       />
     </svg>

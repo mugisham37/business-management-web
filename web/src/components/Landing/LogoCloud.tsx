@@ -5,21 +5,20 @@ export default function LogoCloud() {
     <section
       id="logo cloud"
       aria-label="Company logos"
-      className="mt-24 flex animate-slide-up-fade flex-col items-center justify-center gap-y-6 text-center sm:mt-32"
-      style={{ animationDuration: "1500ms" }}
+      className="logo-cloud-section"
     >
-      <p className="text-lg font-medium tracking-tighter text-gray-800 dark:text-gray-200">
+      <p className="logo-cloud-text">
         Trusted by the world&rsquo;s best engineering teams
       </p>
-      <div className="grid grid-cols-2 gap-10 gap-y-4 text-gray-900 md:grid-cols-4 md:gap-x-20 dark:text-gray-200">
-        <Logos.Biosynthesis className="w-28" />
-        <Logos.AltShift className="w-28" />
-        <Logos.Capsule className="w-28" />
-        <Logos.Catalog className="w-28" />
-        <Logos.Cloudwatch className="w-28" />
-        <Logos.FocalPoint className="w-28" />
-        <Logos.Interlock className="w-28" />
-        <Logos.Sisyphus className="w-28" />
+      <div className="logo-cloud-grid">
+        <Logos.Biosynthesis className="logo-cloud-logo" />
+        <Logos.AltShift className="logo-cloud-logo" />
+        <Logos.Capsule className="logo-cloud-logo" />
+        <Logos.Catalog className="logo-cloud-logo" />
+        <Logos.Cloudwatch className="logo-cloud-logo" />
+        <Logos.FocalPoint className="logo-cloud-logo" />
+        <Logos.Interlock className="logo-cloud-logo" />
+        <Logos.Sisyphus className="logo-cloud-logo" />
       </div>
     </section>
   )

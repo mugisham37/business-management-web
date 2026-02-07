@@ -40,37 +40,37 @@ const faqs = [
 
 export function Faqs() {
   return (
-    <section className="mt-20 sm:mt-36" aria-labelledby="faq-title">
-      <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-14">
-        <div className="col-span-full sm:col-span-5">
+    <section className="faqs-section" aria-labelledby="faq-title">
+      <div className="faqs-grid">
+        <div className="faqs-left-column">
           <h2
             id="faq-title"
-            className="inline-block scroll-my-24 bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 pr-2 text-2xl font-bold tracking-tighter text-transparent lg:text-3xl dark:from-gray-50 dark:to-gray-300"
+            className="faqs-heading"
           >
             Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-base leading-7 text-gray-600 dark:text-gray-400">
+          <p className="faqs-description">
             Can&rsquo;t find the answer you&rsquo;re looking for? Don&rsquo;t
             hesitate to get in touch with our{" "}
             <a
               href="#"
-              className="font-medium text-indigo-600 hover:text-indigo-300 dark:text-indigo-400"
+              className="faqs-description-link"
             >
               customer support
             </a>{" "}
             team.
           </p>
         </div>
-        <div className="col-span-full mt-6 lg:col-span-7 lg:mt-0">
-          <Accordion type="multiple" className="mx-auto">
+        <div className="faqs-right-column">
+          <Accordion type="multiple" className="faqs-accordion">
             {faqs.map((item) => (
               <AccordionItem
                 value={item.question}
                 key={item.question}
-                className="py-3 first:pb-3 first:pt-0"
+                className="faqs-accordion-item"
               >
                 <AccordionTrigger>{item.question}</AccordionTrigger>
-                <AccordionContent className="text-gray-600 dark:text-gray-400">
+                <AccordionContent className="faqs-accordion-content">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>
