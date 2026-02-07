@@ -156,7 +156,7 @@ export default function Overview() {
       <section aria-labelledby="current-billing-cycle">
         <h1
           id="current-billing-cycle"
-          className="scroll-mt-10 text-lg font-semibold text-gray-900 sm:text-xl dark:text-gray-50"
+          className="card-title-overview scroll-mt-10 text-lg sm:text-xl"
         >
           Current billing cycle
         </h1>
@@ -197,7 +197,7 @@ export default function Overview() {
       <section aria-labelledby="usage-overview">
         <h1
           id="usage-overview"
-          className="mt-16 scroll-mt-8 text-lg font-semibold text-gray-900 sm:text-xl dark:text-gray-50"
+          className="card-title-overview mt-16 scroll-mt-8 text-lg sm:text-xl"
         >
           Overview
         </h1>

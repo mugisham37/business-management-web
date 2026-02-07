@@ -152,7 +152,7 @@ export function DataTable<TData>({
 
   const getCellClassName = (cell: any, row: any) => {
     const baseClasses = cx(
-      "relative whitespace-nowrap text-gray-600 dark:text-gray-400",
+      "relative whitespace-nowrap",
       cell.column.columnDef.meta?.className,
       cell.column.columnDef.meta?.cell
     )

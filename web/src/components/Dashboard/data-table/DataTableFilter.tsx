@@ -63,7 +63,7 @@ const ColumnFiltersLabel = ({
         {columnFilterLabels.map((value, index) => (
           <span
             key={value}
-            className={cx("font-semibold text-indigo-600 dark:text-indigo-400")}
+            className="font-semibold text-indigo-600 dark:text-indigo-400"
           >
             {value}
             {index < columnFilterLabels.length - 1 && ", "}
@@ -317,7 +317,7 @@ export function DataTableFilter<TData, TValue>({
         <button
           type="button"
           className={cx(
-            "flex w-full items-center gap-x-1.5 whitespace-nowrap px-2 py-1.5 font-medium text-gray-600 sm:w-fit sm:text-xs dark:text-gray-400",
+            "flex w-full items-center gap-x-1.5 whitespace-nowrap px-2 py-1.5 font-medium sm:w-fit sm:text-xs",
             "filter-button-base",
             selectedValues &&
               ((typeof selectedValues === "object" &&
