@@ -61,8 +61,8 @@ export function DataTableColumnHeader<TData, TValue>({
       }}
       className={cx(
         "-mx-2 h-auto justify-start gap-2 px-2 py-1 font-medium",
-        "hover:bg-gray-50 hover:dark:bg-gray-900",
-        "data-[state=open]:bg-gray-100 data-[state=open]:dark:bg-gray-900",
+        "sort-button-base",
+        column.getIsSorted() && "sort-button-active",
         focusRing,
         className
       )}
@@ -72,17 +72,15 @@ export function DataTableColumnHeader<TData, TValue>({
       <div className="ml-auto flex flex-col -space-y-2">
         <RiArrowUpSLine
           className={cx(
-            "size-3.5 transition-opacity",
-            "text-gray-900 dark:text-gray-50",
-            column.getIsSorted() === "desc" ? "opacity-30" : "opacity-100",
+            "size-3.5 text-gray-900 dark:text-gray-50",
+            column.getIsSorted() === "desc" ? "sort-icon-inactive" : "sort-icon-active",
           )}
           aria-hidden="true"
         />
         <RiArrowDownSLine
           className={cx(
-            "size-3.5 transition-opacity",
-            "text-gray-900 dark:text-gray-50",
-            column.getIsSorted() === "asc" ? "opacity-30" : "opacity-100",
+            "size-3.5 text-gray-900 dark:text-gray-50",
+            column.getIsSorted() === "asc" ? "sort-icon-inactive" : "sort-icon-active",
           )}
           aria-hidden="true"
         />

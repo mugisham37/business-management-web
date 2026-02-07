@@ -73,20 +73,20 @@ export function DataTablePagination<TData>({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-6">
         {showSelection && selectedRows > 0 && (
-          <div className="text-sm tabular-nums text-gray-500 dark:text-gray-400">
+          <div className="pagination-text tabular-nums">
             {selectedRows} of {totalRows} row{totalRows !== 1 ? "s" : ""} selected
           </div>
         )}
         {showRowInfo && (
-          <p className="text-sm tabular-nums text-gray-500 dark:text-gray-400">
+          <p className="pagination-text tabular-nums">
             {totalRows > 0 ? (
               <>
                 Showing{" "}
-                <span className="font-medium text-gray-900 dark:text-gray-50">
+                <span className="pagination-text-emphasis">
                   {firstRowIndex}–{lastRowIndex}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-900 dark:text-gray-50">
+                <span className="pagination-text-emphasis">
                   {totalRows}
                 </span>
               </>

@@ -31,7 +31,11 @@ export function DataTableRowActions<TData>({
         <Button
           variant="ghost"
           size="icon"
-          className="group aspect-square p-1.5 hover:border hover:border-gray-300 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+          className="group aspect-square p-1.5 hover:border hover:border-gray-300 data-[state=open]:border-gray-300 hover:dark:border-gray-700 data-[state=open]:dark:border-gray-700"
+          style={{
+            '--hover-bg': 'var(--interactive-hover-light)',
+            '--open-bg': 'var(--table-row-selected-bg)',
+          } as React.CSSProperties}
           aria-label="Open row actions menu"
         >
           <RiMoreFill
@@ -68,6 +72,7 @@ export function DataTableRowActions<TData>({
           <DropdownMenuItem 
             onClick={() => onDelete(row)}
             className="text-red-600 dark:text-red-500"
+            style={{ color: 'var(--destructive)' }}
             shortcut="⌘⌫"
           >
             Delete

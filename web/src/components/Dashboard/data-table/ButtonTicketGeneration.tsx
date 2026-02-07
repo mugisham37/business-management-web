@@ -55,7 +55,7 @@ const ButtonTicketGeneration = React.forwardRef<HTMLButtonElement, ButtonTicketG
           <>
             {internalState ? (
               <RiCheckboxCircleFill
-                className="text-emerald-600 dark:text-emerald-500"
+                style={{ color: 'var(--status-good)' }}
                 aria-hidden="true"
               />
             ) : (

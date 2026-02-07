@@ -138,16 +138,16 @@ export function DataTable<TData>({
     if (enableRowSelection) {
       return cx(
         baseClasses,
-        "cursor-pointer hover:bg-gray-50 hover:dark:bg-gray-900",
-        row.getIsSelected() && "bg-gray-50 dark:bg-gray-900"
+        "table-row-hover cursor-pointer",
+        row.getIsSelected() && "table-row-selected"
       )
     }
     
     if (enableStriped) {
-      return cx(baseClasses, "odd:bg-gray-50 odd:dark:bg-[#090E1A]")
+      return cx(baseClasses, "table-row-striped")
     }
     
-    return cx(baseClasses, "hover:bg-[#FBFBFC] hover:dark:bg-gray-900")
+    return cx(baseClasses, "table-row-hover")
   }
 
   const getCellClassName = (cell: any, row: any) => {
@@ -165,7 +165,7 @@ export function DataTable<TData>({
       return cx(
         baseClasses,
         "py-1 first:w-10",
-        row.getIsSelected() && "bg-gray-50 dark:bg-gray-900"
+        row.getIsSelected() && "table-row-selected"
       )
     }
     
@@ -237,7 +237,7 @@ export function DataTable<TData>({
                       className={getCellClassName(cell, row)}
                     >
                       {cellIndex === 0 && enableRowSelection && row.getIsSelected() && (
-                        <div className="absolute inset-y-0 left-0 w-0.5 bg-indigo-600 dark:bg-indigo-500" />
+                        <div className="table-row-selected-indicator" />
                       )}
                       {flexRender(
                         cell.column.columnDef.cell,

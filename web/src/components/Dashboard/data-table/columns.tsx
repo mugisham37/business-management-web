@@ -32,7 +32,8 @@ const StabilityIndicator = ({ number }: { number: number }) => {
         {[0, 1, 2].map((index) => (
           <div 
             key={index}
-            className="h-3.5 w-1 rounded-sm bg-gray-300 dark:bg-gray-800" 
+            className="h-3.5 w-1 rounded-sm"
+            style={{ backgroundColor: 'var(--muted)' }}
           />
         ))}
       </div>
@@ -56,17 +57,17 @@ const StabilityIndicator = ({ number }: { number: number }) => {
     ariaLabel = "Good stability"
   }
 
-  const getBarClass = (index: number) => {
+  const getBarColor = (index: number) => {
     if (category === "zero") {
-      return "bg-gray-300 dark:bg-gray-800"
+      return "var(--muted)"
     } else if (category === "good") {
-      return "bg-emerald-500 dark:bg-emerald-400"
+      return "var(--status-good)"
     } else if (category === "ok" && index < 2) {
-      return "bg-yellow-500 dark:bg-yellow-400"
+      return "var(--status-warning)"
     } else if (category === "bad" && index < 1) {
-      return "bg-red-500 dark:bg-red-400"
+      return "var(--status-critical)"
     }
-    return "bg-gray-300 dark:bg-gray-800"
+    return "var(--muted)"
   }
 
   return (
@@ -74,7 +75,8 @@ const StabilityIndicator = ({ number }: { number: number }) => {
       {[0, 1, 2].map((index) => (
         <div 
           key={index}
-          className={`h-3.5 w-1 rounded-sm transition-colors ${getBarClass(index)}`} 
+          className="h-3.5 w-1 rounded-sm transition-colors"
+          style={{ backgroundColor: getBarColor(index) }}
         />
       ))}
     </div>
@@ -95,28 +97,35 @@ const DurationCell = ({ minutes }: { minutes: string | null }) => {
   )
 }
 
-const PriorityBadge = ({ priority }: { priority: string }) => (
-  <Badge
-    variant="neutral"
-    size="sm"
-    className="gap-1.5 font-normal capitalize text-gray-700 dark:text-gray-300"
-  >
-    <span
-      className={cx(
-        "size-2 shrink-0 rounded-sm transition-colors",
-        "bg-gray-500 dark:bg-gray-500",
-        {
-          "bg-emerald-600 dark:bg-emerald-400": priority === "low",
-          "bg-gray-500 dark:bg-gray-500": priority === "medium",
-          "bg-orange-500 dark:bg-orange-500": priority === "high",
-          "bg-red-500 dark:bg-red-500": priority === "emergency",
-        },
-      )}
-      aria-hidden="true"
-    />
-    {priority}
-  </Badge>
-)
+const PriorityBadge = ({ priority }: { priority: string }) => {
+  const getPriorityColor = () => {
+    switch (priority) {
+      case "low":
+        return "var(--status-good)"
+      case "high":
+        return "var(--status-warning)"
+      case "emergency":
+        return "var(--status-critical)"
+      default:
+        return "var(--muted-foreground)"
+    }
+  }
+
+  return (
+    <Badge
+      variant="neutral"
+      size="sm"
+      className="gap-1.5 font-normal capitalize text-gray-700 dark:text-gray-300"
+    >
+      <span
+        className="size-2 shrink-0 rounded-sm transition-colors"
+        style={{ backgroundColor: getPriorityColor() }}
+        aria-hidden="true"
+      />
+      {priority}
+    </Badge>
+  )
+}
 
 // =============================================================================
 // ICON MAPPINGS
@@ -181,7 +190,7 @@ export const usageColumns = [
     cell: ({ getValue }) => {
       const value = getValue()
       return (
-        <span className="font-medium text-gray-900 dark:text-gray-50">
+        <span className="text-emphasis">
           {value}
         </span>
       )
@@ -375,12 +384,12 @@ export const agentColumns = [
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span className="font-medium text-gray-900 dark:text-gray-50">
+          <span className="text-emphasis">
             {row.original.full_name}
           </span>
           <div className="flex items-center gap-1 text-xs">
             <span className="text-gray-500 dark:text-gray-500">AgID </span>
-            <span className="font-mono font-medium uppercase tabular-nums text-gray-900 dark:text-gray-50">
+            <span className="font-mono font-medium uppercase tabular-nums text-emphasis">
               {row.original.agent_id}
             </span>
             <RiShieldCheckFill
@@ -390,6 +399,9 @@ export const agentColumns = [
                   ? "text-emerald-600 dark:text-emerald-400"
                   : "text-gray-400 dark:text-gray-600",
               )}
+              style={{
+                color: row.original.registered ? 'var(--status-good)' : 'var(--muted-foreground)'
+              }}
               aria-label={row.original.registered ? "Registered" : "Not registered"}
             />
           </div>
@@ -409,7 +421,7 @@ export const agentColumns = [
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span className="text-gray-900 dark:text-gray-50 tabular-nums">
+          <span className="tabular-nums text-emphasis">
             {row.original.number.replace(
               /(\+41)(\d{2})(\d{3})(\d{2})(\d{2})/,
               "$1 $2 $3 $4 $5",
@@ -434,7 +446,7 @@ export const agentColumns = [
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span className="tabular-nums text-gray-900 dark:text-gray-50">
+          <span className="tabular-nums text-emphasis">
             {row.original.end_date ? (
               <>
                 End:{" "}
@@ -475,7 +487,7 @@ export const agentColumns = [
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span className="text-gray-900 dark:text-gray-50">
+          <span className="text-emphasis">
             {row.original.account}
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-500">
@@ -528,7 +540,7 @@ export const agentColumns = [
             </ProgressCircle>
           </div>
           <div className="flex flex-col gap-0">
-            <span className="text-gray-900 dark:text-gray-50">
+            <span className="text-emphasis">
               <span className="text-gray-500 dark:text-gray-500">Called </span>
               <span className="font-medium tabular-nums">
                 {formatters.unit({ number: minutes_called, maxFractionDigits: 0 })}
@@ -573,7 +585,7 @@ export const ticketColumns = [
       displayName: "Created at",
     },
     cell: ({ row }: { row: { original: Ticket } }) => (
-      <span className="tabular-nums text-gray-900 dark:text-gray-50">
+      <span className="tabular-nums text-emphasis">
         {new Date(row.original.created).toLocaleDateString("en-GB", {
           day: "2-digit",
           month: "2-digit",
@@ -593,7 +605,7 @@ export const ticketColumns = [
       displayName: "Description",
     },
     cell: ({ row }: { row: { original: Ticket } }) => (
-      <span className="font-medium text-gray-900 dark:text-gray-50">
+      <span className="text-emphasis">
         {row.original.description}
       </span>
     ),
@@ -607,7 +619,7 @@ export const ticketColumns = [
       displayName: "Policy Info",
     },
     cell: ({ row }: { row: { original: Ticket } }) => (
-      <span className="font-medium tabular-nums text-gray-900 dark:text-gray-50">
+      <span className="font-medium tabular-nums text-emphasis">
         {row.original.policyNumber}
       </span>
     ),
@@ -631,7 +643,7 @@ export const ticketColumns = [
               aria-hidden="true" 
             />
           )}
-          <span className="capitalize text-gray-900 dark:text-gray-50">
+          <span className="capitalize text-emphasis">
             {row.original.type.replace("-contact", "")}
           </span>
         </div>

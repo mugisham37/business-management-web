@@ -214,7 +214,7 @@ function ListItem({
           className={cx(
             "relative flex items-center justify-between gap-2 rounded-sm transition-colors",
             draggableState.type === "dragging" && "opacity-50",
-            isFocused && "bg-gray-50 dark:bg-gray-900/50",
+            isFocused && "sort-button-base sort-button-active",
           )}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
