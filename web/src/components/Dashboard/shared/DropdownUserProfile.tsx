@@ -28,9 +28,20 @@ import {
   LogOut,
   HelpCircle,
   MessageSquare,
-  FileText
+  FileText,
+  Keyboard
 } from "lucide-react"
+import { 
+  RiArrowRightUpLine,
+  RiComputerLine,
+  RiMoonLine,
+  RiSunLine,
+} from "@remixicon/react"
 import { useTheme } from "next-themes"
+
+// =============================================================================
+// TYPE DEFINITIONS
+// =============================================================================
 
 export interface DropdownUserProfileProps {
   children: React.ReactNode
@@ -44,6 +55,7 @@ export interface DropdownUserProfileProps {
     email?: string
     role?: string
     plan?: string
+    avatar?: string
   }
   links?: {
     profile?: string
@@ -51,15 +63,24 @@ export interface DropdownUserProfileProps {
     changelog?: string
     documentation?: string
     community?: string
+    keyboardShortcuts?: string
   }
+  showKeyboardShortcuts?: boolean
   showThemeSelector?: boolean
   showProfileActions?: boolean
   showHelpResources?: boolean
   onProfileClick?: () => void
   onSettingsClick?: () => void
+  onKeyboardShortcutsClick?: () => void
   onSignOut?: () => void
   disabled?: boolean
+  variant?: "default" | "customer"
+  iconLibrary?: "lucide" | "remix"
 }
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export function DropdownUserProfile({
   children,
@@ -79,15 +100,20 @@ export function DropdownUserProfile({
     settings: "/settings",
     changelog: siteConfig.baseLinks.changelog,
     documentation: "/docs",
-    community: "#"
+    community: "#",
+    keyboardShortcuts: "#"
   },
+  showKeyboardShortcuts = true,
   showThemeSelector = true,
   showProfileActions = true,
   showHelpResources = true,
   onProfileClick,
   onSettingsClick,
+  onKeyboardShortcutsClick,
   onSignOut,
   disabled = false,
+  variant = "default",
+  iconLibrary = "lucide",
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme()
@@ -120,10 +146,124 @@ export function DropdownUserProfile({
     }
   }, [onSettingsClick, links.settings])
 
+  const handleKeyboardShortcutsClick = React.useCallback(() => {
+    if (onKeyboardShortcutsClick) {
+      onKeyboardShortcutsClick()
+    } else if (links.keyboardShortcuts && links.keyboardShortcuts !== "#") {
+      window.location.href = links.keyboardShortcuts
+    }
+  }, [onKeyboardShortcutsClick, links.keyboardShortcuts])
+
   if (!mounted) {
     return null
   }
 
+  // Icon components based on library preference
+  const SunIcon = iconLibrary === "remix" ? RiSunLine : Sun
+  const MoonIcon = iconLibrary === "remix" ? RiMoonLine : Moon
+  const MonitorIcon = iconLibrary === "remix" ? RiComputerLine : Monitor
+  const ExternalLinkIcon = iconLibrary === "remix" ? RiArrowRightUpLine : ArrowUpRight
+
+  // Customer variant uses simpler layout
+  if (variant === "customer") {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={disabled}>
+          {children}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align={align}
+          className="!min-w-[calc(var(--radix-dropdown-menu-trigger-width))]"
+        >
+          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+          {showThemeSelector && (
+            <DropdownMenuGroup>
+              <DropdownMenuSubMenu>
+                <DropdownMenuSubMenuTrigger>Theme</DropdownMenuSubMenuTrigger>
+                <DropdownMenuSubMenuContent>
+                  <DropdownMenuRadioGroup
+                    value={theme}
+                    onValueChange={(value) => {
+                      setTheme(value)
+                    }}
+                  >
+                    <DropdownMenuRadioItem
+                      aria-label="Switch to Light Mode"
+                      value="light"
+                      iconType="check"
+                    >
+                      <SunIcon className="size-4 shrink-0" aria-hidden="true" />
+                      Light
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem
+                      aria-label="Switch to Dark Mode"
+                      value="dark"
+                      iconType="check"
+                    >
+                      <MoonIcon
+                        className="size-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      Dark
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem
+                      aria-label="Switch to System Mode"
+                      value="system"
+                      iconType="check"
+                    >
+                      <MonitorIcon
+                        className="size-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      System
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubMenuContent>
+              </DropdownMenuSubMenu>
+            </DropdownMenuGroup>
+          )}
+          {showHelpResources && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  Changelog
+                  <ExternalLinkIcon
+                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Documentation
+                  <ExternalLinkIcon
+                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Join Slack community
+                  <ExternalLinkIcon
+                    className="mb-1 ml-1 size-3 shrink-0 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
+              <a href={siteConfig.baseLinks.login} className="w-full">
+                Sign out
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+
+  // Default variant with full features
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
@@ -164,13 +304,19 @@ export function DropdownUserProfile({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={handleProfileClick}>
+              <DropdownMenuItem 
+                onClick={handleProfileClick}
+                shortcut={showKeyboardShortcuts ? "⌘P" : undefined}
+              >
                 <DropdownMenuIconWrapper>
                   <User className="size-4 shrink-0" aria-hidden="true" />
                 </DropdownMenuIconWrapper>
                 View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSettingsClick}>
+              <DropdownMenuItem 
+                onClick={handleSettingsClick}
+                shortcut={showKeyboardShortcuts ? "⌘," : undefined}
+              >
                 <DropdownMenuIconWrapper>
                   <Settings className="size-4 shrink-0" aria-hidden="true" />
                 </DropdownMenuIconWrapper>
@@ -300,6 +446,17 @@ export function DropdownUserProfile({
                   </a>
                 </DropdownMenuItem>
               )}
+              {showKeyboardShortcuts && (
+                <DropdownMenuItem 
+                  onClick={handleKeyboardShortcutsClick}
+                  shortcut="⌘K"
+                >
+                  <DropdownMenuIconWrapper>
+                    <Keyboard className="size-4 shrink-0" aria-hidden="true" />
+                  </DropdownMenuIconWrapper>
+                  Keyboard shortcuts
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
           </>
         )}
@@ -309,6 +466,7 @@ export function DropdownUserProfile({
           <DropdownMenuItem 
             onClick={handleSignOut}
             className="text-red-600 dark:text-red-400 focus:bg-red-50 focus:text-red-700 dark:focus:bg-red-950/50 dark:focus:text-red-300"
+            shortcut={showKeyboardShortcuts ? "⌘Q" : undefined}
           >
             <DropdownMenuIconWrapper>
               <LogOut className="size-4 shrink-0" aria-hidden="true" />

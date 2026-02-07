@@ -21,7 +21,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
 import MobileSidebar from "./MobileSidebar"
-import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
+import { UserProfileDesktop, UserProfileMobile } from "../shared/UserProfile"
 
 // =============================================================================
 // TYPE DEFINITIONS

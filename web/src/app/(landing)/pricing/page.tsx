@@ -10,10 +10,10 @@ import Testimonial from "@/components/Landing/Testimonial"
 import { cx } from "@/lib/utils"
 import {
   RiCheckLine,
-  RiCloudLine,
   RiInformationLine,
   RiSubtractLine,
   RiUserLine,
+  RiStoreLine,
 } from "@remixicon/react"
 import Link from "next/link"
 import React, { Fragment } from "react"
@@ -39,53 +39,53 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    name: "Starter",
-    price: "$0",
+    name: "Solo",
+    price: "$19",
     description:
-      "For individuals and freelancers that need a scalable database.",
-    capacity: ["Up to 5 users, 1 admin", "1 workspace"],
+      "For solopreneurs and freelancers managing their growing business.",
+    capacity: ["1 business owner + 3 team members", "1 business location"],
     features: [
-      "Up to 1000/req. per day",
-      "5 GB max storage",
-      "Community Slack Support",
+      "Up to 100 invoices/month",
+      "Basic inventory (50 products)",
+      "Email support & knowledge base",
     ],
     isStarter: true,
     isRecommended: false,
-    buttonText: "Get started",
+    buttonText: "Start for free",
     buttonLink: "#",
   },
   {
-    name: "Teams",
-    price: { monthly: "$49", annually: "$39" },
-    description: "For small teams and start-ups that need a scalable database.",
-    capacity: ["Up to 100 users, 3 admins", "Up to 20 workspaces"],
+    name: "Retail",
+    price: { monthly: "$79", annually: "$59" },
+    description: "For small retailers and service businesses scaling operations.",
+    capacity: ["Up to 10 employees, 3 managers", "Up to 3 business locations"],
     features: [
-      "Unlimited requests",
-      "$0.07 per processed GB",
-      "$0.34 per stored GB",
-      "Slack Connect",
+      "Unlimited invoices & quotes",
+      "Advanced inventory management",
+      "Point of Sale (POS) integration",
+      "Priority email & chat support",
     ],
     isStarter: false,
     isRecommended: false,
-    buttonText: "Start 14-day trial",
+    buttonText: "Try free for 14 days",
     buttonLink: "#",
   },
   {
-    name: "Business",
-    price: { monthly: "$99", annually: "$79" },
+    name: "Wholesale",
+    price: { monthly: "$199", annually: "$159" },
     description:
-      "For larger teams that need more advanced controls and features.",
-    capacity: ["Up to 500 users, 10 admins", "Unlimited workspaces"],
+      "For wholesalers and multi-location businesses with complex operations.",
+    capacity: ["Up to 50 employees, 10 managers", "Unlimited locations"],
     features: [
-      "Unlimited requests",
-      "Volume discount",
-      "$0.03 per processed GB",
-      "$0.1 per stored GB",
-      "Single Sign-On (SSO)",
+      "Bulk order management",
+      "Multi-warehouse inventory",
+      "B2B customer portal",
+      "Advanced reporting & analytics",
+      "SSO & role-based access",
     ],
     isStarter: false,
     isRecommended: true,
-    buttonText: "Start 14-day trial",
+    buttonText: "Try free for 14 days",
     buttonLink: "#",
   },
 ]
@@ -103,102 +103,141 @@ interface Section {
 
 const sections: Section[] = [
   {
-    name: "Workspace Features",
+    name: "Business Operations",
     features: [
       {
-        name: "Email notifications & webhooks",
+        name: "Order notifications & customer alerts",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: true, Teams: true, Business: true },
+          "Automated notifications for orders, payments, and customer activities.",
+        plans: { Solo: true, Retail: true, Wholesale: true },
       },
       {
-        name: "Workspaces",
+        name: "Business locations/branches",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: "5", Teams: "10", Business: "Unlimited" },
+          "Manage multiple physical or virtual business locations from one platform.",
+        plans: { Solo: "1", Retail: "3", Wholesale: "Unlimited" },
       },
       {
-        name: "Storage",
+        name: "Document storage",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "Secure cloud storage for invoices, contracts, receipts, and business documents.",
         plans: {
-          Starter: "$0.65 per stored GB",
-          Teams: "$0.34 per stored GB",
-          Business: "Customized¹",
+          Solo: "5GB",
+          Retail: "50GB + cloud backup",
+          Wholesale: "200GB + enterprise backup",
         },
       },
       {
-        name: "Seats",
+        name: "Employee accounts",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
+          "User accounts with customizable permissions and role-based access.",
         plans: {
-          Starter: "5 users",
-          Teams: "Up to 20 users",
-          Business: "Unlimited",
+          Solo: "4 users",
+          Retail: "Up to 10 users",
+          Wholesale: "Up to 50 users",
         },
       },
     ],
   },
   {
-    name: "Automation",
+    name: "Financial Management",
     features: [
       {
-        name: "Service accounts",
+        name: "Invoicing & quotes",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: true, Teams: true, Business: true },
+          "Create professional invoices and quotes with automated billing.",
+        plans: { Solo: "Basic", Retail: "Advanced", Wholesale: "Enterprise" },
       },
       {
-        name: "Admin API",
+        name: "Expense tracking",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Teams: true, Business: true },
+          "Track and categorize business expenses with receipt management.",
+        plans: { Solo: true, Retail: true, Wholesale: true },
       },
       {
-        name: "No-Code workflow builder",
+        name: "Multi-currency support",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: "Limited", Teams: "Standard", Business: "Enhanced" },
+          "Accept payments and manage transactions in multiple currencies.",
+        plans: { Retail: true, Wholesale: true },
+      },
+      {
+        name: "Advanced accounting suite",
+        tooltip:
+          "Full double-entry accounting, cost accounting, and budgeting tools.",
+        plans: { Wholesale: true },
       },
     ],
   },
   {
-    name: "Analytics",
+    name: "Inventory Management",
     features: [
       {
-        name: "Analytics retention",
+        name: "Product catalog",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Starter: "7 days", Teams: "1 year", Business: "Unlimited" },
+          "Manage your product inventory with images, descriptions, and pricing.",
+        plans: { Solo: "50 products", Retail: "Unlimited", Wholesale: "Unlimited" },
       },
       {
-        name: "Anomaly detection",
+        name: "Low-stock alerts",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Teams: true, Business: true },
+          "Automated notifications when inventory levels reach minimum thresholds.",
+        plans: { Retail: true, Wholesale: true },
       },
       {
-        name: "Custom report builder",
+        name: "Multi-warehouse management",
         tooltip:
-          "Consectetur qui culpa ipsum in ea irure duis culpa incididunt.",
-        plans: { Business: true },
+          "Track inventory across multiple warehouses with transfer management.",
+        plans: { Wholesale: true },
+      },
+      {
+        name: "Batch & serial number tracking",
+        tooltip:
+          "Track products by batch numbers or serial numbers for compliance.",
+        plans: { Wholesale: true },
       },
     ],
   },
   {
-    name: "Support",
+    name: "Business Intelligence",
     features: [
       {
-        name: "Slack",
+        name: "Financial data retention",
+        tooltip:
+          "Historical data access for financial reporting and compliance.",
+        plans: { Solo: "1 year", Retail: "3 years", Wholesale: "7 years" },
+      },
+      {
+        name: "Fraud detection & alerts",
+        tooltip:
+          "AI-powered detection of unusual transactions and suspicious activities.",
+        plans: { Retail: true, Wholesale: true },
+      },
+      {
+        name: "Custom reports & dashboards",
+        tooltip:
+          "Build custom financial and operational reports with scheduled exports.",
+        plans: { Solo: "Pre-built only", Retail: "10+ custom", Wholesale: "Unlimited + BI" },
+      },
+    ],
+  },
+  {
+    name: "Customer Success",
+    features: [
+      {
+        name: "Support channels",
         plans: {
-          Starter: "Community",
-          Teams: "Connect",
-          Business: "Dedicated agent",
+          Solo: "Email",
+          Retail: "Email + Chat",
+          Wholesale: "Priority + Phone",
         },
       },
       {
-        name: "Email",
-        plans: { Starter: "2-4 days", Teams: "1-2 days", Business: "Priority" },
+        name: "Response time SLA",
+        plans: { Solo: "48 hours", Retail: "24 hours", Wholesale: "4 hours" },
+      },
+      {
+        name: "Dedicated account manager",
+        plans: { Wholesale: true },
       },
     ],
   },
@@ -215,39 +254,28 @@ export default function Pricing() {
     "monthly" | "annually"
   >("monthly")
   return (
-    <div className="px-3">
+    <div className="pricing-root">
       <section
         aria-labelledby="pricing-title"
-        className="animate-slide-up-fade"
-        style={{
-          animationDuration: "600ms",
-          animationFillMode: "backwards",
-        }}
+        className="pricing-header-section"
       >
         <Badge>Pricing</Badge>
-        <h1 className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300">
-          Our plans scale with you
+        <h1 className="pricing-title">
+          Business management that scales with you
         </h1>
-        <p className="mt-6 max-w-2xl text-lg text-gray-700 dark:text-gray-400">
-          Plans that empower you and your team to ship without friction. Our
-          flexible pricing models ensure that efficiency doesn&rsquo;t come at
-          the cost of your budget.
+        <p className="pricing-description">
+          From your first sale to enterprise operations, our flexible plans adapt to your business needs. Choose the tier that matches your growth stage and upgrade as you expand.
         </p>
       </section>
       <section
         id="pricing-overview"
-        className="mt-20 animate-slide-up-fade"
+        className="pricing-overview-section"
         aria-labelledby="pricing-overview"
-        style={{
-          animationDuration: "600ms",
-          animationDelay: "200ms",
-          animationFillMode: "backwards",
-        }}
       >
-        <div className="flex items-center justify-center gap-2">
+        <div className="billing-toggle-container">
           <Label
             htmlFor="switch"
-            className="text-base font-medium sm:text-sm dark:text-gray-400"
+            className="billing-label"
           >
             Monthly
           </Label>
@@ -262,56 +290,60 @@ export default function Pricing() {
           />
           <Label
             htmlFor="switch"
-            className="text-base font-medium sm:text-sm dark:text-gray-400"
+            className="billing-label"
           >
-            Yearly (-20%)
+            Annual <span className="save-text">(Save 20%)</span>
           </Label>
         </div>
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 lg:grid-cols-3">
+        <div className="pricing-cards-grid">
           {plans.map((plan, planIdx) => (
-            <div key={planIdx} className="mt-6">
+            <div key={planIdx} className="plan-card">
               {plan.isRecommended ? (
-                <div className="flex h-4 items-center">
-                  <div className="relative w-full">
+                <div className="plan-header-divider">
+                  <div className="recommended-badge-container">
                     <div
-                      className="absolute inset-0 flex items-center"
+                      className="recommended-line-wrapper"
                       aria-hidden="true"
                     >
-                      <div className="w-full border-t border-indigo-600 dark:border-indigo-400" />
+                      <div className="recommended-line" />
                     </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-white px-3 text-xs font-medium text-indigo-600 dark:bg-gray-950 dark:text-indigo-400">
+                    <div className="recommended-text-wrapper">
+                      <span className="recommended-text">
                         Most popular
                       </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex h-4 items-center">
-                  <div className="h-px w-full bg-gray-200 dark:bg-gray-800" />
+                <div className="plan-header-divider">
+                  <div className="plan-divider-line" />
                 </div>
               )}
-              <div className="mx-auto max-w-md">
-                <h2 className="mt-6 text-sm font-semibold text-gray-900 dark:text-gray-50">
+              <div className="plan-content">
+                <h2 className="plan-name">
                   {plan.name}
                 </h2>
-                <div className="mt-3 flex items-center gap-x-3">
-                  <span className="text-5xl font-semibold tabular-nums text-gray-900 dark:text-gray-50">
+                <div className="plan-price-container">
+                  <span className="plan-price">
                     {isVariablePrice(plan.price)
                       ? billingFrequency === "monthly"
                         ? plan.price.monthly
                         : plan.price.annually
                       : plan.price}
                   </span>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                    per user <br /> per month
+                  <div className="plan-billing-period">
+                    {plan.isStarter ? "per month" : (
+                      <>
+                        per month<br />billed {billingFrequency}
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="mt-6 flex flex-col justify-between">
-                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                <div className="plan-description-container">
+                  <p className="plan-description-text">
                     {plan.description}
                   </p>
-                  <div className="mt-6">
+                  <div className="plan-button-container">
                     {plan.isStarter ? (
                       <Button variant="secondary" asChild className="group">
                         <Link href={plan.buttonLink}>
@@ -331,22 +363,22 @@ export default function Pricing() {
                 </div>
                 <ul
                   role="list"
-                  className="mt-8 text-sm text-gray-700 dark:text-gray-400"
+                  className="plan-capacity-list"
                 >
                   {plan.capacity.map((feature, index) => (
                     <li
                       key={feature}
-                      className="flex items-center gap-x-3 py-1.5"
+                      className="plan-capacity-item"
                     >
                       {index === 0 && (
                         <RiUserLine
-                          className="size-4 shrink-0 text-gray-500"
+                          className="capacity-icon"
                           aria-hidden="true"
                         />
                       )}
                       {index === 1 && (
-                        <RiCloudLine
-                          className="size-4 shrink-0 text-gray-500"
+                        <RiStoreLine
+                          className="capacity-icon"
                           aria-hidden="true"
                         />
                       )}
@@ -356,15 +388,15 @@ export default function Pricing() {
                 </ul>
                 <ul
                   role="list"
-                  className="mt-4 text-sm text-gray-700 dark:text-gray-400"
+                  className="plan-features-list"
                 >
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-center gap-x-3 py-1.5"
+                      className="plan-feature-item"
                     >
                       <RiCheckLine
-                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
+                        className="feature-check-icon"
                         aria-hidden="true"
                       />
                       <span>{feature}</span>
@@ -379,7 +411,7 @@ export default function Pricing() {
 
       <section
         id="testimonial"
-        className="mx-auto mt-20 max-w-xl sm:mt-32 lg:max-w-6xl"
+        className="testimonial-section"
         aria-labelledby="testimonial"
       >
         <Testimonial />
@@ -388,54 +420,54 @@ export default function Pricing() {
       {/* plan details (xs-lg)*/}
       <section
         id="pricing-details"
-        className="mt-20 sm:mt-36"
+        className="pricing-details-section"
         aria-labelledby="pricing-details"
       >
-        <div className="mx-auto space-y-8 sm:max-w-md lg:hidden">
+        <div className="pricing-details-mobile">
           {plans.map((plan) => (
             <div key={plan.name}>
-              <div className="rounded-xl bg-gray-400/5 p-6 ring-1 ring-inset ring-gray-200 dark:ring-gray-800">
+              <div className="plan-details-card">
                 <h2
                   id={plan.name}
-                  className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-50"
+                  className="plan-details-name"
                 >
                   {plan.name}
                 </h2>
-                <p className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                <p className="plan-details-price">
                   {isVariablePrice(plan.price)
                     ? `${
                         billingFrequency === "monthly"
                           ? plan.price.monthly
                           : plan.price.annually
-                      } / per user`
-                    : plan.price}
+                      } / month`
+                    : `${plan.price} / month`}
                 </p>
               </div>
               <ul
                 role="list"
-                className="mt-10 space-y-10 text-sm leading-6 text-gray-900 dark:text-gray-50"
+                className="plan-sections-list"
               >
                 {sections.map((section) => (
                   <li key={section.name}>
-                    <h3 className="font-semibold">{section.name}</h3>
+                    <h3 className="section-heading">{section.name}</h3>
                     <ul
                       role="list"
-                      className="mt-2 divide-y divide-gray-200 dark:divide-gray-800"
+                      className="section-features-list"
                     >
                       {section.features.map((feature) =>
                         feature.plans[plan.name] ? (
                           <li
                             key={feature.name}
-                            className="flex gap-x-3 py-2.5"
+                            className="section-feature-item"
                           >
                             <RiCheckLine
-                              className="size-5 flex-none text-indigo-600 dark:text-indigo-400"
+                              className="section-check-icon"
                               aria-hidden="true"
                             />
                             <span>
                               {feature.name}{" "}
                               {typeof feature.plans[plan.name] === "string" ? (
-                                <span className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                                <span className="feature-value-text">
                                   ({feature.plans[plan.name]})
                                 </span>
                               ) : null}
@@ -453,55 +485,54 @@ export default function Pricing() {
       </section>
 
       {/* plan details (lg+) */}
-      <section className="mx-auto mt-20">
-        <div className="mt-20 hidden sm:mt-28 lg:block">
-          <div className="relative">
-            <div className="sticky top-0 z-20 h-28 w-full bg-white dark:bg-gray-950" />
-            <table className="w-full table-fixed border-separate border-spacing-0 text-left">
+      <section className="pricing-table-section">
+        <div className="pricing-table-wrapper">
+          <div className="table-container">
+            <div className="table-sticky-header-spacer" />
+            <table className="pricing-table">
               <caption className="sr-only">Pricing plan comparison</caption>
               <colgroup>
-                <col className="w-2/5" />
-                <col className="w-1/5" />
-                <col className="w-1/5" />
-                <col className="w-1/5" />
+                <col className="col-feature-name" />
+                <col className="col-plan" />
+                <col className="col-plan" />
+                <col className="col-plan" />
               </colgroup>
-              <thead className="sticky top-28">
+              <thead className="table-header">
                 <tr>
                   <th
                     scope="col"
-                    className="border-b border-gray-100 bg-white pb-8 dark:border-gray-800 dark:bg-gray-950"
+                    className="table-header-cell-first"
                   >
-                    <div className="font-semibold leading-7 text-gray-900 dark:text-gray-50">
+                    <div className="table-header-title">
                       Compare prices
                     </div>
-                    <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
-                      Price per month (billed yearly)
+                    <div className="table-header-subtitle">
+                      Price per month (billed {billingFrequency})
                     </div>
                   </th>
                   {plans.map((plan) => (
                     <th
                       key={plan.name}
                       scope="col"
-                      className="border-b border-gray-100 bg-white px-6 pb-8 lg:px-8 dark:border-gray-800 dark:bg-gray-950"
+                      className="table-header-cell-plan"
                     >
                       <div
                         className={cx(
                           !plan.isStarter
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-900 dark:text-gray-50",
-                          "font-semibold leading-7",
+                            ? "table-plan-name-premium"
+                            : "table-plan-name-starter",
                         )}
                       >
                         {plan.name}
                       </div>
-                      <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                      <div className="table-header-subtitle">
                         {isVariablePrice(plan.price)
                           ? `${
                               billingFrequency === "monthly"
                                 ? plan.price.monthly
                                 : plan.price.annually
-                            } / per user`
-                          : plan.price}
+                            } / month`
+                          : `${plan.price} / month`}
                       </div>
                     </th>
                   ))}
@@ -515,8 +546,8 @@ export default function Pricing() {
                         scope="colgroup"
                         colSpan={4}
                         className={cx(
-                          sectionIdx === 0 ? "pt-14" : "pt-10",
-                          "border-b border-gray-100 pb-4 text-base font-semibold leading-6 text-gray-900 dark:border-gray-800 dark:text-gray-50",
+                          sectionIdx === 0 ? "section-header-first" : "section-header-other",
+                          "section-header-cell",
                         )}
                       >
                         {section.name}
@@ -525,17 +556,17 @@ export default function Pricing() {
                     {section.features.map((feature) => (
                       <tr
                         key={feature.name}
-                        className="transition hover:bg-indigo-50/30 dark:hover:bg-indigo-800/5"
+                        className="feature-row"
                       >
                         <th
                           scope="row"
-                          className="flex items-center gap-2 border-b border-gray-100 py-4 text-sm font-normal leading-6 text-gray-900 dark:border-gray-800 dark:text-gray-50"
+                          className="feature-name-cell"
                         >
                           <span>{feature.name}</span>
                           {feature.tooltip ? (
                             <Tooltip side="right" content={feature.tooltip}>
                               <RiInformationLine
-                                className="size-4 shrink-0 text-gray-700 dark:text-gray-400"
+                                className="info-icon"
                                 aria-hidden="true"
                               />
                             </Tooltip>
@@ -544,22 +575,22 @@ export default function Pricing() {
                         {plans.map((plan) => (
                           <td
                             key={plan.name}
-                            className="border-b border-gray-100 px-6 py-4 lg:px-8 dark:border-gray-800"
+                            className="feature-value-cell"
                           >
                             {typeof feature.plans[plan.name] === "string" ? (
-                              <div className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                              <div className="feature-value-string">
                                 {feature.plans[plan.name]}
                               </div>
                             ) : (
                               <>
                                 {feature.plans[plan.name] === true ? (
                                   <RiCheckLine
-                                    className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
+                                    className="check-icon-table"
                                     aria-hidden="true"
                                   />
                                 ) : (
                                   <RiSubtractLine
-                                    className="h-5 w-5 text-gray-400 dark:text-gray-600"
+                                    className="subtract-icon"
                                     aria-hidden="true"
                                   />
                                 )}
@@ -581,17 +612,17 @@ export default function Pricing() {
                 <tr>
                   <th
                     scope="row"
-                    className="pt-6 text-sm font-normal leading-6 text-gray-900 dark:text-gray-50"
+                    className="table-footer-row-header"
                   >
                     <span className="sr-only">Link to activate plan</span>
                   </th>
                   {plans.map((plan) => (
-                    <td key={plan.name} className="px-6 pt-6 lg:px-8">
+                    <td key={plan.name} className="table-footer-cell">
                       {plan.isStarter ? (
                         <Button
                           variant="light"
                           asChild
-                          className="group bg-transparent px-0 text-base hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
+                          className="table-button-starter group"
                         >
                           <Link href={plan.buttonLink}>
                             {plan.buttonText}
@@ -602,7 +633,7 @@ export default function Pricing() {
                         <Button
                           variant="light"
                           asChild
-                          className="group bg-transparent px-0 text-base text-indigo-600 hover:bg-transparent dark:bg-transparent dark:text-indigo-400 hover:dark:bg-transparent"
+                          className="table-button-premium group"
                         >
                           <Link href={plan.buttonLink}>
                             {plan.buttonText}

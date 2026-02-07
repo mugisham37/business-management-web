@@ -5,7 +5,8 @@ import Link from "next/link"
 import { Notifications } from "./Notifications"
 import { usePathname } from "next/navigation"
 import { DatabaseLogo } from "@/components/DatabaseLogo"
-import { DropdownUserProfile } from "./UserProfile"
+import { DropdownUserProfile } from "@/components/Dashboard/shared/DropdownUserProfile"
+import { cx, focusRing } from "@/lib/utils"
 
 function Navigation() {
   const pathname = usePathname()
@@ -28,7 +29,22 @@ function Navigation() {
         </div>
         <div className="flex h-[42px] flex-nowrap gap-1">
           <Notifications />
-          <DropdownUserProfile />
+          <DropdownUserProfile variant="customer" iconLibrary="remix">
+            <button
+              aria-label="open settings"
+              className={cx(
+                focusRing,
+                "group rounded-full p-1 hover:bg-gray-100 data-[state=open]:bg-gray-100 hover:dark:bg-gray-400/10 data-[state=open]:dark:bg-gray-400/10",
+              )}
+            >
+              <span
+                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                aria-hidden="true"
+              >
+                ES
+              </span>
+            </button>
+          </DropdownUserProfile>
         </div>
       </div>
       <TabNavigation className="mt-5">

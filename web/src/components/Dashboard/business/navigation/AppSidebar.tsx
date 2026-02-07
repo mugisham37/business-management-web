@@ -23,7 +23,7 @@ import { BookText, House, PackageSearch } from "lucide-react"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 import { DatabaseLogo } from "@/components/DatabaseLogo"
-import { UserProfile } from "./UserProfile"
+import { UserProfile } from "../../shared/UserProfile"
 
 const navigation = [
   {

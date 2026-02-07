@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/Badge"
-import { Button } from "@/components/ui/Button"
 import Benefits from "@/components/Landing/Benefits"
 import TeamGallery from "@/components/Landing/TeamGallery"
 import Balancer from "react-wrap-balancer"

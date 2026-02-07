@@ -5,7 +5,7 @@ import { Avatar } from "@/components/ui/Avatar"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 import { Tooltip } from "@/components/ui/Tooltip"
-import { cx } from "@/lib/utils"
+import { cx, focusRing } from "@/lib/utils"
 import { ChevronsUpDown, Loader2 } from "lucide-react"
 
 import { DropdownUserProfile, type DropdownUserProfileProps } from "./DropdownUserProfile"
@@ -15,8 +15,8 @@ import { DropdownUserProfile, type DropdownUserProfileProps } from "./DropdownUs
 // =============================================================================
 
 interface UserData {
-  name: string
-  email: string
+  name?: string
+  email?: string
   avatar?: string
   initials?: string
   role?: string
@@ -33,6 +33,7 @@ interface BaseUserProfileProps {
   onUserClick?: () => void
   className?: string
   dropdownProps?: Partial<DropdownUserProfileProps>
+  variant?: "default" | "business" | "customer"
 }
 
 interface UserProfileDesktopProps extends BaseUserProfileProps {
@@ -65,8 +66,8 @@ const defaultUser: UserData = {
 // UTILITY FUNCTIONS
 // =============================================================================
 
-const getInitials = (name: string): string => {
-  if (!name) return ""
+const getInitials = (name?: string): string => {
+  if (!name) return "U"
   return name
     .split(" ")
     .map((part) => part.charAt(0))
@@ -101,6 +102,7 @@ export const UserProfileDesktop = React.forwardRef<
   onUserClick,
   className,
   dropdownProps,
+  variant = "default",
   ...props
 }, ref) => {
   const userData = React.useMemo(() => ({ ...defaultUser, ...user }), [user])
@@ -114,24 +116,37 @@ export const UserProfileDesktop = React.forwardRef<
 
   const avatarSize = getAvatarSize("default", isCollapsed)
 
+  // Business variant styling
+  const getButtonClassName = () => {
+    if (variant === "business") {
+      return cx(
+        "group flex w-full items-center justify-between rounded-md px-1 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200/50 data-[state=open]:bg-gray-200/50 hover:dark:bg-gray-800/50 data-[state=open]:dark:bg-gray-900",
+        focusRing,
+        className,
+      )
+    }
+    
+    return cx(
+      "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-all duration-200",
+      isCollapsed ? "justify-center" : "justify-between",
+      "text-gray-900 dark:text-gray-50",
+      "hover:bg-gray-100 data-[state=open]:bg-gray-100",
+      "hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80",
+      "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+      interactive && "cursor-pointer",
+      className,
+    )
+  }
+
   const buttonContent = (
     <Button
       ref={ref}
-      aria-label={`User settings for ${userData.name}`}
+      aria-label={`User settings for ${userData.name || 'User'}`}
       variant="ghost"
       size="default"
       isLoading={isLoading}
       loadingText="Loading profile..."
-      className={cx(
-        "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-all duration-200",
-        isCollapsed ? "justify-center" : "justify-between",
-        "text-gray-900 dark:text-gray-50",
-        "hover:bg-gray-100 data-[state=open]:bg-gray-100",
-        "hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80",
-        "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-        interactive && "cursor-pointer",
-        className,
-      )}
+      className={getButtonClassName()}
       onClick={interactive ? handleUserClick : undefined}
       {...props}
     >
@@ -162,14 +177,20 @@ export const UserProfileDesktop = React.forwardRef<
               showStatus={showStatus}
               status={userData.status}
               interactive={interactive}
-              variant="default"
-              className="transition-transform duration-200 group-hover:scale-105"
+              variant={variant === "business" ? "outline" : "default"}
+              className={cx(
+                "transition-transform duration-200 group-hover:scale-105",
+                variant === "business" && "shrink-0 border-gray-300 bg-white text-xs text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+              )}
             />
             <div className="flex flex-col items-start min-w-0 flex-1">
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-50 truncate max-w-full">
-                {userData.name}
+              <span className={cx(
+                "font-medium text-gray-900 dark:text-gray-50 truncate max-w-full",
+                variant === "business" ? "text-sm" : "text-sm"
+              )}>
+                {userData.name || 'User'}
               </span>
-              {showRole && userData.role && (
+              {showRole && userData.role && variant !== "business" && (
                 <Badge
                   variant="neutral"
                   size="sm"
@@ -194,6 +215,7 @@ export const UserProfileDesktop = React.forwardRef<
   const dropdownContent = (
     <DropdownUserProfile
       user={userData}
+      variant={variant === "customer" ? "customer" : "default"}
       {...dropdownProps}
     >
       {buttonContent}
@@ -205,8 +227,8 @@ export const UserProfileDesktop = React.forwardRef<
       <Tooltip
         content={
           <div className="text-center">
-            <div className="font-medium">{userData.name}</div>
-            <div className="text-xs text-gray-400">{userData.email}</div>
+            <div className="font-medium">{userData.name || 'User'}</div>
+            <div className="text-xs text-gray-400">{userData.email || 'No email'}</div>
             {showRole && userData.role && (
               <div className="text-xs text-gray-400 mt-1">{userData.role}</div>
             )}
@@ -244,6 +266,7 @@ export const UserProfileMobile = React.forwardRef<
   onUserClick,
   className,
   dropdownProps,
+  variant = "default",
   ...props
 }, ref) => {
   const userData = React.useMemo(() => ({ ...defaultUser, ...user }), [user])
@@ -260,7 +283,7 @@ export const UserProfileMobile = React.forwardRef<
   const buttonContent = (
     <Button
       ref={ref}
-      aria-label={`User settings for ${userData.name}`}
+      aria-label={`User settings for ${userData.name || 'User'}`}
       variant="ghost"
       size="icon"
       isLoading={isLoading}
@@ -303,6 +326,7 @@ export const UserProfileMobile = React.forwardRef<
     <DropdownUserProfile
       align="end"
       user={userData}
+      variant={variant === "customer" ? "customer" : "default"}
       {...dropdownProps}
     >
       {buttonContent}
@@ -314,8 +338,8 @@ export const UserProfileMobile = React.forwardRef<
       <Tooltip
         content={
           <div className="text-center">
-            <div className="font-medium">{userData.name}</div>
-            <div className="text-xs text-gray-400">{userData.email}</div>
+            <div className="font-medium">{userData.name || 'User'}</div>
+            <div className="text-xs text-gray-400">{userData.email || 'No email'}</div>
             {userData.role && (
               <div className="text-xs text-gray-400 mt-1">{userData.role}</div>
             )}
@@ -334,6 +358,75 @@ export const UserProfileMobile = React.forwardRef<
 })
 
 UserProfileMobile.displayName = "UserProfileMobile"
+
+// =============================================================================
+// BUSINESS VARIANT (Simple wrapper for business use case)
+// =============================================================================
+
+export interface UserProfileProps {
+  user?: {
+    name?: string
+    email?: string
+    role?: string
+    plan?: string
+    avatar?: string
+  }
+  isLoading?: boolean
+  disabled?: boolean
+  showThemeSelector?: boolean
+  showProfileActions?: boolean
+  showHelpResources?: boolean
+  onProfileClick?: () => void
+  onSettingsClick?: () => void
+  onSignOut?: () => void
+  align?: "center" | "start" | "end"
+  className?: string
+}
+
+export function UserProfile({
+  user = {
+    name: "Emma Stone",
+    email: "emma.stone@acme.com",
+    role: "Admin",
+    plan: "Pro"
+  },
+  isLoading = false,
+  disabled = false,
+  showThemeSelector = true,
+  showProfileActions = true,
+  showHelpResources = true,
+  onProfileClick,
+  onSettingsClick,
+  onSignOut,
+  align = "start",
+  className,
+}: UserProfileProps) {
+  return (
+    <UserProfileDesktop
+      user={user}
+      isLoading={isLoading}
+      showRole={false}
+      showChevron={true}
+      variant="business"
+      className={className}
+      dropdownProps={{
+        showThemeSelector,
+        showProfileActions,
+        showHelpResources,
+        onProfileClick,
+        onSettingsClick,
+        onSignOut,
+        align,
+        disabled,
+        widthMode: "min",
+        sideOffset: 8,
+        collisionPadding: 8,
+        loop: true,
+        showKeyboardShortcuts: false,
+      }}
+    />
+  )
+}
 
 // =============================================================================
 // EXPORTS
