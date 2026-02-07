@@ -50,19 +50,19 @@ export function DataTableDrawerFeed() {
             <div
               className={cx(
                 activityItemindex === activity.length - 1 ? "h-6" : "-bottom-6",
-                "absolute left-0 top-0 flex w-6 justify-center",
+                "audit-feed-timeline",
               )}
             >
-              <span className="w-px bg-gray-200 dark:bg-gray-800" aria-hidden="true" />
+              <span className="audit-feed-timeline-line" aria-hidden="true" />
             </div>
             {activityItem.type === "submitted" ||
               activityItem.type === "added" ? (
               <>
-                <div className="relative flex size-6 flex-none items-center justify-center bg-white dark:bg-[#090E1A]">
-                  <div className="size-1.5 rounded-full bg-gray-100 ring-1 ring-gray-300 dark:bg-[#090E1A] dark:ring-gray-700" />
+                <div className="audit-feed-dot">
+                  <div className="audit-feed-dot-inner" />
                 </div>
-                <p className="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500">
-                  <span className="font-medium text-gray-900 dark:text-gray-50">
+                <p className="flex-auto py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]">
+                  <span className="font-medium text-[var(--audit-feed-text-primary)]">
                     {activityItem.person.name}
                   </span>
                   {activityItem.type === "submitted" ? (
@@ -73,7 +73,7 @@ export function DataTableDrawerFeed() {
                 </p>
                 <time
                   dateTime={activityItem.dateTime}
-                  className="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500"
+                  className="flex-none py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]"
                 >
                   {activityItem.date}
                 </time>
@@ -87,43 +87,43 @@ export function DataTableDrawerFeed() {
                   src={activityItem.person.imageUrl || ""}
                   className="relative mt-3 size-6 flex-none rounded-full bg-gray-50"
                 />
-                <div className="flex-auto rounded-md p-3 ring-1 ring-inset ring-gray-300 dark:ring-gray-800">
+                <div className="audit-feed-comment">
                   <div className="flex justify-between gap-x-4">
-                    <div className="py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500">
-                      <span className="font-medium text-gray-900 dark:text-gray-50">
+                    <div className="py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]">
+                      <span className="font-medium text-[var(--audit-feed-text-primary)]">
                         {activityItem.person.name}
                       </span>{" "}
                       commented
                     </div>
                     <time
                       dateTime={activityItem.dateTime}
-                      className="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500"
+                      className="flex-none py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]"
                     >
                       {activityItem.date}
                     </time>
                   </div>
-                  <p className="text-sm leading-6 text-gray-500">
+                  <p className="text-sm leading-6 text-[var(--muted-foreground)]">
                     {activityItem.comment}
                   </p>
                 </div>
               </>
             ) : activityItem.type === "approved" ? (
               <>
-                <div className="relative flex size-6 flex-none items-center justify-center bg-white dark:bg-[#090E1A]">
+                <div className="audit-feed-dot">
                   <CircleCheck
-                    className="size-5 text-blue-500 dark:text-blue-500"
+                    className="audit-feed-icon-approved"
                     aria-hidden="true"
                   />
                 </div>
-                <p className="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500">
-                  <span className="font-medium text-gray-900 dark:text-gray-50">
+                <p className="flex-auto py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]">
+                  <span className="font-medium text-[var(--audit-feed-text-primary)]">
                     {activityItem.person.name}
                   </span>{" "}
                   {activityItem.type} the audit.
                 </p>
                 <time
                   dateTime={activityItem.dateTime}
-                  className="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500"
+                  className="flex-none py-0.5 text-xs leading-5 text-[var(--audit-feed-text-secondary)]"
                 >
                   {activityItem.date}
                 </time>

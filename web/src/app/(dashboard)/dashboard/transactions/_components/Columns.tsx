@@ -30,7 +30,7 @@ export const getColumns = ({
                 : false
           }
           onCheckedChange={() => table.toggleAllPageRowsSelected()}
-          className="translate-y-0.5"
+          className="checkbox-aligned"
           aria-label="Select all"
         />
       ),
@@ -39,7 +39,7 @@ export const getColumns = ({
           checked={row.getIsSelected()}
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
           onCheckedChange={() => row.toggleSelected()}
-          className="translate-y-0.5"
+          className="checkbox-aligned"
           aria-label="Select row"
         />
       ),
@@ -140,10 +140,10 @@ export const getColumns = ({
           <Button
             variant="ghost"
             onClick={() => onEditClick?.(row)}
-            className="group aspect-square p-1.5 hover:border hover:border-gray-300 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+            className="edit-button-transaction group hover:border hover:border-[var(--edit-button-border-hover)] data-[state=open]:border data-[state=open]:border-[var(--edit-button-border-hover)] data-[state=open]:bg-[var(--edit-button-bg-open)]"
           >
             <Ellipsis
-              className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-data-[state=open]:text-gray-700 group-hover:dark:text-gray-300 group-data-[state=open]:dark:text-gray-300"
+              className="edit-button-icon group-hover:text-[var(--edit-button-icon-hover-color)] group-data-[state=open]:text-[var(--edit-button-icon-hover-color)]"
               aria-hidden="true"
             />
           </Button>

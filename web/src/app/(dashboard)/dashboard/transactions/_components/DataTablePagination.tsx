@@ -56,23 +56,23 @@ export function DataTablePagination<TData>({
   const lastRowIndex = Math.min(totalRows, firstRowIndex + pageSize - 1)
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm tabular-nums text-gray-500">
-        {table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s)
-        selected.
+    <div className="pagination-container">
+      <div className="pagination-showing-text">
+        <span className="pagination-showing-emphasis">{table.getFilteredSelectedRowModel().rows.length}</span> of{" "}
+        <span className="pagination-showing-emphasis">{totalRows}</span> row(s) selected.
       </div>
       <div className="flex items-center gap-x-6 lg:gap-x-8">
-        <p className="hidden text-sm tabular-nums text-gray-500 sm:block">
+        <p className="pagination-showing-text hidden sm:block">
           Showing{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
+          <span className="pagination-showing-emphasis">
             {firstRowIndex}-{lastRowIndex}
           </span>{" "}
           of{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
+          <span className="pagination-showing-emphasis">
             {formatters.unit({ number: totalRows })}
           </span>
         </p>
-        <div className="flex items-center gap-x-1.5">
+        <div className="pagination-buttons">
           {paginationButtons.map((button, index) => (
             <Button
               key={index}

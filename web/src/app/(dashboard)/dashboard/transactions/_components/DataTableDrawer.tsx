@@ -53,12 +53,12 @@ export function DataTableDrawer({
   const filesList = files.map((file) => (
     <li
       key={file.name}
-      className="relative rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-[#090E1A]"
+      className="file-list-item"
     >
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
         <button
           type="button"
-          className="rounded-md p-2 text-gray-400 transition-all hover:text-rose-500 dark:text-gray-600 hover:dark:text-rose-500"
+          className="file-list-item-action-button file-list-item-action-button-delete"
           aria-label="Remove file"
           onClick={() =>
             setFiles((prevFiles) =>
@@ -70,24 +70,24 @@ export function DataTableDrawer({
         </button>
         <button
           type="button"
-          className="rounded-md p-2 text-gray-400 transition-all hover:text-gray-500 dark:text-gray-600 hover:dark:text-gray-500"
+          className="file-list-item-action-button file-list-item-action-button-download"
           aria-label="Download file"
         >
           <Download className="size-5 shrink-0" aria-hidden="true" />
         </button>
       </div>
       <div className="flex items-center space-x-3 truncate">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800">
+        <span className="file-list-item-icon-wrapper">
           <File
-            className="size-5 text-gray-700 dark:text-gray-300"
+            className="file-list-item-icon"
             aria-hidden={true}
           />
         </span>
         <div className="truncate pr-20">
-          <p className="truncate text-xs font-medium text-gray-900 hover:underline hover:underline-offset-4 dark:text-gray-50">
+          <p className="truncate text-xs font-medium text-[var(--foreground)] hover:underline hover:underline-offset-4">
             <a href="#">{file.name}</a>
           </p>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-500">
+          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
             {file.size} bytes
           </p>
         </div>
@@ -98,14 +98,14 @@ export function DataTableDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       {datas ? (
-        <DrawerContent className="overflow-x-hidden sm:max-w-lg dark:bg-gray-925">
+        <DrawerContent className="transaction-drawer-content sm:max-w-lg overflow-x-hidden">
           <DrawerHeader className="-px-6 w-full">
             <DrawerTitle className="flex w-full items-center justify-between">
               <span>{datas.merchant}</span>
               <span>{formatters.currency({ number: datas.amount })}</span>
             </DrawerTitle>
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-left text-sm text-gray-500 dark:text-gray-500">
+              <span className="text-left text-sm text-[var(--muted-foreground)]">
                 {format(
                   new Date(datas.transaction_date),
                   "MMM dd, yyyy 'at' hh:mm",
@@ -131,16 +131,16 @@ export function DataTableDrawer({
                   <Label htmlFor="file" className="font-medium">
                     Upload receipt
                   </Label>
-                  <div className="relative mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                  <div className="file-upload-zone mt-2">
                     <div>
                       <File
-                        className="mx-auto size-9 text-gray-400 dark:text-gray-600"
+                        className="mx-auto size-9 text-[var(--file-upload-icon-color)]"
                         aria-hidden={true}
                       />
                       <div className="mt-2">
                         <label
                           htmlFor="file-upload"
-                          className="cursor-pointer rounded-md text-sm text-gray-700 dark:text-gray-300"
+                          className="cursor-pointer rounded-md text-sm text-[var(--file-upload-text-color)]"
                         >
                           {/* Extend link target to entire card */}
                           <span
@@ -156,10 +156,10 @@ export function DataTableDrawer({
                             className="sr-only"
                           />
                         </label>
-                        <span className="pl-1 text-sm text-gray-700 dark:text-gray-300">
+                        <span className="pl-1 text-sm text-[var(--file-upload-text-color)]">
                           to browse or drag receipt here
                         </span>
-                        <p className="text-center text-xs text-gray-500 dark:text-gray-500">
+                        <p className="text-center text-xs text-[var(--file-upload-helper-color)]">
                           PDF, JPG, PNG, XML
                         </p>
                       </div>
@@ -167,7 +167,7 @@ export function DataTableDrawer({
                   </div>
                   {filesList.length > 0 && (
                     <>
-                      <h4 className="mt-6 text-sm font-medium text-gray-900 dark:text-gray-50">
+                      <h4 className="mt-6 text-sm font-medium text-[var(--foreground)]">
                         File(s) to upload
                       </h4>
                       <ul role="list" className="mt-2 space-y-4">
@@ -207,14 +207,14 @@ export function DataTableDrawer({
                 </div>
               </TabsContent>
               <TabsContent value="accounting" className="space-y-6 px-6">
-                <h3 className="mt-6 text-sm font-medium text-gray-900 dark:text-gray-50">
+                <h3 className="mt-6 text-sm font-medium text-[var(--foreground)]">
                   Audit trail
                 </h3>
                 <DataTableDrawerFeed />
               </TabsContent>
             </Tabs>
           </DrawerBody>
-          <DrawerFooter className="-mx-6 -mb-2 gap-2 bg-white px-6 dark:bg-gray-925">
+          <DrawerFooter className="transaction-drawer-footer -mx-6 -mb-2 px-6">
             <DrawerClose>
               <Button variant="secondary" className="w-full">
                 Dispute

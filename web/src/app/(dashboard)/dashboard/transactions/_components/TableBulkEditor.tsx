@@ -21,33 +21,36 @@ function DataTableBulkEditor<TData>({
   const hasSelectedRows = Object.keys(rowSelection).length > 0
   return (
     <CommandBar open={hasSelectedRows}>
-      <CommandBarBar>
-        <CommandBarValue>
+      <CommandBarBar className="command-bar">
+        <CommandBarValue className="command-bar-value">
           {Object.keys(rowSelection).length} selected
         </CommandBarValue>
-        <CommandBarSeperator />
+        <CommandBarSeperator className="command-bar-separator" />
         <CommandBarCommand
           label="Edit"
           action={() => {
             console.log("Edit")
           }}
           shortcut={{ shortcut: "e" }}
+          className="command-bar-command"
         />
-        <CommandBarSeperator />
+        <CommandBarSeperator className="command-bar-separator" />
         <CommandBarCommand
           label="Delete"
           action={() => {
             console.log("Delete")
           }}
           shortcut={{ shortcut: "d" }}
+          className="command-bar-command"
         />
-        <CommandBarSeperator />
+        <CommandBarSeperator className="command-bar-separator" />
         <CommandBarCommand
           label="Reset"
           action={() => {
             table.resetRowSelection()
           }}
           shortcut={{ shortcut: "Escape", label: "esc" }}
+          className="command-bar-command"
           // don't disable this command
         />
       </CommandBarBar>
