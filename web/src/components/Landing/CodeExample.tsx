@@ -87,16 +87,21 @@ export default function CodeExample() {
   return (
     <section
       aria-labelledby="code-example-title"
-      className="mx-auto mt-28 w-full max-w-6xl px-3"
+      className="mx-auto w-full max-w-6xl px-3"
+      style={{ marginTop: 'var(--spacing-section-top)' }}
     >
       <Badge>Developer-first</Badge>
       <h2
         id="code-example-title"
-        className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl"
+        className="heading-gradient mt-2"
+        style={{ 
+          fontSize: 'var(--text-section-heading)',
+          lineHeight: 'var(--leading-section)'
+        }}
       >
         Built by developers, <br /> for developers
       </h2>
-      <p className="mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+      <p className="text-landing-body max-w-2xl text-lg" style={{ marginTop: 'var(--spacing-content-gap)' }}>
         Rich and expressive query language that allows you to filter and sort by
         any field, no matter how nested it may be.
       </p>
@@ -119,16 +124,16 @@ export default function CodeExample() {
             key={item.name}
             className="col-span-full sm:col-span-2 lg:col-span-1"
           >
-            <div className="w-fit rounded-lg p-2 shadow-md shadow-indigo-400/30 ring-1 ring-black/5 dark:shadow-indigo-600/30 dark:ring-white/5">
+            <div className="w-fit rounded-lg p-2 shadow-md shadow-primary/30 ring-1 ring-border">
               <item.icon
                 aria-hidden="true"
-                className="size-6 text-indigo-600 dark:text-indigo-400"
+                className="size-6 text-primary"
               />
             </div>
-            <dt className="mt-6 font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="mt-6 font-semibold text-foreground">
               {item.name}
             </dt>
-            <dd className="mt-2 leading-7 text-gray-600 dark:text-gray-400">
+            <dd className="text-landing-body mt-2 leading-7">
               {item.description}
             </dd>
           </div>

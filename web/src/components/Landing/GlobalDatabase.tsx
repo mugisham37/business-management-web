@@ -59,17 +59,25 @@ export const GlobalDatabase: FunctionComponent = () => {
     <div className="px-3">
       <section
         aria-labelledby="global-database-title"
-        className="relative mx-auto mt-28 flex w-full max-w-6xl flex-col items-center justify-center overflow-hidden rounded-3xl bg-gray-950 pt-24 shadow-xl shadow-black/30 md:mt-40"
+        className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-center overflow-hidden bg-foreground pt-24 shadow-xl shadow-black/30"
+        style={{ 
+          marginTop: 'var(--spacing-section-top)',
+          borderRadius: 'var(--radius-2xl)'
+        }}
       >
-        <div className="absolute top-[17rem] size-[40rem] rounded-full bg-indigo-800 blur-3xl md:top-[20rem]" />
-        <div className="z-10 inline-block rounded-lg border border-indigo-400/20 bg-indigo-800/20 px-3 py-1.5 font-semibold uppercase leading-4 tracking-tight sm:text-sm">
-          <span className="bg-gradient-to-b from-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+        <div className="absolute top-[17rem] size-[40rem] rounded-full bg-primary blur-3xl md:top-[20rem]" />
+        <div className="z-10 inline-block rounded-lg border border-primary/20 bg-primary/20 px-3 py-1.5 font-semibold uppercase leading-4 tracking-tight sm:text-sm">
+          <span className="bg-gradient-to-b from-background to-primary/80 bg-clip-text text-transparent">
             Made for the cloud
           </span>
         </div>
         <h2
           id="global-database-title"
-          className="z-10 mt-6 inline-block bg-gradient-to-b from-white to-indigo-100 bg-clip-text px-2 text-center text-5xl font-bold tracking-tighter text-transparent md:text-8xl"
+          className="z-10 mt-6 inline-block bg-gradient-to-b from-background to-primary/60 bg-clip-text px-2 text-center font-bold tracking-tighter text-transparent"
+          style={{ 
+            fontSize: 'var(--text-hero-sm)',
+            lineHeight: 'var(--leading-hero)'
+          }}
         >
           The global <br /> cloud database
         </h2>
@@ -79,15 +87,15 @@ export const GlobalDatabase: FunctionComponent = () => {
           style={{ width: 1200, height: 1200 }}
         />
         <div className="z-20 -mt-32 h-[36rem] w-full overflow-hidden md:-mt-36">
-          <div className="absolute bottom-0 h-3/5 w-full bg-gradient-to-b from-transparent via-gray-950/95 to-gray-950" />
+          <div className="absolute bottom-0 h-3/5 w-full bg-gradient-to-b from-transparent via-foreground/95 to-foreground" />
           <div className="absolute inset-x-6 bottom-12 m-auto max-w-4xl md:top-2/3">
-            <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-lg border border-white/[3%] bg-white/[1%] px-6 py-6 shadow-xl backdrop-blur md:grid-cols-3 md:p-8">
+            <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-lg border border-border/[3%] bg-card/[1%] px-6 py-6 shadow-xl backdrop-blur md:grid-cols-3 md:p-8">
               {features.map((item) => (
                 <div key={item.name} className="flex flex-col gap-2">
-                  <h3 className="whitespace-nowrap bg-gradient-to-b from-indigo-300 to-indigo-500 bg-clip-text text-lg font-semibold text-transparent md:text-xl">
+                  <h3 className="whitespace-nowrap bg-gradient-to-b from-primary/80 to-primary bg-clip-text text-lg font-semibold text-transparent md:text-xl">
                     {item.name}
                   </h3>
-                  <p className="text-sm leading-6 text-indigo-200/40">
+                  <p className="text-sm leading-6 text-primary/40">
                     {item.description}
                   </p>
                 </div>

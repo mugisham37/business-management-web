@@ -7,7 +7,8 @@ export default function Cta() {
   return (
     <section
       aria-labelledby="cta-title"
-      className="mx-auto mb-20 mt-32 max-w-6xl p-1 px-2 sm:mt-56"
+      className="mx-auto mb-20 max-w-6xl p-1 px-2"
+      style={{ marginTop: 'var(--spacing-section-top)' }}
     >
       <div className="relative flex items-center justify-center">
         <div
@@ -20,7 +21,7 @@ export default function Cta() {
                 <div className="flex size-full gap-2">
                   {Array.from({ length: 41 }, (_, idx2) => (
                     <div key={`inner-${idx}-${idx2}`}>
-                      <div className="size-5 rounded-md shadow shadow-indigo-500/20 ring-1 ring-black/5 dark:shadow-indigo-500/20 dark:ring-white/5"></div>
+                      <div className="size-5 rounded-md shadow shadow-primary/20 ring-1 ring-border"></div>
                     </div>
                   ))}
                 </div>
@@ -33,19 +34,23 @@ export default function Cta() {
             <div>
               <h3
                 id="cta-title"
-                className="heading-gradient-top p-2 text-4xl md:text-6xl"
+                className="heading-gradient-top p-2"
+                style={{ 
+                  fontSize: 'var(--text-hero-sm)',
+                  lineHeight: 'var(--leading-hero)'
+                }}
               >
                 Ready to get started?
               </h3>
-              <p className="mx-auto mt-4 max-w-2xl text-gray-600 sm:text-lg dark:text-gray-400">
+              <p className="text-landing-body mx-auto max-w-2xl sm:text-lg" style={{ marginTop: 'var(--spacing-xs)' }}>
                 <Balancer>
                   Launch a new cluster or migrate to Database with zero
                   downtime.
                 </Balancer>
               </p>
             </div>
-            <div className="mt-14 w-full rounded-[16px] bg-gray-300/5 p-1.5 ring-1 ring-black/[3%] backdrop-blur dark:bg-gray-900/10 dark:ring-white/[3%]">
-              <div className="rounded-xl bg-white p-4 shadow-lg shadow-indigo-500/10 ring-1 ring-black/5 dark:bg-gray-950 dark:shadow-indigo-500/10 dark:ring-white/5">
+            <div className="mt-14 w-full rounded-[16px] bg-muted/5 p-1.5 ring-1 ring-border backdrop-blur">
+              <div className="rounded-xl bg-card p-4 shadow-lg shadow-primary/10 ring-1 ring-border">
                 <form
                   className="flex flex-col items-center gap-3 sm:flex-row"
                   onSubmit={(e) => e.preventDefault()}
@@ -73,11 +78,11 @@ export default function Cta() {
                 </form>
               </div>
             </div>
-            <p className="mt-4 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+            <p className="text-landing-body mt-4 text-xs sm:text-sm">
               Not sure where to start?{" "}
               <a
                 href="#"
-                className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-500 dark:hover:text-indigo-400"
+                className="font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 Talk to sales
               </a>

@@ -42,10 +42,18 @@ const benefits = [
 
 export default function Benefits() {
   return (
-    <section aria-labelledby="benefits-title" className="mx-auto mt-44">
+    <section 
+      aria-labelledby="benefits-title" 
+      className="mx-auto"
+      style={{ marginTop: 'var(--spacing-section-top-sm)' }}
+    >
       <h2
         id="benefits-title"
-        className="heading-gradient-top text-4xl md:text-5xl"
+        className="heading-gradient-top"
+        style={{ 
+          fontSize: 'var(--text-section-heading)',
+          lineHeight: 'var(--leading-section)'
+        }}
       >
         What&rsquo;s in for you
       </h2>

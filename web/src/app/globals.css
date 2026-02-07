@@ -40,6 +40,10 @@
   src: url("/fonts/NanumPenScript.woff2") format("woff2");
 }
 
+.font-handwriting {
+  font-family: "NanumPenScript", cursive;
+}
+
 .backdrop-blur {
   -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);

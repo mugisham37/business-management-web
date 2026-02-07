@@ -4,17 +4,19 @@ export default function TeamGallery() {
   return (
     <section
       aria-labelledby="teamwork-title"
-      className="mx-auto mt-5 max-w-4xl animate-slide-up-fade"
+      className="mx-auto max-w-4xl animate-slide-up-fade"
       style={{
-        animationDuration: "600ms",
-        animationDelay: "200ms",
-        animationFillMode: "backwards",
+        marginTop: 'var(--spacing-gallery-top)',
+        animationDuration: "var(--animation-slide-up-fade-duration)",
+        animationDelay: "var(--animation-slide-up-fade-delay)",
+        animationFillMode: "var(--animation-fill-mode)",
       }}
     >
-      <div className="mt-20">
+      <div style={{ marginTop: 'var(--spacing-gallery-top)' }}>
         <div className="flex w-full flex-col items-center justify-between md:flex-row">
           <InstaxImage
-            className="w-[25rem] -rotate-6 sm:-ml-10"
+            className="w-[25rem] sm:-ml-10"
+            style={{ transform: 'rotate(var(--rotate-slight-left))' }}
             src="/images/working.webp"
             alt="Two employees working with computers"
             width={640}
@@ -22,7 +24,8 @@ export default function TeamGallery() {
             caption="At Database we use computers"
           />
           <InstaxImage
-            className="w-[15rem] rotate-3"
+            className="w-[15rem]"
+            style={{ transform: 'rotate(var(--rotate-slight-right))' }}
             src="/images/workplace.webp"
             alt="Office with a phone booth"
             width={640}
@@ -30,7 +33,8 @@ export default function TeamGallery() {
             caption="Our phone booths are nuts"
           />
           <InstaxImage
-            className="-mr-10 w-[15rem] rotate-1"
+            className="-mr-10 w-[15rem]"
+            style={{ transform: 'rotate(1deg)' }}
             src="/images/home.webp"
             alt="Picture of the Fraumunster Zurich"
             width={640}
@@ -38,9 +42,10 @@ export default function TeamGallery() {
             caption="Home sweet home"
           />
         </div>
-        <div className="mt-8 hidden w-full justify-between gap-4 md:flex">
+        <div className="hidden w-full justify-between gap-4 md:flex" style={{ marginTop: 'var(--spacing-gallery-row)' }}>
           <InstaxImage
-            className="-ml-16 w-[25rem] rotate-1"
+            className="-ml-16 w-[25rem]"
+            style={{ transform: 'rotate(1deg)' }}
             src="/images/break.webp"
             alt="Team having a break in the lunch room"
             width={640}
@@ -48,7 +53,8 @@ export default function TeamGallery() {
             caption="Sometimes we take a break"
           />
           <InstaxImage
-            className="-mt-10 w-[15rem] -rotate-3"
+            className="-mt-10 w-[15rem]"
+            style={{ transform: 'rotate(var(--rotate-slight-right))' }}
             src="/images/cool.webp"
             alt="Personw with headphones"
             width={640}
@@ -56,7 +62,8 @@ export default function TeamGallery() {
             caption="Robin handels the playlist"
           />
           <InstaxImage
-            className="-mr-20 -mt-2 w-[30rem] rotate-[8deg]"
+            className="-mr-20 -mt-2 w-[30rem]"
+            style={{ transform: 'rotate(var(--rotate-medium))' }}
             src="/images/release.webp"
             alt="Picture of a party with confetti"
             width={1920}
@@ -65,10 +72,11 @@ export default function TeamGallery() {
           />
         </div>
       </div>
-      <div className="mt-28">
+      <div style={{ marginTop: 'var(--spacing-gallery-final)' }}>
         <div className="flex w-full flex-col items-center justify-between md:flex-row">
           <InstaxImage
-            className="w-full rotate-1"
+            className="w-full"
+            style={{ transform: 'rotate(1deg)' }}
             src="/images/founders.webp"
             alt=" Join Database, be yourself."
             width={1819}

@@ -5,7 +5,12 @@ export default function Testimonial() {
   return (
     <section id="testimonial" aria-label="Testimonial">
       <figure className="mx-auto">
-        <blockquote className="text-foreground mx-auto max-w-2xl text-center text-xl font-semibold leading-8 sm:text-2xl sm:leading-9">
+        <blockquote className="text-foreground mx-auto max-w-2xl text-center font-semibold leading-8"
+          style={{ 
+            fontSize: 'var(--text-xl)',
+            lineHeight: 'var(--leading-relaxed)'
+          }}
+        >
           <p>
             <Balancer>
               "Thanks to this robust database solution, our organization has
@@ -16,7 +21,7 @@ export default function Testimonial() {
         </blockquote>
         <figcaption className="mt-10 flex items-center justify-center gap-x-5">
           <Image
-            className="h-11 w-11 rounded-full object-cover shadow-lg shadow-indigo-500/50 ring-2 ring-white dark:ring-gray-700"
+            className="h-11 w-11 rounded-full object-cover shadow-lg shadow-primary/50 ring-2 ring-card"
             width={200}
             height={200}
             src="/images/testimonial.webp"

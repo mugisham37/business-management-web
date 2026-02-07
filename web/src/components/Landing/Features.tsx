@@ -20,26 +20,31 @@ export default function Features() {
   return (
     <section
       aria-labelledby="features-title"
-      className="mx-auto mt-44 w-full max-w-6xl px-3"
+      className="mx-auto w-full max-w-6xl px-3"
+      style={{ marginTop: 'var(--spacing-section-top)' }}
     >
       <Badge>Security at Scale</Badge>
       <h2
         id="features-title"
-        className="heading-gradient mt-2 text-4xl sm:text-6xl md:text-6xl"
+        className="heading-gradient mt-2"
+        style={{ 
+          fontSize: 'var(--text-section-heading)',
+          lineHeight: 'var(--leading-section)'
+        }}
       >
         Architected for speed and reliability
       </h2>
-      <p className="text-landing-body mt-6 max-w-3xl leading-7">
+      <p className="text-landing-body max-w-3xl leading-7" style={{ marginTop: 'var(--spacing-content-gap)' }}>
         Database&rsquo; innovative architecture avoids the central bottlenecks
         of traditional systems, enhancing system reliability. This design
         ensures high productivity and security, minimizing the risk of service
         disruptions and outages.
       </p>
-      <dl className="mt-12 grid grid-cols-1 gap-y-8 md:grid-cols-3 md:border-y md:border-gray-200 md:py-14 dark:border-gray-800">
+      <dl className="mt-12 grid grid-cols-1 gap-y-8 md:grid-cols-3 md:border-y md:border-border md:py-14">
         {stats.map((stat, index) => (
           <React.Fragment key={index}>
-            <div className="border-l-2 border-indigo-100 pl-6 md:border-l md:text-center lg:border-gray-200 lg:first:border-none dark:border-indigo-900 lg:dark:border-gray-800">
-              <dd className="inline-block bg-gradient-to-t from-indigo-900 to-indigo-600 bg-clip-text text-5xl font-bold tracking-tight text-transparent lg:text-6xl dark:from-indigo-700 dark:to-indigo-400">
+            <div className="border-l-2 border-primary/20 pl-6 md:border-l md:text-center lg:border-border lg:first:border-none">
+              <dd className="inline-block bg-gradient-to-t from-primary/90 to-primary bg-clip-text text-5xl font-bold tracking-tight text-transparent lg:text-6xl">
                 {stat.value}
               </dd>
               <dt className="text-landing-body mt-1">
