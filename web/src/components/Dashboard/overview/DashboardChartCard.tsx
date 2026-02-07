@@ -133,10 +133,10 @@ export function ChartCard({
     safeFormat(val, (v) => formatters.percentage({ number: v, decimals: 1, showSign: true }), "0.0%")
 
   return (
-    <div className={cx("transition")}>
+    <div className="transition-standard">
       <div className="flex items-center justify-between gap-x-2">
         <div className="flex items-center gap-x-2">
-          <dt className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
+          <dt className="card-title-overview">
             {title}
           </dt>
           {selectedPeriod !== "no-comparison" && isValidNumber(evolution) && (
@@ -147,11 +147,11 @@ export function ChartCard({
         </div>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
-        <dd className="text-xl text-gray-900 dark:text-gray-50">
+        <dd className="card-value-overview">
           {formatValue(value)}
         </dd>
         {selectedPeriod !== "no-comparison" && (
-          <dd className="text-sm text-gray-500">
+          <dd className="card-description-overview">
             from {formatValue(previousValue)}
           </dd>
         )}

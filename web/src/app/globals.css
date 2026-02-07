@@ -455,6 +455,79 @@ a {
     --transition-filter-open: opacity var(--transition-fast) var(--ease-out),
                               transform var(--transition-fast) var(--ease-out);
     --transition-sort-icon: opacity var(--transition-base) var(--ease-in-out);
+    
+    /* ============================================
+       OVERVIEW DASHBOARD COMPONENT DESIGN TOKENS
+       Added: 2026-02-07
+       ============================================ */
+    
+    /* Badge Semantic Colors - Map to existing status colors */
+    --badge-success-bg: var(--status-good);
+    --badge-success-fg: var(--status-good-foreground);
+    --badge-error-bg: var(--status-critical);
+    --badge-error-fg: var(--status-critical-foreground);
+    --badge-warning-bg: var(--status-warning);
+    --badge-warning-fg: var(--status-warning-foreground);
+    --badge-neutral-bg: var(--muted);
+    --badge-neutral-fg: var(--muted-foreground);
+    
+    /* Chart Card Specific Colors */
+    --chart-card-title-color: var(--foreground);
+    --chart-card-value-color: var(--foreground);
+    --chart-card-comparison-color: var(--muted-foreground);
+    --chart-card-evolution-positive: var(--status-good);
+    --chart-card-evolution-negative: var(--status-critical);
+    
+    /* Category Bar Card Colors */
+    --category-bar-legend-text: var(--foreground);
+    --category-bar-legend-value: var(--muted-foreground);
+    --category-bar-indicator-size: 0.625rem; /* 10px - size-2.5 */
+    
+    /* Progress Bar Card Colors */
+    --progress-bar-card-label-color: var(--foreground);
+    --progress-bar-card-value-color: var(--muted-foreground);
+    
+    /* Filter Bar Colors */
+    --filter-select-border: var(--border);
+    --filter-select-border-error: var(--status-critical);
+    --filter-select-bg: var(--card);
+    --filter-select-hover-bg: var(--muted);
+    --filter-label-color: var(--muted-foreground);
+    
+    /* Dialog/Modal Specific for Filter Edit */
+    --dialog-overlay-bg: color-mix(in oklch, var(--background) 80%, transparent);
+    --dialog-content-bg: var(--card);
+    --dialog-title-color: var(--foreground);
+    --dialog-description-color: var(--muted-foreground);
+    --dialog-max-width-overview: 80rem; /* 1280px - max-w-5xl */
+    
+    /* Chart Selection Card States */
+    --chart-selection-card-border: var(--border);
+    --chart-selection-card-border-hover: var(--muted);
+    --chart-selection-card-border-selected: var(--primary);
+    --chart-selection-card-bg-selected: color-mix(in oklch, var(--primary) 5%, transparent);
+    
+    /* Link Colors - Semantic */
+    --link-color: var(--primary);
+    --link-hover-color: color-mix(in oklch, var(--primary) 80%, var(--foreground));
+    
+    /* Typography Patterns for Overview */
+    --text-card-title: var(--text-sm);
+    --text-card-value: var(--text-xl);
+    --text-card-description: var(--text-sm);
+    --text-card-footer: var(--text-xs);
+    --text-badge: var(--text-xs);
+    
+    /* Spacing Patterns for Overview Cards */
+    --spacing-card-header-gap: 0.5rem; /* 8px - gap between title and badge */
+    --spacing-card-value-gap: 0.5rem; /* 8px - gap between value and description */
+    --spacing-card-content-gap: 1rem; /* 16px - gap between major card sections */
+    --spacing-card-footer-top: 1.5rem; /* 24px - space above footer */
+    --spacing-list-item-gap: 0.5rem; /* 8px - gap between list items */
+    
+    /* Focus Ring for Overview Interactive Elements */
+    --focus-ring-overview: 2px solid var(--primary);
+    --focus-ring-offset-overview: 2px;
   }
   
   .dark {
@@ -551,6 +624,18 @@ a {
     --filter-button-bg-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
     --sort-button-bg-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
     --sort-button-bg-active: color-mix(in oklch, var(--muted-foreground) 15%, transparent);
+    
+    /* Overview Dashboard - Dark Mode Overrides */
+    --badge-success-bg: var(--status-good);
+    --badge-success-fg: var(--status-good-foreground);
+    --badge-error-bg: var(--status-critical);
+    --badge-error-fg: var(--status-critical-foreground);
+    --badge-warning-bg: var(--status-warning);
+    --badge-warning-fg: var(--status-warning-foreground);
+    --badge-neutral-bg: var(--muted);
+    --badge-neutral-fg: var(--muted-foreground);
+    --chart-selection-card-bg-selected: color-mix(in oklch, var(--primary) 10%, transparent);
+    --filter-select-hover-bg: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
   }
 }
 
@@ -1113,6 +1198,188 @@ a {
   /* Tabular Numbers (documenting existing Tailwind utility) */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+  
+  /* ============================================
+     OVERVIEW COMPONENT UTILITY CLASSES
+     Reusable patterns for dashboard cards
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Card Title Pattern */
+  .card-title-overview {
+    font-size: var(--text-card-title);
+    font-weight: var(--font-bold);
+    color: var(--chart-card-title-color);
+  }
+  
+  /* Card Value Pattern */
+  .card-value-overview {
+    font-size: var(--text-card-value);
+    font-weight: var(--font-semibold);
+    color: var(--chart-card-value-color);
+  }
+  
+  /* Card Description Pattern */
+  .card-description-overview {
+    font-size: var(--text-card-description);
+    color: var(--chart-card-comparison-color);
+  }
+  
+  /* Card Footer Text Pattern */
+  .card-footer-text {
+    font-size: var(--text-card-footer);
+    color: var(--muted-foreground);
+  }
+  
+  /* Card Footer Link Pattern */
+  .card-footer-link {
+    color: var(--link-color);
+    transition: var(--transition-colors);
+  }
+  
+  .card-footer-link:hover {
+    color: var(--link-hover-color);
+  }
+  
+  .card-footer-link:focus-visible {
+    outline: var(--focus-ring-overview);
+    outline-offset: var(--focus-ring-offset-overview);
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Badge Base Pattern */
+  .badge-overview {
+    font-size: var(--text-badge);
+    border-radius: var(--radius-badge);
+    padding: 0.125rem 0.5rem; /* py-0.5 px-2 */
+    font-weight: var(--font-medium);
+    transition: var(--transition-colors);
+  }
+  
+  /* Badge Variant Patterns */
+  .badge-success {
+    background-color: var(--badge-success-bg);
+    color: var(--badge-success-fg);
+  }
+  
+  .badge-error {
+    background-color: var(--badge-error-bg);
+    color: var(--badge-error-fg);
+  }
+  
+  .badge-warning {
+    background-color: var(--badge-warning-bg);
+    color: var(--badge-warning-fg);
+  }
+  
+  .badge-neutral {
+    background-color: var(--badge-neutral-bg);
+    color: var(--badge-neutral-fg);
+  }
+  
+  /* Category Legend Item Pattern */
+  .category-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+  }
+  
+  /* Category Legend Indicator */
+  .category-legend-indicator {
+    width: var(--category-bar-indicator-size);
+    height: var(--category-bar-indicator-size);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  
+  /* Category Legend Title */
+  .category-legend-title {
+    font-weight: var(--font-medium);
+    color: var(--category-bar-legend-text);
+  }
+  
+  /* Category Legend Value */
+  .category-legend-value {
+    margin-left: auto;
+    color: var(--category-bar-legend-value);
+  }
+  
+  /* Progress Bar Label Pattern */
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--text-sm);
+  }
+  
+  .progress-label-title {
+    font-weight: var(--font-medium);
+    color: var(--progress-bar-card-label-color);
+  }
+  
+  .progress-label-value {
+    font-weight: var(--font-medium);
+    color: var(--progress-bar-card-label-color);
+  }
+  
+  .progress-label-unit {
+    font-weight: var(--font-normal);
+    color: var(--progress-bar-card-value-color);
+  }
+  
+  /* Filter Bar Label Pattern */
+  .filter-label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--filter-label-color);
+  }
+  
+  /* Chart Selection Card Pattern */
+  .chart-selection-card {
+    position: relative;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--chart-selection-card-border);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-colors);
+  }
+  
+  .chart-selection-card:hover {
+    border-color: var(--chart-selection-card-border-hover);
+  }
+  
+  .chart-selection-card[data-selected="true"] {
+    border-color: var(--chart-selection-card-border-selected);
+    background-color: var(--chart-selection-card-bg-selected);
+  }
+  
+  /* Dialog Content Pattern for Overview */
+  .dialog-overview-content {
+    max-width: var(--dialog-max-width-overview);
+    background-color: var(--dialog-content-bg);
+  }
+  
+  /* Scrollable Grid Pattern */
+  .scrollable-grid-overview {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  @media (min-width: 640px) {
+    .scrollable-grid-overview {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .scrollable-grid-overview {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 }
 

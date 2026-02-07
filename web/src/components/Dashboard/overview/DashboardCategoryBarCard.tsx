@@ -51,7 +51,7 @@ export function CategoryBarCard({
       <CardContent className="flex flex-col justify-between h-full p-6">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
+            <h3 className="card-title-overview">
               {title}
             </h3>
             <Badge 
@@ -64,16 +64,16 @@ export function CategoryBarCard({
           </div>
           
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+            <span className="card-value-overview">
               {value}
             </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="card-description-overview">
               {valueDescription}
             </span>
           </div>
           
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-50 mb-3">
+            <p className="card-title-overview mb-3">
               {subtitle}
             </p>
             
@@ -91,18 +91,18 @@ export function CategoryBarCard({
             
             <ul role="list" className="space-y-2" aria-label={`${title} breakdown`}>
               {data.map((item, index) => (
-                <li key={item.title} className="flex items-center gap-2 text-xs">
+                <li key={item.title} className="category-legend-item">
                   <span
                     className={cx(
-                      "size-2.5 rounded-sm flex-shrink-0",
+                      "category-legend-indicator",
                       getColorClassName(chartColors[index % chartColors.length], "bg")
                     )}
                     aria-hidden="true"
                   />
-                  <span className="text-gray-900 dark:text-gray-50 font-medium">
+                  <span className="category-legend-title">
                     {item.title}
                   </span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-auto">
+                  <span className="category-legend-value">
                     {item.value} ({item.percentage}%)
                   </span>
                 </li>
@@ -112,11 +112,11 @@ export function CategoryBarCard({
         </div>
         
         <CardFooter className="px-0 pt-6 pb-0">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="card-footer-text">
             {ctaDescription}{" "}
             <a 
               href={ctaLink} 
-              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded"
+              className="card-footer-link"
               aria-label={`${ctaText} - ${ctaDescription}`}
             >
               {ctaText}

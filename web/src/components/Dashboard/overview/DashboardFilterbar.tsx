@@ -164,7 +164,7 @@ export function Filterbar({
           required
           aria-label="Select date range for filtering"
         />
-        <span className="hidden text-sm font-medium text-gray-500 dark:text-gray-400 sm:block">
+        <span className="filter-label hidden sm:block">
           compared to
         </span>
         <Select
@@ -211,7 +211,7 @@ export function Filterbar({
           </Button>
         </DialogTrigger>
         <DialogContent 
-          className="max-w-5xl" 
+          className="dialog-overview-content" 
           variant="tremor"
           aria-describedby="dialog-description"
         >
@@ -235,11 +235,7 @@ export function Filterbar({
                 {isAllSelected ? "Deselect All" : "Select All"}
               </Button>
             </div>
-            <div
-              className={cx(
-                "grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3",
-              )}
-            >
+            <div className="scrollable-grid-overview">
               {categories.map((category) => {
                 const isSelected = tempSelectedCategories.includes(category.title)
                 return (
@@ -247,13 +243,12 @@ export function Filterbar({
                     htmlFor={category.title}
                     key={category.title}
                     className={cx(
-                      "relative cursor-pointer rounded-md border p-4 shadow-sm transition-colors",
-                      "border-gray-200 dark:border-gray-800",
-                      "hover:border-gray-300 dark:hover:border-gray-700",
+                      "chart-selection-card",
                       {
-                        "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/20": isSelected,
+                        "[data-selected='true']": isSelected,
                       }
                     )}
+                    data-selected={isSelected}
                   >
                     <Checkbox
                       id={category.title}
