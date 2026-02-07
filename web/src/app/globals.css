@@ -814,6 +814,66 @@ a {
     --icon-opacity-visible: 1;
     --icon-transition-opacity: opacity var(--transition-base) var(--ease-in-out);
     --icon-transition-transform: transform var(--transition-base) var(--ease-in-out);
+    
+    /* ============================================
+       PRICING PAGE DESIGN TOKENS
+       Added: 2026-02-07
+       Semantic tokens for pricing tables and plans
+       ============================================ */
+    
+    /* Pricing Plan Card Colors */
+    --pricing-card-bg: var(--card);
+    --pricing-card-border: var(--border);
+    --pricing-card-border-popular: var(--primary);
+    --pricing-card-hover-border: var(--muted);
+    
+    /* Pricing Plan Highlight Colors */
+    --pricing-popular-indicator: var(--primary);
+    --pricing-popular-text: var(--primary);
+    --pricing-popular-bg: var(--background);
+    
+    /* Pricing Typography Tokens */
+    --text-pricing-plan-name: var(--text-sm);
+    --text-pricing-amount: 3rem; /* 48px - text-5xl */
+    --text-pricing-period: var(--text-xs);
+    --text-pricing-description: var(--text-sm);
+    --text-pricing-feature: var(--text-sm);
+    
+    /* Pricing Table Specific */
+    --pricing-table-header-bg: var(--background);
+    --pricing-table-row-hover: color-mix(in oklch, var(--primary) 5%, transparent);
+    --pricing-table-cell-padding-x: 1.5rem; /* 24px - px-6 */
+    --pricing-table-cell-padding-y: 1rem; /* 16px - py-4 */
+    
+    /* Pricing Sticky Header Z-Index */
+    --z-pricing-table-header: var(--z-sticky); /* 20 */
+    --pricing-sticky-top-primary: 0;
+    --pricing-sticky-top-secondary: 7rem; /* 112px - top-28 */
+    
+    /* Pricing Spacing Patterns */
+    --spacing-pricing-section-top: 5rem; /* 80px - mt-20 */
+    --spacing-pricing-section-top-lg: 9rem; /* 144px - sm:mt-36 */
+    --spacing-pricing-card-gap: 3.5rem; /* 56px - gap-x-14 */
+    --spacing-pricing-feature-gap: 0.75rem; /* 12px - gap-x-3 */
+    --spacing-pricing-plan-header: 1.5rem; /* 24px - mt-6 */
+    
+    /* Pricing Icon Sizes */
+    --icon-size-pricing-feature: 1rem; /* 16px - size-4 */
+    --icon-size-pricing-check: 1.25rem; /* 20px - size-5 */
+    
+    /* Pricing Feature Icon Colors */
+    --pricing-icon-capacity: var(--muted-foreground);
+    --pricing-icon-feature-check: var(--primary);
+    --pricing-icon-feature-unavailable: var(--muted-foreground);
+    
+    /* Pricing Comparison Table Widths */
+    --pricing-table-col-feature: 40%; /* w-2/5 */
+    --pricing-table-col-plan: 20%; /* w-1/5 */
+    
+    /* Pricing Toggle/Switch Colors */
+    --pricing-toggle-label: var(--muted-foreground);
+    --pricing-toggle-label-size: var(--text-base);
+    --pricing-toggle-discount-color: var(--primary);
   }
   
   .dark {
@@ -944,6 +1004,10 @@ a {
     --gradient-heading-to: var(--gradient-heading-to-dark);
     --text-signature: var(--text-signature-dark);
     --text-landing-body: var(--text-landing-body-dark);
+    
+    /* Pricing Page - Dark Mode Overrides */
+    --pricing-popular-bg: oklch(0 0 0); /* gray-950 */
+    --pricing-table-header-bg: oklch(0 0 0); /* gray-950 */
   }
 }
 
@@ -2288,6 +2352,186 @@ a {
   /* CTA Button Shadow Pattern */
   .shadow-cta-indigo {
     box-shadow: var(--shadow-cta-indigo);
+  }
+  
+  /* ============================================
+     PRICING PAGE UTILITY CLASSES
+     Reusable patterns for pricing components
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Pricing Plan Card Base */
+  .pricing-plan-card {
+    display: flex;
+    flex-direction: column;
+    max-width: 28rem; /* 448px - max-w-md */
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Popular Plan Indicator Line */
+  .pricing-popular-indicator {
+    display: flex;
+    height: 1rem; /* 16px - h-4 */
+    align-items: center;
+  }
+  
+  .pricing-popular-indicator-line {
+    position: relative;
+    width: 100%;
+  }
+  
+  .pricing-popular-indicator-border {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .pricing-popular-indicator-border::before {
+    content: '';
+    width: 100%;
+    border-top: 1px solid var(--pricing-card-border-popular);
+  }
+  
+  .dark .pricing-popular-indicator-border::before {
+    border-top-color: var(--pricing-card-border-popular);
+  }
+  
+  .pricing-popular-label {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .pricing-popular-label-text {
+    background-color: var(--pricing-popular-bg);
+    padding-left: 0.75rem; /* 12px - px-3 */
+    padding-right: 0.75rem;
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    color: var(--pricing-popular-text);
+  }
+  
+  .dark .pricing-popular-label-text {
+    background-color: var(--pricing-popular-bg);
+  }
+  
+  /* Pricing Amount Display */
+  .pricing-amount {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px - gap-x-3 */
+    margin-top: 0.75rem; /* 12px - mt-3 */
+  }
+  
+  .pricing-amount-value {
+    font-size: var(--text-pricing-amount);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+  }
+  
+  .pricing-amount-period {
+    font-size: var(--text-pricing-period);
+    color: var(--muted-foreground);
+  }
+  
+  /* Pricing Feature List */
+  .pricing-feature-list {
+    margin-top: 2rem; /* 32px - mt-8 */
+    font-size: var(--text-pricing-feature);
+    color: var(--muted-foreground);
+  }
+  
+  .pricing-feature-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-pricing-feature-gap);
+    padding-top: 0.375rem; /* 6px - py-1.5 */
+    padding-bottom: 0.375rem;
+  }
+  
+  .pricing-feature-icon {
+    width: var(--icon-size-pricing-feature);
+    height: var(--icon-size-pricing-feature);
+    flex-shrink: 0;
+  }
+  
+  .pricing-feature-icon-capacity {
+    color: var(--pricing-icon-capacity);
+  }
+  
+  .pricing-feature-icon-check {
+    width: var(--icon-size-pricing-check);
+    height: var(--icon-size-pricing-check);
+    color: var(--pricing-icon-feature-check);
+  }
+  
+  .pricing-feature-icon-unavailable {
+    color: var(--pricing-icon-feature-unavailable);
+  }
+  
+  /* Pricing Table Sticky Header */
+  .pricing-table-sticky-header {
+    position: sticky;
+    top: var(--pricing-sticky-top-secondary);
+    z-index: var(--z-pricing-table-header);
+    background-color: var(--pricing-table-header-bg);
+  }
+  
+  .dark .pricing-table-sticky-header {
+    background-color: var(--pricing-table-header-bg);
+  }
+  
+  .pricing-table-sticky-header-primary {
+    position: sticky;
+    top: var(--pricing-sticky-top-primary);
+    z-index: var(--z-pricing-table-header);
+    height: 7rem; /* 112px - h-28 */
+    width: 100%;
+    background-color: var(--pricing-table-header-bg);
+  }
+  
+  .dark .pricing-table-sticky-header-primary {
+    background-color: var(--pricing-table-header-bg);
+  }
+  
+  /* Pricing Table Row Hover */
+  .pricing-table-row {
+    transition: var(--transition-colors);
+  }
+  
+  .pricing-table-row:hover {
+    background-color: var(--pricing-table-row-hover);
+  }
+  
+  .dark .pricing-table-row:hover {
+    background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  }
+  
+  /* Pricing Table Cell */
+  .pricing-table-cell {
+    border-bottom: 1px solid var(--border);
+    padding: var(--pricing-table-cell-padding-y) var(--pricing-table-cell-padding-x);
+  }
+  
+  /* Pricing Toggle Label */
+  .pricing-toggle-label {
+    font-size: var(--pricing-toggle-label-size);
+    font-weight: var(--font-medium);
+    color: var(--pricing-toggle-label);
+  }
+  
+  @media (min-width: 640px) {
+    .pricing-toggle-label {
+      font-size: var(--text-sm);
+    }
+  }
+  
+  /* Pricing Discount Badge */
+  .pricing-discount-badge {
+    color: var(--pricing-discount-color);
   }
 }
 
