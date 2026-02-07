@@ -300,6 +300,139 @@ a {
     --spacing-drawer-section: var(--spacing-lg);         /* 24px between sections */
     
     /* ============================================
+       BUSINESS DASHBOARD SPECIFIC DESIGN TOKENS - ENHANCED
+       Added: 2026-02-07
+       Typography, spacing, and component-specific patterns
+       ============================================ */
+    
+    /* Business Typography Patterns */
+    --text-business-card-title: var(--text-sm);
+    --text-business-card-value: var(--text-lg);
+    --text-business-metric-label: var(--text-sm);
+    --text-business-metric-value: var(--text-lg);
+    --text-business-table-header: var(--text-sm);
+    --text-business-table-cell: var(--text-sm);
+    --text-business-section-heading: var(--text-lg);
+    --text-business-badge: var(--text-xs);
+    
+    /* Business Line Heights */
+    --leading-business-tight: 1.25;
+    --leading-business-normal: 1.5;
+    --leading-business-relaxed: 1.75;
+    
+    /* Business Spacing Patterns */
+    --spacing-business-card-padding: var(--spacing-md);
+    --spacing-business-section-gap: var(--spacing-lg);
+    --spacing-business-header-height: 4rem;              /* 64px */
+    --spacing-business-sidebar-width: 16rem;             /* 256px */
+    --spacing-business-content-padding: var(--spacing-lg);
+    --spacing-business-table-cell-x: 0.75rem;            /* 12px */
+    --spacing-business-table-cell-y: 0.625rem;           /* 10px */
+    --spacing-business-filter-gap: 0.5rem;               /* 8px */
+    
+    /* Business Border Radius */
+    --radius-business-card: var(--radius-lg);
+    --radius-business-button: var(--radius-md);
+    --radius-business-input: var(--radius-md);
+    --radius-business-badge: var(--radius-full);
+    --radius-business-table: var(--radius-lg);
+    
+    /* Business Shadow System */
+    --shadow-business-card: var(--shadow-sm);
+    --shadow-business-card-hover: var(--shadow-md);
+    --shadow-business-header: var(--shadow-sm);
+    --shadow-business-sidebar: var(--shadow-lg);
+    --shadow-business-dropdown: var(--shadow-xl);
+    
+    /* Business Transitions */
+    --transition-business-sidebar: transform var(--transition-base) var(--ease-in-out),
+                                   width var(--transition-base) var(--ease-in-out);
+    --transition-business-card-hover: box-shadow var(--transition-base) var(--ease-in-out),
+                                      transform var(--transition-fast) var(--ease-spring);
+    --transition-business-filter: opacity var(--transition-fast) var(--ease-out),
+                                  transform var(--transition-fast) var(--ease-out);
+    --transition-business-accordion: height var(--transition-base) var(--ease-in-out);
+    
+    /* Business Z-Index Layers */
+    --z-business-header: var(--z-sticky);                /* 20 */
+    --z-business-sidebar: 10;
+    --z-business-dropdown: var(--z-dropdown);            /* 10 */
+    --z-business-filter-popover: var(--z-popover);       /* 60 */
+    
+    /* Business Header Colors */
+    --business-header-bg: var(--background);
+    --business-header-border: var(--border);
+    --business-header-text: var(--foreground);
+    
+    /* Business Sidebar Colors */
+    --business-sidebar-bg: oklch(0.9789 0.0082 121.6272);        /* gray-50 */
+    --business-sidebar-bg-dark: oklch(0.1455 0.0217 257.2823);   /* gray-925 */
+    --business-sidebar-border: var(--border);
+    --business-sidebar-width: 16rem;                             /* 256px */
+    --business-sidebar-collapsed-width: 0;
+    
+    /* Business Content Area */
+    --business-content-bg: var(--background);
+    --business-content-padding: var(--spacing-lg);
+    
+    /* Business Table Colors */
+    --business-table-header-bg: oklch(0.9789 0.0082 121.6272);   /* gray-50 */
+    --business-table-header-bg-dark: oklch(0.2455 0.0217 257.2823); /* gray-900 */
+    --business-table-row-hover: color-mix(in oklch, var(--muted) 30%, transparent);
+    --business-table-border: var(--border);
+    
+    /* Business Badge Status Colors */
+    --business-badge-closed: var(--status-good);
+    --business-badge-closed-fg: var(--status-good-foreground);
+    --business-badge-drafted: var(--muted);
+    --business-badge-drafted-fg: var(--muted-foreground);
+    --business-badge-sent: var(--primary);
+    --business-badge-sent-fg: var(--primary-foreground);
+    
+    /* Business Accordion Colors */
+    --business-accordion-trigger-hover: color-mix(in oklch, var(--muted) 40%, transparent);
+    --business-accordion-border: var(--border);
+    --business-accordion-content-bg: transparent;
+    
+    /* Business Filter/Search Colors */
+    --business-filter-bg: var(--background);
+    --business-filter-border: var(--border);
+    --business-filter-border-focus: var(--primary);
+    --business-filter-placeholder: var(--muted-foreground);
+    
+    /* Business Chart Card Colors */
+    --business-chart-title: var(--foreground);
+    --business-chart-description: var(--muted-foreground);
+    --business-chart-axis-label: var(--muted-foreground);
+    
+    /* Business Error State Colors */
+    --business-error-bg: color-mix(in oklch, var(--status-critical) 10%, transparent);
+    --business-error-icon-bg: color-mix(in oklch, var(--status-critical) 20%, transparent);
+    --business-error-icon-fg: var(--status-critical);
+    --business-error-text: var(--foreground);
+    --business-error-description: var(--muted-foreground);
+    
+    /* Business Loading State Colors */
+    --business-loading-skeleton-bg: var(--muted);
+    --business-loading-skeleton-shimmer: color-mix(in oklch, var(--muted) 80%, var(--background));
+    
+    /* Business Metrics Card Colors */
+    --business-metrics-label: var(--muted-foreground);
+    --business-metrics-value: var(--foreground);
+    --business-metrics-fraction: var(--muted-foreground);
+    --business-metrics-indicator-inactive: var(--muted);
+    
+    /* Business Quote Overview Colors */
+    --business-quote-company-text: var(--foreground);
+    --business-quote-meta-text: var(--muted-foreground);
+    --business-quote-avatar-ring: var(--background);
+    
+    /* Business Monitoring Chart Colors */
+    --business-monitoring-select-bg: var(--background);
+    --business-monitoring-select-border: var(--border);
+    --business-monitoring-chart-grid: color-mix(in oklch, var(--border) 50%, transparent);
+    
+    /* ============================================
        NAVIGATION COMPONENT DESIGN TOKENS
        Added: 2026-02-07
        ============================================ */
@@ -1008,6 +1141,12 @@ a {
     /* Pricing Page - Dark Mode Overrides */
     --pricing-popular-bg: oklch(0 0 0); /* gray-950 */
     --pricing-table-header-bg: oklch(0 0 0); /* gray-950 */
+    
+    /* Business Dashboard - Dark Mode Overrides */
+    --business-sidebar-bg: var(--business-sidebar-bg-dark);
+    --business-table-header-bg: var(--business-table-header-bg-dark);
+    --business-table-row-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
+    --business-accordion-trigger-hover: color-mix(in oklch, var(--muted-foreground) 10%, transparent);
   }
 }
 
@@ -1165,6 +1304,250 @@ a {
     font-weight: var(--font-semibold);
     letter-spacing: var(--tracking-tight);
     color: var(--foreground);
+  }
+  
+  /* ============================================
+     BUSINESS COMPONENT UTILITY CLASSES
+     Added: 2026-02-07
+     Reusable patterns for business dashboard components
+     ============================================ */
+  
+  /* Business Typography Utilities */
+  .text-business-label {
+    font-size: var(--text-business-card-title);
+    font-weight: var(--font-medium);
+    color: var(--business-metrics-label);
+    line-height: var(--leading-business-normal);
+  }
+  
+  .text-business-value {
+    font-size: var(--text-business-card-value);
+    font-weight: var(--font-semibold);
+    color: var(--business-metrics-value);
+    line-height: var(--leading-business-tight);
+  }
+  
+  /* Business Layout Patterns */
+  .business-header-layout {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-business-header);
+    display: flex;
+    height: var(--spacing-business-header-height);
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--business-header-border);
+    background-color: var(--business-header-bg);
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .business-sidebar-layout {
+    width: var(--business-sidebar-width);
+    flex-shrink: 0;
+    overflow-y: auto;
+    border-right: 1px solid var(--business-sidebar-border);
+    background-color: var(--business-sidebar-bg);
+    transition: var(--transition-business-sidebar);
+  }
+  
+  .dark .business-sidebar-layout {
+    background-color: var(--business-sidebar-bg-dark);
+  }
+  
+  .business-content-layout {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--business-content-bg);
+  }
+  
+  /* Business Table Patterns */
+  .business-table-header-cell {
+    background-color: var(--business-table-header-bg);
+    padding: var(--spacing-business-table-cell-y) var(--spacing-business-table-cell-x);
+    font-size: var(--text-business-table-header);
+    font-weight: var(--font-medium);
+    color: var(--foreground);
+  }
+  
+  .dark .business-table-header-cell {
+    background-color: var(--business-table-header-bg-dark);
+  }
+  
+  .business-table-row-hover {
+    transition: var(--transition-colors);
+  }
+  
+  .business-table-row-hover:hover {
+    background-color: var(--business-table-row-hover);
+  }
+  
+  /* Business Badge Patterns */
+  .business-badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: var(--radius-business-badge);
+    padding: 0.25rem 0.625rem;
+    font-size: var(--text-business-badge);
+    font-weight: var(--font-medium);
+  }
+  
+  .business-badge-closed {
+    background-color: color-mix(in oklch, var(--business-badge-closed) 15%, transparent);
+    color: var(--business-badge-closed);
+  }
+  
+  .business-badge-drafted {
+    background-color: var(--business-badge-drafted);
+    color: var(--business-badge-drafted-fg);
+  }
+  
+  .business-badge-sent {
+    background-color: color-mix(in oklch, var(--business-badge-sent) 15%, transparent);
+    color: var(--business-badge-sent);
+  }
+  
+  /* Business Filter Patterns */
+  .business-filter-input {
+    border: 1px solid var(--business-filter-border);
+    background-color: var(--business-filter-bg);
+    border-radius: var(--radius-business-input);
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-sm);
+    transition: var(--transition-colors);
+  }
+  
+  .business-filter-input:focus-visible {
+    outline: 2px solid var(--business-filter-border-focus);
+    outline-offset: 2px;
+    border-color: var(--business-filter-border-focus);
+  }
+  
+  .business-filter-input::placeholder {
+    color: var(--business-filter-placeholder);
+  }
+  
+  /* Business Accordion Patterns */
+  .business-accordion-trigger {
+    width: 100%;
+    padding: 1.25rem 0;
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    text-align: left;
+    transition: var(--transition-colors);
+  }
+  
+  .business-accordion-trigger:hover {
+    background-color: var(--business-accordion-trigger-hover);
+  }
+  
+  /* Business Chart Card Patterns */
+  .business-chart-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+  }
+  
+  .business-chart-title {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--business-chart-title);
+  }
+  
+  .business-chart-description {
+    margin-top: 0.125rem;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--business-chart-description);
+  }
+  
+  /* Business Error State Pattern */
+  .business-error-container {
+    display: flex;
+    min-height: 400px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+  }
+  
+  .business-error-icon-wrapper {
+    border-radius: var(--radius-full);
+    background-color: var(--business-error-icon-bg);
+    padding: 0.75rem;
+  }
+  
+  .business-error-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--business-error-icon-fg);
+  }
+  
+  /* Business Loading Skeleton Pattern */
+  .business-loading-skeleton {
+    background-color: var(--business-loading-skeleton-bg);
+    border-radius: var(--radius-md);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  /* Business Metrics Indicator Pattern */
+  .business-metrics-indicator {
+    display: flex;
+    gap: 0.125rem;
+  }
+  
+  .business-metrics-indicator-bar {
+    height: 0.875rem;
+    width: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-colors);
+  }
+  
+  .business-metrics-indicator-bar-inactive {
+    background-color: var(--business-metrics-indicator-inactive);
+  }
+  
+  /* Business Avatar Group Pattern */
+  .business-avatar-group {
+    display: flex;
+    margin-left: -0.25rem;
+    overflow: hidden;
+  }
+  
+  .business-avatar-group-item {
+    display: inline-flex;
+    width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    color: var(--primary-foreground);
+    box-shadow: 0 0 0 2px var(--business-quote-avatar-ring);
+  }
+  
+  /* Business Focus Ring */
+  .focus-ring-business {
+    outline: var(--focus-ring-width) solid transparent;
+    outline-offset: var(--focus-ring-offset);
+    transition: outline-color var(--transition-fast) var(--ease-in-out);
+  }
+  
+  .focus-ring-business:focus-visible {
+    outline-color: var(--primary);
   }
   
   /* ============================================

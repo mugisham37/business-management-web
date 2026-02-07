@@ -40,19 +40,19 @@ export default function Monitoring() {
           className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
         >
           <SlidersHorizontal
-            className="-ml-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-600"
+            className="-ml-0.5 size-4 shrink-0 text-[var(--muted-foreground)]"
             aria-hidden="true"
           />
           Report Filters
         </Button>
       </div>
-      <dl className="grid grid-cols-1 gap-x-14 gap-y-10 border-t border-gray-200 p-6 md:grid-cols-2 dark:border-gray-800">
-        <div className="flex flex-col justify-between p-0">
+      <dl className="grid grid-cols-1 gap-x-14 gap-y-10 border-t border-[var(--border)] p-6 md:grid-cols-2">
+        <div className="business-chart-card">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="business-chart-title">
               Inherent risk
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="business-chart-description">
               Risk scenarios over time grouped by risk level
             </dd>
           </div>
@@ -79,12 +79,12 @@ export default function Monitoring() {
             className="mt-4 h-60 md:hidden"
           />
         </div>
-        <div className="flex flex-col justify-between">
+        <div className="business-chart-card">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="business-chart-title">
               Quote-to-Deal ratio
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="business-chart-description">
               Number of quotes compared to total deal size for given month
             </dd>
           </div>
@@ -123,12 +123,12 @@ export default function Monitoring() {
             className="mt-4 h-60 md:hidden"
           />
         </div>
-        <div className="flex flex-col justify-between">
+        <div className="business-chart-card">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="business-chart-title">
               ESG impact
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="business-chart-description">
               Evaluation of addressed ESG criteria in biddings over time
             </dd>
           </div>
@@ -156,12 +156,12 @@ export default function Monitoring() {
             className="mt-4 h-60 md:hidden"
           />
         </div>
-        <div className="flex flex-col justify-between">
+        <div className="business-chart-card">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="business-chart-title">
               Bidder density
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="business-chart-description">
               Competition level measured by number and size of bidders over time
             </dd>
           </div>

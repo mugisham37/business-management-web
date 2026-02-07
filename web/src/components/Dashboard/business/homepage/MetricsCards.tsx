@@ -55,7 +55,6 @@ const getProgressVariant = (status: MetricStatus) => {
 function StatusIndicator({ value, showAnimation = true }: { value: number; showAnimation?: boolean }) {
   const status = getMetricStatus(value)
   const color = getStatusColor(status)
-  const inactiveClass = "bg-muted"
   
   const bars = React.useMemo(() => {
     if (status === "critical") return 1
@@ -65,13 +64,13 @@ function StatusIndicator({ value, showAnimation = true }: { value: number; showA
   }, [status])
 
   return (
-    <div className="flex gap-0.5" role="progressbar" aria-valuenow={value * 100} aria-valuemin={0} aria-valuemax={100}>
+    <div className="business-metrics-indicator" role="progressbar" aria-valuenow={value * 100} aria-valuemin={0} aria-valuemax={100}>
       {[0, 1, 2].map((index) => (
         <div
           key={index}
           className={cx(
-            "h-3.5 w-1 rounded-sm transition-colors-standard",
-            index < bars ? getColorClassName(color, "bg") : inactiveClass,
+            "business-metrics-indicator-bar",
+            index < bars ? getColorClassName(color, "bg") : "business-metrics-indicator-bar-inactive",
             showAnimation && "transform-gpu"
           )}
         />
@@ -118,7 +117,7 @@ function MetricCard({ metric }: { metric: Metric }) {
   const cardContent = (
     <div className="group">
       <dt className="flex items-center justify-between">
-        <span className="text-label">
+        <span className="text-business-label">
           {metric.label}
         </span>
         {metric.trend && (
@@ -134,9 +133,9 @@ function MetricCard({ metric }: { metric: Metric }) {
       <dd className="mt-1.5 space-y-2">
         <div className="flex items-center gap-2">
           <StatusIndicator value={metric.value} />
-          <p className="text-lg font-semibold text-foreground">
+          <p className="text-lg font-semibold text-[var(--business-metrics-value)]">
             {metric.percentage}{" "}
-            <span className="font-medium text-muted-foreground">
+            <span className="font-medium text-[var(--business-metrics-fraction)]">
               - {metric.fraction}
             </span>
           </p>
@@ -172,7 +171,7 @@ function MetricCard({ metric }: { metric: Metric }) {
 export function MetricsCards() {
   return (
     <div role="region" aria-labelledby="metrics-heading">
-      <h1 id="metrics-heading" className="text-lg font-semibold text-foreground">
+      <h1 id="metrics-heading" className="text-lg font-semibold text-[var(--foreground)]">
         Overview
       </h1>
       <dl className="mt-6 flex flex-wrap items-start gap-x-12 gap-y-8">

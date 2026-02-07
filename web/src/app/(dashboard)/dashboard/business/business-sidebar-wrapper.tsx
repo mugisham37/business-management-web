@@ -16,10 +16,10 @@ export function BusinessSidebarWrapper({
   return (
     <div className="flex h-full w-full flex-col">
       {/* Business Section Header with Toggle and Breadcrumbs */}
-      <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-950">
+      <header className="business-header-layout">
         <button
           onClick={() => setBusinessSidebarOpen(!businessSidebarOpen)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950"
+          className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-[var(--interactive-hover-light)] dark:hover:bg-[var(--interactive-hover-dark)] transition-colors-standard focus-ring-business"
           aria-label={businessSidebarOpen ? "Collapse business sidebar" : "Expand business sidebar"}
           title={businessSidebarOpen ? "Collapse business sidebar" : "Expand business sidebar"}
         >
@@ -29,7 +29,7 @@ export function BusinessSidebarWrapper({
             <PanelRightOpen className="h-5 w-5" />
           )}
         </button>
-        <div className="mr-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
+        <div className="mr-2 h-4 w-px bg-[var(--border)]" />
         <Breadcrumbs />
       </header>
 
@@ -37,7 +37,7 @@ export function BusinessSidebarWrapper({
       <div className="flex flex-1 overflow-hidden">
         {/* Business Sidebar - Inline (not fixed) */}
         {businessSidebarOpen && (
-          <aside className="w-64 shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-925 transition-all duration-300 ease-in-out">
+          <aside className="business-sidebar-layout">
             <SidebarProvider defaultOpen={true}>
               <AppSidebar variant="sidebar" collapsible="none" />
             </SidebarProvider>
@@ -45,7 +45,7 @@ export function BusinessSidebarWrapper({
         )}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        <main className="business-content-layout">
           {children}
         </main>
       </div>

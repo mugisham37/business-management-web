@@ -63,14 +63,14 @@ export default function Overview() {
             className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
           >
             <Download
-              className="-ml-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-600"
+              className="-ml-0.5 size-4 shrink-0 text-[var(--muted-foreground)]"
               aria-hidden="true"
             />
             Export
           </Button>
         </div>
       </div>
-      <TableRoot className="border-t border-gray-200 dark:border-gray-800">
+      <TableRoot className="border-t border-[var(--business-table-border)]">
         <Table>
           <TableHead>
             <TableRow>
@@ -89,28 +89,28 @@ export default function Overview() {
                   <TableHeaderCell
                     scope="colgroup"
                     colSpan={6}
-                    className="bg-gray-50 py-3 pl-4 sm:pl-6 dark:bg-gray-900"
+                    className="business-table-header-cell py-3 pl-4 sm:pl-6"
                   >
                     {quote.region}
-                    <span className="ml-2 font-medium text-gray-600 dark:text-gray-400">
+                    <span className="ml-2 font-medium text-[var(--muted-foreground)]">
                       {quote.project.length}
                     </span>
                   </TableHeaderCell>
                 </TableRow>
                 {quote.project.map((item, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={index} className="business-table-row-hover">
                     <TableCell>{item.company}</TableCell>
                     <TableCell>{item.size}</TableCell>
                     <TableCell>{item.probability}</TableCell>
                     <TableCell>{item.duration}</TableCell>
                     <TableCell>
-                      <div className="flex -space-x-1 overflow-hidden">
+                      <div className="business-avatar-group">
                         {item.assigned.map((name, nameIndex) => (
                           <span
                             key={nameIndex}
                             className={cx(
                               getRandomColor(name.initials),
-                              "inline-flex size-5 items-center justify-center rounded-full text-xs font-medium text-white ring-2 ring-white dark:text-white dark:ring-[#090E1A]",
+                              "business-avatar-group-item",
                             )}
                           >
                             {name.initials}
@@ -134,17 +134,17 @@ export default function Overview() {
                         <span
                           className={cx(
                             "size-1.5 shrink-0 rounded-full",
-                            "bg-gray-500 dark:bg-gray-500",
+                            "bg-[var(--muted-foreground)]",
                             {
-                              "bg-emerald-600 dark:bg-emerald-400":
+                              "bg-[var(--business-badge-closed)]":
                                 item.status === "Closed",
                             },
                             {
-                              "bg-gray-500 dark:bg-gray-500":
+                              "bg-[var(--muted-foreground)]":
                                 item.status === "Drafted",
                             },
                             {
-                              "bg-blue-500 dark:bg-blue-500":
+                              "bg-[var(--business-badge-sent)]":
                                 item.status === "Sent",
                             },
                           )}

@@ -16,16 +16,16 @@ export default function QuotesError({
   }, [error])
 
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center p-4 sm:p-6">
+    <div className="business-error-container">
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/20">
-          <AlertCircle className="size-6 text-red-600 dark:text-red-400" />
+        <div className="business-error-icon-wrapper">
+          <AlertCircle className="business-error-icon" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+          <h2 className="text-lg font-semibold text-[var(--business-error-text)]">
             Something went wrong
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-[var(--business-error-description)]">
             We encountered an error while loading your quotes. Please try again.
           </p>
         </div>
