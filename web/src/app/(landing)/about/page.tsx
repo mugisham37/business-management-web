@@ -58,9 +58,6 @@ export default function About() {
             – Alex and Robin
           </p>
         </div>
-        <Button className="shadow-cta-indigo mt-32 h-10 w-full">
-          View Open Roles
-        </Button>
       </section>
     </div>
   )
