@@ -102,13 +102,13 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Invite people to your workspace</DialogTitle>
-            <DialogDescription className="mt-1 text-sm leading-6">
+            <DialogDescription className="modal-description">
               With free plan, you can add up to 10 users to each workspace.
             </DialogDescription>
-            <div className="mt-4">
+            <div className="form-field-wrapper">
               <Label 
                 htmlFor="email-new-user" 
-                className="font-medium"
+                className="form-label-base"
                 disabled={isLoading}
               >
                 Email
@@ -118,7 +118,6 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
                 name="email-new-user"
                 type="email"
                 placeholder="Insert email..."
-                className="mt-2"
                 value={formData.email}
                 onChange={handleEmailChange}
                 hasError={errors.email}
@@ -127,10 +126,10 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
                 autoComplete="email"
               />
             </div>
-            <div className="mt-4">
+            <div className="form-field-wrapper">
               <Label 
                 htmlFor="role-new-user" 
-                className="font-medium"
+                className="form-label-base"
                 disabled={isLoading}
               >
                 Select role
@@ -144,7 +143,6 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
                 <SelectTrigger
                   id="role-new-user"
                   name="role-new-user"
-                  className="mt-2"
                   hasError={errors.role}
                 >
                   <SelectValue placeholder="Select role..." />
@@ -163,7 +161,7 @@ export function ModalAddUser({ children }: ModalAddUserProps) {
               </Select>
             </div>
           </DialogHeader>
-          <DialogFooter className="mt-6">
+          <DialogFooter className="modal-footer">
             <DialogClose asChild>
               <Button
                 className="mt-2 w-full sm:mt-0 sm:w-fit"

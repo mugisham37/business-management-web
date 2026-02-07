@@ -653,6 +653,106 @@ a {
     --transition-avatar-scale: transform var(--transition-base) var(--ease-in-out);
     
     --transition-chevron-color: color var(--transition-base) var(--ease-in-out);
+    
+    /* ============================================
+       MODAL/DIALOG SYSTEM DESIGN TOKENS
+       Added: 2026-02-07
+       Universal tokens for modal and dialog components
+       ============================================ */
+    
+    /* Modal/Dialog Layout */
+    --modal-overlay-opacity: 0.8;
+    --modal-backdrop-blur: 8px;
+    --modal-content-max-width-sm: 28rem;  /* 448px - for ModalAddUser */
+    --modal-content-max-width-md: 32rem;  /* 512px */
+    --modal-content-max-width-lg: 42rem;  /* 672px */
+    --modal-content-padding: 1.5rem;      /* 24px */
+    --modal-header-gap: 1rem;             /* 16px */
+    --modal-footer-gap: 0.5rem;           /* 8px */
+    --modal-animation-duration: 200ms;
+    --modal-animation-easing: var(--ease-spring);
+    
+    /* Dialog Header Typography */
+    --dialog-title-size: var(--text-lg);
+    --dialog-title-weight: var(--font-semibold);
+    --dialog-title-color: var(--foreground);
+    --dialog-description-size: var(--text-sm);
+    --dialog-description-color: var(--muted-foreground);
+    --dialog-description-leading: 1.5;    /* leading-6 */
+    
+    /* Dialog Footer Layout */
+    --dialog-footer-margin-top: 1.5rem;   /* 24px - mt-6 */
+    --dialog-footer-gap: 0.5rem;          /* 8px */
+    --dialog-footer-flex-direction-mobile: column;
+    --dialog-footer-flex-direction-desktop: row;
+    
+    /* ============================================
+       FORM ELEMENT DESIGN TOKENS
+       Added: 2026-02-07
+       Universal tokens for form inputs, labels, and validation
+       ============================================ */
+    
+    /* Form Field Spacing */
+    --form-field-gap: 1rem;               /* 16px - gap between label and input */
+    --form-field-vertical-spacing: 1rem;  /* 16px - mt-4 between fields */
+    --form-label-margin-bottom: 0.5rem;   /* 8px - mt-2 */
+    
+    /* Form Input States */
+    --input-border-default: var(--border);
+    --input-border-hover: var(--muted-foreground);
+    --input-border-focus: var(--primary);
+    --input-border-error: var(--status-critical);
+    --input-bg-default: var(--background);
+    --input-bg-disabled: var(--muted);
+    --input-text-disabled: var(--muted-foreground);
+    
+    /* Form Validation Colors */
+    --form-error-text: var(--status-critical);
+    --form-error-bg: color-mix(in oklch, var(--status-critical) 10%, transparent);
+    --form-success-text: var(--status-good);
+    --form-success-bg: color-mix(in oklch, var(--status-good) 10%, transparent);
+    
+    /* ============================================
+       BUTTON SYSTEM DESIGN TOKENS
+       Added: 2026-02-07
+       Universal tokens for button components
+       ============================================ */
+    
+    /* Button Spacing */
+    --button-padding-x-sm: 0.75rem;       /* 12px */
+    --button-padding-y-sm: 0.5rem;        /* 8px */
+    --button-padding-x-default: 1rem;     /* 16px */
+    --button-padding-y-default: 0.625rem; /* 10px */
+    --button-padding-x-lg: 1.5rem;        /* 24px */
+    --button-padding-y-lg: 0.75rem;       /* 12px */
+    
+    /* Button States */
+    --button-primary-bg: var(--primary);
+    --button-primary-fg: var(--primary-foreground);
+    --button-primary-hover-bg: color-mix(in oklch, var(--primary) 90%, var(--foreground));
+    --button-secondary-bg: var(--secondary);
+    --button-secondary-fg: var(--secondary-foreground);
+    --button-secondary-hover-bg: color-mix(in oklch, var(--secondary) 90%, var(--foreground));
+    --button-disabled-opacity: 0.5;
+    --button-loading-opacity: 0.7;
+    
+    /* ============================================
+       SVG ANIMATION DESIGN TOKENS
+       Added: 2026-02-07
+       Universal tokens for animated SVG icons
+       ============================================ */
+    
+    /* SVG Animation Tokens */
+    --svg-transition-duration: var(--transition-base);
+    --svg-transition-easing: var(--ease-in-out);
+    --svg-hover-translate-x: 3px;
+    --svg-stroke-width-default: 1.5px;
+    
+    /* Icon Animation States */
+    --icon-opacity-hidden: 0;
+    --icon-opacity-visible: 1;
+    --icon-transition-opacity: opacity var(--transition-base) var(--ease-in-out);
+    --icon-transition-transform: transform var(--transition-base) var(--ease-in-out);
   }
   
   .dark {
@@ -934,6 +1034,172 @@ a {
     font-weight: var(--font-semibold);
     letter-spacing: var(--tracking-tight);
     color: var(--foreground);
+  }
+  
+  /* ============================================
+     MODAL/DIALOG UTILITY CLASSES
+     Universal patterns for modal and dialog components
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Modal Content Base */
+  .modal-content-base {
+    max-width: var(--modal-content-max-width-sm);
+    padding: var(--modal-content-padding);
+    background-color: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2xl);
+  }
+  
+  /* Modal Header Pattern */
+  .modal-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--modal-header-gap);
+  }
+  
+  /* Modal Title */
+  .modal-title {
+    font-size: var(--dialog-title-size);
+    font-weight: var(--dialog-title-weight);
+    color: var(--dialog-title-color);
+    letter-spacing: var(--tracking-tight);
+  }
+  
+  /* Modal Description */
+  .modal-description {
+    font-size: var(--dialog-description-size);
+    line-height: var(--dialog-description-leading);
+    color: var(--dialog-description-color);
+  }
+  
+  /* Modal Footer Pattern */
+  .modal-footer {
+    display: flex;
+    flex-direction: var(--dialog-footer-flex-direction-mobile);
+    gap: var(--dialog-footer-gap);
+    margin-top: var(--dialog-footer-margin-top);
+  }
+  
+  @media (min-width: 640px) {
+    .modal-footer {
+      flex-direction: var(--dialog-footer-flex-direction-desktop);
+      justify-content: flex-end;
+    }
+  }
+  
+  /* ============================================
+     FORM ELEMENT UTILITY CLASSES
+     Universal patterns for form inputs and validation
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Form Field Wrapper */
+  .form-field-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-label-margin-bottom);
+    margin-top: var(--form-field-vertical-spacing);
+  }
+  
+  .form-field-wrapper:first-child {
+    margin-top: 0;
+  }
+  
+  /* Form Label Base */
+  .form-label-base {
+    font-size: var(--text-form-label);
+    font-weight: var(--font-medium);
+    color: var(--foreground);
+  }
+  
+  .form-label-disabled {
+    opacity: var(--button-disabled-opacity);
+    cursor: not-allowed;
+  }
+  
+  /* Input Error State */
+  .input-error {
+    border-color: var(--input-border-error);
+  }
+  
+  .input-error:focus-visible {
+    outline-color: var(--input-border-error);
+    ring-color: var(--input-border-error);
+  }
+  
+  /* Select Error State */
+  .select-error {
+    border-color: var(--input-border-error);
+  }
+  
+  /* ============================================
+     BUTTON UTILITY CLASSES
+     Universal patterns for button states
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Button Loading State */
+  .button-loading {
+    position: relative;
+    opacity: var(--button-loading-opacity);
+    pointer-events: none;
+  }
+  
+  .button-loading-spinner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 1rem;
+    height: 1rem;
+    animation: spin 1s linear infinite;
+  }
+  
+  /* Button Disabled State */
+  .button-disabled {
+    opacity: var(--button-disabled-opacity);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
+  /* ============================================
+     SVG ANIMATION UTILITY CLASSES
+     Universal patterns for animated SVG icons
+     Added: 2026-02-07
+     ============================================ */
+  
+  /* Animated Arrow Base */
+  .arrow-animated-base {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--svg-stroke-width-default);
+  }
+  
+  /* Arrow Path - Hidden by Default */
+  .arrow-path-hidden {
+    opacity: var(--icon-opacity-hidden);
+    transition: var(--icon-transition-opacity);
+  }
+  
+  /* Arrow Path - Visible on Group Hover */
+  .group:hover .arrow-path-hidden {
+    opacity: var(--icon-opacity-visible);
+  }
+  
+  /* Arrow Path - Translate on Hover */
+  .arrow-path-translate {
+    transition: var(--icon-transition-transform);
+  }
+  
+  .group:hover .arrow-path-translate {
+    transform: translateX(var(--svg-hover-translate-x));
+  }
+  
+  /* SVG Icon Base */
+  .svg-icon-base {
+    flex-shrink: 0;
+    transition: var(--transition-colors);
   }
   
   /* ============================================
