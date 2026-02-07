@@ -36,7 +36,11 @@ export default function Employees() {
     <main className="mx-auto p-4">
       <div
         className="motion-safe:animate-revealBottom"
-        style={{ animationDuration: "500ms" }}
+        style={{ 
+          animationDuration: "var(--animation-slide-down-duration)",
+          animationDelay: "var(--animation-slide-down-delay)",
+          animationFillMode: "var(--animation-fill-mode)"
+        }}
       >
         <h1 className="text-2xl font-semibold text-foreground sm:text-xl">
           How many employees does your company have?
@@ -61,11 +65,11 @@ export default function Employees() {
                 style={{
                   animationDuration: "600ms",
                   animationDelay: `${100 + index * 50}ms`,
-                  animationFillMode: "backwards",
+                  animationFillMode: "var(--animation-fill-mode)",
                 }}
               >
                 <RadioCardItem
-                  className="active:scale-[99%] bg-card"
+                  className="active:scale-[99%] bg-card transition-transform-standard"
                   key={count.value}
                   value={count.value}
                   style={{

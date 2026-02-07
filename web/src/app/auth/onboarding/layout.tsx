@@ -73,9 +73,10 @@ const Layout = ({
     <>
       <header
         className={cx(
-          "fixed inset-x-0 top-0 isolate z-50 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-sm px-4 transition-standard md:grid md:grid-cols-[200px_auto_200px] md:px-6",
+          "fixed inset-x-0 top-0 isolate flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-sm px-4 transition-standard md:grid md:grid-cols-[200px_auto_200px] md:px-6",
           scrolled ? "h-12 shadow-sm" : "h-20",
         )}
+        style={{ zIndex: 'var(--z-fixed)' }}
       >
         <div
           className="hidden flex-nowrap items-center gap-0.5 md:flex"

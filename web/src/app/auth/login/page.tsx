@@ -49,20 +49,20 @@ export default function Login() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6">
       <div className="flex w-full flex-col items-start sm:max-w-sm">
-        <div className="relative flex items-center justify-center rounded-lg bg-white p-3 shadow-lg ring-1 ring-black/5">
+        <div className="relative flex items-center justify-center rounded-lg bg-card p-3 shadow-lg border border-border">
           <Logo
-            className="size-8 text-blue-500 dark:text-blue-500"
+            className="size-8 text-primary"
             aria-label="Business platform logo"
           />
         </div>
         <div className="mt-6 flex flex-col">
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+          <h1 className="text-lg font-semibold text-foreground">
             Log in to your business
           </h1>
-          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+          <p className="mt-1 text-sm text-muted-foreground">
             Don&rsquo;t have an account?{" "}
             <a
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-400"
+              className="text-primary hover:text-primary/80 transition-colors-standard"
               href="#"
             >
               Sign up
@@ -102,7 +102,7 @@ export default function Login() {
           >
             <div className="flex flex-col gap-y-4">
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="email-form-item" className="font-medium">
+                <Label htmlFor="email-form-item" className="text-label">
                   Email
                 </Label>
                 <Input
@@ -116,10 +116,11 @@ export default function Login() {
                   hasError={!!error}
                   variant="tremor"
                   required
+                  className="focus-ring"
                 />
               </div>
               <div className="flex flex-col space-y-2">
-                <Label htmlFor="password-form-item" className="font-medium">
+                <Label htmlFor="password-form-item" className="text-label">
                   Password
                 </Label>
                 <Input
@@ -133,6 +134,7 @@ export default function Login() {
                   hasError={!!error}
                   variant="tremor"
                   required
+                  className="focus-ring"
                 />
               </div>
             </div>
@@ -148,10 +150,10 @@ export default function Login() {
           </form>
         </div>
         <Divider />
-        <p className="text-sm text-gray-700 dark:text-gray-300">
+        <p className="text-sm text-muted-foreground">
           Forgot your password?{" "}
           <a
-            className="text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-400"
+            className="text-primary hover:text-primary/80 transition-colors-standard"
             href="#"
           >
             Reset password

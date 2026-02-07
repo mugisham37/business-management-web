@@ -137,7 +137,11 @@ export default function Products() {
   return (
     <main className="mx-auto p-4">
       <div
-        style={{ animationDuration: "500ms" }}
+        style={{ 
+          animationDuration: "var(--animation-slide-down-duration)",
+          animationDelay: "var(--animation-slide-down-delay)",
+          animationFillMode: "var(--animation-fill-mode)"
+        }}
         className="motion-safe:animate-revealBottom"
       >
         <h1 className="text-2xl font-semibold text-foreground sm:text-xl">
@@ -160,7 +164,7 @@ export default function Products() {
                 style={{
                   animationDuration: "600ms",
                   animationDelay: `${100 + index * 50}ms`,
-                  animationFillMode: "backwards",
+                  animationFillMode: "var(--animation-fill-mode)",
                 }}
               >
                 <CategoryItem
