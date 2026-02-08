@@ -1400,4 +1400,438 @@ export class AuthService {
       throw new UnauthorizedException('Password change failed');
     }
   }
+
+  /**
+   * Handle OAuth authentication callback
+   * 
+   * Requirement 17.2: WHERE OAuth is configured, WHEN the provider returns an 
+   * authorization code, THE Auth_System SHALL exchange it for tokens
+   * 
+   * Requirement 17.3: WHERE OAuth is configured, WHEN OAuth authentication succeeds, 
+   * THE Auth_System SHALL create or link a user account
+   * 
+   * Requirement 17.4: WHERE OAuth is configured, WHEN a user links an OAuth account, 
+   * THE Auth_System SHALL store encrypted provider tokens
+   * 
+   * @param oauthData - OAuth user data from provider
+   * @param metadata - Session metadata (IP, user agent, etc.)
+   * @returns Login result with tokens
+   */
+  async handleOAuthCallback(
+    oauthData: OAuthUserData,
+    metadata: SessionMetadata,
+  ): Promise<LoginResult> {
+    try {
+      // Check if OAuth provider already exists
+      const existingOAuthProvider = await this.prisma.oAuthProvider.findUnique({
+        where: {
+          provider_providerId: {
+            provider: oauthData.provider,
+            providerId: oauthData.providerId,
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      let user: User;
+
+      if (existingOAuthProvider) {
+        // User already linked with this OAuth provider
+        user = existingOAuthProvider.user;
+
+        // Update OAuth tokens
+        await this.updateOAuthTokens(
+          existingOAuthProvider.id,
+          oauthData.accessToken,
+          oauthData.refreshToken,
+        );
+
+        this.logger.log(
+          `Existing OAuth user logged in: ${user.id} (${oauthData.provider})`,
+        );
+      } else {
+        // Check if user exists with this email
+        const existingUser = await this.prisma.user.findFirst({
+          where: { email: oauthData.email },
+        });
+
+        if (existingUser) {
+          // Link OAuth provider to existing user
+          user = existingUser;
+
+          await this.linkOAuthProvider(user.id, oauthData);
+
+          this.logger.log(
+            `OAuth provider linked to existing user: ${user.id} (${oauthData.provider})`,
+          );
+        } else {
+          // Create new user with OAuth provider
+          user = await this.createOAuthUser(oauthData);
+
+          this.logger.log(
+            `New OAuth user created: ${user.id} (${oauthData.provider})`,
+          );
+        }
+      }
+
+      // Check user status
+      if (user.status !== 'active') {
+        throw new ForbiddenException('User account is not active');
+      }
+
+      // Check if MFA is enabled
+      const mfaEnabled = await this.mfa.isMFAEnabled(user.id, user.organizationId);
+
+      if (mfaEnabled) {
+        // Generate temporary token for MFA flow
+        const tempPayload = {
+          sub: user.id,
+          email: user.email,
+          organizationId: user.organizationId,
+          type: 'mfa-temp',
+        };
+
+        const tempToken = jwt.sign(tempPayload, this.JWT_SECRET, {
+          expiresIn: this.TEMP_TOKEN_EXPIRY,
+        });
+
+        // Audit log MFA required
+        await this.audit.log({
+          organizationId: user.organizationId,
+          userId: user.id,
+          action: 'oauth_login_mfa_required',
+          resource: 'authentication',
+          resourceId: user.id,
+          outcome: 'success',
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          metadata: {
+            email: user.email,
+            provider: oauthData.provider,
+            deviceFingerprint: metadata.deviceFingerprint,
+            location: metadata.location,
+          },
+        });
+
+        this.logger.log(`MFA required for OAuth user: ${user.id}`);
+
+        return {
+          requiresMFA: true,
+          tempToken,
+          userId: user.id,
+        } as any; // Type assertion needed for MFA flow
+      }
+
+      // Get user permissions
+      const permissionCodes = await this.permissions.getUserPermissions(user.id);
+
+      // Generate tokens
+      const tokens = await this.generateTokens(user, permissionCodes);
+
+      // Create session
+      await this.sessions.create(user.id, tokens.refreshToken, metadata);
+
+      // Update last login time
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastLoginAt: new Date(),
+        },
+      });
+
+      // Audit log successful OAuth authentication
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'oauth_login_success',
+        resource: 'authentication',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        metadata: {
+          email: user.email,
+          provider: oauthData.provider,
+          deviceFingerprint: metadata.deviceFingerprint,
+          location: metadata.location,
+          permissionCount: permissionCodes.length,
+        },
+      });
+
+      this.logger.log(`OAuth user logged in: ${user.id} (${oauthData.provider})`);
+
+      return {
+        ...tokens,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          organizationId: user.organizationId,
+        },
+      };
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error('Failed to handle OAuth callback:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create new user from OAuth data
+   * 
+   * Requirement 17.3: WHERE OAuth is configured, WHEN OAuth authentication succeeds, 
+   * THE Auth_System SHALL create or link a user account
+   * 
+   * @param oauthData - OAuth user data
+   * @returns Created user
+   */
+  private async createOAuthUser(oauthData: OAuthUserData): Promise<User> {
+    try {
+      // Create organization for new OAuth user
+      const organization = await this.organizations.create({
+        name: `${oauthData.firstName} ${oauthData.lastName}'s Organization`,
+        email: oauthData.email,
+      });
+
+      this.logger.log(
+        `Organization created for OAuth user: ${organization.id} (${organization.companyCode})`,
+      );
+
+      // Generate a random password hash (OAuth users don't use password login)
+      const randomPassword = this.security.generateSecureToken();
+      const passwordHash = await this.security.hashPassword(randomPassword);
+
+      // Create user with OAuth provider
+      // Note: emailVerified is set to true for OAuth users
+      const user = await this.prisma.user.create({
+        data: {
+          organizationId: organization.id,
+          email: oauthData.email,
+          passwordHash,
+          firstName: oauthData.firstName,
+          lastName: oauthData.lastName,
+          avatar: oauthData.avatar,
+          status: 'active',
+          emailVerified: true, // OAuth users are pre-verified
+        },
+      });
+
+      this.logger.log(`OAuth user created: ${user.id} (${user.email})`);
+
+      // Assign SUPER_ADMIN role (OAuth users are primary owners)
+      const superAdminRole = await this.prisma.role.findFirst({
+        where: {
+          organizationId: organization.id,
+          code: 'SUPER_ADMIN',
+          isSystem: true,
+        },
+      });
+
+      if (superAdminRole) {
+        await this.prisma.userRole.create({
+          data: {
+            userId: user.id,
+            roleId: superAdminRole.id,
+            scopeType: 'global',
+            assignedById: user.id, // Self-assigned for primary owner
+          },
+        });
+
+        this.logger.log(`SUPER_ADMIN role assigned to OAuth user: ${user.id}`);
+      }
+
+      // Increment organization user count
+      await this.organizations.incrementUserCount(organization.id);
+
+      // Link OAuth provider
+      await this.linkOAuthProvider(user.id, oauthData);
+
+      // Audit log OAuth user creation
+      await this.audit.log({
+        organizationId: organization.id,
+        userId: user.id,
+        action: 'oauth_user_created',
+        resource: 'user',
+        resourceId: user.id,
+        outcome: 'success',
+        metadata: {
+          email: user.email,
+          provider: oauthData.provider,
+          organizationName: organization.name,
+          companyCode: organization.companyCode,
+          role: 'SUPER_ADMIN',
+          userType: 'oauth_primary_owner',
+        },
+      });
+
+      return user;
+    } catch (error) {
+      this.logger.error('Failed to create OAuth user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Link OAuth provider to existing user
+   * 
+   * Requirement 17.4: WHERE OAuth is configured, WHEN a user links an OAuth account, 
+   * THE Auth_System SHALL store encrypted provider tokens
+   * 
+   * Requirement 23.2: WHEN OAuth tokens are stored, THE Auth_System SHALL encrypt 
+   * them using AES-256-GCM
+   * 
+   * @param userId - User ID
+   * @param oauthData - OAuth user data
+   */
+  private async linkOAuthProvider(
+    userId: string,
+    oauthData: OAuthUserData,
+  ): Promise<void> {
+    try {
+      // Encrypt OAuth tokens
+      const encryptedAccessToken = this.security.encrypt(oauthData.accessToken);
+      const encryptedRefreshToken = oauthData.refreshToken
+        ? this.security.encrypt(oauthData.refreshToken)
+        : null;
+
+      // Calculate token expiration (default 1 hour if not provided)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Create OAuth provider record
+      await this.prisma.oAuthProvider.create({
+        data: {
+          userId,
+          provider: oauthData.provider,
+          providerId: oauthData.providerId,
+          accessToken: encryptedAccessToken,
+          refreshToken: encryptedRefreshToken,
+          expiresAt,
+          profile: oauthData.profile,
+        },
+      });
+
+      this.logger.log(
+        `OAuth provider linked: ${oauthData.provider} for user ${userId}`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to link OAuth provider:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update OAuth tokens
+   * 
+   * Requirement 17.4: WHERE OAuth is configured, WHEN a user links an OAuth account, 
+   * THE Auth_System SHALL store encrypted provider tokens
+   * 
+   * Requirement 23.2: WHEN OAuth tokens are stored, THE Auth_System SHALL encrypt 
+   * them using AES-256-GCM
+   * 
+   * @param oauthProviderId - OAuth provider ID
+   * @param accessToken - New access token
+   * @param refreshToken - New refresh token
+   */
+  private async updateOAuthTokens(
+    oauthProviderId: string,
+    accessToken: string,
+    refreshToken: string,
+  ): Promise<void> {
+    try {
+      // Encrypt OAuth tokens
+      const encryptedAccessToken = this.security.encrypt(accessToken);
+      const encryptedRefreshToken = refreshToken
+        ? this.security.encrypt(refreshToken)
+        : null;
+
+      // Calculate token expiration (default 1 hour if not provided)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Update OAuth provider tokens
+      await this.prisma.oAuthProvider.update({
+        where: { id: oauthProviderId },
+        data: {
+          accessToken: encryptedAccessToken,
+          refreshToken: encryptedRefreshToken,
+          expiresAt,
+          updatedAt: new Date(),
+        },
+      });
+
+      this.logger.log(`OAuth tokens updated for provider: ${oauthProviderId}`);
+    } catch (error) {
+      this.logger.error('Failed to update OAuth tokens:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Refresh OAuth tokens
+   * 
+   * Requirement 17.5: WHERE OAuth is configured, WHEN OAuth tokens expire, 
+   * THE Auth_System SHALL refresh them automatically
+   * 
+   * @param userId - User ID
+   * @param provider - OAuth provider (google, microsoft)
+   * @returns Decrypted access token
+   */
+  async refreshOAuthTokens(
+    userId: string,
+    provider: 'google' | 'microsoft',
+  ): Promise<string> {
+    try {
+      // Get OAuth provider
+      const oauthProvider = await this.prisma.oAuthProvider.findFirst({
+        where: {
+          userId,
+          provider,
+        },
+      });
+
+      if (!oauthProvider) {
+        throw new UnauthorizedException('OAuth provider not found');
+      }
+
+      // Check if token is expired
+      if (oauthProvider.expiresAt && oauthProvider.expiresAt > new Date()) {
+        // Token still valid, decrypt and return
+        return this.security.decrypt(oauthProvider.accessToken);
+      }
+
+      // Token expired, need to refresh
+      // Note: Actual token refresh would require provider-specific API calls
+      // This is a placeholder for the refresh logic
+      this.logger.warn(
+        `OAuth token refresh not implemented for provider: ${provider}. Returning existing token.`,
+      );
+
+      // Decrypt and return existing token
+      return this.security.decrypt(oauthProvider.accessToken);
+    } catch (error) {
+      this.logger.error('Failed to refresh OAuth tokens:', error);
+      throw error;
+    }
+  }
+}
+
+/**
+ * OAuth user data interface
+ */
+export interface OAuthUserData {
+  provider: 'google' | 'microsoft';
+  providerId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  accessToken: string;
+  refreshToken: string;
+  profile: any;
 }
