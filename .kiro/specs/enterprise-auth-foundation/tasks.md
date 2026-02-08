@@ -348,8 +348,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Validates: Requirements 8.5, 19.3**
 
 
-- [ ] 15. Implement Roles Module
-  - [ ] 15.1 Create RolesService with CRUD operations
+- [x] 15. Implement Roles Module
+  - [x] 15.1 Create RolesService with CRUD operations
     - Implement create method (validate creator has all permissions)
     - Implement findById method
     - Implement findByOrganization method
@@ -366,13 +366,13 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 65: System Role Protection**
     - **Validates: Requirements 19.6**
   
-  - [ ] 15.4 Implement role-permission assignment methods
+  - [x] 15.4 Implement role-permission assignment methods
     - Implement assignPermissions method (create RolePermission records)
     - Implement removePermission method
     - Trigger cache invalidation for all users with role
     - _Requirements: 19.3_
   
-  - [ ] 15.5 Implement user-role assignment methods
+  - [x] 15.5 Implement user-role assignment methods
     - Implement assignToUser method (create UserRole with scope)
     - Implement removeFromUser method
     - Validate delegation if assigning to team member
@@ -386,7 +386,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 18: Role-Based Delegation Validation**
     - **Validates: Requirements 4.7**
   
-  - [ ] 15.8 Implement role query methods
+  - [x] 15.8 Implement role query methods
     - Implement getRolePermissions method
     - Implement getUserRoles method (with context filtering)
     - _Requirements: 7.3_
