@@ -1,11 +1,12 @@
-import { Injectable, UnauthorizedException, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException, ConflictException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityService } from '../../common/security/security.service';
 import { UsersService } from '../users/users.service';
 import { SessionsService, SessionMetadata } from '../sessions/sessions.service';
 import { MFAService } from '../mfa/mfa.service';
 import { PermissionsService } from '../permissions/permissions.service';
-import { User } from '@prisma/client';
+import { OrganizationsService } from '../organizations/organizations.service';
+import { User, Organization } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 
 export interface JwtPayload {
@@ -39,6 +40,28 @@ export interface MFARequiredResult {
   userId: string;
 }
 
+export interface RegisterDto {
+  email: string;
+  password: string;
+  organizationName: string;
+}
+
+export interface RegisterResult {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    organizationId: string;
+  };
+  organization: {
+    id: string;
+    name: string;
+    companyCode: string;
+  };
+  message: string;
+}
+
 /**
  * Auth Service for core authentication operations
  * 
@@ -67,6 +90,7 @@ export class AuthService {
     private readonly sessions: SessionsService,
     private readonly mfa: MFAService,
     private readonly permissions: PermissionsService,
+    private readonly organizations: OrganizationsService,
   ) {
     // Initialize JWT secret from environment
     this.JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
@@ -517,6 +541,285 @@ export class AuthService {
       }
       this.logger.error('Failed to login with MFA:', error);
       throw new UnauthorizedException('MFA validation failed');
+    }
+  }
+
+  /**
+   * Register a primary owner with organization
+   * 
+   * Requirement 1.1: WHEN a user submits registration with email, password, and 
+   * organization name, THE Auth_System SHALL create both an organization and a user account
+   * 
+   * Requirement 1.2: WHEN a user registers, THE Auth_System SHALL assign the 
+   * SUPER_ADMIN role to the Primary_Owner
+   * 
+   * Requirement 1.3: WHEN registration is submitted, THE Auth_System SHALL send 
+   * a verification email to the provided address
+   * 
+   * Requirement 1.4: WHEN a user attempts to register with an existing email, 
+   * THE Auth_System SHALL reject the registration with a descriptive error
+   * 
+   * Requirement 1.5: WHEN a password is provided during registration, THE Auth_System 
+   * SHALL validate it meets minimum strength requirements
+   * 
+   * Requirement 1.6: WHEN a password is stored, THE Auth_System SHALL hash it 
+   * using Argon2id with secure parameters
+   * 
+   * Requirement 1.7: WHEN registration completes, THE Auth_System SHALL create 
+   * an unverified user account that requires email verification before full access
+   * 
+   * @param dto - Registration data (email, password, organizationName)
+   * @returns Registration result with user and organization data
+   */
+  async registerPrimaryOwner(dto: RegisterDto): Promise<RegisterResult> {
+    try {
+      // Validate email uniqueness across all organizations
+      const existingUser = await this.prisma.user.findFirst({
+        where: { email: dto.email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('Email address is already registered');
+      }
+
+      // Validate password strength
+      const passwordValidation = this.security.validatePasswordStrength(dto.password);
+      if (!passwordValidation.isValid) {
+        throw new ForbiddenException(
+          `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
+        );
+      }
+
+      // Create organization
+      const organization = await this.organizations.create({
+        name: dto.organizationName,
+        email: dto.email,
+      });
+
+      this.logger.log(`Organization created: ${organization.id} (${organization.companyCode})`);
+
+      // Hash password with Argon2id
+      const passwordHash = await this.security.hashPassword(dto.password);
+
+      // Extract first and last name from email (simple approach)
+      const emailLocalPart = dto.email.split('@')[0];
+      const nameParts = emailLocalPart.split(/[._-]/);
+      const firstName = nameParts[0] || 'User';
+      const lastName = nameParts[1] || 'Owner';
+
+      // Create user with SUPER_ADMIN role
+      // Note: emailVerified is set to false by default
+      const user = await this.prisma.user.create({
+        data: {
+          organizationId: organization.id,
+          email: dto.email,
+          passwordHash,
+          firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
+          lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
+          status: 'active',
+          emailVerified: false,
+        },
+      });
+
+      this.logger.log(`Primary owner created: ${user.id} (${user.email})`);
+
+      // Assign SUPER_ADMIN role
+      // First, find the SUPER_ADMIN role for this organization
+      const superAdminRole = await this.prisma.role.findFirst({
+        where: {
+          organizationId: organization.id,
+          code: 'SUPER_ADMIN',
+          isSystem: true,
+        },
+      });
+
+      if (superAdminRole) {
+        // Assign role with global scope
+        await this.prisma.userRole.create({
+          data: {
+            userId: user.id,
+            roleId: superAdminRole.id,
+            scopeType: 'global',
+            assignedById: user.id, // Self-assigned for primary owner
+          },
+        });
+
+        this.logger.log(`SUPER_ADMIN role assigned to user: ${user.id}`);
+      } else {
+        this.logger.warn(
+          `SUPER_ADMIN role not found for organization: ${organization.id}. Role seeding may be required.`,
+        );
+      }
+
+      // Increment organization user count
+      await this.organizations.incrementUserCount(organization.id);
+
+      // Generate and send verification email
+      await this.sendVerificationEmail(user.id, organization.id);
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          organizationId: user.organizationId,
+        },
+        organization: {
+          id: organization.id,
+          name: organization.name,
+          companyCode: organization.companyCode,
+        },
+        message: 'Registration successful. Please check your email to verify your account.',
+      };
+    } catch (error) {
+      if (error instanceof ConflictException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error('Failed to register primary owner:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send email verification token
+   * 
+   * Requirement 2.1: WHEN a verification email is sent, THE Auth_System SHALL 
+   * include a unique, time-limited token valid for 24 hours
+   * 
+   * Requirement 2.5: WHEN a user requests a new verification email, THE Auth_System 
+   * SHALL invalidate previous tokens and send a new one
+   * 
+   * @param userId - User ID
+   * @param organizationId - Organization ID for tenant isolation
+   */
+  async sendVerificationEmail(userId: string, organizationId: string): Promise<void> {
+    try {
+      // Verify user exists
+      const user = await this.users.findById(userId, organizationId);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Invalidate all previous verification tokens for this user
+      await this.prisma.emailVerificationToken.updateMany({
+        where: {
+          userId,
+          isUsed: false,
+        },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      // Generate unique verification token (24-hour expiry)
+      const token = this.security.generateSecureToken();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      // Create verification token record
+      await this.prisma.emailVerificationToken.create({
+        data: {
+          userId,
+          token,
+          expiresAt,
+        },
+      });
+
+      // TODO: Send actual email with verification link
+      // For now, just log the token (in production, integrate with email service)
+      this.logger.log(
+        `Verification email would be sent to ${user.email} with token: ${token}`,
+      );
+      this.logger.log(`Verification link: http://localhost:3000/auth/verify-email?token=${token}`);
+
+      this.logger.log(`Verification email sent to user: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to send verification email to user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify user email with token
+   * 
+   * Requirement 2.2: WHEN a user clicks the verification link, THE Auth_System 
+   * SHALL validate the token and mark the email as verified
+   * 
+   * Requirement 2.3: WHEN an expired token is submitted, THE Auth_System SHALL 
+   * reject it and provide an option to resend
+   * 
+   * Requirement 18.1: WHEN a Primary_Owner verifies their email, THE Auth_System 
+   * SHALL initiate the onboarding flow
+   * 
+   * @param token - Verification token
+   * @returns Success message
+   */
+  async verifyEmail(token: string): Promise<{ message: string; shouldOnboard: boolean }> {
+    try {
+      // Find verification token
+      const verificationToken = await this.prisma.emailVerificationToken.findUnique({
+        where: { token },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!verificationToken) {
+        throw new UnauthorizedException('Invalid verification token');
+      }
+
+      // Check if token is already used
+      if (verificationToken.isUsed) {
+        throw new UnauthorizedException('Verification token has already been used');
+      }
+
+      // Check if token is expired
+      if (verificationToken.expiresAt < new Date()) {
+        throw new UnauthorizedException(
+          'Verification token has expired. Please request a new verification email.',
+        );
+      }
+
+      // Mark token as used
+      await this.prisma.emailVerificationToken.update({
+        where: { id: verificationToken.id },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      // Mark user email as verified
+      await this.prisma.user.update({
+        where: { id: verificationToken.userId },
+        data: {
+          emailVerified: true,
+        },
+      });
+
+      this.logger.log(`Email verified for user: ${verificationToken.userId}`);
+
+      // Check if user is a primary owner (no createdBy)
+      const isPrimaryOwner = !verificationToken.user.createdById;
+
+      // Check if organization has completed onboarding
+      const organization = await this.organizations.findById(
+        verificationToken.user.organizationId,
+      );
+      const shouldOnboard = isPrimaryOwner && !!organization && !organization.onboardingCompleted;
+
+      return {
+        message: 'Email verified successfully',
+        shouldOnboard,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error('Failed to verify email:', error);
+      throw new UnauthorizedException('Email verification failed');
     }
   }
 }

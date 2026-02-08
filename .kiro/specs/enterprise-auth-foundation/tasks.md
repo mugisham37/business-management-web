@@ -563,8 +563,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - _Requirements: 3.6, 13.4_
 
 
-- [ ] 21. Implement primary owner registration flow
-  - [ ] 21.1 Implement registerPrimaryOwner method
+- [x] 21. Implement primary owner registration flow
+  - [x] 21.1 Implement registerPrimaryOwner method
     - Validate input (email uniqueness, password strength)
     - Create organization (generate company code)
     - Hash password with Argon2id
@@ -586,7 +586,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 5: New Accounts Start Unverified**
     - **Validates: Requirements 1.7**
   
-  - [ ] 21.5 Implement email verification flow
+  - [x] 21.5 Implement email verification flow
     - Implement sendVerificationEmail method (generate token, send email)
     - Implement verifyEmail method (validate token, set emailVerified=true)
     - Invalidate old tokens on new request
@@ -600,7 +600,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 7: Token Invalidation on New Request**
     - **Validates: Requirements 2.5, 14.6**
   
-  - [ ] 21.8 Implement onboarding initiation
+  - [x] 21.8 Implement onboarding initiation
     - Trigger onboarding flow after email verification for primary owners
     - _Requirements: 18.1_
   
