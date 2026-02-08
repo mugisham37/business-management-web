@@ -2,17 +2,7 @@ import { Injectable, NotFoundException, ConflictException, ForbiddenException, L
 import { PrismaService } from '../../database/prisma.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Role } from '@prisma/client';
-
-export interface CreateRoleDto {
-  name: string;
-  code: string;
-  description?: string;
-}
-
-export interface UpdateRoleDto {
-  name?: string;
-  description?: string;
-}
+import { CreateRoleDto, UpdateRoleDto } from './dto';
 
 export interface RoleScope {
   type: 'global' | 'location' | 'department';

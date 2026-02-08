@@ -944,98 +944,98 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - _Requirements: 14.3_
 
 
-- [ ] 37. Implement Users Controller (API endpoints)
-  - [ ] 37.1 Create POST /users/invite endpoint
+- [x] 37. Implement Users Controller (API endpoints)
+  - [x] 37.1 Create POST /users/invite endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept InviteUserDto
     - Call UsersService.createInvitation
     - Return invitation details
     - _Requirements: 4.1_
   
-  - [ ] 37.2 Create POST /users/register/invitation endpoint
+  - [x] 37.2 Create POST /users/register/invitation endpoint
     - Accept invitation token and AcceptInvitationDto
     - Call UsersService.acceptInvitation
     - Return success response
     - _Requirements: 5.1_
   
-  - [ ] 37.3 Create GET /users/:id endpoint
+  - [x] 37.3 Create GET /users/:id endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Call UsersService.findById
     - Return user data
     - _Requirements: 16.2_
   
-  - [ ] 37.4 Create PATCH /users/:id endpoint
+  - [x] 37.4 Create PATCH /users/:id endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept UpdateUserDto
     - Call UsersService.update
     - Return updated user
     - _Requirements: 15.4_
   
-  - [ ] 37.5 Create DELETE /users/:id endpoint
+  - [x] 37.5 Create DELETE /users/:id endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Call UsersService.delete
     - Return success response
     - _Requirements: 15.4_
   
-  - [ ] 37.6 Create POST /users/:id/suspend endpoint
+  - [x] 37.6 Create POST /users/:id/suspend endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Call UsersService.suspend
     - Return success response
     - _Requirements: 21.1_
   
-  - [ ] 37.7 Create POST /users/:id/reactivate endpoint
+  - [x] 37.7 Create POST /users/:id/reactivate endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Call UsersService.reactivate
     - Return success response
     - _Requirements: 21.5_
   
-  - [ ] 37.8 Create GET /users/:id/hierarchy endpoint
+  - [x] 37.8 Create GET /users/:id/hierarchy endpoint
     - Use JwtAuthGuard
     - Call UsersService.getHierarchy
     - Return hierarchy chain
     - _Requirements: 24.2_
   
-  - [ ] 37.9 Create GET /users/:id/created-users endpoint
+  - [x] 37.9 Create GET /users/:id/created-users endpoint
     - Use JwtAuthGuard
     - Call UsersService.getCreatedUsers
     - Return created users list
     - _Requirements: 24.4_
 
-- [ ] 38. Implement Roles Controller (API endpoints)
-  - [ ] 38.1 Create POST /roles endpoint
+- [x] 38. Implement Roles Controller (API endpoints)
+  - [x] 38.1 Create POST /roles endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept CreateRoleDto
     - Call RolesService.create
     - Return created role
     - _Requirements: 19.1_
   
-  - [ ] 38.2 Create GET /roles/:id endpoint
+  - [x] 38.2 Create GET /roles/:id endpoint
     - Use JwtAuthGuard
     - Call RolesService.findById
     - Return role data
     - _Requirements: 19.1_
   
-  - [ ] 38.3 Create PATCH /roles/:id endpoint
+  - [x] 38.3 Create PATCH /roles/:id endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept UpdateRoleDto
     - Call RolesService.update
     - Return updated role
     - _Requirements: 19.6_
   
-  - [ ] 38.4 Create DELETE /roles/:id endpoint
+  - [x] 38.4 Create DELETE /roles/:id endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Call RolesService.delete
     - Return success response
     - _Requirements: 19.4_
   
-  - [ ] 38.5 Create POST /roles/:id/permissions endpoint
+  - [x] 38.5 Create POST /roles/:id/permissions endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept permission IDs
     - Call RolesService.assignPermissions
     - Return success response
     - _Requirements: 19.3_
   
-  - [ ] 38.6 Create POST /roles/:id/assign endpoint
+  - [x] 38.6 Create POST /roles/:id/assign endpoint
     - Use JwtAuthGuard and PermissionsGuard
     - Accept user ID and scope
     - Call RolesService.assignToUser
