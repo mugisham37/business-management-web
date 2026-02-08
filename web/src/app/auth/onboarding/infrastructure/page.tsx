@@ -228,7 +228,7 @@ export default function PricingCalculator() {
     setLoading(true)
     setTimeout(() => {
       console.log("Form submitted")
-      router.push("/reports")
+      router.push("/dashboard/overview")
     }, 1200)
   }
 
@@ -459,7 +459,7 @@ export default function PricingCalculator() {
 
           <div className="mt-6 flex justify-between">
             <Button type="button" variant="ghost" asChild>
-              <Link href="/onboarding/employees">Back</Link>
+              <Link href="/auth/onboarding/employees">Back</Link>
             </Button>
             <Button
               className="state-disabled"

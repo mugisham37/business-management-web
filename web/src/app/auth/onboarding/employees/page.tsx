@@ -28,7 +28,7 @@ export default function Employees() {
     setLoading(true)
     setTimeout(() => {
       console.log("Form submitted with employee count:", selectedEmployeeCount)
-      router.push("/onboarding/infrastructure")
+      router.push("/auth/onboarding/infrastructure")
     }, 600)
   }
 
@@ -89,7 +89,7 @@ export default function Employees() {
         </fieldset>
         <div className="mt-6 flex justify-between">
           <Button type="button" variant="ghost" asChild>
-            <Link href="/onboarding/products">Back</Link>
+            <Link href="/auth/onboarding/products">Back</Link>
           </Button>
           <Button
             className="state-disabled"

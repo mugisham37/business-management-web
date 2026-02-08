@@ -1,4 +1,6 @@
 "use client"
+
+import React from "react"
 import { badgeVariants } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
@@ -6,7 +8,7 @@ import { Checkbox } from "@/components/ui/Checkbox"
 import { Label } from "@/components/ui/Label"
 import { cx } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import React from "react"
+import Link from "next/link"
 
 interface Category {
   id: string
@@ -73,39 +75,38 @@ const CategoryItem = ({
 }: CategoryItemProps) => {
   return (
     <Card
-      asChild
       className={cx(
-        "cursor-pointer border-border p-5 transition-standard active:scale-[99%]",
-        "has-[:checked]:border-primary",
-        "focus-ring",
+        "border-border p-5 transition-standard",
+        checked && "border-primary ring-1 ring-primary",
       )}
     >
-      <Label className="block" htmlFor={category.id}>
-        <div className="mb-2 flex items-center gap-2.5">
-          <Checkbox
-            id={category.id}
-            name={category.title}
-            checked={checked}
-            onCheckedChange={(isChecked) =>
-              onCheckedChange(category.id, isChecked === true)
-            }
-          />
+      <Label className="flex cursor-pointer items-start gap-2.5" htmlFor={category.id}>
+        <Checkbox
+          id={category.id}
+          name={category.title}
+          checked={checked}
+          onCheckedChange={(isChecked) =>
+            onCheckedChange(category.id, isChecked === true)
+          }
+          className="mt-0.5"
+        />
+        <div className="flex-1">
           <span className="text-base font-medium sm:text-sm">
             {category.title}
           </span>
+          {category.subcategories.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {category.subcategories.map((subcategory) => (
+                <li
+                  className={badgeVariants({ variant: "neutral" })}
+                  key={subcategory}
+                >
+                  {subcategory}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {category.subcategories.length > 0 && (
-          <ul className="ml-6 mt-2 flex flex-wrap gap-1.5">
-            {category.subcategories.map((subcategory) => (
-              <li
-                className={badgeVariants({ variant: "neutral" })}
-                key={subcategory}
-              >
-                {subcategory}
-              </li>
-            ))}
-          </ul>
-        )}
       </Label>
     </Card>
   )
@@ -127,10 +128,15 @@ export default function Products() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!isAnyItemChecked) {
+      return
+    }
+    
     setLoading(true)
+    
     setTimeout(() => {
-      console.log("Form submitted:", checkedItems)
-      router.push("/onboarding/employees")
+      router.push("/auth/onboarding/employees")
     }, 400)
   }
 
@@ -177,7 +183,10 @@ export default function Products() {
             ))}
           </div>
         </fieldset>
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-between">
+          <Button type="button" variant="ghost" asChild>
+            <Link href="/auth/onboarding/business-info">Back</Link>
+          </Button>
           <Button
             className="state-disabled"
             type="submit"
