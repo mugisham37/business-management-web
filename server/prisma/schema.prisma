@@ -8,3 +8,510 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ============================================================================
+// CORE TENANT ENTITIES
+// ============================================================================
+
+model Organization {
+  id          String  @id @default(uuid())
+  companyCode String  @unique @db.VarChar(6)
+  name        String
+  email       String
+  phone       String?
+  address     String?
+
+  // Subscription
+  subscriptionPlan   String?
+  subscriptionStatus String    @default("trial") // trial, active, suspended, cancelled
+  trialEndsAt        DateTime?
+
+  // Limits
+  maxUsers             Int @default(10)
+  maxLocations         Int @default(1)
+  currentUserCount     Int @default(0)
+  currentLocationCount Int @default(0)
+
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+  onboardingData      Json?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  locations   Location[]
+  departments Department[]
+  roles       Role[]
+  invitations Invitation[]
+  auditLogs   AuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Identity
+  email        String
+  username     String?
+  passwordHash String
+
+  // Profile
+  firstName String
+  lastName  String
+  phone     String?
+  avatar    String?
+
+  // Status
+  status              String    @default("active") // active, suspended, deactivated, locked
+  emailVerified       Boolean   @default(false)
+  lockedUntil         DateTime?
+  failedLoginAttempts Int       @default(0)
+  lastLoginAt         DateTime?
+
+  // MFA
+  mfaEnabled Boolean @default(false)
+  mfaSecret  String? // encrypted
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdById  String?
+  createdBy    User?   @relation("UserHierarchy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers User[]  @relation("UserHierarchy")
+
+  hierarchy               UserHierarchy[]          @relation("HierarchyUser")
+  parentHierarchy         UserHierarchy[]          @relation("HierarchyParent")
+  roles                   UserRole[]
+  permissions             UserPermission[]
+  locations               UserLocation[]
+  departmentId            String?
+  department              Department?              @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  sessions                Session[]
+  mfaBackupCodes          MFABackupCode[]
+  oauthProviders          OAuthProvider[]
+  passwordHistory         PasswordHistory[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  auditLogs               AuditLog[]
+  createdInvitations      Invitation[]             @relation("InvitationCreator")
+  acceptedInvitation      Invitation?              @relation("InvitationAcceptor")
+  grantedPermissions      UserPermission[]         @relation("PermissionGranter")
+  assignedRoles           UserRole[]               @relation("RoleAssigner")
+  assignedLocations       UserLocation[]           @relation("LocationAssigner")
+  assignedRolePermissions RolePermission[]         @relation("RolePermissionAssigner")
+
+  @@unique([organizationId, email])
+  @@unique([organizationId, username])
+  @@index([organizationId, email])
+  @@index([organizationId, username])
+  @@index([organizationId, status])
+  @@map("users")
+}
+
+model Location {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name String
+  code String
+  type String // headquarters, branch, warehouse, store
+
+  address    String?
+  city       String?
+  state      String?
+  country    String?
+  postalCode String?
+
+  phone String?
+  email String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users       UserLocation[]
+  roles       UserRole[]
+  permissions UserPermission[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("locations")
+}
+
+model Department {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  roles       UserRole[]
+  permissions UserPermission[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("departments")
+}
+
+// ============================================================================
+// AUTHENTICATION ENTITIES
+// ============================================================================
+
+model Session {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshToken     String @unique
+  refreshTokenHash String
+
+  ipAddress         String
+  userAgent         String
+  deviceFingerprint String?
+  location          String?
+
+  isRevoked     Boolean   @default(false)
+  revokedAt     DateTime?
+  revokedReason String?
+
+  expiresAt      DateTime
+  lastActivityAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([refreshToken])
+  @@index([userId, isRevoked])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Invitation {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  email String
+  token String @unique
+
+  // Delegated access (stored as JSON)
+  roles        Json // array of {roleId, scope}
+  permissions  Json // array of {permissionId, effect, scope}
+  locations    Json // array of locationIds
+  departmentId String?
+
+  createdById String
+  createdBy   User   @relation("InvitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  acceptedById String? @unique
+  acceptedBy   User?   @relation("InvitationAcceptor", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  status String @default("pending") // pending, accepted, expired, revoked
+
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token, expiresAt])
+  @@index([organizationId])
+  @@map("invitations")
+}
+
+model MFABackupCode {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  codeHash String
+
+  isUsed Boolean   @default(false)
+  usedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("mfa_backup_codes")
+}
+
+model OAuthProvider {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider   String // google, microsoft
+  providerId String
+
+  accessToken  String // encrypted
+  refreshToken String? // encrypted
+  expiresAt    DateTime?
+
+  profile Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_providers")
+}
+
+model PasswordResetToken {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token String @unique
+
+  isUsed Boolean   @default(false)
+  usedAt DateTime?
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token, expiresAt])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token String @unique
+
+  isUsed Boolean   @default(false)
+  usedAt DateTime?
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token, expiresAt])
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model PasswordHistory {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  passwordHash String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("password_history")
+}
+
+// ============================================================================
+// AUTHORIZATION ENTITIES
+// ============================================================================
+
+model Role {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+
+  isSystem Boolean @default(false)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("roles")
+}
+
+model Permission {
+  id String @id @default(uuid())
+
+  module   String // e.g., 'users', 'inventory', 'sales'
+  action   String // e.g., 'create', 'read', 'update', 'delete'
+  resource String // e.g., 'user', 'product', 'order'
+  code     String @unique // format: 'module:action:resource'
+
+  description String
+  isSystem    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  roles RolePermission[]
+  users UserPermission[]
+
+  @@index([code])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  assignedById String
+  assignedBy   User     @relation("RolePermissionAssigner", fields: [assignedById], references: [id], onDelete: Cascade)
+  assignedAt   DateTime @default(now())
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  // Scope
+  scopeType    String      @default("global") // global, location, department
+  locationId   String?
+  location     Location?   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  assignedById String
+  assignedBy   User     @relation("RoleAssigner", fields: [assignedById], references: [id], onDelete: Cascade)
+  assignedAt   DateTime @default(now())
+
+  @@unique([userId, roleId, scopeType, locationId, departmentId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([userId, roleId])
+  @@map("user_roles")
+}
+
+model UserPermission {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  effect String // allow, deny
+
+  // Scope
+  scopeType    String      @default("global") // global, location, department
+  locationId   String?
+  location     Location?   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  grantedById String
+  grantedBy   User      @relation("PermissionGranter", fields: [grantedById], references: [id], onDelete: Cascade)
+  grantedAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  @@unique([userId, permissionId, effect, scopeType, locationId, departmentId])
+  @@index([userId])
+  @@index([permissionId])
+  @@index([userId, permissionId])
+  @@map("user_permissions")
+}
+
+model UserLocation {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  isPrimary Boolean @default(false)
+
+  assignedById String
+  assignedBy   User     @relation("LocationAssigner", fields: [assignedById], references: [id], onDelete: Cascade)
+  assignedAt   DateTime @default(now())
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
+  @@index([userId, locationId])
+  @@map("user_locations")
+}
+
+model UserHierarchy {
+  id       String @id @default(uuid())
+  userId   String
+  user     User   @relation("HierarchyUser", fields: [userId], references: [id], onDelete: Cascade)
+  parentId String
+  parent   User   @relation("HierarchyParent", fields: [parentId], references: [id], onDelete: Cascade)
+
+  depth Int @default(0) // 0 = direct report
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, parentId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("user_hierarchy")
+}
+
+// ============================================================================
+// AUDIT ENTITY
+// ============================================================================
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action     String
+  resource   String
+  resourceId String?
+
+  outcome String // success, failure
+
+  beforeState Json?
+  afterState  Json?
+
+  ipAddress String?
+  userAgent String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}

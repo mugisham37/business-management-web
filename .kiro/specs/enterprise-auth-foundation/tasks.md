@@ -26,8 +26,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
   - Create database module for NestJS integration
   - _Requirements: 16.1, 16.5_
 
-- [ ] 3. Define Prisma schema for all entities
-  - [ ] 3.1 Define core tenant entities (Organization, User, Location, Department)
+- [x] 3. Define Prisma schema for all entities
+  - [x] 3.1 Define core tenant entities (Organization, User, Location, Department)
     - Create Organization model with subscription and limits fields
     - Create User model with authentication and status fields
     - Create Location model with address and contact fields
@@ -35,7 +35,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Add indexes for performance (organizationId, email, username)
     - _Requirements: 1.1, 16.5, 20.1_
   
-  - [ ] 3.2 Define authentication entities (Session, Invitation, MFA, OAuth, Password tokens)
+  - [x] 3.2 Define authentication entities (Session, Invitation, MFA, OAuth, Password tokens)
     - Create Session model with device tracking
     - Create Invitation model with delegation data
     - Create MFABackupCode model
@@ -46,7 +46,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Add indexes for token lookups
     - _Requirements: 2.1, 4.2, 11.1, 13.3, 14.1, 17.4_
   
-  - [ ] 3.3 Define authorization entities (Role, Permission, junction tables)
+  - [x] 3.3 Define authorization entities (Role, Permission, junction tables)
     - Create Role model with system role flag
     - Create Permission model with module/action/resource structure
     - Create RolePermission junction model
@@ -57,12 +57,12 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Add indexes for permission evaluation
     - _Requirements: 7.3, 9.1, 10.1, 19.1, 24.1_
   
-  - [ ] 3.4 Define audit entity (AuditLog)
+  - [x] 3.4 Define audit entity (AuditLog)
     - Create AuditLog model with immutable fields
     - Add indexes for audit queries (organizationId, userId, createdAt)
     - _Requirements: 15.1, 15.5_
   
-  - [ ] 3.5 Run Prisma migrations
+  - [x] 3.5 Run Prisma migrations
     - Generate initial migration
     - Apply migration to database
     - Generate Prisma Client
