@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService, CreateUserDto, UpdateUserDto } from './users.service';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityService } from '../../common/security/security.service';
+import { PermissionsService } from '../permissions/permissions.service';
+import { RolesService } from '../roles/roles.service';
+import { LocationsService } from '../locations/locations.service';
 import { ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('UsersService', () => {
@@ -24,11 +27,38 @@ describe('UsersService', () => {
     session: {
       updateMany: jest.fn(),
     },
-  };
+    organization: {
+      findUnique: jest.fn(),
+    },
+    invitation: {
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
+    userLocation: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
+    userHierarchy: {
+      create: jest.fn(),
+    },
+    userRole: {
+      create: jest.fn(),
+    },
+    permission: {
+      findUnique: jest.fn(),
+    },
+    userPermission: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+  } as any;
 
   const mockSecurityService = {
     validatePasswordStrength: jest.fn(),
     hashPassword: jest.fn(),
+    generateToken: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -42,6 +72,25 @@ describe('UsersService', () => {
         {
           provide: SecurityService,
           useValue: mockSecurityService,
+        },
+        {
+          provide: PermissionsService,
+          useValue: {
+            validateDelegation: jest.fn(),
+          },
+        },
+        {
+          provide: RolesService,
+          useValue: {
+            findById: jest.fn(),
+            getRolePermissions: jest.fn(),
+          },
+        },
+        {
+          provide: LocationsService,
+          useValue: {
+            findById: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -412,6 +461,308 @@ describe('UsersService', () => {
       expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { departmentId: null },
+      });
+    });
+  });
+
+  describe('Invitation System', () => {
+    let permissionsService: any;
+    let rolesService: any;
+    let locationsService: any;
+
+    beforeEach(() => {
+      // Mock the additional services needed for invitation system
+      permissionsService = {
+        validateDelegation: jest.fn(),
+      };
+
+      rolesService = {
+        findById: jest.fn(),
+        getRolePermissions: jest.fn(),
+      };
+
+      locationsService = {
+        findById: jest.fn(),
+      };
+
+      // Inject mocked services
+      (service as any).permissions = permissionsService;
+      (service as any).roles = rolesService;
+      (service as any).locations = locationsService;
+    });
+
+    describe('createInvitation', () => {
+      const organizationId = 'org-123';
+      const creatorId = 'creator-123';
+      const inviteDto = {
+        email: 'newuser@example.com',
+        firstName: 'New',
+        lastName: 'User',
+        roles: [
+          {
+            roleId: 'role-123',
+            scope: {
+              type: 'global' as const,
+            },
+          },
+        ],
+        permissions: [],
+        locationIds: ['loc-123'],
+        departmentId: undefined,
+      };
+
+      it('should create invitation successfully', async () => {
+        const creator = { id: creatorId, organizationId };
+        const organization = { id: organizationId, companyCode: 'ABC123' };
+        const role = { id: 'role-123', organizationId, name: 'Manager' };
+        const location = { id: 'loc-123', organizationId, name: 'HQ' };
+        const invitation = {
+          id: 'inv-123',
+          organizationId,
+          email: inviteDto.email,
+          token: 'generated-token',
+          status: 'pending',
+        };
+
+        mockPrismaService.user.findFirst
+          .mockResolvedValueOnce(creator) // findById for creator
+          .mockResolvedValueOnce(null); // findByEmail - no existing user
+        mockPrismaService.organization.findUnique.mockResolvedValue(organization);
+        mockPrismaService.invitation.findFirst.mockResolvedValue(null); // No pending invitation
+        locationsService.findById.mockResolvedValue(location);
+        mockPrismaService.userLocation.findFirst.mockResolvedValue({ userId: creatorId, locationId: 'loc-123' });
+        rolesService.findById.mockResolvedValue(role);
+        rolesService.getRolePermissions.mockResolvedValue(['users:read:user']);
+        permissionsService.validateDelegation.mockResolvedValue(true);
+        mockSecurityService.generateToken = jest.fn().mockReturnValue('generated-token');
+        mockPrismaService.invitation.create.mockResolvedValue(invitation);
+
+        const result = await service.createInvitation(organizationId, inviteDto, creatorId);
+
+        expect(result).toEqual(invitation);
+        expect(permissionsService.validateDelegation).toHaveBeenCalledWith(
+          creatorId,
+          ['users:read:user']
+        );
+        expect(mockPrismaService.invitation.create).toHaveBeenCalled();
+      });
+
+      it('should throw ConflictException if email already exists', async () => {
+        const creator = { id: creatorId, organizationId };
+        const existingUser = { id: 'existing-123', email: inviteDto.email };
+
+        mockPrismaService.user.findFirst
+          .mockResolvedValueOnce(creator)
+          .mockResolvedValueOnce(existingUser);
+        mockPrismaService.organization.findUnique.mockResolvedValue({ id: organizationId });
+
+        await expect(
+          service.createInvitation(organizationId, inviteDto, creatorId)
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it('should throw ConflictException if pending invitation exists', async () => {
+        const creator = { id: creatorId, organizationId };
+        const pendingInvitation = { id: 'inv-123', email: inviteDto.email, status: 'pending' };
+
+        mockPrismaService.user.findFirst
+          .mockResolvedValueOnce(creator)
+          .mockResolvedValueOnce(null);
+        mockPrismaService.organization.findUnique.mockResolvedValue({ id: organizationId });
+        mockPrismaService.invitation.findFirst.mockResolvedValue(pendingInvitation);
+
+        await expect(
+          service.createInvitation(organizationId, inviteDto, creatorId)
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it('should throw ForbiddenException if creator lacks location access', async () => {
+        const creator = { id: creatorId, organizationId };
+        const organization = { id: organizationId, companyCode: 'ABC123' };
+        const location = { id: 'loc-123', organizationId, name: 'HQ' };
+
+        mockPrismaService.user.findFirst
+          .mockResolvedValueOnce(creator)
+          .mockResolvedValueOnce(null);
+        mockPrismaService.organization.findUnique.mockResolvedValue(organization);
+        mockPrismaService.invitation.findFirst.mockResolvedValue(null);
+        locationsService.findById.mockResolvedValue(location);
+        mockPrismaService.userLocation.findFirst.mockResolvedValue(null); // Creator doesn't have access
+
+        await expect(
+          service.createInvitation(organizationId, inviteDto, creatorId)
+        ).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should throw ForbiddenException if creator lacks delegated permissions', async () => {
+        const creator = { id: creatorId, organizationId };
+        const organization = { id: organizationId, companyCode: 'ABC123' };
+        const role = { id: 'role-123', organizationId, name: 'Manager' };
+        const location = { id: 'loc-123', organizationId, name: 'HQ' };
+
+        mockPrismaService.user.findFirst
+          .mockResolvedValueOnce(creator)
+          .mockResolvedValueOnce(null);
+        mockPrismaService.organization.findUnique.mockResolvedValue(organization);
+        mockPrismaService.invitation.findFirst.mockResolvedValue(null);
+        locationsService.findById.mockResolvedValue(location);
+        mockPrismaService.userLocation.findFirst.mockResolvedValue({ userId: creatorId, locationId: 'loc-123' });
+        rolesService.findById.mockResolvedValue(role);
+        rolesService.getRolePermissions.mockResolvedValue(['users:create:user']);
+        permissionsService.validateDelegation.mockResolvedValue(false); // Creator lacks permissions
+
+        await expect(
+          service.createInvitation(organizationId, inviteDto, creatorId)
+        ).rejects.toThrow(ForbiddenException);
+      });
+    });
+
+    describe('validateInvitation', () => {
+      const token = 'valid-token';
+
+      it('should validate invitation successfully', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          status: 'pending',
+          expiresAt: new Date(Date.now() + 86400000), // 1 day from now
+          organization: { id: 'org-123', companyCode: 'ABC123' },
+          createdBy: { id: 'creator-123' },
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+
+        const result = await service.validateInvitation(token);
+
+        expect(result).toEqual(invitation);
+      });
+
+      it('should throw NotFoundException if token not found', async () => {
+        mockPrismaService.invitation.findUnique.mockResolvedValue(null);
+
+        await expect(service.validateInvitation(token)).rejects.toThrow(NotFoundException);
+      });
+
+      it('should throw ForbiddenException if invitation expired', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          status: 'pending',
+          expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+
+        await expect(service.validateInvitation(token)).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should throw ForbiddenException if invitation already accepted', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          status: 'accepted',
+          expiresAt: new Date(Date.now() + 86400000),
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+
+        await expect(service.validateInvitation(token)).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should throw ForbiddenException if invitation revoked', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          status: 'revoked',
+          expiresAt: new Date(Date.now() + 86400000),
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+
+        await expect(service.validateInvitation(token)).rejects.toThrow(ForbiddenException);
+      });
+    });
+
+    describe('acceptInvitation', () => {
+      const token = 'valid-token';
+      const acceptDto = {
+        password: 'SecurePass123!',
+        username: 'newuser',
+      };
+
+      it('should accept invitation and create user successfully', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          organizationId: 'org-123',
+          email: 'newuser@example.com',
+          status: 'pending',
+          expiresAt: new Date(Date.now() + 86400000),
+          createdById: 'creator-123',
+          roles: [{ roleId: 'role-123', scope: { type: 'global' } }],
+          permissions: [],
+          locations: ['loc-123'],
+          departmentId: null,
+          organization: { id: 'org-123' },
+          createdBy: { id: 'creator-123' },
+        };
+
+        const newUser = {
+          id: 'user-123',
+          organizationId: invitation.organizationId,
+          email: invitation.email,
+          username: acceptDto.username,
+          status: 'active',
+          emailVerified: true,
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+        mockSecurityService.validatePasswordStrength.mockReturnValue({ isValid: true, errors: [] });
+        mockSecurityService.hashPassword.mockResolvedValue('hashed-password');
+        mockPrismaService.user.create.mockResolvedValue(newUser);
+        mockPrismaService.userHierarchy.create.mockResolvedValue({});
+        mockPrismaService.userRole.create.mockResolvedValue({});
+        mockPrismaService.userLocation.create.mockResolvedValue({});
+        mockPrismaService.invitation.update.mockResolvedValue({ ...invitation, status: 'accepted' });
+
+        const result = await service.acceptInvitation(token, acceptDto);
+
+        expect(result).toEqual(newUser);
+        expect(mockPrismaService.user.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            organizationId: invitation.organizationId,
+            email: invitation.email,
+            username: acceptDto.username,
+            emailVerified: true,
+            createdById: invitation.createdById,
+          }),
+        });
+        expect(mockPrismaService.userHierarchy.create).toHaveBeenCalledWith({
+          data: {
+            userId: newUser.id,
+            parentId: invitation.createdById,
+            depth: 0,
+          },
+        });
+      });
+
+      it('should throw ForbiddenException if password is weak', async () => {
+        const invitation = {
+          id: 'inv-123',
+          token,
+          status: 'pending',
+          expiresAt: new Date(Date.now() + 86400000),
+          organization: { id: 'org-123' },
+          createdBy: { id: 'creator-123' },
+        };
+
+        mockPrismaService.invitation.findUnique.mockResolvedValue(invitation);
+        mockSecurityService.validatePasswordStrength.mockReturnValue({
+          isValid: false,
+          errors: ['Password too short'],
+        });
+
+        await expect(service.acceptInvitation(token, acceptDto)).rejects.toThrow(ForbiddenException);
       });
     });
   });

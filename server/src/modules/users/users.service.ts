@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException, ConflictException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityService } from '../../common/security/security.service';
-import { User } from '@prisma/client';
+import { PermissionsService } from '../permissions/permissions.service';
+import { RolesService } from '../roles/roles.service';
+import { LocationsService } from '../locations/locations.service';
+import { User, Invitation } from '@prisma/client';
 
 export interface CreateUserDto {
   email: string;
@@ -26,6 +29,36 @@ export interface UpdateUserDto {
   departmentId?: string;
 }
 
+export interface InviteUserDto {
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: Array<{
+    roleId: string;
+    scope: {
+      type: 'global' | 'location' | 'department';
+      locationId?: string;
+      departmentId?: string;
+    };
+  }>;
+  permissions?: Array<{
+    permissionCode: string;
+    effect: 'allow' | 'deny';
+    scope: {
+      type: 'global' | 'location' | 'department';
+      locationId?: string;
+      departmentId?: string;
+    };
+  }>;
+  locationIds: string[];
+  departmentId?: string;
+}
+
+export interface AcceptInvitationDto {
+  password: string;
+  username?: string;
+}
+
 /**
  * Users Service for user management
  * 
@@ -44,6 +77,9 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly security: SecurityService,
+    private readonly permissions: PermissionsService,
+    private readonly roles: RolesService,
+    private readonly locations: LocationsService,
   ) {}
 
   /**
@@ -584,6 +620,414 @@ export class UsersService {
     } catch (error) {
       this.logger.error(`Failed to invalidate sessions for user: ${userId}`, error);
       // Don't throw - this is a secondary operation
+    }
+  }
+
+  /**
+   * Create an invitation for a new team member
+   * 
+   * Requirements:
+   * - 4.1: Validate creator possesses all permissions being delegated
+   * - 4.2: Generate unique invitation token valid for 7 days
+   * - 4.3: Send invitation email with company code
+   * - 4.4: Reject if creator attempts to delegate permissions they don't possess
+   * - 4.6: Validate creator has access to specified locations
+   * - 4.7: Validate role permissions are subset of creator permissions
+   * 
+   * @param organizationId - Organization ID for tenant isolation
+   * @param dto - Invitation data
+   * @param creatorId - ID of user creating the invitation
+   * @returns Created invitation
+   */
+  async createInvitation(
+    organizationId: string,
+    dto: InviteUserDto,
+    creatorId: string,
+  ): Promise<Invitation> {
+    try {
+      // Get creator to verify organization
+      const creator = await this.findById(creatorId, organizationId);
+      if (!creator) {
+        throw new NotFoundException(`Creator not found: ${creatorId}`);
+      }
+
+      // Get organization to include company code in invitation
+      const organization = await this.prisma.organization.findUnique({
+        where: { id: organizationId },
+      });
+
+      if (!organization) {
+        throw new NotFoundException(`Organization not found: ${organizationId}`);
+      }
+
+      // Check if email already exists in organization
+      const existingUser = await this.findByEmail(dto.email, organizationId);
+      if (existingUser) {
+        throw new ConflictException(`User with email '${dto.email}' already exists in this organization`);
+      }
+
+      // Check if there's already a pending invitation for this email
+      const existingInvitation = await this.prisma.invitation.findFirst({
+        where: {
+          organizationId,
+          email: dto.email,
+          status: 'pending',
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+      });
+
+      if (existingInvitation) {
+        throw new ConflictException(`Pending invitation already exists for email '${dto.email}'`);
+      }
+
+      // Validate location access - creator must have access to all specified locations
+      // Requirement 4.6: Location-scoped delegation validation
+      for (const locationId of dto.locationIds) {
+        const location = await this.locations.findById(locationId, organizationId);
+        if (!location) {
+          throw new NotFoundException(`Location not found: ${locationId}`);
+        }
+
+        // Check if creator has access to this location
+        const creatorHasLocation = await this.prisma.userLocation.findFirst({
+          where: {
+            userId: creatorId,
+            locationId,
+          },
+        });
+
+        if (!creatorHasLocation) {
+          throw new ForbiddenException(
+            `Cannot invite user to location '${location.name}' - you do not have access to this location`,
+          );
+        }
+      }
+
+      // Validate department if specified
+      if (dto.departmentId) {
+        const department = await this.prisma.department.findFirst({
+          where: {
+            id: dto.departmentId,
+            organizationId,
+          },
+        });
+
+        if (!department) {
+          throw new NotFoundException(`Department not found: ${dto.departmentId}`);
+        }
+      }
+
+      // Collect all permissions being delegated
+      const allPermissionCodes: string[] = [];
+
+      // Validate role permissions - creator must have all permissions from assigned roles
+      // Requirement 4.7: Role-based delegation validation
+      for (const roleAssignment of dto.roles) {
+        const role = await this.roles.findById(roleAssignment.roleId, organizationId);
+        if (!role) {
+          throw new NotFoundException(`Role not found: ${roleAssignment.roleId}`);
+        }
+
+        // Get all permissions from this role
+        const rolePermissions = await this.roles.getRolePermissions(roleAssignment.roleId);
+        allPermissionCodes.push(...rolePermissions);
+
+        // Validate location scope if specified
+        if (roleAssignment.scope.type === 'location' && roleAssignment.scope.locationId) {
+          const location = await this.locations.findById(
+            roleAssignment.scope.locationId,
+            organizationId,
+          );
+          if (!location) {
+            throw new NotFoundException(`Location not found: ${roleAssignment.scope.locationId}`);
+          }
+
+          // Verify creator has access to this location
+          const creatorHasLocation = await this.prisma.userLocation.findFirst({
+            where: {
+              userId: creatorId,
+              locationId: roleAssignment.scope.locationId,
+            },
+          });
+
+          if (!creatorHasLocation) {
+            throw new ForbiddenException(
+              `Cannot assign role with location scope '${location.name}' - you do not have access to this location`,
+            );
+          }
+        }
+
+        // Validate department scope if specified
+        if (roleAssignment.scope.type === 'department' && roleAssignment.scope.departmentId) {
+          const department = await this.prisma.department.findFirst({
+            where: {
+              id: roleAssignment.scope.departmentId,
+              organizationId,
+            },
+          });
+
+          if (!department) {
+            throw new NotFoundException(`Department not found: ${roleAssignment.scope.departmentId}`);
+          }
+        }
+      }
+
+      // Add direct permissions if specified
+      if (dto.permissions) {
+        for (const perm of dto.permissions) {
+          allPermissionCodes.push(perm.permissionCode);
+        }
+      }
+
+      // Validate delegation - creator must have all permissions being delegated
+      // Requirements 4.1, 4.4: Delegation validation
+      if (allPermissionCodes.length > 0) {
+        const canDelegate = await this.permissions.validateDelegation(
+          creatorId,
+          allPermissionCodes,
+        );
+
+        if (!canDelegate) {
+          throw new ForbiddenException(
+            'Cannot invite user with permissions you do not possess',
+          );
+        }
+      }
+
+      // Generate invitation token (7-day expiry)
+      // Requirement 4.2: Generate unique invitation token valid for 7 days
+      const token = this.security.generateToken(32);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+      // Create invitation record with delegation data
+      const invitation = await this.prisma.invitation.create({
+        data: {
+          organizationId,
+          email: dto.email,
+          token,
+          roles: dto.roles,
+          permissions: dto.permissions || [],
+          locations: dto.locationIds,
+          departmentId: dto.departmentId,
+          createdById: creatorId,
+          status: 'pending',
+          expiresAt,
+        },
+      });
+
+      // TODO: Send invitation email with company code
+      // Requirement 4.3: Send invitation email with registration link and company code
+      // This would integrate with an email service
+      this.logger.log(
+        `Invitation created: ${invitation.id} for ${dto.email} by creator ${creatorId}`,
+      );
+      this.logger.log(
+        `Invitation link: /auth/register/invitation?token=${token}&companyCode=${organization.companyCode}`,
+      );
+
+      return invitation;
+    } catch (error) {
+      this.logger.error('Failed to create invitation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate an invitation token
+   * 
+   * Requirements:
+   * - 5.1: Check token validity (not expired, not used)
+   * 
+   * @param token - Invitation token
+   * @returns Invitation with delegation data
+   */
+  async validateInvitation(token: string): Promise<Invitation> {
+    try {
+      const invitation = await this.prisma.invitation.findUnique({
+        where: { token },
+        include: {
+          organization: true,
+          createdBy: true,
+        },
+      });
+
+      if (!invitation) {
+        throw new NotFoundException('Invalid invitation token');
+      }
+
+      // Check if invitation has expired
+      if (invitation.expiresAt < new Date()) {
+        throw new ForbiddenException('Invitation has expired');
+      }
+
+      // Check if invitation has already been accepted
+      if (invitation.status === 'accepted') {
+        throw new ForbiddenException('Invitation has already been used');
+      }
+
+      // Check if invitation has been revoked
+      if (invitation.status === 'revoked') {
+        throw new ForbiddenException('Invitation has been revoked');
+      }
+
+      return invitation;
+    } catch (error) {
+      this.logger.error('Failed to validate invitation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Accept an invitation and create team member account
+   * 
+   * Requirements:
+   * - 5.1: Validate invitation token
+   * - 5.2: Create hierarchy record linking to creator
+   * - 5.3: Assign roles with scope
+   * - 5.5: Mark email as verified automatically
+   * - 5.6: Skip onboarding flow
+   * 
+   * @param token - Invitation token
+   * @param dto - Team member registration data
+   * @returns Created user
+   */
+  async acceptInvitation(
+    token: string,
+    dto: AcceptInvitationDto,
+  ): Promise<User> {
+    try {
+      // Validate invitation token
+      // Requirement 5.1: Validate invitation token
+      const invitation = await this.validateInvitation(token);
+
+      // Validate password strength
+      const passwordValidation = this.security.validatePasswordStrength(dto.password);
+      if (!passwordValidation.isValid) {
+        throw new ForbiddenException(
+          `Password validation failed: ${passwordValidation.errors.join(', ')}`,
+        );
+      }
+
+      // Hash password
+      const passwordHash = await this.security.hashPassword(dto.password);
+
+      // Create user with delegated permissions in a transaction
+      const user = await this.prisma.$transaction(async (tx) => {
+        // Create user
+        // Requirement 5.5: Mark email as verified automatically
+        // Requirement 5.6: Skip onboarding flow (team members don't go through onboarding)
+        const newUser = await tx.user.create({
+          data: {
+            organizationId: invitation.organizationId,
+            email: invitation.email,
+            username: dto.username,
+            passwordHash,
+            firstName: (invitation as any).firstName || 'Team',
+            lastName: (invitation as any).lastName || 'Member',
+            status: 'active',
+            emailVerified: true, // Team members start verified
+            createdById: invitation.createdById,
+          },
+        });
+
+        // Create hierarchy record linking to creator
+        // Requirement 5.2: Create hierarchy record linking to creator
+        await tx.userHierarchy.create({
+          data: {
+            userId: newUser.id,
+            parentId: invitation.createdById,
+            depth: 0, // Direct report
+          },
+        });
+
+        // Assign roles with scope
+        // Requirement 5.3: Assign roles with scope
+        const roles = invitation.roles as any[];
+        for (const roleAssignment of roles) {
+          await tx.userRole.create({
+            data: {
+              userId: newUser.id,
+              roleId: roleAssignment.roleId,
+              scopeType: roleAssignment.scope.type,
+              locationId: roleAssignment.scope.locationId,
+              departmentId: roleAssignment.scope.departmentId,
+              assignedById: invitation.createdById,
+            },
+          });
+        }
+
+        // Assign direct permissions if specified
+        const permissions = invitation.permissions as any[];
+        if (permissions && permissions.length > 0) {
+          for (const perm of permissions) {
+            // Get permission by code
+            const permission = await tx.permission.findUnique({
+              where: { code: perm.permissionCode },
+            });
+
+            if (permission) {
+              await tx.userPermission.create({
+                data: {
+                  userId: newUser.id,
+                  permissionId: permission.id,
+                  effect: perm.effect,
+                  scopeType: perm.scope.type,
+                  locationId: perm.scope.locationId,
+                  departmentId: perm.scope.departmentId,
+                  grantedById: invitation.createdById,
+                },
+              });
+            }
+          }
+        }
+
+        // Assign locations
+        const locationIds = invitation.locations as string[];
+        for (const locationId of locationIds) {
+          await tx.userLocation.create({
+            data: {
+              userId: newUser.id,
+              locationId,
+              assignedById: invitation.createdById,
+              isPrimary: locationIds.indexOf(locationId) === 0, // First location is primary
+            },
+          });
+        }
+
+        // Assign department if specified
+        if (invitation.departmentId) {
+          await tx.user.update({
+            where: { id: newUser.id },
+            data: {
+              departmentId: invitation.departmentId,
+            },
+          });
+        }
+
+        // Mark invitation as accepted
+        await tx.invitation.update({
+          where: { id: invitation.id },
+          data: {
+            status: 'accepted',
+            acceptedById: newUser.id,
+            acceptedAt: new Date(),
+          },
+        });
+
+        return newUser;
+      });
+
+      this.logger.log(
+        `Team member registered via invitation: ${user.id} (${user.email}) in organization ${invitation.organizationId}`,
+      );
+
+      return user;
+    } catch (error) {
+      this.logger.error('Failed to accept invitation:', error);
+      throw error;
     }
   }
 }
