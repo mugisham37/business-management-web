@@ -17,7 +17,7 @@ export default function Agents() {
         </div>
       </div>
       <Divider />
-      <section className="mt-8">
+      <section style={{ marginTop: 'var(--spacing-lg)' }}>
         <DataTable data={agents} columns={agentColumns} />
       </section>
     </main>

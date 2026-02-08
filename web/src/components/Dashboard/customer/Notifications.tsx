@@ -107,28 +107,31 @@ const NotificationItem = ({ notification }: { notification: Notification }) => {
     <li className="notification-item">
       <a
         href="#"
-        className="notification-item-link focus:outline-none"
+        className="notification-item-link focus-ring"
       >
         {/* Extend touch target to entire field */}
         <span aria-hidden="true" className="absolute inset-0" />
         <p 
-          className="text-body"
-          style={{ fontSize: 'var(--text-notification-title)' }}
+          style={{ 
+            fontSize: 'var(--text-notification-title)',
+            lineHeight: 'var(--leading-normal)',
+            color: 'var(--foreground)'
+          }}
         >
           {!read && (
             <span
               aria-hidden="true"
               className="unread-indicator mb-px mr-1.5 sm:text-sm"
-              style={{ backgroundColor: 'var(--notification-unread-indicator)' }}
             />
           )}
           {message}
         </p>
         <p 
-          className="text-body-secondary"
           style={{ 
             marginTop: 'var(--spacing-notification-item)',
-            fontSize: 'var(--text-notification-meta)'
+            fontSize: 'var(--text-notification-meta)',
+            lineHeight: 'var(--leading-normal)',
+            color: 'var(--muted-foreground)'
           }}
         >
           {formatDate(date)}
@@ -174,22 +177,34 @@ export function Notifications() {
             focusRing,
             "interactive-button-base group",
           )}
-          style={{
-            backgroundColor: 'var(--interactive-active-bg)'
-          }}
           data-state="closed"
         >
-          <span className="avatar-circle size-8 p-1">
+          <span 
+            className="avatar-circle relative"
+            style={{
+              width: 'var(--avatar-size-sm)',
+              height: 'var(--avatar-size-sm)',
+              padding: 'var(--spacing-xs)'
+            }}
+          >
             {unreadCount > 0 && (
               <span
-                className="unread-indicator absolute right-2.5 top-2.5"
-                style={{ backgroundColor: 'var(--notification-unread-indicator)' }}
+                className="unread-indicator absolute"
+                style={{ 
+                  right: 'var(--spacing-xs)',
+                  top: 'var(--spacing-xs)'
+                }}
                 aria-hidden="true"
               />
             )}
             <RiNotification2Line
-              className="-ml-px size-4 shrink-0 group-hover:text-[var(--foreground)]"
-              style={{ color: 'var(--muted-foreground)' }}
+              className="-ml-px shrink-0 group-hover:text-[var(--foreground)]"
+              style={{ 
+                width: 'var(--icon-size-settings-sm)',
+                height: 'var(--icon-size-settings-sm)',
+                color: 'var(--muted-foreground)',
+                transition: 'var(--transition-colors)'
+              }}
               aria-hidden="true"
             />
           </span>
@@ -197,18 +212,22 @@ export function Notifications() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="z-20 ml-2 max-w-[95vw] px-3 sm:ml-0"
-        style={{ maxWidth: 'var(--container-max-width-sm)' }}
+        className="z-20 max-w-[95vw]"
+        style={{ 
+          maxWidth: 'var(--container-max-width-sm)',
+          marginLeft: 'var(--spacing-xs)',
+          padding: 'var(--spacing-md)'
+        }}
       >
         <div 
           className="flex items-center justify-between"
           style={{ gap: 'var(--spacing-lg)' }}
         >
           <h2 
-            className="text-heading"
             style={{ 
               fontSize: 'var(--text-base)',
-              fontWeight: 'var(--font-semibold)'
+              fontWeight: 'var(--font-semibold)',
+              color: 'var(--foreground)'
             }}
           >
             Notifications

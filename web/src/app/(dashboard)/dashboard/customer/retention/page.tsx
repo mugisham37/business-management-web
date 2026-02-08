@@ -37,33 +37,23 @@ import { cx, focusRing } from "@/lib/utils"
 import { RiCloseLine, RiExpandDiagonalLine } from "@remixicon/react"
 import { useState } from "react"
 
-const colorClasses = [
-  "bg-blue-50 dark:bg-blue-950",
-  "bg-blue-100 dark:bg-blue-900",
-  "bg-blue-200 dark:bg-blue-800",
-  "bg-blue-300 dark:bg-blue-700",
-  "bg-blue-400 dark:bg-blue-600",
-  "bg-blue-500 dark:bg-blue-500",
-  "bg-blue-600 dark:bg-blue-400",
-]
-
-const getBackgroundColor = (
+const getCohortColorClass = (
   value: number,
   minValue: number,
   maxValue: number,
-) => {
+): string => {
   const normalizedValue = (value - minValue) / (maxValue - minValue)
   const index = Math.min(
-    Math.floor(normalizedValue * colorClasses.length),
-    colorClasses.length - 1,
+    Math.floor(normalizedValue * 7),
+    6,
   )
-  return colorClasses[index]
+  return `cohort-color-${index + 1}`
 }
 
-const getTextColor = (value: number, minValue: number, maxValue: number) => {
+const getCohortTextClass = (value: number, minValue: number, maxValue: number): string => {
   return (value - minValue) / (maxValue - minValue) > 0.6
-    ? "text-white dark:text-white"
-    : "text-gray-900 dark:text-gray-50"
+    ? "cohort-text-light"
+    : "cohort-text-dark"
 }
 
 interface CohortDetailsDialogProps {
@@ -83,30 +73,76 @@ const CohortDetailsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContentFull className="fixed inset-4 mx-auto flex w-[95vw] flex-col overflow-hidden rounded-lg p-0 shadow-lg sm:max-w-3xl">
-        <DialogHeader className="flex-none border-b border-[var(--border)] px-6 py-4">
-          <DialogTitle className="text-lg font-semibold">
+      <DialogContentFull 
+        className="fixed inset-4 mx-auto flex flex-col overflow-hidden rounded-lg p-0 shadow-lg"
+        style={{
+          width: '95vw',
+          maxWidth: 'var(--container-max-width-lg)'
+        }}
+      >
+        <DialogHeader 
+          className="flex-none border-b px-6 py-4"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <DialogTitle 
+            style={{
+              fontSize: 'var(--text-lg)',
+              fontWeight: 'var(--font-semibold)'
+            }}
+          >
             Cohort Details
           </DialogTitle>
-          <DialogDescription className="mt-1 sm:text-sm/6">
+          <DialogDescription 
+            className="sm:text-sm/6"
+            style={{ 
+              marginTop: 'var(--spacing-xs)',
+              fontSize: 'var(--text-sm)',
+              lineHeight: 'var(--leading-normal)'
+            }}
+          >
             Detailed metrics for cohort starting {cohortKey} with {cohort.size}{" "}
             initial customers
           </DialogDescription>
           <DialogClose asChild>
-            <Button className="absolute right-4 top-4 p-2" variant="ghost">
-              <RiCloseLine className="size-5 shrink-0" />
+            <Button 
+              className="absolute p-2" 
+              variant="ghost"
+              style={{
+                right: 'var(--spacing-md)',
+                top: 'var(--spacing-md)'
+              }}
+            >
+              <RiCloseLine 
+                className="shrink-0" 
+                style={{
+                  width: 'var(--icon-size-settings-default)',
+                  height: 'var(--icon-size-settings-default)'
+                }}
+              />
             </Button>
           </DialogClose>
         </DialogHeader>
 
-        <DialogBody className="flex-1 overflow-y-auto px-6">
-          <div className="space-y-6">
+        <DialogBody 
+          className="flex-1 overflow-y-auto"
+          style={{ padding: 'var(--spacing-lg)' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
             {/* Activity Metrics */}
             <section>
-              <h3 className="mb-3 font-medium text-[var(--foreground)]">
+              <h3 
+                className="mb-3"
+                style={{
+                  fontWeight: 'var(--font-medium)',
+                  color: 'var(--foreground)'
+                }}
+              >
                 Activity Summary
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div 
+                className="grid grid-cols-2"
+                style={{ gap: 'var(--spacing-md)' }}
+              >
                 {Object.entries(
                   cohort.summary.activity as Record<
                     keyof ActivitySummary,
@@ -115,12 +151,16 @@ const CohortDetailsDialog = ({
                 ).map(([key, value]) => (
                   <div
                     key={key}
-                    className="flex items-center justify-between rounded-lg bg-[var(--muted)] p-3"
+                    className="flex items-center justify-between rounded-lg p-3"
+                    style={{ backgroundColor: 'var(--muted)' }}
                   >
-                    <span className="text-sm capitalize text-[var(--muted-foreground)]">
+                    <span 
+                      className="text-sm capitalize"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
                       {key.replace(/_/g, " ")}:
                     </span>
-                    <span className="font-medium">
+                    <span style={{ fontWeight: 'var(--font-medium)' }}>
                       {value.toLocaleString()}
                     </span>
                   </div>
@@ -130,10 +170,19 @@ const CohortDetailsDialog = ({
 
             {/* Satisfaction Metrics */}
             <section>
-              <h3 className="mb-3 font-medium text-[var(--foreground)]">
+              <h3 
+                className="mb-3"
+                style={{
+                  fontWeight: 'var(--font-medium)',
+                  color: 'var(--foreground)'
+                }}
+              >
                 Customer Satisfaction
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div 
+                className="grid grid-cols-2"
+                style={{ gap: 'var(--spacing-md)' }}
+              >
                 {Object.entries(
                   cohort.summary.satisfaction as Record<
                     keyof SatisfactionMetrics,
@@ -142,12 +191,16 @@ const CohortDetailsDialog = ({
                 ).map(([key, value]) => (
                   <div
                     key={key}
-                    className="flex items-center justify-between rounded-lg bg-[var(--muted)] p-3"
+                    className="flex items-center justify-between rounded-lg p-3"
+                    style={{ backgroundColor: 'var(--muted)' }}
                   >
-                    <span className="text-sm capitalize text-[var(--muted-foreground)]">
+                    <span 
+                      className="text-sm capitalize"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
                       {key.replace(/_/g, " ")}:
                     </span>
-                    <span className="font-medium">
+                    <span style={{ fontWeight: 'var(--font-medium)' }}>
                       {key.includes("score")
                         ? `${value}%`
                         : value.toLocaleString()}
@@ -159,10 +212,19 @@ const CohortDetailsDialog = ({
 
             {/* Performance Metrics */}
             <section>
-              <h3 className="mb-3 font-medium text-[var(--foreground)]">
+              <h3 
+                className="mb-3"
+                style={{
+                  fontWeight: 'var(--font-medium)',
+                  color: 'var(--foreground)'
+                }}
+              >
                 Performance Metrics
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div 
+                className="grid grid-cols-2"
+                style={{ gap: 'var(--spacing-md)' }}
+              >
                 {Object.entries(
                   cohort.summary.performance as Record<
                     keyof PerformanceMetrics,
@@ -171,12 +233,16 @@ const CohortDetailsDialog = ({
                 ).map(([key, value]) => (
                   <div
                     key={key}
-                    className="flex items-center justify-between rounded-lg bg-[var(--muted)] p-3"
+                    className="flex items-center justify-between rounded-lg p-3"
+                    style={{ backgroundColor: 'var(--muted)' }}
                   >
-                    <span className="text-sm capitalize text-[var(--muted-foreground)]">
+                    <span 
+                      className="text-sm capitalize"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
                       {key.replace(/_/g, " ")}:
                     </span>
-                    <span className="font-medium">
+                    <span style={{ fontWeight: 'var(--font-medium)' }}>
                       {key.includes("rate")
                         ? `${(value * 100).toFixed(1)}%`
                         : `${value} mins`}
@@ -188,29 +254,54 @@ const CohortDetailsDialog = ({
 
             {/* Top Issues */}
             <section>
-              <h3 className="mb-3 font-medium text-[var(--foreground)]">
+              <h3 
+                className="mb-3"
+                style={{
+                  fontWeight: 'var(--font-medium)',
+                  color: 'var(--foreground)'
+                }}
+              >
                 Top Issues
               </h3>
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
                 {cohort.summary.top_issues.map(
                   (issue: TopIssue, index: number) => (
                     <div
                       key={index}
-                      className="rounded-lg bg-[var(--muted)] p-3"
+                      className="rounded-lg p-3"
+                      style={{ backgroundColor: 'var(--muted)' }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{issue.category}</span>
-                        <span className="text-sm text-[var(--muted-foreground)]">
+                        <span style={{ fontWeight: 'var(--font-medium)' }}>{issue.category}</span>
+                        <span 
+                          className="text-sm"
+                          style={{ color: 'var(--muted-foreground)' }}
+                        >
                           {issue.count} tickets
                         </span>
                       </div>
-                      <div className="mt-1 h-2 rounded bg-[var(--border)]">
+                      <div 
+                        className="h-2 rounded"
+                        style={{ 
+                          marginTop: 'var(--spacing-xs)',
+                          backgroundColor: 'var(--border)'
+                        }}
+                      >
                         <div
-                          className="h-full rounded bg-[var(--primary)]"
-                          style={{ width: `${issue.resolution_rate * 100}%` }}
+                          className="h-full rounded"
+                          style={{ 
+                            width: `${issue.resolution_rate * 100}%`,
+                            backgroundColor: 'var(--primary)'
+                          }}
                         />
                       </div>
-                      <div className="mt-1 text-sm text-[var(--muted-foreground)]">
+                      <div 
+                        className="text-sm"
+                        style={{ 
+                          marginTop: 'var(--spacing-xs)',
+                          color: 'var(--muted-foreground)'
+                        }}
+                      >
                         {(issue.resolution_rate * 100).toFixed(1)}% resolved
                       </div>
                     </div>
@@ -221,10 +312,19 @@ const CohortDetailsDialog = ({
 
             {/* Channel Distribution */}
             <section>
-              <h3 className="mb-3 font-medium text-[var(--foreground)]">
+              <h3 
+                className="mb-3"
+                style={{
+                  fontWeight: 'var(--font-medium)',
+                  color: 'var(--foreground)'
+                }}
+              >
                 Channel Distribution
               </h3>
-              <div className="grid grid-cols-4 gap-4">
+              <div 
+                className="grid grid-cols-4"
+                style={{ gap: 'var(--spacing-md)' }}
+              >
                 {Object.entries(
                   cohort.summary.channels as Record<
                     keyof ChannelDistribution,
@@ -233,19 +333,34 @@ const CohortDetailsDialog = ({
                 ).map(([channel, value]) => (
                   <div
                     key={channel}
-                    className="rounded-lg bg-[var(--muted)] p-3 text-center"
+                    className="rounded-lg p-3 text-center"
+                    style={{ backgroundColor: 'var(--muted)' }}
                   >
-                    <span className="mb-1 block text-sm capitalize text-[var(--muted-foreground)]">
+                    <span 
+                      className="mb-1 block text-sm capitalize"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
                       {channel}
                     </span>
-                    <span className="block text-lg font-medium">{value}%</span>
+                    <span 
+                      className="block text-lg"
+                      style={{ fontWeight: 'var(--font-medium)' }}
+                    >
+                      {value}%
+                    </span>
                   </div>
                 ))}
               </div>
             </section>
           </div>
         </DialogBody>
-        <DialogFooter className="flex-none border-t border-[var(--border)] bg-[var(--card)] px-6 py-4">
+        <DialogFooter 
+          className="flex-none border-t px-6 py-4"
+          style={{ 
+            borderColor: 'var(--border)',
+            backgroundColor: 'var(--card)'
+          }}
+        >
           <DialogClose asChild>
             <Button variant="secondary">Close</Button>
           </DialogClose>

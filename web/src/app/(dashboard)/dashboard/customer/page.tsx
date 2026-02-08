@@ -6,12 +6,25 @@ import Link from "next/link"
 
 export default function CustomerPage() {
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">
+        <h1 
+          style={{
+            fontSize: 'var(--text-2xl)',
+            fontWeight: 'var(--font-bold)',
+            letterSpacing: 'var(--tracking-tight)',
+            color: 'var(--foreground)'
+          }}
+        >
           Customer Management
         </h1>
-        <p className="mt-2 text-[var(--muted-foreground)]">
+        <p 
+          style={{
+            marginTop: 'var(--spacing-xs)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--muted-foreground)'
+          }}
+        >
           Manage your customers and track their interactions
         </p>
       </div>
