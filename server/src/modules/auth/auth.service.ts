@@ -7,6 +7,7 @@ import { MFAService } from '../mfa/mfa.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { AuditService } from '../../common/audit/audit.service';
+import { RateLimitService } from '../../common/rate-limit/rate-limit.service';
 import { User, Organization } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 
@@ -93,6 +94,7 @@ export class AuthService {
     private readonly permissions: PermissionsService,
     private readonly organizations: OrganizationsService,
     private readonly audit: AuditService,
+    private readonly rateLimit: RateLimitService,
   ) {
     // Initialize JWT secret from environment
     this.JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
@@ -265,6 +267,12 @@ export class AuthService {
    * Requirement 6.4: WHEN a Team_Member account is suspended or deactivated, 
    * THE Auth_System SHALL reject authentication
    * 
+   * Requirement 12.2: WHEN authentication attempts fail 5 times for a user, 
+   * THE Rate_Limiter SHALL implement progressive delays (1s, 2s, 4s, 8s, 16s)
+   * 
+   * Requirement 12.3: WHEN authentication attempts fail 10 times for a user, 
+   * THE Auth_System SHALL lock the account for 30 minutes
+   * 
    * @param identifier - Email or username
    * @param password - Plain text password
    * @param organizationId - Organization ID (required for team members)
@@ -299,7 +307,19 @@ export class AuthService {
 
       if (!user) {
         this.logger.debug(`User not found: ${identifier}`);
+        
+        // Track failed login attempt in Redis (for rate limiting)
+        await this.rateLimit.trackFailedLogin(identifier);
+        
         return null;
+      }
+
+      // Check Redis-based account lock (from brute force protection)
+      const lockStatus = await this.rateLimit.isAccountLocked(user.id);
+      if (lockStatus.locked) {
+        throw new ForbiddenException(
+          `Account is temporarily locked due to too many failed login attempts. Please try again later. Lock expires at: ${lockStatus.expiresAt}`,
+        );
       }
 
       // Check if email is verified
@@ -330,13 +350,26 @@ export class AuthService {
         }
       }
 
+      // Get failed login count from Redis
+      const failedAttempts = await this.rateLimit.getFailedLoginCount(identifier);
+
+      // Calculate and apply progressive delay if needed (after 5 failures)
+      const delay = this.rateLimit.calculateProgressiveDelay(failedAttempts);
+      if (delay > 0) {
+        this.logger.warn(
+          `Applying progressive delay of ${delay}ms for user ${identifier} (${failedAttempts} failed attempts)`,
+        );
+        await this.rateLimit.applyProgressiveDelay(delay);
+      }
+
       // Verify password
       const isPasswordValid = await this.security.verifyPassword(password, user.passwordHash);
 
       if (!isPasswordValid) {
-        // Increment failed login attempts
-        const newFailedAttempts = user.failedLoginAttempts + 1;
-        
+        // Track failed login attempt in Redis
+        const newFailedAttempts = await this.rateLimit.trackFailedLogin(identifier);
+
+        // Also increment database counter for consistency
         await this.prisma.user.update({
           where: { id: user.id },
           data: {
@@ -345,10 +378,25 @@ export class AuthService {
           },
         });
 
-        // Lock account after 10 failed attempts
-        if (newFailedAttempts >= 10) {
-          await this.users.lock(user.id, user.organizationId, 'Too many failed login attempts', 30);
-          throw new ForbiddenException('Account locked due to too many failed login attempts. Please try again in 30 minutes.');
+        // Check if account should be locked (10 failures)
+        if (this.rateLimit.shouldLockAccount(newFailedAttempts)) {
+          // Lock account in Redis (30 minutes)
+          await this.rateLimit.lockAccount(
+            user.id,
+            'Too many failed login attempts',
+          );
+
+          // Also lock in database
+          await this.users.lock(
+            user.id,
+            user.organizationId,
+            'Too many failed login attempts',
+            30,
+          );
+
+          throw new ForbiddenException(
+            'Account locked due to too many failed login attempts. Please try again in 30 minutes.',
+          );
         }
 
         this.logger.debug(`Invalid password for user: ${user.id} (attempt ${newFailedAttempts})`);
@@ -356,6 +404,8 @@ export class AuthService {
       }
 
       // Reset failed login attempts on successful validation
+      await this.rateLimit.resetFailedLogins(identifier);
+      
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
           where: { id: user.id },

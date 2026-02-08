@@ -8,6 +8,7 @@ import { MFAModule } from '../mfa/mfa.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { AuditModule } from '../../common/audit/audit.module';
+import { RateLimitModule } from '../../common/rate-limit/rate-limit.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuditModule } from '../../common/audit/audit.module';
     PermissionsModule,
     OrganizationsModule,
     AuditModule,
+    RateLimitModule,
   ],
   providers: [AuthService],
   exports: [AuthService],

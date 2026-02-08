@@ -9,6 +9,7 @@ import { MFAService } from '../mfa/mfa.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { AuditService } from '../../common/audit/audit.service';
+import { RateLimitService } from '../../common/rate-limit/rate-limit.service';
 
 describe('AuthService - Primary Owner Registration', () => {
   let service: AuthService;
@@ -81,6 +82,17 @@ describe('AuthService - Primary Owner Registration', () => {
     log: jest.fn(),
   };
 
+  const mockRateLimitService = {
+    trackFailedLogin: jest.fn(),
+    resetFailedLogins: jest.fn(),
+    getFailedLoginCount: jest.fn(),
+    calculateProgressiveDelay: jest.fn(),
+    applyProgressiveDelay: jest.fn(),
+    shouldLockAccount: jest.fn(),
+    lockAccount: jest.fn(),
+    isAccountLocked: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -93,6 +105,7 @@ describe('AuthService - Primary Owner Registration', () => {
         { provide: PermissionsService, useValue: mockPermissionsService },
         { provide: OrganizationsService, useValue: mockOrganizationsService },
         { provide: AuditService, useValue: mockAuditService },
+        { provide: RateLimitService, useValue: mockRateLimitService },
       ],
     }).compile();
 
@@ -571,6 +584,17 @@ describe('AuthService - Password Management', () => {
     log: jest.fn(),
   };
 
+  const mockRateLimitService = {
+    trackFailedLogin: jest.fn(),
+    resetFailedLogins: jest.fn(),
+    getFailedLoginCount: jest.fn(),
+    calculateProgressiveDelay: jest.fn(),
+    applyProgressiveDelay: jest.fn(),
+    shouldLockAccount: jest.fn(),
+    lockAccount: jest.fn(),
+    isAccountLocked: jest.fn(),
+  };
+
   const mockOrganizationsService = {};
   const mockMFAService = {};
   const mockPermissionsService = {};
@@ -585,6 +609,9 @@ describe('AuthService - Password Management', () => {
         { provide: SessionsService, useValue: mockSessionsService },
         { provide: MFAService, useValue: mockMFAService },
         { provide: PermissionsService, useValue: mockPermissionsService },
+        { provide: OrganizationsService, useValue: mockOrganizationsService },
+        { provide: AuditService, useValue: mockAuditService },
+        { provide: RateLimitService, useValue: mockRateLimitService },
         { provide: OrganizationsService, useValue: mockOrganizationsService },
         { provide: AuditService, useValue: mockAuditService },
       ],
