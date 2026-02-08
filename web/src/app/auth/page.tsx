@@ -161,7 +161,7 @@ export default function Login() {
               {/* Team Member Link */}
               <div className="mt-6 text-center">
                 <Link
-                  href="/auth/login/team"
+                  href="/auth/team"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Team member? <span className="text-primary font-medium">Sign in here</span>

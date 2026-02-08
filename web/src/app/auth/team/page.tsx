@@ -160,7 +160,7 @@ export default function TeamLogin() {
           {/* Back to Owner Login */}
           <div className="mt-6">
             <Link
-              href="/auth/login"
+              href="/auth"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <RiArrowLeftLine className="h-4 w-4" />

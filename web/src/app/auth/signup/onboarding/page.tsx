@@ -7,7 +7,7 @@ export default function OnboardingRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace("/auth/onboarding/welcome")
+    router.replace("/auth/onboarding/business-info")
   }, [router])
 
   return (
