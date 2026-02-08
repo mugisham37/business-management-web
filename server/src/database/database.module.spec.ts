@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from './app.module';
-import { PrismaService } from './database/prisma.service';
+import { DatabaseModule } from './database.module';
+import { PrismaService } from './prisma.service';
+import { ConfigModule } from '@nestjs/config';
 
 // Mock PrismaService for testing
 const mockPrismaService = {
@@ -12,12 +13,17 @@ const mockPrismaService = {
   onModuleDestroy: jest.fn(),
 };
 
-describe('AppModule', () => {
+describe('DatabaseModule', () => {
   let module: TestingModule;
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+        }),
+        DatabaseModule,
+      ],
     })
       .overrideProvider(PrismaService)
       .useValue(mockPrismaService)
@@ -28,12 +34,13 @@ describe('AppModule', () => {
     expect(module).toBeDefined();
   });
 
-  it('should compile successfully', () => {
-    expect(module).toBeInstanceOf(TestingModule);
-  });
-
-  it('should have PrismaService available', () => {
+  it('should provide PrismaService', () => {
     const prismaService = module.get<PrismaService>(PrismaService);
     expect(prismaService).toBeDefined();
+  });
+
+  it('should export PrismaService', () => {
+    const prismaService = module.get<PrismaService>(PrismaService);
+    expect(prismaService).toBe(mockPrismaService);
   });
 });
