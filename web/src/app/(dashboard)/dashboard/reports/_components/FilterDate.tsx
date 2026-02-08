@@ -23,7 +23,7 @@ const FilterDate = () => {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-[var(--spacing-reports-filter-section-gap)]">
       <Label htmlFor="date-range" className="reports-filter-label">
         Date Range
       </Label>

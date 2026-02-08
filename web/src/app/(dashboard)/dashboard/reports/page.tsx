@@ -5,8 +5,8 @@ export default function Page() {
   return (
     <>
       <Header />
-      <section className="my-8">
-        <div className="space-y-12">
+      <section className="py-[var(--reports-content-padding-y)]">
+        <div className="space-y-[var(--reports-chart-spacing)]">
           <TransactionChart
             yAxisWidth={70}
             type="amount"
@@ -29,7 +29,7 @@ export default function Page() {
             type="count"
             className="sm:hidden"
           />
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="grid grid-cols-1 gap-[var(--reports-chart-grid-gap)] lg:grid-cols-2 lg:gap-[var(--reports-chart-grid-gap-lg)]">
             <TransactionChart yAxisWidth={100} type="category" />
             <TransactionChart yAxisWidth={100} type="merchant" />
           </div>

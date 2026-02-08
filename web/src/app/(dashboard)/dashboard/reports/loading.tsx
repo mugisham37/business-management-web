@@ -1,9 +1,9 @@
 const LoadingPage = () => {
   return (
-    <div className="p-6 text-white">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="reports-skeleton h-4 w-48"></div>
-        <div className="flex space-x-2">
+    <div className="p-[var(--spacing-md)] text-[var(--foreground)]">
+      <div className="mb-[var(--spacing-md)] flex items-center justify-between">
+        <div className="reports-skeleton h-[var(--reports-skeleton-header-height)] w-48"></div>
+        <div className="flex space-x-[var(--spacing-xs)]">
           {[
             "Date Range",
             "Locations",
@@ -12,29 +12,29 @@ const LoadingPage = () => {
           ].map((_, index) => (
             <div
               key={index}
-              className="reports-skeleton h-8 w-20 px-3 py-2"
+              className="reports-skeleton h-[var(--reports-skeleton-button-height)] w-20 px-3 py-2"
             ></div>
           ))}
         </div>
       </div>
 
-      <div className="mb-8">
-        <div className="reports-skeleton mb-2 h-6 w-48"></div>
-        <div className="reports-skeleton h-8 w-40"></div>
+      <div className="mb-[var(--spacing-lg)]">
+        <div className="reports-skeleton mb-[var(--spacing-xs)] h-[var(--spacing-md)] w-48"></div>
+        <div className="reports-skeleton h-[var(--reports-skeleton-button-height)] w-40"></div>
       </div>
 
-      <div className="reports-skeleton mb-8 h-64"></div>
+      <div className="reports-skeleton mb-[var(--spacing-lg)] h-[var(--reports-chart-height)]"></div>
 
-      <div className="mb-8">
-        <div className="reports-skeleton mb-2 h-6 w-36"></div>
-        <div className="reports-skeleton mb-4 h-8 w-20"></div>
-        <div className="reports-skeleton h-32"></div>
+      <div className="mb-[var(--spacing-lg)]">
+        <div className="reports-skeleton mb-[var(--spacing-xs)] h-[var(--spacing-md)] w-36"></div>
+        <div className="reports-skeleton mb-[var(--spacing-sm)] h-[var(--reports-skeleton-button-height)] w-20"></div>
+        <div className="reports-skeleton h-[var(--reports-skeleton-section-height)]"></div>
       </div>
 
       <div>
-        <div className="reports-skeleton mb-2 h-6 w-36"></div>
-        <div className="reports-skeleton mb-4 h-8 w-20"></div>
-        <div className="reports-skeleton h-32"></div>
+        <div className="reports-skeleton mb-[var(--spacing-xs)] h-[var(--spacing-md)] w-36"></div>
+        <div className="reports-skeleton mb-[var(--spacing-sm)] h-[var(--reports-skeleton-button-height)] w-20"></div>
+        <div className="reports-skeleton h-[var(--reports-skeleton-section-height)]"></div>
       </div>
     </div>
   )

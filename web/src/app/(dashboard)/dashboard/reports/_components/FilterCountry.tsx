@@ -65,8 +65,8 @@ const ContinentCheckbox = ({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="reports-continent-header-sticky flex items-center gap-2 px-1 py-1">
+    <div className="flex flex-col gap-[var(--spacing-xs)]">
+      <div className="reports-continent-header-sticky flex items-center gap-[var(--spacing-xs)] p-[var(--reports-continent-header-padding)]">
         <Checkbox
           id={continent.name}
           checked={allSelected ? true : someSelected ? "indeterminate" : false}
@@ -76,9 +76,9 @@ const ContinentCheckbox = ({
           {continent.name}
         </Label>
       </div>
-      <div className="ml-4 flex flex-col gap-2">
+      <div className="ml-[var(--reports-country-item-margin)] flex flex-col gap-[var(--spacing-xs)]">
         {continent.countries.map((country) => (
-          <div key={country.name} className="flex items-center gap-2">
+          <div key={country.name} className="flex items-center gap-[var(--spacing-xs)]">
             <Checkbox
               id={country.name}
               checked={country.selected}
@@ -156,26 +156,26 @@ function FilterCountry() {
       <Popover modal={true}>
         <PopoverTrigger
           asChild
-          className="mt-3 w-full md:w-fit"
+          className="mt-[var(--spacing-reports-filter-label-margin)] w-full md:w-fit"
           id="location-filter"
         >
           <Button
             variant="secondary"
             className={cx(
-              "reports-filter-button flex justify-start gap-1.5 font-normal md:justify-center",
+              "reports-filter-button flex justify-start gap-[var(--spacing-reports-filter-gap)] font-normal md:justify-center",
             )}
           >
             Selected Locations
-            <span className="flex shrink-0 items-center justify-center rounded bg-gray-200 px-1 tabular-nums text-gray-900 dark:bg-gray-800 dark:text-gray-50">
+            <span className="flex shrink-0 items-center justify-center rounded bg-[var(--badge-neutral-bg)] px-1 tabular-nums text-[var(--badge-neutral-text)]">
               {selectedCountries.length}
             </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="z-50 min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))] sm:min-w-56 sm:max-w-56"
+          className="z-[var(--z-reports-popover)] min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))] sm:min-w-56 sm:max-w-56"
           align="end"
         >
-          <div className="flex h-full max-h-96 flex-col gap-3">
+          <div className="flex h-full max-h-[var(--reports-country-list-max-height)] flex-col gap-[var(--spacing-reports-filter-gap)]">
             <Input
               placeholder="Search for continent or country"
               value={searchTerm}
@@ -183,7 +183,7 @@ function FilterCountry() {
               className="sm:[&>input]:py-1.5"
             />
             <div className="flex-grow overflow-y-auto">
-              <div className={filteredContinents.length > 0 ? "space-y-4" : ""}>
+              <div className={filteredContinents.length > 0 ? "space-y-[var(--spacing-sm)]" : ""}>
                 {filteredContinents.length > 0 ? (
                   filteredContinents.map((continent) => (
                     <ContinentCheckbox
@@ -193,7 +193,7 @@ function FilterCountry() {
                     />
                   ))
                 ) : (
-                  <span className="mt-2 block text-base sm:text-sm text-gray-500 dark:text-gray-500">
+                  <span className="mt-[var(--spacing-xs)] block text-base sm:text-sm text-[var(--muted-foreground)]">
                     No results found
                   </span>
                 )}

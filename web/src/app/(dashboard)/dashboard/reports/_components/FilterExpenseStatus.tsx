@@ -41,7 +41,7 @@ function FilterExpenseStatus() {
         Expense Status
       </Label>
       <Select value={status} onValueChange={handleValueChange}>
-        <SelectTrigger id="expense-filter" className="mt-2 w-full md:w-44">
+        <SelectTrigger id="expense-filter" className="mt-[var(--spacing-reports-filter-label-margin)] w-full md:w-44">
           <SelectValue placeholder="Select status" />
         </SelectTrigger>
         <SelectContent align="end">
@@ -50,7 +50,7 @@ function FilterExpenseStatus() {
           </SelectItem>
           {expense_statuses.map((status) => (
             <SelectItem key={status.value} value={status.value}>
-              <div className="flex items-center gap-x-2.5">
+              <div className="flex items-center gap-x-[var(--spacing-reports-filter-gap)]">
                 <span
                   className={cx(
                     "reports-status-dot",

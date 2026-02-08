@@ -220,7 +220,7 @@ export function TransactionChart({
   return (
     <div className={cx(className, "w-full")}>
       <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+        <div className="flex gap-[var(--spacing-reports-chart-title-gap)]">
           <h2
             id={`${type}-chart-title`}
             className="reports-chart-title"
@@ -233,7 +233,7 @@ export function TransactionChart({
         </div>
       </div>
       <p
-        className="reports-chart-value mt-2"
+        className="reports-chart-value mt-[var(--spacing-reports-chart-title-gap)]"
         aria-live="polite"
       >
         {config.valueFormatter(totalValue)}
@@ -248,7 +248,7 @@ export function TransactionChart({
         valueFormatter={config.valueFormatter}
         xValueFormatter={config.xValueFormatter}
         showYAxis={showYAxis}
-        className="mt-6 h-48"
+        className="mt-[var(--spacing-reports-chart-content-gap)] h-[var(--reports-chart-height)]"
         layout={config.layout}
         barCategoryGap="6%"
         aria-labelledby={`${type}-chart-title`}

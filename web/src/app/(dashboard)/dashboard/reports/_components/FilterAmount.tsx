@@ -119,7 +119,7 @@ function FilterAmount() {
           <Button
             variant="secondary"
             className={cx(
-              "reports-filter-button mt-2 block w-full text-left font-normal tabular-nums md:w-36",
+              "reports-filter-button mt-[var(--spacing-reports-filter-label-margin)] block w-full text-left font-normal tabular-nums md:w-36",
               focusRing,
             )}
           >
@@ -128,10 +128,10 @@ function FilterAmount() {
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="z-50 min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))] p-4 sm:min-w-72 sm:max-w-72"
+          className="z-[var(--z-reports-popover)] min-w-[calc(var(--radix-popover-trigger-width))] max-w-[calc(var(--radix-popover-trigger-width))] p-[var(--reports-popover-padding)] sm:min-w-72 sm:max-w-72"
           align="end"
         >
-          <div className="flex h-12 items-end space-x-0.5">
+          <div className="flex h-[var(--reports-filter-distribution-height)] items-end space-x-[var(--reports-histogram-bar-spacing)]">
             {distributionData.map((bin, index) => (
               <div
                 key={index}
@@ -143,7 +143,7 @@ function FilterAmount() {
               />
             ))}
           </div>
-          <div className="mt-4 space-y-4">
+          <div className="mt-[var(--spacing-sm)] space-y-[var(--spacing-sm)]">
             <Slider
               minStepsBetweenThumbs={10}
               min={minAmount}
@@ -154,8 +154,8 @@ function FilterAmount() {
               onValueCommit={handleValueCommit}
             />
           </div>
-          <div className="mt-4 space-y-2">
-            <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-50">
+          <div className="mt-[var(--spacing-sm)] space-y-[var(--spacing-reports-preset-section-gap)]">
+            <p className="text-base sm:text-sm font-medium text-[var(--foreground)]">
               Popular ranges:
             </p>
             {presetOptions.map((option) => (
@@ -169,27 +169,27 @@ function FilterAmount() {
               </Button>
             ))}
           </div>
-          <div className="mt-4 space-y-2">
-            <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-50">
+          <div className="mt-[var(--spacing-sm)] space-y-[var(--spacing-reports-filter-section-gap)]">
+            <p className="text-base sm:text-sm font-medium text-[var(--foreground)]">
               Custom range:
             </p>
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full items-center gap-[var(--spacing-xs)]">
               <Input
                 name="Minimum Amount"
                 type="number"
                 step={50}
-                placeholder={`$${minAmount}`}
+                placeholder={`${minAmount}`}
                 value={localMin}
                 onChange={handleMinInputChange}
                 enableStepper={false} // has to be false because of URL change rate limits
               />
               <>
-                <span className="text-xs font-medium text-gray-500">–</span>
+                <span className="text-xs font-medium text-[var(--muted-foreground)]">–</span>
                 <Input
                   name="Maximum Amount"
                   type="number"
                   step={50}
-                  placeholder={`$${maxAmount}`}
+                  placeholder={`${maxAmount}`}
                   value={localMax}
                   onChange={handleMaxInputChange}
                   enableStepper={false} // has to be false because of URL change rate limits

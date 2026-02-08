@@ -2256,6 +2256,179 @@ a {
     }
   }
   
+  /* ============================================
+     REPORTS DASHBOARD UTILITY CLASSES
+     Added: 2026-02-08
+     Semantic utility classes for reports components
+     ============================================ */
+  
+  /* Reports Typography Utilities */
+  .reports-title {
+    font-size: var(--text-reports-title);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+    line-height: var(--leading-tight);
+  }
+  
+  .reports-subtitle {
+    font-size: var(--text-reports-subtitle);
+    color: var(--muted-foreground);
+    line-height: var(--leading-normal);
+  }
+  
+  .reports-chart-title {
+    font-size: var(--text-reports-chart-title);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+    line-height: var(--leading-tight);
+  }
+  
+  .reports-chart-value {
+    font-size: var(--text-reports-chart-value);
+    font-weight: var(--font-semibold);
+    color: var(--foreground);
+    line-height: var(--leading-tight);
+  }
+  
+  .reports-filter-label {
+    font-size: var(--text-reports-filter-label);
+    font-weight: var(--font-medium);
+    color: var(--muted-foreground);
+    line-height: var(--leading-normal);
+  }
+  
+  /* Reports Header Utilities */
+  .reports-header-sticky {
+    position: sticky;
+    top: var(--reports-header-top-offset);
+    z-index: var(--z-reports-header);
+    background-color: var(--reports-header-bg);
+    transition: var(--transition-reports-header-border);
+  }
+  
+  .reports-header-scrolled {
+    border-bottom: var(--reports-header-border-scrolled);
+  }
+  
+  .dark .reports-header-sticky {
+    background-color: var(--reports-header-bg-dark);
+  }
+  
+  /* Reports Filter Button Utilities */
+  .reports-filter-button {
+    background-color: var(--reports-filter-button-bg-light);
+    border: 1px solid var(--reports-filter-button-border);
+    border-radius: var(--radius-md);
+    transition: var(--transition-colors);
+  }
+  
+  .reports-filter-button:hover {
+    background-color: var(--reports-filter-button-hover-bg);
+  }
+  
+  .dark .reports-filter-button {
+    background-color: var(--reports-filter-button-bg);
+  }
+  
+  .dark .reports-filter-button:hover {
+    background-color: var(--reports-filter-button-hover-bg);
+  }
+  
+  /* Reports Preset Button Utilities */
+  .reports-preset-button {
+    background-color: var(--reports-preset-button-bg);
+    transition: var(--transition-colors);
+  }
+  
+  .reports-preset-button:hover {
+    background-color: var(--reports-preset-button-hover);
+  }
+  
+  .dark .reports-preset-button {
+    background-color: var(--reports-preset-button-bg-dark);
+  }
+  
+  /* Reports Info Icon */
+  .reports-info-icon {
+    width: var(--reports-info-icon-size);
+    height: var(--reports-info-icon-size);
+    color: var(--reports-info-icon-color);
+  }
+  
+  /* Reports Loading Skeleton */
+  .reports-skeleton {
+    background-color: var(--business-loading-skeleton-bg);
+    border-radius: var(--radius-md);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Reports Histogram Bar Utilities */
+  .reports-histogram-bar {
+    width: var(--reports-histogram-bar-width);
+    border-radius: var(--reports-histogram-bar-radius);
+    transition: var(--reports-histogram-transition);
+  }
+  
+  .reports-histogram-bar-active {
+    background-color: var(--reports-chart-distribution-active);
+  }
+  
+  .reports-histogram-bar-inactive {
+    background-color: var(--reports-chart-distribution-inactive);
+  }
+  
+  .dark .reports-histogram-bar-inactive {
+    background-color: var(--reports-chart-distribution-inactive-dark);
+  }
+  
+  /* Reports Status Indicator Dots */
+  .reports-status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+  }
+  
+  .reports-status-dot-pending {
+    background-color: var(--reports-status-pending);
+  }
+  
+  .reports-status-dot-approved {
+    background-color: var(--reports-status-approved);
+  }
+  
+  .reports-status-dot-action-required {
+    background-color: var(--reports-status-action-required);
+  }
+  
+  .reports-status-dot-in-audit {
+    background-color: var(--reports-status-in-audit);
+  }
+  
+  .dark .reports-status-dot-pending {
+    background-color: var(--reports-status-pending-dark);
+  }
+  
+  .dark .reports-status-dot-approved {
+    background-color: var(--reports-status-approved-dark);
+  }
+  
+  .dark .reports-status-dot-action-required {
+    background-color: var(--reports-status-action-required-dark);
+  }
+  
+  .dark .reports-status-dot-in-audit {
+    background-color: var(--reports-status-in-audit-dark);
+  }
+  
+  /* Reports Continent Header Sticky */
+  .reports-continent-header-sticky {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-reports-continent-header);
+    background-color: var(--background);
+  }
+  
   /* Business Metrics Indicator Pattern */
   .business-metrics-indicator {
     display: flex;
