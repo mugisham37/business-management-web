@@ -869,74 +869,74 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Provide organization context to controller methods
     - _Requirements: 16.3_
 
-- [ ] 36. Implement Auth Controller (API endpoints)
-  - [ ] 36.1 Create POST /auth/register endpoint
+- [x] 36. Implement Auth Controller (API endpoints)
+  - [x] 36.1 Create POST /auth/register endpoint
     - Accept RegisterDto (email, password, organizationName)
     - Call AuthService.registerPrimaryOwner
     - Return success response
     - _Requirements: 1.1_
   
-  - [ ] 36.2 Create POST /auth/verify-email endpoint
+  - [x] 36.2 Create POST /auth/verify-email endpoint
     - Accept token
     - Call AuthService.verifyEmail
     - Return success response
     - _Requirements: 2.2_
   
-  - [ ] 36.3 Create POST /auth/resend-verification endpoint
+  - [x] 36.3 Create POST /auth/resend-verification endpoint
     - Accept email
     - Call AuthService.sendVerificationEmail
     - Return success response
     - _Requirements: 2.5_
   
-  - [ ] 36.4 Create POST /auth/login endpoint
+  - [x] 36.4 Create POST /auth/login endpoint
     - Use LocalStrategy guard
     - Call AuthService.login
     - Return tokens and user data
     - _Requirements: 3.1_
   
-  - [ ] 36.5 Create POST /auth/login/team-member endpoint
+  - [x] 36.5 Create POST /auth/login/team-member endpoint
     - Use LocalTeamMemberStrategy guard
     - Call AuthService.login
     - Return tokens and user data
     - _Requirements: 6.1_
   
-  - [ ] 36.6 Create POST /auth/login/mfa endpoint
+  - [x] 36.6 Create POST /auth/login/mfa endpoint
     - Accept temporary token and MFA code
     - Call AuthService.loginWithMFA
     - Return final tokens
     - _Requirements: 3.6_
   
-  - [ ] 36.7 Create POST /auth/refresh endpoint
+  - [x] 36.7 Create POST /auth/refresh endpoint
     - Accept refresh token
     - Call AuthService.refreshTokens
     - Return new tokens
     - _Requirements: 11.6_
   
-  - [ ] 36.8 Create POST /auth/logout endpoint
+  - [x] 36.8 Create POST /auth/logout endpoint
     - Use JwtAuthGuard
     - Call SessionsService.revoke
     - Return success response
     - _Requirements: 11.3_
   
-  - [ ] 36.9 Create POST /auth/logout-all endpoint
+  - [x] 36.9 Create POST /auth/logout-all endpoint
     - Use JwtAuthGuard
     - Call SessionsService.revokeAllExcept
     - Return success response
     - _Requirements: 11.4_
   
-  - [ ] 36.10 Create POST /auth/password-reset/request endpoint
+  - [x] 36.10 Create POST /auth/password-reset/request endpoint
     - Accept email
     - Call AuthService.requestPasswordReset
     - Return success response
     - _Requirements: 14.1_
   
-  - [ ] 36.11 Create POST /auth/password-reset/confirm endpoint
+  - [x] 36.11 Create POST /auth/password-reset/confirm endpoint
     - Accept token and new password
     - Call AuthService.resetPassword
     - Return success response
     - _Requirements: 14.2_
   
-  - [ ] 36.12 Create POST /auth/password/change endpoint
+  - [x] 36.12 Create POST /auth/password/change endpoint
     - Use JwtAuthGuard
     - Accept old password and new password
     - Call AuthService.changePassword

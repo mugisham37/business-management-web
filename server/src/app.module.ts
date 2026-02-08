@@ -4,6 +4,7 @@ import { DatabaseModule } from './database';
 import { LoggerModule } from './common/logger';
 import { CacheModule } from './common/cache';
 import { OrganizationsModule } from './modules/organizations';
+import { AuthModule } from './modules/auth';
 import { TenantIsolationMiddleware } from './common/middleware';
 
 @Module({
@@ -16,6 +17,7 @@ import { TenantIsolationMiddleware } from './common/middleware';
     CacheModule,
     DatabaseModule,
     OrganizationsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

@@ -202,6 +202,28 @@ export class UsersService {
   }
 
   /**
+   * Find user by email globally (across all organizations)
+   * 
+   * Used for operations that need to find users without organization context,
+   * such as email verification resend.
+   * 
+   * @param email - User email
+   * @returns User or null
+   */
+  async findByEmailGlobal(email: string): Promise<User | null> {
+    try {
+      return await this.prisma.user.findFirst({
+        where: {
+          email,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to find user by email globally: ${email}`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Find user by username with organization context
    * 
    * Requirement 6.1: Team members authenticate with company code and username
