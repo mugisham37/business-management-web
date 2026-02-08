@@ -19,25 +19,24 @@ import {
   TableRow,
 } from "@/components/ui/Table"
 import { quotes } from "@/data/data"
-import { cx } from "@/lib/utils"
 import { Download } from "lucide-react"
 import { Fragment } from "react"
 
-const colorClasses = [
-  "bg-blue-500 dark:bg-blue-500",
-  "bg-purple-500 dark:bg-purple-500",
-  "bg-emerald-500 dark:bg-emerald-500",
-  "bg-cyan-500 dark:bg-cyan-500",
-  "bg-rose-500 dark:bg-rose-500",
-  "bg-indigo-500 dark:bg-indigo-500",
-]
-
-const getRandomColor = (initials: string) => {
+// Use theme chart colors for avatars - fully theme-aware
+const getAvatarColor = (initials: string) => {
   const seed = initials
     .split("")
     .reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return colorClasses[seed % colorClasses.length]
+  const colors = [
+    'var(--chart-1)', // cyan
+    'var(--chart-2)', // yellow
+    'var(--chart-3)', // orange
+    'var(--chart-4)', // red
+    'var(--chart-5)', // cream
+  ]
+  return colors[seed % colors.length]
 }
+
 export default function Overview() {
   return (
     <section aria-label="Overview Table">
@@ -122,19 +121,19 @@ export default function Overview() {
                 </TableRow>
                 {quote.project.map((item, index) => (
                   <TableRow key={index} className="business-table-row-hover">
-                    <TableCell>{item.company}</TableCell>
-                    <TableCell>{item.size}</TableCell>
-                    <TableCell>{item.probability}</TableCell>
-                    <TableCell>{item.duration}</TableCell>
+                    <TableCell style={{ fontSize: 'var(--text-business-table-cell)' }}>{item.company}</TableCell>
+                    <TableCell style={{ fontSize: 'var(--text-business-table-cell)' }}>{item.size}</TableCell>
+                    <TableCell style={{ fontSize: 'var(--text-business-table-cell)' }}>{item.probability}</TableCell>
+                    <TableCell style={{ fontSize: 'var(--text-business-table-cell)' }}>{item.duration}</TableCell>
                     <TableCell>
                       <div className="business-avatar-group">
                         {item.assigned.map((name, nameIndex) => (
                           <span
                             key={nameIndex}
-                            className={cx(
-                              getRandomColor(name.initials),
-                              "business-avatar-group-item",
-                            )}
+                            className="business-avatar-group-item"
+                            style={{
+                              backgroundColor: getAvatarColor(name.initials)
+                            }}
                           >
                             {name.initials}
                           </span>
@@ -152,13 +151,14 @@ export default function Overview() {
                                 ? "default"
                                 : "default"
                         }
-                        className="rounded-full"
+                        style={{ borderRadius: 'var(--radius-business-badge)' }}
                       >
                         <span
-                          className="shrink-0 rounded-full"
+                          className="shrink-0"
                           style={{
                             width: 'var(--spacing-xs)',
                             height: 'var(--spacing-xs)',
+                            borderRadius: 'var(--radius-full)',
                             backgroundColor: 
                               item.status === "Closed" 
                                 ? 'var(--business-badge-closed)' 

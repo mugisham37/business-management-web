@@ -83,12 +83,14 @@ export default function Audits() {
               <AccordionTrigger style={{ padding: 'var(--spacing-md) 0' }}>
                 <p className="flex w-full items-center justify-between" style={{ paddingRight: 'var(--spacing-md)' }}>
                   <span className="flex items-center" style={{ gap: 'var(--nav-item-gap)' }}>
-                    <span>{section.title}</span>
+                    <span style={{ fontSize: 'var(--text-business-table-header)', fontWeight: 'var(--font-medium)' }}>{section.title}</span>
                     <span 
-                      className="inline-flex items-center rounded-full bg-muted"
+                      className="inline-flex items-center"
                       style={{
+                        borderRadius: 'var(--radius-business-badge)',
+                        backgroundColor: 'var(--muted)',
                         padding: 'var(--spacing-xs) var(--spacing-sm)',
-                        fontSize: 'var(--text-xs)',
+                        fontSize: 'var(--text-business-badge)',
                         fontWeight: 'var(--font-medium)',
                         color: 'var(--muted-foreground)'
                       }}
@@ -96,7 +98,7 @@ export default function Audits() {
                       {section.certified}
                     </span>
                   </span>
-                  <span className="flex items-center tabular-nums" style={{ gap: 'var(--spacing-sm)' }}>
+                  <span className="flex items-center tabular-nums" style={{ gap: 'var(--spacing-sm)', fontSize: 'var(--text-business-table-cell)' }}>
                     {getStatusIcon(section.status)}
                     {section.progress.current}/{section.progress.total}
                   </span>
@@ -114,7 +116,7 @@ export default function Audits() {
                     <p 
                       className="flex items-center justify-between"
                       style={{
-                        fontSize: 'var(--text-sm)',
+                        fontSize: 'var(--text-business-table-header)',
                         fontWeight: 'var(--font-medium)',
                         color: 'var(--foreground)'
                       }}
@@ -126,7 +128,7 @@ export default function Audits() {
                       className="divide-y divide-border"
                       style={{
                         marginTop: 'var(--spacing-xs)',
-                        fontSize: 'var(--text-sm)',
+                        fontSize: 'var(--text-business-table-cell)',
                         color: 'var(--muted-foreground)'
                       }}
                     >
@@ -146,7 +148,7 @@ export default function Audits() {
                     <p 
                       className="flex items-center justify-between"
                       style={{
-                        fontSize: 'var(--text-sm)',
+                        fontSize: 'var(--text-business-table-header)',
                         fontWeight: 'var(--font-medium)',
                         color: 'var(--foreground)'
                       }}
@@ -167,7 +169,7 @@ export default function Audits() {
                           className="flex items-center justify-between"
                           style={{
                             padding: 'var(--spacing-business-table-cell-y) 0',
-                            fontSize: 'var(--text-sm)'
+                            fontSize: 'var(--text-business-table-cell)'
                           }}
                         >
                           <a

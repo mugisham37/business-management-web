@@ -208,7 +208,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </SidebarMenuButton>
                   {item.children && openMenus.includes(item.name) && (
                     <SidebarMenuSub>
-                      <div className="absolute inset-y-0 left-4 w-px bg-border" />
+                      <div 
+                        className="absolute inset-y-0 bg-border" 
+                        style={{ 
+                          left: 'var(--spacing-md)', 
+                          width: '1px' 
+                        }} 
+                      />
                       {item.children.map((child) => (
                         <SidebarMenuSubItem key={child.name}>
                           <SidebarSubLink

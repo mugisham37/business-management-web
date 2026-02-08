@@ -19,17 +19,21 @@ export function BusinessSidebarWrapper({
       <header className="business-header-layout">
         <button
           onClick={() => setBusinessSidebarOpen(!businessSidebarOpen)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-[var(--interactive-hover-light)] dark:hover:bg-[var(--interactive-hover-dark)] transition-colors-standard focus-ring-business"
+          className="inline-flex items-center justify-center text-foreground hover:bg-[var(--interactive-hover-light)] dark:hover:bg-[var(--interactive-hover-dark)] transition-colors-standard focus-ring-business"
+          style={{
+            borderRadius: 'var(--radius-business-button)',
+            padding: 'var(--spacing-sm)'
+          }}
           aria-label={businessSidebarOpen ? "Collapse business sidebar" : "Expand business sidebar"}
           title={businessSidebarOpen ? "Collapse business sidebar" : "Expand business sidebar"}
         >
           {businessSidebarOpen ? (
-            <PanelRightClose className="h-5 w-5" />
+            <PanelRightClose style={{ width: 'var(--nav-item-icon-size)', height: 'var(--nav-item-icon-size)' }} />
           ) : (
-            <PanelRightOpen className="h-5 w-5" />
+            <PanelRightOpen style={{ width: 'var(--nav-item-icon-size)', height: 'var(--nav-item-icon-size)' }} />
           )}
         </button>
-        <div className="mr-2 h-4 w-px bg-[var(--border)]" />
+        <div style={{ marginRight: 'var(--spacing-sm)', height: 'var(--spacing-md)', width: '1px', backgroundColor: 'var(--border)' }} />
         <Breadcrumbs />
       </header>
 

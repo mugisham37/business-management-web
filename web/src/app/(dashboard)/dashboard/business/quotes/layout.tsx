@@ -20,10 +20,16 @@ export default function Layout({
   return (
     <>
       <div className="bg-[var(--business-content-bg)]">
-        <div className="p-4 sm:p-6">
+        <div style={{ padding: 'var(--spacing-md) var(--spacing-business-card-padding)' }}>
           <MetricsCards />
         </div>
-        <TabNavigation className="mt-6 gap-x-4 px-4 sm:px-6">
+        <TabNavigation 
+          style={{ 
+            marginTop: 'var(--spacing-business-section-gap)', 
+            gap: 'var(--spacing-sm)',
+            padding: '0 var(--spacing-business-card-padding)'
+          }}
+        >
           {navigation.map((item) => (
             <TabNavigationLink
               key={item.name}

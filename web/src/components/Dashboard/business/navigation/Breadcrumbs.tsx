@@ -25,7 +25,7 @@ export function Breadcrumbs() {
   }
 
   return (
-    <Breadcrumb className="ml-2">
+    <Breadcrumb style={{ marginLeft: 'var(--spacing-sm)' }}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

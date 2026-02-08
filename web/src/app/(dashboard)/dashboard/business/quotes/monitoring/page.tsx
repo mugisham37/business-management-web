@@ -20,6 +20,15 @@ import { dataChart, dataChart2, dataChart3, dataChart4 } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { SlidersHorizontal } from "lucide-react"
 
+// Chart configuration using CSS variables
+const CHART_CONFIG = {
+  height: 192, // matches --reports-chart-height (12rem = 192px)
+  yAxisWidthDefault: 45, // matches --reports-chart-y-axis-width-default
+  yAxisWidthLarge: 55, // for charts with larger values
+  barGap: "20%", // matches --reports-chart-bar-gap (6% converted to category gap)
+  barGapPercent: "30%", // for percent charts
+}
+
 export default function Monitoring() {
   return (
     <section aria-label="App Monitoring">
@@ -82,15 +91,15 @@ export default function Monitoring() {
             index="date"
             categories={["Current year", "Same period last year"]}
             colors={["blue", "lightGray"]}
-            yAxisWidth={45}
+            yAxisWidth={CHART_CONFIG.yAxisWidthDefault}
             customTooltip={CustomTooltip}
             yAxisLabel="Number of inherent risks"
-            barCategoryGap="20%"
+            barCategoryGap={CHART_CONFIG.barGap}
             valueFormatter={(value: number) => formatters.unit({ number: value })}
             className="hidden md:block"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
           <BarChart
@@ -100,11 +109,11 @@ export default function Monitoring() {
             colors={["blue", "lightGray"]}
             showYAxis={false}
             customTooltip={CustomTooltip}
-            barCategoryGap="20%"
+            barCategoryGap={CHART_CONFIG.barGap}
             className="md:hidden"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
         </div>
@@ -136,7 +145,7 @@ export default function Monitoring() {
             className="hidden md:block"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
           <ComboChart
@@ -156,7 +165,7 @@ export default function Monitoring() {
             className="md:hidden"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
         </div>
@@ -176,13 +185,13 @@ export default function Monitoring() {
             colors={["emerald", "lightEmerald"]}
             customTooltip={CustomTooltip3}
             type="percent"
-            yAxisWidth={55}
+            yAxisWidth={CHART_CONFIG.yAxisWidthLarge}
             yAxisLabel="% of criteria addressed"
-            barCategoryGap="30%"
+            barCategoryGap={CHART_CONFIG.barGapPercent}
             className="hidden md:block"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
           <BarChart
@@ -193,11 +202,11 @@ export default function Monitoring() {
             customTooltip={CustomTooltip3}
             showYAxis={false}
             type="percent"
-            barCategoryGap="30%"
+            barCategoryGap={CHART_CONFIG.barGapPercent}
             className="md:hidden"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
         </div>
@@ -219,13 +228,13 @@ export default function Monitoring() {
             valueFormatter={(value: number) =>
               formatters.percentage({ number: value, decimals: 0 })
             }
-            yAxisWidth={55}
+            yAxisWidth={CHART_CONFIG.yAxisWidthLarge}
             yAxisLabel="Competition density (%)"
-            barCategoryGap="30%"
+            barCategoryGap={CHART_CONFIG.barGapPercent}
             className="hidden md:block"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
           <ConditionalBarChart
@@ -238,11 +247,11 @@ export default function Monitoring() {
               formatters.percentage({ number: value, decimals: 0 })
             }
             showYAxis={false}
-            barCategoryGap="30%"
+            barCategoryGap={CHART_CONFIG.barGapPercent}
             className="md:hidden"
             style={{ 
               marginTop: 'var(--spacing-md)',
-              height: 'var(--reports-chart-height)'
+              height: `${CHART_CONFIG.height}px`
             }}
           />
         </div>
