@@ -113,14 +113,14 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Ensure uniqueness and cryptographic randomness
     - _Requirements: 2.1, 4.2, 14.1_
 
-- [ ] 6. Implement Cache Module (infrastructure)
-  - [ ] 6.1 Set up Redis connection with ioredis
+- [x] 6. Implement Cache Module (infrastructure)
+  - [x] 6.1 Set up Redis connection with ioredis
     - Create CacheService with Redis client
     - Configure connection pooling
     - Implement connection error handling
     - _Requirements: 8.1, 8.2_
   
-  - [ ] 6.2 Implement L1 (in-memory) and L2 (Redis) caching
+  - [x] 6.2 Implement L1 (in-memory) and L2 (Redis) caching
     - Create in-memory cache with Map
     - Implement get method (check L1 → L2 → return null)
     - Implement set method (store in both L1 and L2)
@@ -129,15 +129,15 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Configure TTL for each layer (L1: 5min, L2: 15min)
     - _Requirements: 8.1, 8.2, 8.3_
   
-  - [ ] 6.3 Implement pub/sub for cache invalidation
+  - [x] 6.3 Implement pub/sub for cache invalidation
     - Create publish method for invalidation events
     - Create subscribe method with event handlers
     - Implement event-driven L1 cache clearing
     - _Requirements: 8.4, 8.5_
 
 
-- [ ] 7. Implement Audit Module (infrastructure)
-  - [ ] 7.1 Create AuditService with log method
+- [x] 7. Implement Audit Module (infrastructure)
+  - [x] 7.1 Create AuditService with log method
     - Implement log method to create AuditLog records
     - Ensure immutability (append-only, no updates/deletes)
     - Include all required fields (timestamp, user, org, action, resource, outcome)
@@ -156,7 +156,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 52: Sensitive Data Masking in Logs**
     - **Validates: Requirements 15.7**
   
-  - [ ] 7.5 Implement query method for audit log retrieval
+  - [x] 7.5 Implement query method for audit log retrieval
     - Support filtering by organization, user, action, date range
     - Implement pagination
     - _Requirements: 15.1_
