@@ -113,7 +113,7 @@ export default function General() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                       Roles can only be changed by system admin.
                     </p>
                   </div>
@@ -142,15 +142,15 @@ export default function General() {
               </div>
               <div className="md:col-span-2">
                 <fieldset>
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <legend className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                     Team
                   </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                     Configure the types of team alerts you want to receive.
                   </p>
                   <ul
                     role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
+                    className="mt-4 divide-y divide-[var(--border)]"
                   >
                     <li className="flex items-center gap-x-3 py-3">
                       <Checkbox
@@ -169,15 +169,15 @@ export default function General() {
                   </ul>
                 </fieldset>
                 <fieldset className="mt-6">
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <legend className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                     Usage
                   </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                     Configure the types of usage alerts you want to receive.
                   </p>
                   <ul
                     role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
+                    className="mt-4 divide-y divide-[var(--border)]"
                   >
                     <li className="flex items-center gap-x-3 py-3">
                       <Checkbox id="api-requests" name="api-requests" />
@@ -242,32 +242,32 @@ export default function General() {
                 </p>
               </div>
               <div className="space-y-6 md:col-span-2">
-                <Card className="p-4">
+                <Card className="p-[length:var(--spacing-settings-card-padding)]">
                   <div className="flex items-start justify-between gap-10">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                      <h4 className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                         Leave workspace
                       </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-500">
+                      <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                         Revoke your access to this team. Other people you have
                         added to the workspace will remain.
                       </p>
                     </div>
                     <Button
                       variant="secondary"
-                      className="text-red-600 dark:text-red-500"
+                      className="text-[var(--status-critical)]"
                     >
                       Leave
                     </Button>
                   </div>
                 </Card>
                 <Card className="overflow-hidden p-0">
-                  <div className="flex items-start justify-between gap-10 p-4">
+                  <div className="flex items-start justify-between gap-10 p-[length:var(--spacing-settings-card-padding)]">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-400 dark:text-gray-600">
+                      <h4 className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--muted-foreground)]">
                         Delete workspace
                       </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-400 dark:text-gray-600">
+                      <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                         Revoke your access to this team. Other people you have
                         added to the workspace will remain.
                       </p>
@@ -275,13 +275,13 @@ export default function General() {
                     <Button
                       variant="secondary"
                       disabled
-                      className="whitespace-nowrap text-red-600 disabled:text-red-300 disabled:opacity-50 dark:text-red-500 disabled:dark:text-red-700"
+                      className="whitespace-nowrap text-[var(--status-critical)] disabled:text-[var(--muted-foreground)] disabled:opacity-50"
                     >
                       Delete workspace
                     </Button>
                   </div>
-                  <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
-                    <p className="text-sm text-gray-500">
+                  <div className="border-t border-[var(--border)] bg-[var(--settings-section-bg-elevated)] p-[length:var(--spacing-settings-card-padding)]">
+                    <p className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                       You cannot delete the workspace because you are not the
                       system admin.
                     </p>

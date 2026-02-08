@@ -217,16 +217,16 @@ export default function Billing() {
   const spendPercentage = (currentSpend / spendLimit) * 100
 
   return (
-    <div className="space-y-10">
-      <div className="rounded-lg bg-gray-50 p-6 ring-1 ring-inset ring-gray-200 dark:bg-gray-400/10 dark:ring-gray-800">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+    <div className="space-y-[length:var(--spacing-settings-section-gap)]">
+      <div className="rounded-[var(--radius-settings-card)] bg-[var(--settings-section-bg-elevated)] p-[length:var(--spacing-settings-card-padding-lg)] ring-1 ring-inset ring-[var(--border)]">
+        <h4 className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
           This workspace is currently on free plan
         </h4>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+        <p className="mt-1 max-w-2xl text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
           Boost your analytics and unlock advanced features with our premium plans.{" "}
           <a
             href="#"
-            className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-500 dark:text-indigo-500 dark:hover:text-indigo-400"
+            className="inline-flex items-center gap-1 text-[var(--link-color)] hover:text-[var(--link-hover-color)] hover:underline hover:underline-offset-4"
           >
             Compare plans
             <RiArrowRightUpLine className="size-4 shrink-0" aria-hidden="true" />
@@ -235,15 +235,15 @@ export default function Billing() {
       </div>
 
       <section aria-labelledby="billing-overview-heading">
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-x)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
           <div>
             <h2
               id="billing-overview-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Billing Overview
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Overview of current billing cycle based on fixed and on-demand charges.
             </p>
           </div>
@@ -252,27 +252,27 @@ export default function Billing() {
               <div>
                 <h3
                   id="current-cycle-heading"
-                  className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+                  className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
                 >
                   Current billing cycle (Aug 31 – Sep 30, 2024)
                 </h3>
                 <TableRoot className="mt-4" aria-labelledby="current-cycle-heading">
                   <Table variant="tremor">
-                    <TableCaption variant="tremor" className="text-left text-xs">
+                    <TableCaption variant="tremor" className="text-left text-[length:var(--text-settings-helper)]">
                       ¹Includes 10,000 trackable expenses/month, USD 0.10 for each additional expense.
                     </TableCaption>
                     <TableHead variant="tremor">
                       <TableRow variant="tremor">
-                        <TableHeaderCell variant="tremor" className="text-xs font-medium uppercase">
+                        <TableHeaderCell variant="tremor" className="text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase">
                           Item
                         </TableHeaderCell>
-                        <TableHeaderCell variant="tremor" className="text-right text-xs font-medium uppercase">
+                        <TableHeaderCell variant="tremor" className="text-right text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase">
                           Quantity
                         </TableHeaderCell>
-                        <TableHeaderCell variant="tremor" className="text-right text-xs font-medium uppercase">
+                        <TableHeaderCell variant="tremor" className="text-right text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase">
                           Unit price
                         </TableHeaderCell>
-                        <TableHeaderCell variant="tremor" className="text-right text-xs font-medium uppercase">
+                        <TableHeaderCell variant="tremor" className="text-right text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase">
                           Price
                         </TableHeaderCell>
                       </TableRow>
@@ -280,16 +280,16 @@ export default function Billing() {
                     <TableBody variant="tremor">
                       {billingData.map((item) => (
                         <TableRow key={item.name} variant="tremor">
-                          <TableCell variant="tremor" className="py-2.5">
+                          <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                             {item.name}
                           </TableCell>
-                          <TableCell variant="tremor" className="py-2.5 text-right">
+                          <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)] text-right">
                             {item.quantity}
                           </TableCell>
-                          <TableCell variant="tremor" className="py-2.5 text-right">
+                          <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)] text-right">
                             {item.unit}
                           </TableCell>
-                          <TableCell variant="tremor" className="py-2.5 text-right">
+                          <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)] text-right">
                             {item.price}
                           </TableCell>
                         </TableRow>
@@ -301,7 +301,7 @@ export default function Billing() {
                           scope="row"
                           colSpan={3}
                           variant="tremor"
-                          className="pb-1.5 text-right font-normal text-gray-600 dark:text-gray-400"
+                          className="pb-1.5 text-right font-normal text-[var(--muted-foreground)]"
                         >
                           Subtotal
                         </TableHeaderCell>
@@ -314,7 +314,7 @@ export default function Billing() {
                           scope="row"
                           colSpan={3}
                           variant="tremor"
-                          className="py-1.5 text-right font-normal text-gray-600 dark:text-gray-400"
+                          className="py-1.5 text-right font-normal text-[var(--muted-foreground)]"
                         >
                           VAT (7.7%)
                         </TableHeaderCell>
@@ -331,7 +331,7 @@ export default function Billing() {
                         >
                           Total
                         </TableHeaderCell>
-                        <TableCell variant="tremor" className="py-1.5 text-right font-semibold text-gray-900 dark:text-gray-50">
+                        <TableCell variant="tremor" className="py-1.5 text-right font-semibold text-[var(--foreground)]">
                           ${total.toFixed(2)}
                         </TableCell>
                       </TableRow>
@@ -341,21 +341,21 @@ export default function Billing() {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                <h3 className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                   Usage breakdown (May 2024)
                 </h3>
                 <ul
                   role="list"
-                  className="mt-4 w-full divide-y divide-gray-200 border-b border-gray-200 dark:divide-gray-800 dark:border-gray-800"
+                  className="mt-4 w-full divide-y divide-[var(--border)] border-b border-[var(--border)]"
                 >
                   {usageData.map((item) => (
-                    <li key={item.name} className="px-2 py-4 text-sm md:p-4">
+                    <li key={item.name} className="px-2 py-4 text-[length:var(--text-settings-table-cell)] md:p-[length:var(--spacing-settings-card-padding)]">
                       <div className="w-full">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium text-gray-900 dark:text-gray-50">
+                          <p className="font-medium text-[var(--foreground)]">
                             {item.name}
                           </p>
-                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                          <p className="font-medium text-[var(--muted-foreground)]">
                             {item.value}
                           </p>
                         </div>
@@ -369,7 +369,7 @@ export default function Billing() {
                               showAnimation
                             />
                           )}
-                          <p className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                          <p className="mt-1 flex items-center justify-between text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                             <span>{item.description}</span>
                             <span>{item.capacity}</span>
                           </p>
@@ -378,8 +378,8 @@ export default function Billing() {
                     </li>
                   ))}
                 </ul>
-                <div className="px-2 py-4 md:p-4">
-                  <p className="flex items-center justify-between text-sm font-medium text-gray-900 dark:text-gray-50">
+                <div className="px-2 py-4 md:p-[length:var(--spacing-settings-card-padding)]">
+                  <p className="flex items-center justify-between text-[length:var(--text-settings-table-cell)] font-medium text-[var(--foreground)]">
                     <span>Total for May 24</span>
                     <span className="font-semibold">${currentSpend}</span>
                   </p>
@@ -393,15 +393,15 @@ export default function Billing() {
       <Divider />
 
       <section aria-labelledby="payment-method-heading">
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-x)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
           <div>
             <h2
               id="payment-method-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Payment method
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Payments will be taken from the card(s) listed below. You can add additional credit cards.
             </p>
           </div>
@@ -409,7 +409,7 @@ export default function Billing() {
             <div className="flex items-center justify-between">
               <h3
                 id="cards-heading"
-                className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+                className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
               >
                 Cards
               </h3>
@@ -423,11 +423,11 @@ export default function Billing() {
                 <DialogContent variant="tremor" className="sm:max-w-lg">
                   <DialogHeader variant="tremor">
                     <DialogTitle variant="tremor">Add New Card</DialogTitle>
-                    <DialogDescription variant="tremor" className="mt-1 text-sm leading-6">
+                    <DialogDescription variant="tremor" className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)]">
                       Fill in the details below to add a new card.
                     </DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleAddCard} className="mt-4 space-y-4">
+                  <form onSubmit={handleAddCard} className="mt-4 space-y-[length:var(--spacing-settings-form-field-gap)]">
                     <div>
                       <Label htmlFor="cardName" className="font-medium">
                         Cardholder Name
@@ -550,10 +550,10 @@ export default function Billing() {
                 <TableBody variant="tremor">
                   {paymentCards.map((card) => (
                     <TableRow key={card.id} variant="tremor">
-                      <TableCell variant="tremor" className="py-2.5">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                         {card.provider}
                       </TableCell>
-                      <TableCell variant="tremor" className="py-2.5">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                         <div className="flex items-center gap-1.5">
                           <CircleCheck
                             className={cx(
@@ -567,20 +567,20 @@ export default function Billing() {
                           <span>{card.isActive ? "Active" : "Inactive"}</span>
                         </div>
                       </TableCell>
-                      <TableCell variant="tremor" className="py-2.5">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                         {card.type}
                       </TableCell>
-                      <TableCell variant="tremor" className="py-2.5">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                         ****{card.lastFour}
                       </TableCell>
-                      <TableCell variant="tremor" className="py-2.5">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)]">
                         {card.expiryDate}
                       </TableCell>
-                      <TableCell variant="tremor" className="py-2.5 text-right">
+                      <TableCell variant="tremor" className="py-[length:var(--spacing-settings-table-cell-y)] text-right">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400"
+                          className="font-medium text-[var(--link-color)] hover:text-[var(--link-hover-color)]"
                           aria-label={`Edit ${card.provider} ending in ${card.lastFour}`}
                         >
                           Edit
@@ -599,15 +599,15 @@ export default function Billing() {
 
       <section aria-labelledby="cost-spend-control">
         <form onSubmit={handleSpendControlUpdate}>
-          <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-x)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
             <div>
               <h2
                 id="cost-spend-control"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
               >
                 Cost spend control
               </h2>
-              <p className="mt-1 text-sm leading-6 text-gray-500">
+              <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                 Set hard caps for on-demand charges.
               </p>
             </div>
@@ -624,24 +624,24 @@ export default function Billing() {
                   <div>
                     {isSpendMgmtEnabled ? (
                       <>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                        <p className="text-[length:var(--text-settings-table-cell)] font-medium text-[var(--foreground)]">
                           ${currentSpend} / {spendLimit} ({spendPercentage.toFixed(1)}%)
                         </p>
                         <Label
                           htmlFor="spend-mgmt"
-                          className="text-gray-500 dark:text-gray-500"
+                          className="text-[var(--muted-foreground)]"
                         >
                           Spend management enabled
                         </Label>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                        <p className="text-[length:var(--text-settings-table-cell)] font-medium text-[var(--foreground)]">
                           $0 / 0 (0%)
                         </p>
                         <Label
                           htmlFor="spend-mgmt"
-                          className="text-gray-500 dark:text-gray-500"
+                          className="text-[var(--muted-foreground)]"
                         >
                           Spend management disabled
                         </Label>
@@ -729,28 +729,28 @@ export default function Billing() {
       <Divider />
 
       <section aria-labelledby="billing-address-heading">
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-x)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
           <div>
             <h2
               id="billing-address-heading"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Billing address
             </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-500">
+            <p className="mt-2 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               If you would like to add a postal address to every invoice, enter it here.
             </p>
           </div>
           <div className="md:col-span-2">
             <h3
               id="update-address-heading"
-              className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+              className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
             >
               Update address
             </h3>
             <form
               onSubmit={handleUpdateAddress}
-              className="mt-6 space-y-4"
+              className="mt-6 space-y-[length:var(--spacing-settings-form-field-gap)]"
               aria-labelledby="update-address-heading"
             >
               <div>
@@ -848,31 +848,31 @@ export default function Billing() {
       <Divider />
 
       <section aria-labelledby="add-ons">
-        <div className="grid grid-cols-1 gap-x-14 gap-y-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-x)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
           <div>
             <h2
               id="add-ons"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 text-[length:var(--text-settings-section-heading)] font-[var(--font-settings-section-heading)] text-[var(--foreground)]"
             >
               Add-Ons
             </h2>
-            <p className="mt-1 text-sm leading-6 text-gray-500">
+            <p className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
               Additional services to boost your services.
             </p>
           </div>
-          <div className="space-y-6 md:col-span-2">
+          <div className="space-y-[length:var(--spacing-settings-subsection-gap)] md:col-span-2">
             {addOns.map((addOn) => (
               <Card key={addOn.id} variant="tremor" className="overflow-hidden p-0">
-                <div className="px-4 pb-6 pt-4">
-                  <span className="text-sm text-gray-500">{addOn.price}</span>
-                  <h4 className="mt-4 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                <div className="px-[length:var(--spacing-settings-card-padding)] pb-[length:var(--spacing-settings-subsection-gap)] pt-[length:var(--spacing-settings-card-padding)]">
+                  <span className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">{addOn.price}</span>
+                  <h4 className="mt-4 text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]">
                     {addOn.name}
                   </h4>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                  <p className="mt-2 max-w-xl text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)] text-[var(--muted-foreground)]">
                     {addOn.description}
                   </p>
                 </div>
-                <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
+                <div className="flex items-center justify-between border-t border-[var(--border)] bg-[var(--settings-section-bg-elevated)] p-[length:var(--spacing-settings-card-padding)]">
                   <div className="flex items-center gap-3">
                     <Switch
                       id={addOn.id}
@@ -886,7 +886,7 @@ export default function Billing() {
                   {addOn.learnMoreUrl && (
                     <a
                       href={addOn.learnMoreUrl}
-                      className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-500 dark:hover:text-indigo-400"
+                      className="inline-flex items-center gap-1 text-[length:var(--text-settings-table-cell)] text-[var(--link-color)] hover:text-[var(--link-hover-color)] hover:underline hover:underline-offset-4"
                     >
                       Learn more
                       <RiArrowRightUpLine className="size-4 shrink-0" aria-hidden="true" />

@@ -196,7 +196,7 @@ export default function AuditRules() {
                             className="size-5 shrink-0 text-emerald-600 dark:text-emerald-500"
                             aria-hidden="true"
                           />
-                          <span className="text-sm text-gray-900 dark:text-gray-50">
+                          <span className="text-[length:var(--text-settings-table-cell)] text-[var(--foreground)]">
                             Live
                           </span>
                         </span>
@@ -224,7 +224,7 @@ export default function AuditRules() {
                                     "absolute left-0 top-0 flex w-9 justify-center",
                                   )}
                                 >
-                                  <div className="w-px bg-gray-200 dark:bg-gray-800" />
+                                  <div className="w-px bg-[var(--border)]" />
                                 </div>
                                 {rule.type === "event" ? (
                                   <>
@@ -295,7 +295,7 @@ export default function AuditRules() {
                       <div className="mt-6 flex items-center justify-between">
                         <time
                           dateTime="2023-01-23T10:32"
-                          className="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-500"
+                          className="flex-none py-0.5 text-[length:var(--text-settings-helper)] leading-5 text-[var(--muted-foreground)]"
                         >
                           Updated 30d ago
                         </time>
@@ -336,7 +336,7 @@ export default function AuditRules() {
                   Add rule
                 </Button>
               </div>
-              <div className="mt-6 space-y-8 rounded-md border border-gray-200 bg-gray-50 p-4 sm:p-8 lg:p-10 dark:border-gray-800 dark:bg-gray-900/40">
+              <div className="mt-6 space-y-[length:var(--spacing-settings-grid-gap-y)] rounded-[var(--radius-settings-card)] border border-[var(--border)] bg-[var(--settings-section-bg-elevated)] p-[length:var(--spacing-settings-card-padding)] sm:p-[length:var(--spacing-settings-grid-gap-y)] lg:p-[length:var(--spacing-settings-section-gap)]">
                 <div>
                   <Label htmlFor="rule-name" className="font-medium">
                     Rule Name
@@ -350,7 +350,7 @@ export default function AuditRules() {
                 <div>
                   <h3
                     id="rule-flow-heading"
-                    className="text-sm font-medium text-gray-900 dark:text-gray-50"
+                    className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
                   >
                     Define Rule Flow
                   </h3>
@@ -358,7 +358,7 @@ export default function AuditRules() {
                     <React.Fragment key={rule.id}>
                       {index > 0 && (
                         <div className="flex flex-col items-center">
-                          <div className="h-7 w-px bg-gray-300 dark:bg-gray-800" />
+                          <div className="h-7 w-px bg-[var(--border)]" />
                         </div>
                       )}
                       {rule.type === "event" ? (
@@ -425,7 +425,7 @@ export default function AuditRules() {
                         <Card className="relative overflow-hidden border-gray-300 p-0 dark:border-gray-800">
                           <Button
                             variant="ghost"
-                            className="absolute right-4 top-4 p-2.5 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-red-500 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-red-500"
+                            className="absolute right-4 top-4 p-2.5 text-[var(--muted-foreground)] hover:border hover:border-[var(--border)] hover:bg-[var(--settings-section-bg-elevated)] hover:text-[var(--status-critical)]"
                             aria-label="Remove function"
                           >
                             <Trash2
@@ -436,7 +436,7 @@ export default function AuditRules() {
                           <div className="overflow-hidden border-l-4 border-sky-500 p-6 dark:border-sky-500">
                             <div className="flex items-center gap-4 pr-4">
                               <span
-                                className="flex aspect-square h-10 items-center justify-center rounded-lg bg-sky-500 dark:bg-sky-500"
+                                className="flex aspect-square h-10 items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-function-color)]"
                                 aria-hidden="true"
                               >
                                 <SquareFunction
@@ -481,7 +481,7 @@ export default function AuditRules() {
                             </div>
                             <div className="mt-4 flex items-center gap-2">
                               <CornerDownRight
-                                className="size-5 shrink-0 text-gray-400 dark:text-gray-600"
+                                className="size-5 shrink-0 text-[var(--muted-foreground)]"
                                 aria-hidden="true"
                               />
                               <Input
@@ -496,7 +496,7 @@ export default function AuditRules() {
                         <Card className="relative overflow-hidden border-gray-300 p-0 dark:border-gray-800">
                           <Button
                             variant="ghost"
-                            className="absolute right-4 top-4 p-2.5 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-red-500 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-red-500"
+                            className="absolute right-4 top-4 p-2.5 text-[var(--muted-foreground)] hover:border hover:border-[var(--border)] hover:bg-[var(--settings-section-bg-elevated)] hover:text-[var(--status-critical)]"
                             aria-label="Remove action"
                           >
                             <Trash2
@@ -507,7 +507,7 @@ export default function AuditRules() {
                           <div className="overflow-hidden border-l-4 border-emerald-500 p-6 dark:border-emerald-500">
                             <div className="flex items-center gap-4 pr-4">
                               <span
-                                className="flex aspect-square h-10 items-center justify-center rounded-lg bg-emerald-500 dark:bg-emerald-500"
+                                className="flex aspect-square h-10 items-center justify-center rounded-[var(--radius-settings-audit-icon)] bg-[var(--audit-action-color)]"
                                 aria-hidden="true"
                               >
                                 <CircleArrowOutUpRight
@@ -551,7 +551,7 @@ export default function AuditRules() {
                               </Select>
                             </div>
                             <div className="mt-4 flex items-center gap-2">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                                 By
                               </span>
                               <Select defaultValue={users[0].name}>
@@ -576,10 +576,10 @@ export default function AuditRules() {
                     </React.Fragment>
                   ))}
                   <div className="flex flex-col items-center">
-                    <div className="h-8 w-px bg-gray-300 dark:bg-gray-800" />
-                    <div className="inline-flex items-center gap-1 rounded-lg bg-gray-900 p-1 shadow-md dark:border dark:border-gray-800 dark:bg-[#090E1A]">
+                    <div className="h-8 w-px bg-[var(--border)]" />
+                    <div className="inline-flex items-center gap-1 rounded-[var(--radius-settings-card)] bg-[var(--foreground)] p-1 shadow-md">
                       <button
-                        className="flex items-center gap-2 rounded-[calc(theme(borderRadius.lg)-4px)] px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 hover:dark:bg-gray-900"
+                        className="flex items-center gap-2 rounded-[calc(var(--radius-settings-card)-4px)] px-3 py-1.5 text-[length:var(--text-settings-table-cell)] font-medium text-[var(--background)] hover:bg-[var(--muted)]"
                         aria-label="Add Event"
                       >
                         <ArrowDownToDot
@@ -589,7 +589,7 @@ export default function AuditRules() {
                         Event
                       </button>
                       <button
-                        className="flex items-center gap-2 rounded-[calc(theme(borderRadius.lg)-4px)] px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 hover:dark:bg-gray-900"
+                        className="flex items-center gap-2 rounded-[calc(var(--radius-settings-card)-4px)] px-3 py-1.5 text-[length:var(--text-settings-table-cell)] font-medium text-[var(--background)] hover:bg-[var(--muted)]"
                         aria-label="Add Function"
                       >
                         <SquareFunction
@@ -599,7 +599,7 @@ export default function AuditRules() {
                         Function
                       </button>
                       <button
-                        className="flex items-center gap-2 rounded-[calc(theme(borderRadius.lg)-4px)] px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 hover:dark:bg-gray-900"
+                        className="flex items-center gap-2 rounded-[calc(var(--radius-settings-card)-4px)] px-3 py-1.5 text-[length:var(--text-settings-table-cell)] font-medium text-[var(--background)] hover:bg-[var(--muted)]"
                         aria-label="Add Action"
                       >
                         <CircleArrowOutUpRight

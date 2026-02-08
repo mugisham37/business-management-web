@@ -291,8 +291,8 @@ export default function TransactionPolicy() {
                       <span
                         className={cx(
                           item.category === "block"
-                            ? "bg-rose-500 dark:bg-rose-500"
-                            : "bg-orange-500 dark:bg-orange-500",
+                            ? "bg-[var(--policy-blocked-color)]"
+                            : "bg-[var(--policy-suspicious-color)]",
                           "size-2 rounded-sm",
                         )}
                         aria-hidden="true"
@@ -311,7 +311,7 @@ export default function TransactionPolicy() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="p-2.5 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-rose-500 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-rose-500"
+                          className="p-2.5 text-[var(--muted-foreground)] hover:border hover:border-[var(--border)] hover:bg-[var(--settings-section-bg-elevated)] hover:text-[var(--status-critical)]"
                           onClick={() => handleRemoveKeyword(item.value)}
                           disabled={isLoading}
                           aria-label={`Remove ${item.label}`}

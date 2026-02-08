@@ -192,9 +192,9 @@ export default function Users() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-[length:var(--spacing-settings-grid-gap-y)]">
       <section aria-labelledby="users-heading">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-[length:var(--spacing-settings-grid-gap-y)] gap-y-[length:var(--spacing-settings-grid-gap-y)] md:grid-cols-3">
           <div>
             <h2
               id="users-heading"
@@ -213,11 +213,11 @@ export default function Users() {
               <div>
                 <h3
                   id="active-users-heading"
-                  className="text-sm font-medium text-gray-900 dark:text-gray-50"
+                  className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
                 >
                   Team Members ({users.length} active, {invitedUsers.length} pending)
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                   Manage user roles and permissions
                 </p>
               </div>
@@ -238,31 +238,31 @@ export default function Users() {
                   <TableRow variant="tremor">
                     <TableHeaderCell 
                       variant="tremor" 
-                      className="w-full text-xs font-medium uppercase tracking-wide"
+                      className="w-full text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase tracking-wide"
                     >
                       User
                     </TableHeaderCell>
                     <TableHeaderCell 
                       variant="tremor" 
-                      className="text-xs font-medium uppercase tracking-wide"
+                      className="text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase tracking-wide"
                       whitespaceNowrap
                     >
                       Date Added
                     </TableHeaderCell>
                     <TableHeaderCell 
                       variant="tremor" 
-                      className="text-xs font-medium uppercase tracking-wide"
+                      className="text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase tracking-wide"
                       whitespaceNowrap
                     >
                       Last Active
                     </TableHeaderCell>
                     <TableHeaderCell 
                       variant="tremor" 
-                      className="text-xs font-medium uppercase tracking-wide"
+                      className="text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase tracking-wide"
                     >
                       Role / Permission
                     </TableHeaderCell>
-                    <TableHeaderCell variant="tremor" className="text-xs font-medium uppercase tracking-wide">
+                    <TableHeaderCell variant="tremor" className="text-[length:var(--text-settings-table-header)] font-[var(--font-settings-table-header)] uppercase tracking-wide">
                       <span className="sr-only">Actions</span>
                     </TableHeaderCell>
                   </TableRow>
@@ -273,10 +273,10 @@ export default function Users() {
                       <TableCell variant="tremor" className="w-full">
                         <div className="flex items-center gap-4">
                           <span
-                            className={`inline-flex size-9 items-center justify-center rounded-full p-1.5 text-xs font-medium ${
+                            className={`inline-flex size-[length:var(--avatar-size-settings-default)] items-center justify-center rounded-[var(--radius-settings-avatar)] p-1.5 text-[length:var(--text-settings-helper)] font-medium ${
                               user.status === "pending"
-                                ? "border border-dashed border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-50"
-                                : "bg-gray-50 text-gray-700 ring-1 ring-gray-300 dark:bg-gray-800 dark:text-gray-50 dark:ring-gray-700"
+                                ? "border border-dashed border-[var(--border)] text-[var(--foreground)]"
+                                : "bg-[var(--user-profile-avatar-bg)] text-[var(--foreground)] ring-1 ring-[var(--user-profile-avatar-border)]"
                             }`}
                             aria-hidden="true"
                           >
@@ -284,7 +284,7 @@ export default function Users() {
                           </span>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+                              <p className="truncate text-[length:var(--text-settings-table-cell)] font-medium text-[var(--foreground)]">
                                 {user.name}
                               </p>
                               {user.status === "pending" && (
@@ -298,7 +298,7 @@ export default function Users() {
                                 </span>
                               )}
                             </div>
-                            <p className="truncate text-xs text-gray-500 dark:text-gray-500">
+                            <p className="truncate text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                               {user.email}
                             </p>
                           </div>
@@ -306,13 +306,13 @@ export default function Users() {
                       </TableCell>
                       
                       <TableCell variant="tremor" whitespaceNowrap>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                           {user.dateAdded}
                         </span>
                       </TableCell>
                       
                       <TableCell variant="tremor" whitespaceNowrap>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)]">
                           {user.lastActive}
                         </span>
                       </TableCell>
@@ -421,7 +421,7 @@ export default function Users() {
                                   Resend invitation
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="text-red-600 dark:text-red-500"
+                                  className="text-[var(--dropdown-item-destructive-text)]"
                                   onClick={handleRevokeInvitation}
                                 >
                                   Revoke invitation
@@ -432,7 +432,7 @@ export default function Users() {
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  className="text-red-600 dark:text-red-500"
+                                  className="text-[var(--dropdown-item-destructive-text)]"
                                   disabled={user.role === "admin"}
                                   onClick={() => handleOpenDeleteDialog(user)}
                                 >
@@ -458,13 +458,13 @@ export default function Users() {
           <form onSubmit={handleAddUser}>
             <DialogHeader variant="tremor">
               <DialogTitle variant="tremor">Invite team member</DialogTitle>
-              <DialogDescription variant="tremor" className="mt-1 text-sm leading-6">
+              <DialogDescription variant="tremor" className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)]">
                 Add a new team member to your workspace. They will receive an email invitation 
                 to join and can start collaborating immediately.
               </DialogDescription>
             </DialogHeader>
             
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-[length:var(--spacing-settings-form-field-gap)]">
               <div>
                 <Label htmlFor="new-user-email" className="text-sm font-medium">
                   Email address
@@ -482,14 +482,14 @@ export default function Users() {
                   autoComplete="email"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+                  <p className="mt-1 text-[length:var(--text-settings-helper)] text-[var(--status-critical)]">
                     Please enter a valid email address
                   </p>
                 )}
               </div>
               
               <div>
-                <Label htmlFor="new-user-role" className="text-sm font-medium">
+                <Label htmlFor="new-user-role" className="text-[length:var(--text-settings-label)] font-medium">
                   Role
                 </Label>
                 <Select 
@@ -520,14 +520,14 @@ export default function Users() {
                   </SelectContent>
                 </Select>
                 {errors.role && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+                  <p className="mt-1 text-[length:var(--text-settings-helper)] text-[var(--status-critical)]">
                     Please select a role
                   </p>
                 )}
               </div>
               
               <div>
-                <Label htmlFor="new-user-permission" className="text-sm font-medium">
+                <Label htmlFor="new-user-permission" className="text-[length:var(--text-settings-label)] font-medium">
                   Department access
                 </Label>
                 <Select 
@@ -557,7 +557,7 @@ export default function Users() {
                   </SelectContent>
                 </Select>
                 {errors.permission && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+                  <p className="mt-1 text-[length:var(--text-settings-helper)] text-[var(--status-critical)]">
                     Please select department access
                   </p>
                 )}
@@ -594,7 +594,7 @@ export default function Users() {
         <DialogContent className="sm:max-w-lg" variant="tremor" showCloseButton={!isLoading}>
           <DialogHeader variant="tremor">
             <DialogTitle variant="tremor">Remove team member</DialogTitle>
-            <DialogDescription variant="tremor" className="mt-1 text-sm leading-6">
+            <DialogDescription variant="tremor" className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)]">
               Are you sure you want to remove <strong>{selectedUser?.name}</strong> from your workspace? 
               They will lose access to all projects and data. This action cannot be undone.
             </DialogDescription>

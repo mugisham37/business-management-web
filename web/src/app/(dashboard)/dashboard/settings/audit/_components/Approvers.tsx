@@ -217,15 +217,17 @@ export default function Approvers() {
             )}
 
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <h3
-                id="approvers-count"
-                className="text-sm font-medium text-gray-900 dark:text-gray-50"
-              >
-                Users with approval rights
-              </h3>
+              <div>
+                <h3
+                  id="approvers-count"
+                  className="text-[length:var(--text-settings-subsection-heading)] font-[var(--font-settings-subsection-heading)] text-[var(--foreground)]"
+                >
+                  Users with approval rights
+                </h3>
+              </div>
               <div className="flex items-center gap-4">
                 <span
-                  className="hidden text-sm text-gray-600 sm:block dark:text-gray-400"
+                  className="hidden text-[length:var(--text-settings-table-cell)] text-[var(--muted-foreground)] sm:block"
                   aria-live="polite"
                   aria-atomic="true"
                 >
@@ -244,12 +246,12 @@ export default function Approvers() {
                   <DialogContent className="sm:max-w-lg" variant="tremor">
                     <DialogHeader variant="tremor">
                       <DialogTitle variant="tremor">Add New User</DialogTitle>
-                      <DialogDescription variant="tremor" className="mt-1 text-sm leading-6">
+                      <DialogDescription variant="tremor" className="mt-1 text-[length:var(--text-settings-section-description)] leading-[var(--leading-settings-section-description)]">
                         Fill in the details below to add a new user with approval rights.
                       </DialogDescription>
                     </DialogHeader>
                     
-                    <form onSubmit={handleAddUser} className="mt-4 space-y-4">
+                    <form onSubmit={handleAddUser} className="mt-4 space-y-[length:var(--spacing-settings-form-field-gap)]">
                       <div>
                         <Label htmlFor="new-user-email" className="font-medium">
                           Email Address
@@ -266,7 +268,7 @@ export default function Approvers() {
                           hasError={!!error}
                           required
                         />
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                        <p className="mt-1 text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                           An invitation will be sent to this email address
                         </p>
                       </div>
@@ -329,7 +331,7 @@ export default function Approvers() {
             <ul
               role="list"
               aria-labelledby="approvers-count"
-              className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
+              className="mt-6 divide-y divide-[var(--border)]"
             >
               {userList.map((item) => (
                 <li
@@ -338,14 +340,14 @@ export default function Approvers() {
                 >
                   <div className="flex w-full items-center gap-4">
                     <Avatar>
-                      <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      <AvatarFallback className="bg-[var(--nav-item-active-bg)] text-[var(--nav-item-active-text)]">
                         {item.initials}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                        <p className="text-[length:var(--text-settings-table-cell)] font-medium text-[var(--foreground)]">
                           {item.name}
                         </p>
                         <Badge variant={getStatusVariant(item.status)} size="sm">
@@ -353,7 +355,7 @@ export default function Approvers() {
                           {item.status}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1 text-[length:var(--text-settings-helper)] text-[var(--muted-foreground)]">
                         <Mail className="h-3 w-3" />
                         {item.email}
                       </div>
@@ -386,7 +388,7 @@ export default function Approvers() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="aspect-square p-3 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-rose-500 sm:p-2.5 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-rose-500"
+                        className="aspect-square p-3 text-[var(--muted-foreground)] hover:border hover:border-[var(--border)] hover:bg-[var(--settings-section-bg-elevated)] hover:text-[var(--status-critical)] sm:p-2.5"
                         onClick={() => handleRemoveUser(item.email)}
                         disabled={isLoading}
                         aria-label={`Remove ${item.name}`}
