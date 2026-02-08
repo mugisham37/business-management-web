@@ -494,8 +494,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - _Requirements: 13.4_
 
 
-- [ ] 20. Implement Auth Module (core authentication)
-  - [ ] 20.1 Create AuthService with token generation
+- [x] 20. Implement Auth Module (core authentication)
+  - [x] 20.1 Create AuthService with token generation
     - Implement generateTokens method (create JWT with embedded permissions, refresh token)
     - Set token expiration (access: 15min, refresh: 7 days)
     - Embed user ID, org ID, roles, permissions in JWT
@@ -509,7 +509,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 36: Token Expiration Configuration**
     - **Validates: Requirements 22.2, 22.3**
   
-  - [ ] 20.4 Implement token validation
+  - [x] 20.4 Implement token validation
     - Implement validateToken method (verify signature, expiration, org context)
     - _Requirements: 22.4, 16.3_
   
@@ -521,11 +521,11 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 54: JWT Organization Context Enforcement**
     - **Validates: Requirements 16.3**
   
-  - [ ] 20.7 Implement token refresh
+  - [x] 20.7 Implement token refresh
     - Implement refreshTokens method (validate refresh token, rotate, issue new tokens)
     - _Requirements: 11.6, 22.5_
   
-  - [ ] 20.8 Implement user validation for authentication
+  - [x] 20.8 Implement user validation for authentication
     - Implement validateUser method (find user, verify password, check status)
     - Check emailVerified, status (active), lockedUntil
     - Increment failedLoginAttempts on failure
@@ -543,7 +543,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 15: Inactive Status Blocks Authentication**
     - **Validates: Requirements 6.4, 21.1, 21.2, 12.4**
   
-  - [ ] 20.12 Implement login method
+  - [x] 20.12 Implement login method
     - Implement login method (validate user, check MFA, generate tokens, create session)
     - Return temporary token if MFA required
     - _Requirements: 3.1, 3.6_
@@ -556,7 +556,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 13: MFA Enforcement**
     - **Validates: Requirements 3.6, 13.4**
   
-  - [ ] 20.15 Implement loginWithMFA method
+  - [x] 20.15 Implement loginWithMFA method
     - Validate temporary token
     - Validate MFA code (TOTP or backup code)
     - Generate final tokens
