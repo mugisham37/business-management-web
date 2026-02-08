@@ -1042,34 +1042,34 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Return success response
     - _Requirements: 19.2_
 
-- [ ] 39. Implement MFA Controller (API endpoints)
-  - [ ] 39.1 Create POST /mfa/setup endpoint
+- [x] 39. Implement MFA Controller (API endpoints)
+  - [x] 39.1 Create POST /mfa/setup endpoint
     - Use JwtAuthGuard
     - Call MFAService.generateSecret
     - Return secret, QR code, backup codes
     - _Requirements: 13.1_
   
-  - [ ] 39.2 Create POST /mfa/enable endpoint
+  - [x] 39.2 Create POST /mfa/enable endpoint
     - Use JwtAuthGuard
     - Accept TOTP code
     - Call MFAService.enableTOTP
     - Return success response
     - _Requirements: 13.2_
   
-  - [ ] 39.3 Create POST /mfa/disable endpoint
+  - [x] 39.3 Create POST /mfa/disable endpoint
     - Use JwtAuthGuard
     - Accept password and TOTP code
     - Call MFAService.disableTOTP
     - Return success response
     - _Requirements: 13.7_
   
-  - [ ] 39.4 Create GET /mfa/status endpoint
+  - [x] 39.4 Create GET /mfa/status endpoint
     - Use JwtAuthGuard
     - Call MFAService.getMFAStatus
     - Return MFA status
     - _Requirements: 13.4_
   
-  - [ ] 39.5 Create POST /mfa/backup-codes/regenerate endpoint
+  - [x] 39.5 Create POST /mfa/backup-codes/regenerate endpoint
     - Use JwtAuthGuard
     - Call MFAService.generateBackupCodes
     - Return new backup codes
