@@ -238,8 +238,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 68: Department Deletion Prevention**
     - **Validates: Requirements 20.4**
 
-- [ ] 12. Implement Users Module (basic CRUD)
-  - [ ] 12.1 Create UsersService with basic CRUD operations
+- [x] 12. Implement Users Module (basic CRUD)
+  - [x] 12.1 Create UsersService with basic CRUD operations
     - Implement create method (hash password, set initial status)
     - Implement findById method (with organization context)
     - Implement findByEmail method (with organization context)
@@ -252,7 +252,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 24: Organization Boundary Enforcement**
     - **Validates: Requirements 7.7, 16.2**
   
-  - [ ] 12.3 Implement user status management methods
+  - [x] 12.3 Implement user status management methods
     - Implement suspend method (set status, invalidate sessions)
     - Implement reactivate method (set status to active)
     - Implement deactivate method (set status, invalidate sessions)
@@ -268,7 +268,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 70: Reactivation Restores Access**
     - **Validates: Requirements 21.5**
   
-  - [ ] 12.6 Implement department assignment methods
+  - [x] 12.6 Implement department assignment methods
     - Implement assignDepartment method
     - Implement removeDepartment method
     - _Requirements: 20.2_
