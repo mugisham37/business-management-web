@@ -784,14 +784,14 @@ This implementation plan breaks down the enterprise authentication and authoriza
 
 ### Phase 7: OAuth Integration
 
-- [ ] 32. Implement OAuth Module
-  - [ ] 32.1 Set up Passport OAuth strategies
+- [x] 32. Implement OAuth Module
+  - [x] 32.1 Set up Passport OAuth strategies
     - Install @nestjs/passport, passport-google-oauth20, passport-microsoft
     - Configure GoogleStrategy
     - Configure MicrosoftStrategy
     - _Requirements: 17.1, 17.6_
   
-  - [ ] 32.2 Implement OAuth authentication flow
+  - [x] 32.2 Implement OAuth authentication flow
     - Implement OAuth callback handler
     - Exchange authorization code for tokens
     - Create or link user account based on email
@@ -809,13 +809,13 @@ This implementation plan breaks down the enterprise authentication and authoriza
 
 ### Phase 8: API Layer and Guards
 
-- [ ] 33. Implement Passport strategies for local authentication
-  - [ ] 33.1 Create LocalStrategy for email/password authentication
+- [x] 33. Implement Passport strategies for local authentication
+  - [x] 33.1 Create LocalStrategy for email/password authentication
     - Implement validate method (call AuthService.validateUser)
     - Handle primary owner login (email + password)
     - _Requirements: 3.1_
   
-  - [ ] 33.2 Create LocalTeamMemberStrategy for company code authentication
+  - [x] 33.2 Create LocalTeamMemberStrategy for company code authentication
     - Implement validate method with company code context
     - Handle team member login (company code + username + password)
     - _Requirements: 6.1, 6.2_
@@ -824,25 +824,25 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property (combined with 6.1): Team member authentication requires company code**
     - **Validates: Requirements 6.1, 6.2**
   
-  - [ ] 33.4 Create JwtStrategy for protected routes
+  - [x] 33.4 Create JwtStrategy for protected routes
     - Implement validate method (extract user from JWT payload)
     - Validate organization context
     - _Requirements: 22.4, 16.3_
 
-- [ ] 34. Implement authentication guards
-  - [ ] 34.1 Create JwtAuthGuard
+- [x] 34. Implement authentication guards
+  - [x] 34.1 Create JwtAuthGuard
     - Extend @nestjs/passport AuthGuard('jwt')
     - Extract and validate JWT
     - Inject user into request
     - _Requirements: 3.4, 22.4_
   
-  - [ ] 34.2 Create PermissionsGuard
+  - [x] 34.2 Create PermissionsGuard
     - Extract required permissions from route metadata
     - Call PermissionsService.hasPermission
     - Deny access if permission check fails
     - _Requirements: 7.3, 7.4, 7.5_
   
-  - [ ] 34.3 Create RolesGuard
+  - [x] 34.3 Create RolesGuard
     - Extract required roles from route metadata
     - Check user roles
     - Deny access if role check fails
