@@ -283,8 +283,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
 
 ### Phase 3: Roles and Permissions System
 
-- [ ] 14. Implement Permissions Module (core evaluation engine)
-  - [ ] 14.1 Create PermissionsService with permission evaluation
+- [x] 14. Implement Permissions Module (core evaluation engine)
+  - [x] 14.1 Create PermissionsService with permission evaluation
     - Implement hasPermission method (check direct grants/denials → roles → cache)
     - Implement hasAnyPermission method
     - Implement hasAllPermissions method
@@ -312,19 +312,19 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 25: Department-Scoped Permission Enforcement**
     - **Validates: Requirements 20.3**
   
-  - [ ] 14.2 Implement permission query methods
+  - [x] 14.2 Implement permission query methods
     - Implement getUserPermissions method
     - Implement getUserPermissionsWithScope method
     - _Requirements: 7.3_
   
-  - [ ] 14.3 Implement direct permission grant/deny methods
+  - [x] 14.3 Implement direct permission grant/deny methods
     - Implement grantPermission method (create UserPermission with effect=allow)
     - Implement denyPermission method (create UserPermission with effect=deny)
     - Implement revokePermission method (delete UserPermission)
     - Trigger cache invalidation on changes
     - _Requirements: 7.4, 7.5_
   
-  - [ ] 14.4 Implement delegation validation methods
+  - [x] 14.4 Implement delegation validation methods
     - Implement validateDelegation method (check creator has all permissions)
     - Implement canDelegate method
     - Traverse hierarchy to validate delegation chain
@@ -334,7 +334,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 16: Delegation Validation**
     - **Validates: Requirements 4.1, 4.4, 9.1, 9.2, 19.1**
   
-  - [ ] 14.6 Implement cache invalidation methods
+  - [x] 14.6 Implement cache invalidation methods
     - Implement invalidateUserCache method (publish event, clear L1)
     - Implement invalidateRoleCache method (publish event, clear L1 for all users with role)
     - _Requirements: 8.4, 8.5_
