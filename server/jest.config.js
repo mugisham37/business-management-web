@@ -15,5 +15,9 @@ module.exports = {
     '^@modules/(.*)$': '<rootDir>/modules/$1',
     '^@common/(.*)$': '<rootDir>/common/$1',
     '^@config/(.*)$': '<rootDir>/config/$1',
+    '^uuid$': require.resolve('uuid'),
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)',
+  ],
 };
