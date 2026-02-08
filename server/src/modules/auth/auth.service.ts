@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ForbiddenException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException, ConflictException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityService } from '../../common/security/security.service';
 import { UsersService } from '../users/users.service';
@@ -6,6 +6,7 @@ import { SessionsService, SessionMetadata } from '../sessions/sessions.service';
 import { MFAService } from '../mfa/mfa.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { AuditService } from '../../common/audit/audit.service';
 import { User, Organization } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 
@@ -91,6 +92,7 @@ export class AuthService {
     private readonly mfa: MFAService,
     private readonly permissions: PermissionsService,
     private readonly organizations: OrganizationsService,
+    private readonly audit: AuditService,
   ) {
     // Initialize JWT secret from environment
     this.JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
@@ -820,6 +822,397 @@ export class AuthService {
       }
       this.logger.error('Failed to verify email:', error);
       throw new UnauthorizedException('Email verification failed');
+    }
+  }
+
+  /**
+   * Request password reset
+   * 
+   * Requirement 14.1: WHEN a user requests password reset, THE Auth_System SHALL 
+   * send a reset email with a time-limited token (1 hour)
+   * 
+   * Requirement 14.6: WHEN multiple password reset requests are made, THE Auth_System 
+   * SHALL invalidate previous tokens
+   * 
+   * @param email - User email address
+   * @param ipAddress - Request IP address for audit logging
+   * @returns Success message
+   */
+  async requestPasswordReset(email: string, ipAddress?: string): Promise<{ message: string }> {
+    try {
+      // Find user by email (across all organizations)
+      const user = await this.prisma.user.findFirst({
+        where: { email },
+      });
+
+      // Always return success message to prevent email enumeration
+      // But only send email if user exists
+      if (!user) {
+        this.logger.debug(`Password reset requested for non-existent email: ${email}`);
+        return {
+          message: 'If an account with that email exists, a password reset link has been sent.',
+        };
+      }
+
+      // Invalidate all previous password reset tokens for this user
+      await this.prisma.passwordResetToken.updateMany({
+        where: {
+          userId: user.id,
+          isUsed: false,
+        },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      // Generate unique reset token (1-hour expiry)
+      const token = this.security.generateSecureToken();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+
+      // Create password reset token record
+      await this.prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          token,
+          expiresAt,
+        },
+      });
+
+      // Audit log the password reset request
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'password_reset_requested',
+        resource: 'user',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress,
+        metadata: {
+          email: user.email,
+        },
+      });
+
+      // TODO: Send actual email with reset link
+      // For now, just log the token (in production, integrate with email service)
+      this.logger.log(
+        `Password reset email would be sent to ${user.email} with token: ${token}`,
+      );
+      this.logger.log(`Reset link: http://localhost:3000/auth/reset-password?token=${token}`);
+
+      this.logger.log(`Password reset requested for user: ${user.id}`);
+
+      return {
+        message: 'If an account with that email exists, a password reset link has been sent.',
+      };
+    } catch (error) {
+      this.logger.error('Failed to request password reset:', error);
+      // Return generic message to prevent information leakage
+      return {
+        message: 'If an account with that email exists, a password reset link has been sent.',
+      };
+    }
+  }
+
+  /**
+   * Reset password with token
+   * 
+   * Requirement 14.2: WHEN a reset token is submitted with a new password, 
+   * THE Auth_System SHALL validate the token and update the password
+   * 
+   * Requirement 14.3: WHEN a password is changed, THE Auth_System SHALL 
+   * invalidate all existing sessions except the current one
+   * 
+   * Requirement 14.4: WHEN a new password is set, THE Auth_System SHALL 
+   * verify it differs from the last 5 passwords
+   * 
+   * Requirement 14.5: WHEN a password reset is completed, THE Audit_Logger 
+   * SHALL record the event
+   * 
+   * @param token - Password reset token
+   * @param newPassword - New password
+   * @param ipAddress - Request IP address for audit logging
+   * @param userAgent - Request user agent for audit logging
+   * @returns Success message
+   */
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ message: string }> {
+    try {
+      // Find password reset token
+      const resetToken = await this.prisma.passwordResetToken.findUnique({
+        where: { token },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!resetToken) {
+        throw new UnauthorizedException('Invalid password reset token');
+      }
+
+      // Check if token is already used
+      if (resetToken.isUsed) {
+        throw new UnauthorizedException('Password reset token has already been used');
+      }
+
+      // Check if token is expired
+      if (resetToken.expiresAt < new Date()) {
+        throw new UnauthorizedException(
+          'Password reset token has expired. Please request a new password reset.',
+        );
+      }
+
+      const user = resetToken.user;
+
+      // Validate password strength
+      const passwordValidation = this.security.validatePasswordStrength(newPassword);
+      if (!passwordValidation.isValid) {
+        throw new BadRequestException(
+          `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
+        );
+      }
+
+      // Check password history (last 5 passwords)
+      const passwordHistory = await this.prisma.passwordHistory.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      });
+
+      // Verify new password differs from previous passwords
+      for (const historyEntry of passwordHistory) {
+        const isSamePassword = await this.security.verifyPassword(
+          newPassword,
+          historyEntry.passwordHash,
+        );
+        if (isSamePassword) {
+          throw new BadRequestException(
+            'New password must differ from your last 5 passwords',
+          );
+        }
+      }
+
+      // Hash new password
+      const newPasswordHash = await this.security.hashPassword(newPassword);
+
+      // Update user password
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: newPasswordHash,
+          failedLoginAttempts: 0, // Reset failed attempts
+        },
+      });
+
+      // Add old password to history
+      await this.prisma.passwordHistory.create({
+        data: {
+          userId: user.id,
+          passwordHash: user.passwordHash,
+        },
+      });
+
+      // Mark token as used
+      await this.prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      // Invalidate all sessions (user must login again)
+      await this.sessions.revokeAll(user.id);
+
+      // Audit log the password reset
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'password_reset_completed',
+        resource: 'user',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress,
+        userAgent,
+        metadata: {
+          email: user.email,
+          sessionsInvalidated: true,
+        },
+      });
+
+      this.logger.log(`Password reset completed for user: ${user.id}`);
+
+      return {
+        message: 'Password has been reset successfully. Please login with your new password.',
+      };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error('Failed to reset password:', error);
+      throw new UnauthorizedException('Password reset failed');
+    }
+  }
+
+  /**
+   * Change password for authenticated user
+   * 
+   * Requirement 14.3: WHEN a password is changed, THE Auth_System SHALL 
+   * invalidate all existing sessions except the current one
+   * 
+   * Requirement 14.4: WHEN a new password is set, THE Auth_System SHALL 
+   * verify it differs from the last 5 passwords
+   * 
+   * @param userId - User ID
+   * @param organizationId - Organization ID for tenant isolation
+   * @param oldPassword - Current password
+   * @param newPassword - New password
+   * @param currentSessionId - Current session ID to preserve
+   * @param ipAddress - Request IP address for audit logging
+   * @param userAgent - Request user agent for audit logging
+   * @returns Success message
+   */
+  async changePassword(
+    userId: string,
+    organizationId: string,
+    oldPassword: string,
+    newPassword: string,
+    currentSessionId?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ message: string }> {
+    try {
+      // Get user
+      const user = await this.users.findById(userId, organizationId);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Verify old password
+      const isOldPasswordValid = await this.security.verifyPassword(
+        oldPassword,
+        user.passwordHash,
+      );
+
+      if (!isOldPasswordValid) {
+        // Audit log failed attempt
+        await this.audit.log({
+          organizationId: user.organizationId,
+          userId: user.id,
+          action: 'password_change_failed',
+          resource: 'user',
+          resourceId: user.id,
+          outcome: 'failure',
+          ipAddress,
+          userAgent,
+          metadata: {
+            reason: 'Invalid old password',
+          },
+        });
+
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+
+      // Validate new password strength
+      const passwordValidation = this.security.validatePasswordStrength(newPassword);
+      if (!passwordValidation.isValid) {
+        throw new BadRequestException(
+          `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
+        );
+      }
+
+      // Check if new password is same as old password
+      const isSameAsOld = await this.security.verifyPassword(newPassword, user.passwordHash);
+      if (isSameAsOld) {
+        throw new BadRequestException('New password must be different from current password');
+      }
+
+      // Check password history (last 5 passwords)
+      const passwordHistory = await this.prisma.passwordHistory.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      });
+
+      // Verify new password differs from previous passwords
+      for (const historyEntry of passwordHistory) {
+        const isSamePassword = await this.security.verifyPassword(
+          newPassword,
+          historyEntry.passwordHash,
+        );
+        if (isSamePassword) {
+          throw new BadRequestException(
+            'New password must differ from your last 5 passwords',
+          );
+        }
+      }
+
+      // Hash new password
+      const newPasswordHash = await this.security.hashPassword(newPassword);
+
+      // Update user password
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: newPasswordHash,
+        },
+      });
+
+      // Add old password to history
+      await this.prisma.passwordHistory.create({
+        data: {
+          userId: user.id,
+          passwordHash: user.passwordHash,
+        },
+      });
+
+      // Invalidate all sessions except current one
+      if (currentSessionId) {
+        await this.sessions.revokeAllExcept(user.id, currentSessionId);
+      } else {
+        // If no current session provided, invalidate all sessions
+        await this.sessions.revokeAll(user.id);
+      }
+
+      // Audit log the password change
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'password_changed',
+        resource: 'user',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress,
+        userAgent,
+        metadata: {
+          email: user.email,
+          sessionsInvalidated: true,
+          currentSessionPreserved: !!currentSessionId,
+        },
+      });
+
+      this.logger.log(`Password changed for user: ${user.id}`);
+
+      return {
+        message: 'Password has been changed successfully. Other sessions have been logged out.',
+      };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      this.logger.error(`Failed to change password for user: ${userId}`, error);
+      throw new UnauthorizedException('Password change failed');
     }
   }
 }

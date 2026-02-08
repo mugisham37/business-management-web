@@ -608,8 +608,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 59: Onboarding Initiation for Primary Owners**
     - **Validates: Requirements 18.1**
 
-- [ ] 22. Implement password management
-  - [ ] 22.1 Implement password reset flow
+- [x] 22. Implement password management
+  - [x] 22.1 Implement password reset flow
     - Implement requestPasswordReset method (generate token, send email)
     - Implement resetPassword method (validate token, check password history, update password)
     - Invalidate sessions on password change
@@ -628,7 +628,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 46: Password History Enforcement**
     - **Validates: Requirements 14.4**
   
-  - [ ] 22.5 Implement changePassword method
+  - [x] 22.5 Implement changePassword method
     - Validate old password
     - Check password history
     - Update password

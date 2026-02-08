@@ -7,6 +7,7 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { MFAModule } from '../mfa/mfa.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { AuditModule } from '../../common/audit/audit.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     MFAModule,
     PermissionsModule,
     OrganizationsModule,
+    AuditModule,
   ],
   providers: [AuthService],
   exports: [AuthService],
