@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database';
 import { LoggerModule } from './common/logger';
 import { CacheModule } from './common/cache';
+import { OrganizationsModule } from './modules/organizations';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CacheModule } from './common/cache';
     LoggerModule,
     CacheModule,
     DatabaseModule,
+    OrganizationsModule,
   ],
   controllers: [],
   providers: [],
