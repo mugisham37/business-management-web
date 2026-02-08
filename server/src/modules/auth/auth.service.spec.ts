@@ -28,6 +28,12 @@ describe('AuthService - Primary Owner Registration', () => {
     userRole: {
       create: jest.fn(),
     },
+    location: {
+      findMany: jest.fn(),
+    },
+    userLocation: {
+      create: jest.fn(),
+    },
     emailVerificationToken: {
       findUnique: jest.fn(),
       updateMany: jest.fn(),
@@ -147,6 +153,10 @@ describe('AuthService - Primary Owner Registration', () => {
       mockPrismaService.role.findFirst.mockResolvedValue(mockRole);
       mockPrismaService.userRole.create.mockResolvedValue({});
       mockOrganizationsService.incrementUserCount.mockResolvedValue(undefined);
+      
+      // Mock location queries for automatic access grant
+      mockPrismaService.location.findMany.mockResolvedValue([]);
+      
       mockUsersService.findById.mockResolvedValue(mockUser);
       mockPrismaService.emailVerificationToken.updateMany.mockResolvedValue({});
       mockPrismaService.emailVerificationToken.create.mockResolvedValue({});
@@ -224,6 +234,107 @@ describe('AuthService - Primary Owner Registration', () => {
       await expect(service.registerPrimaryOwner(validDto)).rejects.toThrow(
         'Password does not meet requirements',
       );
+    });
+
+    it('should grant Primary_Owner access to existing locations', async () => {
+      // Arrange
+      mockPrismaService.user.findFirst.mockResolvedValue(null); // Email not taken
+      mockSecurityService.validatePasswordStrength.mockReturnValue({
+        isValid: true,
+        errors: [],
+      });
+      mockSecurityService.hashPassword.mockResolvedValue('hashed_password');
+      mockSecurityService.generateSecureToken.mockReturnValue('verification_token_123');
+
+      const mockOrganization = {
+        id: 'org-123',
+        name: 'Test Company',
+        companyCode: 'ABC123',
+        email: 'owner@example.com',
+      };
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'owner@example.com',
+        firstName: 'Owner',
+        lastName: 'Example',
+        organizationId: 'org-123',
+        passwordHash: 'hashed_password',
+        status: 'active',
+        emailVerified: false,
+        createdById: null,
+      };
+
+      const mockRole = {
+        id: 'role-123',
+        code: 'SUPER_ADMIN',
+        organizationId: 'org-123',
+        isSystem: true,
+      };
+
+      const mockLocations = [
+        {
+          id: 'location-1',
+          organizationId: 'org-123',
+          name: 'Headquarters',
+          code: 'HQ',
+          isActive: true,
+        },
+        {
+          id: 'location-2',
+          organizationId: 'org-123',
+          name: 'Branch Office',
+          code: 'BR1',
+          isActive: true,
+        },
+      ];
+
+      mockOrganizationsService.create.mockResolvedValue(mockOrganization);
+      mockPrismaService.user.create.mockResolvedValue(mockUser);
+      mockPrismaService.role.findFirst.mockResolvedValue(mockRole);
+      mockPrismaService.userRole.create.mockResolvedValue({});
+      mockOrganizationsService.incrementUserCount.mockResolvedValue(undefined);
+      
+      // Mock location queries for automatic access grant
+      mockPrismaService.location.findMany.mockResolvedValue(mockLocations);
+      mockPrismaService.userLocation.create.mockResolvedValue({});
+      
+      mockUsersService.findById.mockResolvedValue(mockUser);
+      mockPrismaService.emailVerificationToken.updateMany.mockResolvedValue({});
+      mockPrismaService.emailVerificationToken.create.mockResolvedValue({});
+
+      // Act
+      const result = await service.registerPrimaryOwner(validDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      
+      // Verify locations were queried
+      expect(mockPrismaService.location.findMany).toHaveBeenCalledWith({
+        where: {
+          organizationId: 'org-123',
+          isActive: true,
+        },
+      });
+
+      // Verify Primary_Owner was granted access to both locations
+      expect(mockPrismaService.userLocation.create).toHaveBeenCalledTimes(2);
+      expect(mockPrismaService.userLocation.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user-123',
+          locationId: 'location-1',
+          assignedById: 'user-123',
+          isPrimary: true, // First location is primary
+        },
+      });
+      expect(mockPrismaService.userLocation.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user-123',
+          locationId: 'location-2',
+          assignedById: 'user-123',
+          isPrimary: false,
+        },
+      });
     });
   });
 

@@ -656,6 +656,33 @@ export class AuthService {
       // Increment organization user count
       await this.organizations.incrementUserCount(organization.id);
 
+      // Grant Primary_Owner access to all existing locations
+      // Requirement 10.4: WHEN a Primary_Owner is created, THE Auth_System SHALL 
+      // grant access to all current and future locations
+      const existingLocations = await this.prisma.location.findMany({
+        where: {
+          organizationId: organization.id,
+          isActive: true,
+        },
+      });
+
+      for (const location of existingLocations) {
+        await this.prisma.userLocation.create({
+          data: {
+            userId: user.id,
+            locationId: location.id,
+            assignedById: user.id, // Self-assigned for primary owner
+            isPrimary: existingLocations.indexOf(location) === 0, // First location is primary
+          },
+        });
+      }
+
+      if (existingLocations.length > 0) {
+        this.logger.log(
+          `Primary owner ${user.id} granted access to ${existingLocations.length} existing location(s)`,
+        );
+      }
+
       // Generate and send verification email
       await this.sendVerificationEmail(user.id, organization.id);
 

@@ -48,6 +48,9 @@ export class LocationsService {
   /**
    * Create a new location for an organization
    * 
+   * Requirement 10.5: WHEN a new location is created, THE Auth_System SHALL 
+   * automatically grant access to the Primary_Owner
+   * 
    * @param organizationId - Organization ID
    * @param dto - Location creation data
    * @returns Created location
@@ -85,6 +88,47 @@ export class LocationsService {
       });
 
       this.logger.log(`Location created: ${location.id} (${location.code}) for organization ${organizationId}`);
+
+      // Grant access to Primary_Owner automatically
+      // Requirement 10.5: WHEN a new location is created, THE Auth_System SHALL 
+      // automatically grant access to the Primary_Owner
+      const primaryOwner = await this.prisma.user.findFirst({
+        where: {
+          organizationId,
+          createdById: null, // Primary_Owner has no creator
+        },
+      });
+
+      if (primaryOwner) {
+        // Check if Primary_Owner already has access to this location
+        const existingAccess = await this.prisma.userLocation.findUnique({
+          where: {
+            userId_locationId: {
+              userId: primaryOwner.id,
+              locationId: location.id,
+            },
+          },
+        });
+
+        if (!existingAccess) {
+          await this.prisma.userLocation.create({
+            data: {
+              userId: primaryOwner.id,
+              locationId: location.id,
+              assignedById: primaryOwner.id, // Self-assigned
+              isPrimary: false, // Don't override existing primary location
+            },
+          });
+
+          this.logger.log(
+            `Primary owner ${primaryOwner.id} automatically granted access to new location ${location.id}`,
+          );
+        }
+      } else {
+        this.logger.warn(
+          `No Primary_Owner found for organization ${organizationId} when creating location ${location.id}`,
+        );
+      }
 
       return location;
     } catch (error) {
