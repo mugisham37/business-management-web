@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PermissionsService, PermissionContext } from '../../modules/permissions/permissions.service';
-
-/**
- * Metadata key for permissions decorator
- */
-export const PERMISSIONS_KEY = 'permissions';
+import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
 /**
  * Permissions Guard

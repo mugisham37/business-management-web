@@ -848,23 +848,23 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - Deny access if role check fails
     - _Requirements: 19.2_
 
-- [ ] 35. Implement decorators for route protection
-  - [ ] 35.1 Create @Permissions decorator
+- [x] 35. Implement decorators for route protection
+  - [x] 35.1 Create @Permissions decorator
     - Accept permission strings
     - Set metadata for PermissionsGuard
     - _Requirements: 7.3_
   
-  - [ ] 35.2 Create @Roles decorator
+  - [x] 35.2 Create @Roles decorator
     - Accept role strings
     - Set metadata for RolesGuard
     - _Requirements: 19.2_
   
-  - [ ] 35.3 Create @CurrentUser decorator
+  - [x] 35.3 Create @CurrentUser decorator
     - Extract user from request
     - Provide user object to controller methods
     - _Requirements: 3.4_
   
-  - [ ] 35.4 Create @Organization decorator
+  - [x] 35.4 Create @Organization decorator
     - Extract organization ID from request
     - Provide organization context to controller methods
     - _Requirements: 16.3_

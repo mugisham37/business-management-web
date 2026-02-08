@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesService } from '../../modules/roles/roles.service';
-
-/**
- * Metadata key for roles decorator
- */
-export const ROLES_KEY = 'roles';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 
 /**
  * Roles Guard
