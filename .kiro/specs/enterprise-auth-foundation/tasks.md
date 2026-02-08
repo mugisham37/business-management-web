@@ -683,8 +683,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 62: Team Members Skip Onboarding**
     - **Validates: Requirements 18.7**
 
-- [ ] 25. Implement user hierarchy methods
-  - [ ] 25.1 Implement getHierarchy method
+- [x] 25. Implement user hierarchy methods
+  - [x] 25.1 Implement getHierarchy method
     - Traverse hierarchy chain to Primary_Owner
     - Return complete parent chain
     - _Requirements: 24.2_
@@ -693,7 +693,7 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 20: Hierarchy Chain Completeness**
     - **Validates: Requirements 24.2**
   
-  - [ ] 25.3 Implement getCreatedUsers method
+  - [x] 25.3 Implement getCreatedUsers method
     - Query users where createdBy = creatorId
     - Support filtering by creator
     - _Requirements: 24.4_

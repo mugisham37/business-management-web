@@ -1030,4 +1030,131 @@ export class UsersService {
       throw error;
     }
   }
+
+  /**
+   * Get user hierarchy chain to Primary_Owner
+   * 
+   * Requirement 24.2: WHEN querying user hierarchy, THE Auth_System SHALL 
+   * return the complete chain to the Primary_Owner
+   * 
+   * This method traverses the hierarchy chain from the given user up to the 
+   * Primary_Owner (the user with no parent), returning all parent relationships.
+   * 
+   * @param userId - User ID to get hierarchy for
+   * @param organizationId - Organization ID for tenant isolation
+   * @returns Array of UserHierarchy records representing the complete parent chain
+   */
+  async getHierarchy(userId: string, organizationId: string): Promise<any[]> {
+    try {
+      // Verify user exists and belongs to organization
+      const user = await this.findById(userId, organizationId);
+      if (!user) {
+        throw new NotFoundException(`User not found: ${userId}`);
+      }
+
+      // Get all hierarchy records for this user
+      const hierarchyChain: any[] = [];
+      let currentUserId = userId;
+      const visited = new Set<string>(); // Prevent infinite loops
+
+      // Traverse up the hierarchy chain
+      while (currentUserId && !visited.has(currentUserId)) {
+        visited.add(currentUserId);
+
+        // Find parent relationship
+        const hierarchyRecord = await this.prisma.userHierarchy.findFirst({
+          where: {
+            userId: currentUserId,
+          },
+          include: {
+            parent: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                organizationId: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                email: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                organizationId: true,
+              },
+            },
+          },
+        });
+
+        if (!hierarchyRecord) {
+          // No parent found - this is the Primary_Owner
+          break;
+        }
+
+        // Verify parent belongs to same organization (security check)
+        if (hierarchyRecord.parent.organizationId !== organizationId) {
+          this.logger.error(
+            `Hierarchy integrity violation: User ${currentUserId} has parent in different organization`,
+          );
+          break;
+        }
+
+        hierarchyChain.push(hierarchyRecord);
+
+        // Move to parent
+        currentUserId = hierarchyRecord.parentId;
+      }
+
+      this.logger.debug(`Retrieved hierarchy chain for user ${userId}: ${hierarchyChain.length} levels`);
+
+      return hierarchyChain;
+    } catch (error) {
+      this.logger.error(`Failed to get hierarchy for user: ${userId}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all users created by a specific creator
+   * 
+   * Requirement 24.4: WHEN displaying user lists, THE Auth_System SHALL 
+   * support filtering by creator
+   * 
+   * This method returns all users that were directly created by the specified creator.
+   * 
+   * @param creatorId - Creator user ID to filter by
+   * @param organizationId - Organization ID for tenant isolation
+   * @returns Array of users created by the specified creator
+   */
+  async getCreatedUsers(creatorId: string, organizationId: string): Promise<User[]> {
+    try {
+      // Verify creator exists and belongs to organization
+      const creator = await this.findById(creatorId, organizationId);
+      if (!creator) {
+        throw new NotFoundException(`Creator not found: ${creatorId}`);
+      }
+
+      // Query users where createdBy = creatorId
+      const createdUsers = await this.prisma.user.findMany({
+        where: {
+          createdById: creatorId,
+          organizationId, // Ensure tenant isolation
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      this.logger.debug(`Found ${createdUsers.length} users created by ${creatorId}`);
+
+      return createdUsers;
+    } catch (error) {
+      this.logger.error(`Failed to get created users for creator: ${creatorId}`, error);
+      throw error;
+    }
+  }
 }

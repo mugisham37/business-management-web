@@ -17,6 +17,7 @@ describe('UsersService', () => {
       create: jest.fn(),
       findFirst: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
       delete: jest.fn(),
@@ -42,6 +43,7 @@ describe('UsersService', () => {
     },
     userHierarchy: {
       create: jest.fn(),
+      findFirst: jest.fn(),
     },
     userRole: {
       create: jest.fn(),
@@ -764,6 +766,191 @@ describe('UsersService', () => {
 
         await expect(service.acceptInvitation(token, acceptDto)).rejects.toThrow(ForbiddenException);
       });
+    });
+  });
+
+  describe('getHierarchy', () => {
+    const userId = 'user-123';
+    const organizationId = 'org-123';
+
+    it('should return complete hierarchy chain to Primary_Owner', async () => {
+      const user = { id: userId, organizationId, email: 'user@example.com' };
+      const parent1 = { id: 'parent-1', organizationId, email: 'parent1@example.com', firstName: 'Parent', lastName: 'One' };
+      const parent2 = { id: 'parent-2', organizationId, email: 'parent2@example.com', firstName: 'Parent', lastName: 'Two' };
+
+      const hierarchyRecord1 = {
+        id: 'hier-1',
+        userId,
+        parentId: 'parent-1',
+        depth: 0,
+        parent: parent1,
+        user: { id: userId, organizationId, email: 'user@example.com', firstName: 'User', lastName: 'Test' },
+      };
+
+      const hierarchyRecord2 = {
+        id: 'hier-2',
+        userId: 'parent-1',
+        parentId: 'parent-2',
+        depth: 0,
+        parent: parent2,
+        user: parent1,
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      mockPrismaService.userHierarchy.findFirst
+        .mockResolvedValueOnce(hierarchyRecord1) // First level
+        .mockResolvedValueOnce(hierarchyRecord2) // Second level
+        .mockResolvedValueOnce(null); // No more parents (Primary_Owner)
+
+      const result = await service.getHierarchy(userId, organizationId);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(hierarchyRecord1);
+      expect(result[1]).toEqual(hierarchyRecord2);
+      expect(mockPrismaService.userHierarchy.findFirst).toHaveBeenCalledTimes(3);
+    });
+
+    it('should return empty array for Primary_Owner (no parents)', async () => {
+      const user = { id: userId, organizationId, email: 'owner@example.com' };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      mockPrismaService.userHierarchy.findFirst.mockResolvedValue(null); // No parent
+
+      const result = await service.getHierarchy(userId, organizationId);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      mockPrismaService.user.findFirst.mockResolvedValue(null);
+
+      await expect(service.getHierarchy(userId, organizationId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should stop traversal if parent in different organization', async () => {
+      const user = { id: userId, organizationId, email: 'user@example.com' };
+      const parentDifferentOrg = { id: 'parent-1', organizationId: 'different-org', email: 'parent@example.com', firstName: 'Parent', lastName: 'One' };
+
+      const hierarchyRecord = {
+        id: 'hier-1',
+        userId,
+        parentId: 'parent-1',
+        depth: 0,
+        parent: parentDifferentOrg,
+        user: { id: userId, organizationId, email: 'user@example.com', firstName: 'User', lastName: 'Test' },
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      mockPrismaService.userHierarchy.findFirst.mockResolvedValueOnce(hierarchyRecord);
+
+      const result = await service.getHierarchy(userId, organizationId);
+
+      // Should stop after detecting organization mismatch
+      expect(result).toHaveLength(0);
+    });
+
+    it('should prevent infinite loops with circular references', async () => {
+      const user = { id: userId, organizationId, email: 'user@example.com' };
+      const parent = { id: 'parent-1', organizationId, email: 'parent@example.com', firstName: 'Parent', lastName: 'One' };
+
+      const hierarchyRecord1 = {
+        id: 'hier-1',
+        userId,
+        parentId: 'parent-1',
+        depth: 0,
+        parent,
+        user: { id: userId, organizationId, email: 'user@example.com', firstName: 'User', lastName: 'Test' },
+      };
+
+      const hierarchyRecord2 = {
+        id: 'hier-2',
+        userId: 'parent-1',
+        parentId: userId, // Circular reference back to original user
+        depth: 0,
+        parent: { id: userId, organizationId, email: 'user@example.com', firstName: 'User', lastName: 'Test' },
+        user: parent,
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      mockPrismaService.userHierarchy.findFirst
+        .mockResolvedValueOnce(hierarchyRecord1)
+        .mockResolvedValueOnce(hierarchyRecord2);
+
+      const result = await service.getHierarchy(userId, organizationId);
+
+      // Should stop when detecting circular reference
+      // Note: Both records are added before the circular reference is detected
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(hierarchyRecord1);
+      expect(result[1]).toEqual(hierarchyRecord2);
+    });
+  });
+
+  describe('getCreatedUsers', () => {
+    const creatorId = 'creator-123';
+    const organizationId = 'org-123';
+
+    it('should return all users created by the specified creator', async () => {
+      const creator = { id: creatorId, organizationId, email: 'creator@example.com' };
+      const createdUsers = [
+        { id: 'user-1', organizationId, email: 'user1@example.com', createdById: creatorId, createdAt: new Date('2024-01-01') },
+        { id: 'user-2', organizationId, email: 'user2@example.com', createdById: creatorId, createdAt: new Date('2024-01-02') },
+        { id: 'user-3', organizationId, email: 'user3@example.com', createdById: creatorId, createdAt: new Date('2024-01-03') },
+      ];
+
+      mockPrismaService.user.findFirst.mockResolvedValue(creator);
+      mockPrismaService.user.findMany.mockResolvedValue(createdUsers);
+
+      const result = await service.getCreatedUsers(creatorId, organizationId);
+
+      expect(result).toEqual(createdUsers);
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith({
+        where: {
+          createdById: creatorId,
+          organizationId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    });
+
+    it('should return empty array if creator has not created any users', async () => {
+      const creator = { id: creatorId, organizationId, email: 'creator@example.com' };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(creator);
+      mockPrismaService.user.findMany.mockResolvedValue([]);
+
+      const result = await service.getCreatedUsers(creatorId, organizationId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw NotFoundException if creator not found', async () => {
+      mockPrismaService.user.findFirst.mockResolvedValue(null);
+
+      await expect(service.getCreatedUsers(creatorId, organizationId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should enforce tenant isolation', async () => {
+      const creator = { id: creatorId, organizationId, email: 'creator@example.com' };
+      const createdUsers = [
+        { id: 'user-1', organizationId, email: 'user1@example.com', createdById: creatorId },
+      ];
+
+      mockPrismaService.user.findFirst.mockResolvedValue(creator);
+      mockPrismaService.user.findMany.mockResolvedValue(createdUsers);
+
+      await service.getCreatedUsers(creatorId, organizationId);
+
+      // Verify that organizationId is included in the query
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            organizationId,
+          }),
+        })
+      );
     });
   });
 });
