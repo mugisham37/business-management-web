@@ -5,6 +5,7 @@ import { SecurityService } from '../../common/security/security.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { RolesService } from '../roles/roles.service';
 import { LocationsService } from '../locations/locations.service';
+import { AuditService } from '../../common/audit/audit.service';
 import { ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('UsersService', () => {
@@ -92,6 +93,12 @@ describe('UsersService', () => {
           provide: LocationsService,
           useValue: {
             findById: jest.fn(),
+          },
+        },
+        {
+          provide: AuditService,
+          useValue: {
+            log: jest.fn(),
           },
         },
       ],

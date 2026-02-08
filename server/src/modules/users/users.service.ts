@@ -4,6 +4,7 @@ import { SecurityService } from '../../common/security/security.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { RolesService } from '../roles/roles.service';
 import { LocationsService } from '../locations/locations.service';
+import { AuditService } from '../../common/audit/audit.service';
 import { User, Invitation } from '@prisma/client';
 
 export interface CreateUserDto {
@@ -80,6 +81,7 @@ export class UsersService {
     private readonly permissions: PermissionsService,
     private readonly roles: RolesService,
     private readonly locations: LocationsService,
+    private readonly audit: AuditService,
   ) {}
 
   /**
@@ -225,6 +227,9 @@ export class UsersService {
   /**
    * Update user
    * 
+   * Requirement 15.4: WHEN a user is created, modified, or deleted, THE Audit_Logger 
+   * SHALL record the event with actor information
+   * 
    * @param id - User ID
    * @param organizationId - Organization ID for tenant isolation
    * @param dto - Update data
@@ -260,9 +265,48 @@ export class UsersService {
         }
       }
 
+      // Capture before state for audit
+      const beforeState = {
+        email: existing.email,
+        username: existing.username,
+        firstName: existing.firstName,
+        lastName: existing.lastName,
+        phone: existing.phone,
+        avatar: existing.avatar,
+        departmentId: existing.departmentId,
+      };
+
       const user = await this.prisma.user.update({
         where: { id },
         data: dto,
+      });
+
+      // Capture after state for audit
+      const afterState = {
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        avatar: user.avatar,
+        departmentId: user.departmentId,
+      };
+
+      // Audit log user update
+      await this.audit.log({
+        organizationId,
+        userId: actorId,
+        action: 'user_updated',
+        resource: 'user',
+        resourceId: id,
+        outcome: 'success',
+        beforeState,
+        afterState,
+        metadata: {
+          targetUserId: id,
+          targetUserEmail: user.email,
+          changedFields: Object.keys(dto),
+        },
       });
 
       this.logger.log(`User updated: ${id} by actor ${actorId}`);
@@ -276,6 +320,9 @@ export class UsersService {
 
   /**
    * Delete user
+   * 
+   * Requirement 15.4: WHEN a user is created, modified, or deleted, THE Audit_Logger 
+   * SHALL record the event with actor information
    * 
    * @param id - User ID
    * @param organizationId - Organization ID for tenant isolation
@@ -293,9 +340,34 @@ export class UsersService {
         throw new NotFoundException(`User not found: ${id}`);
       }
 
+      // Capture user state before deletion for audit
+      const beforeState = {
+        email: existing.email,
+        username: existing.username,
+        firstName: existing.firstName,
+        lastName: existing.lastName,
+        status: existing.status,
+        departmentId: existing.departmentId,
+      };
+
       // Delete user (cascade will handle related records)
       await this.prisma.user.delete({
         where: { id },
+      });
+
+      // Audit log user deletion
+      await this.audit.log({
+        organizationId,
+        userId: actorId,
+        action: 'user_deleted',
+        resource: 'user',
+        resourceId: id,
+        outcome: 'success',
+        beforeState,
+        metadata: {
+          targetUserId: id,
+          targetUserEmail: existing.email,
+        },
       });
 
       this.logger.log(`User deleted: ${id} by actor ${actorId}`);
@@ -313,6 +385,9 @@ export class UsersService {
    * 
    * Requirement 21.4: WHEN a user status changes to suspended or deactivated, 
    * THE Session_Manager SHALL invalidate all active sessions
+   * 
+   * Requirement 15.4: WHEN a user is created, modified, or deleted, THE Audit_Logger 
+   * SHALL record the event with actor information
    * 
    * @param id - User ID
    * @param organizationId - Organization ID for tenant isolation
@@ -332,6 +407,10 @@ export class UsersService {
         throw new NotFoundException(`User not found: ${id}`);
       }
 
+      const beforeState = {
+        status: existing.status,
+      };
+
       // Update user status
       await this.prisma.user.update({
         where: { id },
@@ -340,8 +419,30 @@ export class UsersService {
         },
       });
 
+      const afterState = {
+        status: 'suspended',
+      };
+
       // Invalidate all active sessions
       await this.invalidateAllSessions(id);
+
+      // Audit log user suspension
+      await this.audit.log({
+        organizationId,
+        userId: actorId,
+        action: 'user_suspended',
+        resource: 'user',
+        resourceId: id,
+        outcome: 'success',
+        beforeState,
+        afterState,
+        metadata: {
+          targetUserId: id,
+          targetUserEmail: existing.email,
+          reason: reason || 'No reason provided',
+          sessionsInvalidated: true,
+        },
+      });
 
       this.logger.log(`User suspended: ${id} by actor ${actorId}${reason ? ` - Reason: ${reason}` : ''}`);
     } catch (error) {
@@ -355,6 +456,9 @@ export class UsersService {
    * 
    * Requirement 21.5: WHEN a suspended user is reactivated, 
    * THE Auth_System SHALL restore full access
+   * 
+   * Requirement 15.4: WHEN a user is created, modified, or deleted, THE Audit_Logger 
+   * SHALL record the event with actor information
    * 
    * @param id - User ID
    * @param organizationId - Organization ID for tenant isolation
@@ -372,11 +476,35 @@ export class UsersService {
         throw new NotFoundException(`User not found: ${id}`);
       }
 
+      const beforeState = {
+        status: existing.status,
+      };
+
       // Update user status to active
       await this.prisma.user.update({
         where: { id },
         data: {
           status: 'active',
+        },
+      });
+
+      const afterState = {
+        status: 'active',
+      };
+
+      // Audit log user reactivation
+      await this.audit.log({
+        organizationId,
+        userId: actorId,
+        action: 'user_reactivated',
+        resource: 'user',
+        resourceId: id,
+        outcome: 'success',
+        beforeState,
+        afterState,
+        metadata: {
+          targetUserId: id,
+          targetUserEmail: existing.email,
         },
       });
 
@@ -396,6 +524,9 @@ export class UsersService {
    * Requirement 21.4: WHEN a user status changes to suspended or deactivated, 
    * THE Session_Manager SHALL invalidate all active sessions
    * 
+   * Requirement 15.4: WHEN a user is created, modified, or deleted, THE Audit_Logger 
+   * SHALL record the event with actor information
+   * 
    * @param id - User ID
    * @param organizationId - Organization ID for tenant isolation
    * @param actorId - ID of user performing the deactivation
@@ -412,6 +543,10 @@ export class UsersService {
         throw new NotFoundException(`User not found: ${id}`);
       }
 
+      const beforeState = {
+        status: existing.status,
+      };
+
       // Update user status
       await this.prisma.user.update({
         where: { id },
@@ -420,8 +555,29 @@ export class UsersService {
         },
       });
 
+      const afterState = {
+        status: 'deactivated',
+      };
+
       // Invalidate all active sessions
       await this.invalidateAllSessions(id);
+
+      // Audit log user deactivation
+      await this.audit.log({
+        organizationId,
+        userId: actorId,
+        action: 'user_deactivated',
+        resource: 'user',
+        resourceId: id,
+        outcome: 'success',
+        beforeState,
+        afterState,
+        metadata: {
+          targetUserId: id,
+          targetUserEmail: existing.email,
+          sessionsInvalidated: true,
+        },
+      });
 
       this.logger.log(`User deactivated: ${id} by actor ${actorId}`);
     } catch (error) {

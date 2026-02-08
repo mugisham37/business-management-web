@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
+import { AuditService } from '../../common/audit/audit.service';
 
 export interface PermissionContext {
   organizationId: string;
@@ -37,6 +38,8 @@ export class PermissionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    @Inject(forwardRef(() => AuditService))
+    private readonly audit: AuditService,
   ) {
     // Subscribe to cache invalidation events
     this.setupCacheInvalidation();
@@ -510,6 +513,8 @@ export class PermissionsService {
    * Requirements:
    * - 7.5: Direct permission grant precedence
    * - 8.4: Cache invalidation on permission changes
+   * - 15.3: WHEN permissions are modified, THE Audit_Logger SHALL record the 
+   *   change with before and after states
    * 
    * @param userId - User ID
    * @param permissionCode - Permission code
@@ -539,12 +544,34 @@ export class PermissionsService {
       // Get user to verify organization
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { organizationId: true },
+        select: { organizationId: true, email: true },
       });
 
       if (!user) {
         throw new Error(`User not found: ${userId}`);
       }
+
+      // Check if permission already exists (for before state)
+      const existingPermission = await this.prisma.userPermission.findFirst({
+        where: {
+          userId,
+          permissionId: permission.id,
+          effect: 'allow',
+          scopeType: scope?.type || 'global',
+          locationId: (scope?.locationId ?? null) as any,
+          departmentId: (scope?.departmentId ?? null) as any,
+        },
+      });
+
+      const beforeState = existingPermission
+        ? {
+            permissionCode,
+            effect: 'allow',
+            scopeType: existingPermission.scopeType,
+            locationId: existingPermission.locationId,
+            departmentId: existingPermission.departmentId,
+          }
+        : null;
 
       // Create or update user permission
       await this.prisma.userPermission.upsert({
@@ -573,6 +600,32 @@ export class PermissionsService {
         },
       });
 
+      const afterState = {
+        permissionCode,
+        effect: 'allow',
+        scopeType: scope?.type || 'global',
+        locationId: scope?.locationId,
+        departmentId: scope?.departmentId,
+      };
+
+      // Audit log permission grant
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: actorId,
+        action: 'permission_granted',
+        resource: 'permission',
+        resourceId: permission.id,
+        outcome: 'success',
+        beforeState: beforeState || undefined,
+        afterState,
+        metadata: {
+          targetUserId: userId,
+          targetUserEmail: user.email,
+          permissionCode,
+          scope: scope || { type: 'global' },
+        },
+      });
+
       // Invalidate user cache
       await this.invalidateUserCache(userId);
 
@@ -591,6 +644,8 @@ export class PermissionsService {
    * Requirements:
    * - 7.4: Direct permission denial precedence
    * - 8.4: Cache invalidation on permission changes
+   * - 15.3: WHEN permissions are modified, THE Audit_Logger SHALL record the 
+   *   change with before and after states
    * 
    * @param userId - User ID
    * @param permissionCode - Permission code
@@ -614,12 +669,32 @@ export class PermissionsService {
       // Get user to verify organization
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { organizationId: true },
+        select: { organizationId: true, email: true },
       });
 
       if (!user) {
         throw new Error(`User not found: ${userId}`);
       }
+
+      // Check if permission already exists (for before state)
+      const existingPermission = await this.prisma.userPermission.findFirst({
+        where: {
+          userId,
+          permissionId: permission.id,
+          effect: 'deny',
+          scopeType: 'global',
+          locationId: null as any,
+          departmentId: null as any,
+        },
+      });
+
+      const beforeState = existingPermission
+        ? {
+            permissionCode,
+            effect: 'deny',
+            scopeType: 'global',
+          }
+        : null;
 
       // Create or update user permission with deny effect
       await this.prisma.userPermission.upsert({
@@ -646,6 +721,29 @@ export class PermissionsService {
         },
       });
 
+      const afterState = {
+        permissionCode,
+        effect: 'deny',
+        scopeType: 'global',
+      };
+
+      // Audit log permission denial
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: actorId,
+        action: 'permission_denied',
+        resource: 'permission',
+        resourceId: permission.id,
+        outcome: 'success',
+        beforeState: beforeState || undefined,
+        afterState,
+        metadata: {
+          targetUserId: userId,
+          targetUserEmail: user.email,
+          permissionCode,
+        },
+      });
+
       // Invalidate user cache
       await this.invalidateUserCache(userId);
 
@@ -663,6 +761,8 @@ export class PermissionsService {
    * 
    * Requirements:
    * - 8.4: Cache invalidation on permission changes
+   * - 15.3: WHEN permissions are modified, THE Audit_Logger SHALL record the 
+   *   change with before and after states
    * 
    * @param userId - User ID
    * @param permissionCode - Permission code
@@ -683,11 +783,54 @@ export class PermissionsService {
         throw new Error(`Permission not found: ${permissionCode}`);
       }
 
+      // Get user to verify organization
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { organizationId: true, email: true },
+      });
+
+      if (!user) {
+        throw new Error(`User not found: ${userId}`);
+      }
+
+      // Get existing permissions for before state
+      const existingPermissions = await this.prisma.userPermission.findMany({
+        where: {
+          userId,
+          permissionId: permission.id,
+        },
+      });
+
+      const beforeState = existingPermissions.map((p) => ({
+        permissionCode,
+        effect: p.effect,
+        scopeType: p.scopeType,
+        locationId: p.locationId,
+        departmentId: p.departmentId,
+      }));
+
       // Delete all user permissions for this permission (both allow and deny)
       await this.prisma.userPermission.deleteMany({
         where: {
           userId,
           permissionId: permission.id,
+        },
+      });
+
+      // Audit log permission revocation
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: actorId,
+        action: 'permission_revoked',
+        resource: 'permission',
+        resourceId: permission.id,
+        outcome: 'success',
+        beforeState: beforeState.length > 0 ? beforeState : undefined,
+        metadata: {
+          targetUserId: userId,
+          targetUserEmail: user.email,
+          permissionCode,
+          revokedCount: existingPermissions.length,
         },
       });
 

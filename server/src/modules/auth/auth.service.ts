@@ -434,6 +434,9 @@ export class AuthService {
    * Requirement 3.6: WHEN a user has MFA enabled, THE Auth_System SHALL require 
    * MFA validation before issuing tokens
    * 
+   * Requirement 15.2: WHEN authentication succeeds or fails, THE Audit_Logger SHALL 
+   * record the event with IP address and device information
+   * 
    * @param user - Validated user
    * @param metadata - Session metadata (IP, user agent, etc.)
    * @returns Login result with tokens or MFA required response
@@ -457,6 +460,23 @@ export class AuthService {
 
         const tempToken = jwt.sign(tempPayload, this.JWT_SECRET, {
           expiresIn: this.TEMP_TOKEN_EXPIRY,
+        });
+
+        // Audit log MFA required
+        await this.audit.log({
+          organizationId: user.organizationId,
+          userId: user.id,
+          action: 'login_mfa_required',
+          resource: 'authentication',
+          resourceId: user.id,
+          outcome: 'success',
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          metadata: {
+            email: user.email,
+            deviceFingerprint: metadata.deviceFingerprint,
+            location: metadata.location,
+          },
         });
 
         this.logger.log(`MFA required for user: ${user.id}`);
@@ -485,6 +505,24 @@ export class AuthService {
         },
       });
 
+      // Audit log successful authentication
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'login_success',
+        resource: 'authentication',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        metadata: {
+          email: user.email,
+          deviceFingerprint: metadata.deviceFingerprint,
+          location: metadata.location,
+          permissionCount: permissionCodes.length,
+        },
+      });
+
       this.logger.log(`User logged in: ${user.id}`);
 
       return {
@@ -498,6 +536,22 @@ export class AuthService {
         },
       };
     } catch (error) {
+      // Audit log failed authentication
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'login_failed',
+        resource: 'authentication',
+        resourceId: user.id,
+        outcome: 'failure',
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        metadata: {
+          email: user.email,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      });
+
       this.logger.error(`Failed to login user: ${user.id}`, error);
       throw error;
     }
@@ -511,6 +565,9 @@ export class AuthService {
    * 
    * Requirement 13.4: WHEN a user has MFA enabled, THE Auth_System SHALL require 
    * a valid TOTP code or backup code
+   * 
+   * Requirement 15.2: WHEN authentication succeeds or fails, THE Audit_Logger SHALL 
+   * record the event with IP address and device information
    * 
    * @param tempToken - Temporary token from initial login
    * @param mfaCode - TOTP code or backup code
@@ -555,6 +612,22 @@ export class AuthService {
       }
 
       if (!isValid) {
+        // Audit log failed MFA validation
+        await this.audit.log({
+          organizationId: user.organizationId,
+          userId: user.id,
+          action: 'login_mfa_failed',
+          resource: 'authentication',
+          resourceId: user.id,
+          outcome: 'failure',
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          metadata: {
+            email: user.email,
+            reason: 'Invalid MFA code',
+          },
+        });
+
         throw new UnauthorizedException('Invalid MFA code');
       }
 
@@ -572,6 +645,24 @@ export class AuthService {
         where: { id: user.id },
         data: {
           lastLoginAt: new Date(),
+        },
+      });
+
+      // Audit log successful MFA authentication
+      await this.audit.log({
+        organizationId: user.organizationId,
+        userId: user.id,
+        action: 'login_mfa_success',
+        resource: 'authentication',
+        resourceId: user.id,
+        outcome: 'success',
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        metadata: {
+          email: user.email,
+          deviceFingerprint: metadata.deviceFingerprint,
+          location: metadata.location,
+          permissionCount: permissionCodes.length,
         },
       });
 
@@ -735,6 +826,23 @@ export class AuthService {
 
       // Generate and send verification email
       await this.sendVerificationEmail(user.id, organization.id);
+
+      // Audit log successful registration
+      await this.audit.log({
+        organizationId: organization.id,
+        userId: user.id,
+        action: 'user_registered',
+        resource: 'user',
+        resourceId: user.id,
+        outcome: 'success',
+        metadata: {
+          email: user.email,
+          organizationName: organization.name,
+          companyCode: organization.companyCode,
+          role: 'SUPER_ADMIN',
+          userType: 'primary_owner',
+        },
+      });
 
       return {
         user: {

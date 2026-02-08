@@ -5,6 +5,7 @@ import { SecurityModule } from '../../common/security/security.module';
 import { PermissionsModule } from '../permissions/permissions.module';
 import { RolesModule } from '../roles/roles.module';
 import { LocationsModule } from '../locations/locations.module';
+import { AuditModule } from '../../common/audit/audit.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { LocationsModule } from '../locations/locations.module';
     PermissionsModule,
     RolesModule,
     LocationsModule,
+    AuditModule,
   ],
   providers: [UsersService],
   exports: [UsersService],
