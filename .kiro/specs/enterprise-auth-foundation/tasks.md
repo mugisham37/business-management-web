@@ -221,8 +221,8 @@ This implementation plan breaks down the enterprise authentication and authoriza
     - **Property 28: Location Assignment Recording**
     - **Validates: Requirements 10.1**
 
-- [ ] 11. Implement Departments Module
-  - [ ] 11.1 Create DepartmentsService with CRUD operations
+- [x] 11. Implement Departments Module
+  - [x] 11.1 Create DepartmentsService with CRUD operations
     - Implement create method (associate with organization)
     - Implement findById method
     - Implement findByOrganization method
