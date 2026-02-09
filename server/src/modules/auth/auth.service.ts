@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ForbiddenException, ConflictException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { SecurityService } from '../../common/security/security.service';
+import { EmailService } from '../../common/email/email.service';
 import { UsersService } from '../users/users.service';
 import { SessionsService, SessionMetadata } from '../sessions/sessions.service';
 import { MFAService } from '../mfa/mfa.service';
@@ -90,6 +91,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly security: SecurityService,
+    private readonly email: EmailService,
     private readonly users: UsersService,
     private readonly sessions: SessionsService,
     private readonly mfa: MFAService,
@@ -890,11 +892,15 @@ export class AuthService {
    */
   async sendVerificationEmail(userId: string, organizationId: string): Promise<void> {
     try {
+      this.logger.log(`📧 Starting verification email process for user: ${userId}`);
+      
       // Verify user exists
       const user = await this.users.findById(userId, organizationId);
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
+
+      this.logger.log(`   User found: ${user.email} (${user.firstName} ${user.lastName})`);
 
       // Invalidate all previous verification tokens for this user
       await this.prisma.emailVerificationToken.updateMany({
@@ -908,10 +914,15 @@ export class AuthService {
         },
       });
 
+      this.logger.log('   Previous tokens invalidated');
+
       // Generate unique verification token (24-hour expiry)
       const token = this.security.generateSecureToken();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
+
+      this.logger.log(`   Generated token: ${token}`);
+      this.logger.log(`   Token expires at: ${expiresAt.toISOString()}`);
 
       // Create verification token record
       await this.prisma.emailVerificationToken.create({
@@ -922,16 +933,26 @@ export class AuthService {
         },
       });
 
-      // TODO: Send actual email with verification link
-      // For now, just log the token (in production, integrate with email service)
-      this.logger.log(
-        `Verification email would be sent to ${user.email} with token: ${token}`,
-      );
-      this.logger.log(`Verification link: http://localhost:3000/auth/verify-email?token=${token}`);
+      this.logger.log('   Token saved to database');
 
-      this.logger.log(`Verification email sent to user: ${userId}`);
+      // Send verification email
+      this.logger.log('   Calling email service...');
+      const emailSent = await this.email.sendVerificationEmail(
+        user.email,
+        token,
+        user.firstName,
+      );
+
+      if (emailSent) {
+        this.logger.log(`✅ Verification email sent successfully to: ${user.email}`);
+      } else {
+        this.logger.warn(`⚠️  Failed to send verification email to: ${user.email}`);
+        // Log the verification link for development/debugging
+        const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${token}`;
+        this.logger.log(`🔗 Manual verification link: ${verificationUrl}`);
+      }
     } catch (error) {
-      this.logger.error(`Failed to send verification email to user: ${userId}`, error);
+      this.logger.error(`❌ Failed to send verification email to user: ${userId}`, error);
       throw error;
     }
   }
@@ -1087,14 +1108,20 @@ export class AuthService {
         },
       });
 
-      // TODO: Send actual email with reset link
-      // For now, just log the token (in production, integrate with email service)
-      this.logger.log(
-        `Password reset email would be sent to ${user.email} with token: ${token}`,
+      // Send password reset email
+      const emailSent = await this.email.sendPasswordResetEmail(
+        user.email,
+        token,
+        user.firstName,
       );
-      this.logger.log(`Reset link: http://localhost:3000/auth/reset-password?token=${token}`);
 
-      this.logger.log(`Password reset requested for user: ${user.id}`);
+      if (emailSent) {
+        this.logger.log(`Password reset email sent to user: ${user.id} (${user.email})`);
+      } else {
+        this.logger.warn(`Failed to send password reset email to user: ${user.id} (${user.email})`);
+        // Log the reset link for development/debugging
+        this.logger.log(`Reset link: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`);
+      }
 
       return {
         message: 'If an account with that email exists, a password reset link has been sent.',
@@ -1237,6 +1264,9 @@ export class AuthService {
           sessionsInvalidated: true,
         },
       });
+
+      // Send password changed notification email
+      await this.email.sendPasswordChangedEmail(user.email, user.firstName);
 
       this.logger.log(`Password reset completed for user: ${user.id}`);
 
@@ -1391,6 +1421,9 @@ export class AuthService {
           currentSessionPreserved: !!currentSessionId,
         },
       });
+
+      // Send password changed notification email
+      await this.email.sendPasswordChangedEmail(user.email, user.firstName);
 
       this.logger.log(`Password changed for user: ${user.id}`);
 

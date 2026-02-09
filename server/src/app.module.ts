@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database';
 import { LoggerModule } from './common/logger';
 import { CacheModule } from './common/cache';
+import { EmailModule } from './common/email';
 import { OrganizationsModule } from './modules/organizations';
 import { AuthModule } from './modules/auth';
 import { TenantIsolationMiddleware } from './common/middleware';
@@ -15,6 +16,7 @@ import { TenantIsolationMiddleware } from './common/middleware';
     }),
     LoggerModule,
     CacheModule,
+    EmailModule,
     DatabaseModule,
     OrganizationsModule,
     AuthModule,
