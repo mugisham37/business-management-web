@@ -1779,12 +1779,12 @@ export class AuthService {
    * THE Auth_System SHALL refresh them automatically
    * 
    * @param userId - User ID
-   * @param provider - OAuth provider (google, microsoft)
+   * @param provider - OAuth provider (google)
    * @returns Decrypted access token
    */
   async refreshOAuthTokens(
     userId: string,
-    provider: 'google' | 'microsoft',
+    provider: 'google',
   ): Promise<string> {
     try {
       // Get OAuth provider
@@ -1825,7 +1825,7 @@ export class AuthService {
  * OAuth user data interface
  */
 export interface OAuthUserData {
-  provider: 'google' | 'microsoft';
+  provider: 'google';
   providerId: string;
   email: string;
   firstName: string;

@@ -259,7 +259,7 @@ model OAuthProvider {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  provider   String // google, microsoft
+  provider   String // google
   providerId String
 
   accessToken  String // encrypted

@@ -9,7 +9,7 @@ import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
  * THE Auth_System SHALL redirect to the provider's authorization endpoint
  * 
  * Requirement 17.6: WHERE OAuth is configured, THE Auth_System SHALL support 
- * Google and Microsoft providers
+ * Google OAuth provider
  */
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

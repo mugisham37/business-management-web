@@ -10,7 +10,7 @@ import { PermissionsModule } from '../permissions/permissions.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { AuditModule } from '../../common/audit/audit.module';
 import { RateLimitModule } from '../../common/rate-limit/rate-limit.module';
-import { GoogleStrategy, MicrosoftStrategy, LocalStrategy, LocalTeamMemberStrategy, JwtStrategy } from './strategies';
+import { GoogleStrategy, LocalStrategy, LocalTeamMemberStrategy, JwtStrategy } from './strategies';
 
 @Module({
   imports: [
@@ -28,7 +28,6 @@ import { GoogleStrategy, MicrosoftStrategy, LocalStrategy, LocalTeamMemberStrate
   providers: [
     AuthService,
     GoogleStrategy,
-    MicrosoftStrategy,
     LocalStrategy,
     LocalTeamMemberStrategy,
     JwtStrategy,
