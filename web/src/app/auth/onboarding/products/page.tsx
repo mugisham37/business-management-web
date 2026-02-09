@@ -249,8 +249,8 @@ export default function Products() {
           </div>
         </fieldset>
         <div className="mt-6 flex justify-between">
-          <Button type="button" variant="ghost" asChild>
-            <Link href="/auth/onboarding/business-info">Back</Link>
+          <Button type="button" variant="ghost" onClick={() => router.push("/auth/onboarding/business-info")}>
+            Back
           </Button>
           <Button
             className="state-disabled"

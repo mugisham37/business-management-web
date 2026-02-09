@@ -1,7 +1,10 @@
 import React from "react"
 import { Button } from "@/components/ui/Button"
-import Link from "next/link"
 import { cx } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { useOnboardingStore } from "@/stores/onboarding.store"
+import { getPreviousStep, ONBOARDING_STEPS } from "@/config/onboarding.config"
+import type { OnboardingStep } from "@/types/onboarding-api"
 
 interface StepContainerProps {
   children: React.ReactNode
@@ -10,6 +13,7 @@ interface StepContainerProps {
   onSubmit?: (e: React.FormEvent) => void
   onBack?: () => void
   backHref?: string
+  currentStep?: OnboardingStep
   nextLabel?: string
   loading?: boolean
   disabled?: boolean
@@ -24,12 +28,43 @@ export function StepContainer({
   onSubmit,
   onBack,
   backHref,
+  currentStep,
   nextLabel = "Continue",
   loading = false,
   disabled = false,
   showBack = true,
   className,
 }: StepContainerProps) {
+  const router = useRouter()
+  const { data } = useOnboardingStore()
+
+  // Calculate dynamic back navigation based on onboarding config
+  // Requirements: 6.4, 10.3
+  const handleBackNavigation = () => {
+    if (onBack) {
+      onBack()
+      return
+    }
+
+    if (backHref) {
+      router.push(backHref)
+      return
+    }
+
+    // Use config to determine previous step
+    if (currentStep) {
+      const previousStep = getPreviousStep(currentStep, data)
+      if (previousStep) {
+        const stepConfig = ONBOARDING_STEPS.find(s => s.id === previousStep)
+        if (stepConfig) {
+          router.push(stepConfig.path)
+        }
+      }
+    }
+  }
+
+  const hasBackNavigation = showBack && (onBack || backHref || currentStep)
+
   return (
     <div className={cx("mx-auto p-4", className)}>
       {/* Header */}
@@ -55,18 +90,14 @@ export function StepContainer({
 
         {/* Navigation */}
         <div className="mt-8 flex justify-between">
-          {showBack ? (
-            backHref ? (
-              <Button type="button" variant="ghost" asChild>
-                <Link href={backHref}>Back</Link>
-              </Button>
-            ) : onBack ? (
-              <Button type="button" variant="ghost" onClick={onBack}>
-                Back
-              </Button>
-            ) : (
-              <div />
-            )
+          {hasBackNavigation ? (
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={handleBackNavigation}
+            >
+              Back
+            </Button>
           ) : (
             <div />
           )}

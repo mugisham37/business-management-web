@@ -130,23 +130,23 @@ export default function BusinessInfo() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Transform form data correctly - omit optional empty fields
+    const businessInfo: any = {
+      businessName: formData.businessName,
+      industry: formData.industry,
+      businessType: formData.businessType as BusinessType,
+      country: formData.country,
+    }
+
+    // Only include optional fields if they have values
+    if (formData.registrationNumber) {
+      businessInfo.registrationNumber = formData.registrationNumber
+    }
+    if (formData.website) {
+      businessInfo.website = formData.website
+    }
+
     try {
-      // Transform form data correctly - omit optional empty fields
-      const businessInfo: any = {
-        businessName: formData.businessName,
-        industry: formData.industry,
-        businessType: formData.businessType as BusinessType,
-        country: formData.country,
-      }
-
-      // Only include optional fields if they have values
-      if (formData.registrationNumber) {
-        businessInfo.registrationNumber = formData.registrationNumber
-      }
-      if (formData.website) {
-        businessInfo.website = formData.website
-      }
-
       await setBusinessInfo(businessInfo)
       router.push("/auth/onboarding/products")
     } catch (err) {
@@ -175,7 +175,7 @@ export default function BusinessInfo() {
       title="Tell us about your business"
       description="This helps us customize your experience and recommend the right features."
       onSubmit={handleSubmit}
-      backHref="/auth/onboarding/welcome"
+      currentStep="business-info"
       loading={isLoading}
       disabled={!isFormValid}
     >

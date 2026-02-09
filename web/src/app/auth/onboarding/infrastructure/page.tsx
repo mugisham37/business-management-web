@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/Select"
 import { Slider } from "@/components/ui/Slider"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { SVGProps } from "react"
 import React, { useEffect, useState } from "react"
@@ -560,8 +559,8 @@ export default function PricingCalculator() {
           </Card>
 
           <div className="mt-6 flex justify-between">
-            <Button type="button" variant="ghost" asChild>
-              <Link href="/auth/onboarding/employees">Back</Link>
+            <Button type="button" variant="ghost" onClick={() => router.push("/auth/onboarding/employees")}>
+              Back
             </Button>
             <Button
               className="state-disabled"

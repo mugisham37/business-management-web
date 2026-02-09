@@ -7,7 +7,6 @@ import {
   RadioCardIndicator,
   RadioCardItem,
 } from "@/components/ui/RadioGroup"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import { useOnboardingStore } from "@/stores/onboarding.store"
@@ -162,8 +161,8 @@ export default function Employees() {
           </RadioCardGroup>
         </fieldset>
         <div className="mt-6 flex justify-between">
-          <Button type="button" variant="ghost" asChild>
-            <Link href="/auth/onboarding/products">Back</Link>
+          <Button type="button" variant="ghost" onClick={() => router.push("/auth/onboarding/products")}>
+            Back
           </Button>
           <Button
             className="state-disabled"

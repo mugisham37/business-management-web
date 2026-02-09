@@ -375,14 +375,14 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Include context (user ID, organization ID, step)
     - _Requirements: 9.4_
 
-- [ ] 15. Implement progress tracking UI
-  - [ ] 15.1 Update onboarding layout with progress indicator
+- [x] 15. Implement progress tracking UI
+  - [x] 15.1 Update onboarding layout with progress indicator
     - Show current step number and total steps
     - Show completion percentage
     - Highlight completed steps
     - _Requirements: 6.1, 6.2, 6.3_
   
-  - [ ] 15.2 Implement back navigation
+  - [x] 15.2 Implement back navigation
     - Add back button to each step
     - Restore saved data when navigating back
     - _Requirements: 6.4, 10.3_
