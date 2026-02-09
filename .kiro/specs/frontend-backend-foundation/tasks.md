@@ -204,27 +204,27 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - **Property 7: Authentication State Propagation**
     - **Validates: Requirements 5.5, 7.7**
 
-- [ ] 11. Implement custom hooks
-  - [ ] 11.1 Create useAuth hook
+- [x] 11. Implement custom hooks
+  - [x] 11.1 Create useAuth hook
     - Simple wrapper around useAuthContext in hooks/useAuth.ts
     - _Requirements: 7.1_
   
-  - [ ] 11.2 Create useApi hook
+  - [x] 11.2 Create useApi hook
     - Implement useApi hook with loading/error state management in hooks/useApi.ts
     - Handle execute, reset methods
     - _Requirements: 7.3_
   
-  - [ ] 11.3 Create usePermissions hook
+  - [x] 11.3 Create usePermissions hook
     - Implement usePermissions hook in hooks/usePermissions.ts
     - Provide hasPermission, hasAnyPermission, hasAllPermissions methods
     - _Requirements: 7.2_
   
-  - [ ] 11.4 Create useSession hook
+  - [x] 11.4 Create useSession hook
     - Implement useSession hook in hooks/useSession.ts
     - Provide sessions list, loading state, refreshSessions, revokeSession methods
     - _Requirements: 7.4, 11.1, 11.3, 11.4, 11.5_
   
-  - [ ] 11.5 Create useOrganization hook
+  - [x] 11.5 Create useOrganization hook
     - Implement useOrganization hook in hooks/useOrganization.ts
     - Provide organization, organizationId, isOwner
     - _Requirements: 7.5, 13.1, 13.2, 13.3_
