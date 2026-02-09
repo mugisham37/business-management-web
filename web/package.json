@@ -49,6 +49,8 @@
     "@react-aria/datepicker": "^3.16.0",
     "@react-stately/datepicker": "^3.16.0",
     "@remixicon/react": "^4.6.0",
+    "@tanstack/react-query": "^5.62.11",
+    "@tanstack/react-query-devtools": "^5.62.11",
     "@tanstack/react-table": "^8.21.3",
     "@types/mdx": "^2.0.13",
     "axios": "^1.13.5",
