@@ -30,13 +30,13 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - Include computed properties (e.g., User.fullName)
     - _Requirements: 2.3, 2.4_
 
-- [ ] 3. Implement constants
-  - [ ] 3.1 Create API configuration constants
+- [x] 3. Implement constants
+  - [x] 3.1 Create API configuration constants
     - Define API_CONFIG in lib/constants/api.ts (base URL, timeout, retry config)
     - Define API_ENDPOINTS in lib/api/endpoints.ts (all 34 endpoint paths)
     - _Requirements: 19.1_
   
-  - [ ] 3.2 Create auth and permission constants
+  - [x] 3.2 Create auth and permission constants
     - Define TOKEN_CONFIG and AUTH_ROUTES in lib/constants/auth.ts
     - Define PERMISSIONS in lib/constants/permissions.ts
     - _Requirements: 19.2, 19.3, 19.4_
