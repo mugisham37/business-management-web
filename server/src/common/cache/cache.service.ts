@@ -21,8 +21,11 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit() {
+    process.stdout.write('[DEBUG] CacheService.onModuleInit START\n');
     await this.connect();
+    process.stdout.write('[DEBUG] CacheService.onModuleInit CONNECTED\n');
     this.startL1Cleanup();
+    process.stdout.write('[DEBUG] CacheService.onModuleInit DONE\n');
   }
 
   async onModuleDestroy() {

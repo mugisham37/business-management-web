@@ -43,8 +43,10 @@ export class PrismaService
   }
 
   async onModuleInit() {
+    process.stdout.write('[DEBUG] PrismaService.onModuleInit START\n');
     try {
       await this.$connect();
+      process.stdout.write('[DEBUG] PrismaService.onModuleInit CONNECTED\n');
       this.logger.log('Successfully connected to database');
 
       // Log queries in development

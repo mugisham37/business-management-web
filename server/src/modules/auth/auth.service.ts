@@ -745,6 +745,10 @@ export class AuthService {
 
       this.logger.log(`Organization created: ${organization.id} (${organization.companyCode})`);
 
+      // Seed system roles for the new organization
+      await this.seedSystemRoles(organization.id);
+      this.logger.log(`System roles seeded for organization: ${organization.id}`);
+
       // Hash password with Argon2id
       const passwordHash = await this.security.hashPassword(dto.password);
 
@@ -1859,6 +1863,91 @@ export class AuthService {
       this.logger.error('Failed to refresh OAuth tokens:', error);
       throw error;
     }
+  }
+
+  /**
+   * Seed system roles for a new organization
+   * 
+   * @param organizationId - Organization ID
+   * @private
+   */
+  private async seedSystemRoles(organizationId: string): Promise<void> {
+    const SYSTEM_ROLES = [
+      {
+        code: 'SUPER_ADMIN',
+        name: 'Super Administrator',
+        description: 'Full system access with all permissions',
+      },
+      {
+        code: 'ADMIN',
+        name: 'Administrator',
+        description: 'Administrative access with most permissions',
+      },
+      {
+        code: 'MANAGER',
+        name: 'Manager',
+        description: 'Management access with limited permissions',
+      },
+      {
+        code: 'USER',
+        name: 'User',
+        description: 'Basic user access',
+      },
+    ];
+
+    const ROLE_PERMISSIONS: Record<string, string[]> = {
+      SUPER_ADMIN: [
+        'users:create:user', 'users:read:user', 'users:update:user', 'users:delete:user',
+        'roles:create:role', 'roles:read:role', 'roles:update:role', 'roles:delete:role', 'roles:assign:role',
+        'permissions:read:permission', 'permissions:assign:permission',
+        'organizations:read:organization', 'organizations:update:organization',
+        'locations:create:location', 'locations:read:location', 'locations:update:location', 'locations:delete:location',
+        'departments:create:department', 'departments:read:department', 'departments:update:department', 'departments:delete:department',
+        'sessions:read:session', 'sessions:revoke:session',
+        'audit:read:audit_log',
+      ],
+      ADMIN: [
+        'users:create:user', 'users:read:user', 'users:update:user',
+        'roles:read:role', 'roles:assign:role',
+        'permissions:read:permission',
+        'organizations:read:organization',
+        'locations:create:location', 'locations:read:location', 'locations:update:location',
+        'departments:create:department', 'departments:read:department', 'departments:update:department',
+        'sessions:read:session', 'sessions:revoke:session',
+        'audit:read:audit_log',
+      ],
+      MANAGER: [
+        'users:read:user', 'users:update:user',
+        'roles:read:role',
+        'permissions:read:permission',
+        'organizations:read:organization',
+        'locations:read:location',
+        'departments:read:department',
+        'sessions:read:session',
+      ],
+      USER: [
+        'users:read:user',
+        'organizations:read:organization',
+        'locations:read:location',
+        'departments:read:department',
+      ],
+    };
+
+    // Create roles
+    for (const roleData of SYSTEM_ROLES) {
+      await this.prisma.role.create({
+        data: {
+          organizationId,
+          code: roleData.code,
+          name: roleData.name,
+          description: roleData.description,
+          isSystem: true,
+          isActive: true,
+        },
+      });
+    }
+
+    this.logger.log(`Created ${SYSTEM_ROLES.length} system roles for organization ${organizationId}`);
   }
 }
 
