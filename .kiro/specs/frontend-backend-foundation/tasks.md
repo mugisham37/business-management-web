@@ -72,8 +72,8 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - **Property 24: Safe Property Access**
     - **Validates: Requirements 18.5**
 
-- [ ] 5. Implement Token Manager
-  - [ ] 5.1 Create TokenManager class
+- [x] 5. Implement Token Manager
+  - [x] 5.1 Create TokenManager class
     - Implement token storage (access in memory, refresh in cookies)
     - Implement getAccessToken, setAccessToken, clearTokens methods
     - Implement decodeToken, isTokenExpired, getUserFromToken methods
@@ -90,14 +90,14 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - **Property 3: JWT Token Operations**
     - **Validates: Requirements 4.6, 4.7**
 
-- [ ] 6. Implement API Client
-  - [ ] 6.1 Create Axios instance configuration
+- [x] 6. Implement API Client
+  - [x] 6.1 Create Axios instance configuration
     - Create apiClient in lib/api/client.ts with base URL, timeout, headers
     - Validate NEXT_PUBLIC_API_URL environment variable
     - Enable withCredentials for cookies
     - _Requirements: 3.1, 3.2, 15.4_
   
-  - [ ] 6.2 Implement request/response interceptors
+  - [x] 6.2 Implement request/response interceptors
     - Create setupInterceptors in lib/api/interceptors.ts
     - Implement request interceptor to add Authorization header
     - Implement response interceptor for token refresh on 401
@@ -127,28 +127,28 @@ This implementation plan breaks down the foundation layer into discrete, increme
 - [ ] 7. Checkpoint - Verify core infrastructure
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement API service layer
-  - [ ] 8.1 Create auth API service
+- [x] 8. Implement API service layer
+  - [x] 8.1 Create auth API service
     - Implement all 12 authentication endpoints in lib/api/services/auth.api.ts
     - Include register, login, loginTeamMember, loginMfa, refresh, logout, password reset, etc.
     - _Requirements: 6.1, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7_
   
-  - [ ] 8.2 Create MFA API service
+  - [x] 8.2 Create MFA API service
     - Implement all 5 MFA endpoints in lib/api/services/mfa.api.ts
     - Include setup, enable, disable, getStatus, regenerateBackupCodes
     - _Requirements: 6.2, 12.1, 12.2, 12.4, 12.6_
   
-  - [ ] 8.3 Create users API service
+  - [x] 8.3 Create users API service
     - Implement all 9 user endpoints in lib/api/services/users.api.ts
     - Include invite, registerInvitation, getById, update, delete, suspend, reactivate, hierarchy, createdUsers
     - _Requirements: 6.3_
   
-  - [ ] 8.4 Create roles API service
+  - [x] 8.4 Create roles API service
     - Implement all 6 role endpoints in lib/api/services/roles.api.ts
     - Include create, getById, update, delete, assignPermissions, assignRole
     - _Requirements: 6.4_
   
-  - [ ] 8.5 Create sessions API service
+  - [x] 8.5 Create sessions API service
     - Implement all 2 session endpoints in lib/api/services/sessions.api.ts
     - Include getAll, delete
     - _Requirements: 6.5, 11.1, 11.3_
