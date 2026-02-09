@@ -21,6 +21,7 @@ import {
 import { TokenManager } from '@/lib/auth/token-manager';
 import { handleApiError } from '@/lib/utils/error-handler';
 import { API_CONFIG } from '@/lib/constants/api';
+import { serializeRequestData, deserializeResponseData } from '@/lib/utils/serialization';
 
 // Token refresh state management
 let isRefreshing = false;
@@ -105,6 +106,11 @@ export function setupInterceptors(client: AxiosInstance): void {
   // ============================================================================
   client.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      // Serialize request data (convert Date objects to ISO strings)
+      if (config.data) {
+        config.data = serializeRequestData(config.data);
+      }
+      
       // Add Authorization header if access token exists
       const token = TokenManager.getAccessToken();
       if (token && config.headers) {
@@ -137,6 +143,11 @@ export function setupInterceptors(client: AxiosInstance): void {
   // ============================================================================
   client.interceptors.response.use(
     (response: AxiosResponse) => {
+      // Deserialize response data (convert ISO date strings to Date objects)
+      if (response.data) {
+        response.data = deserializeResponseData(response.data);
+      }
+      
       // Remove from pending requests on success
       const requestKey = getRequestKey(response.config as InternalAxiosRequestConfig);
       pendingRequests.delete(requestKey);

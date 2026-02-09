@@ -5,6 +5,7 @@ import localFont from "next/font/local"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
+import { AppProviders } from "@/components/providers/AppProviders"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -64,15 +65,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans min-h-screen scroll-auto antialiased selection:bg-primary/10 selection:text-primary`}
       >
-        <NuqsAdapter>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </NuqsAdapter>
+        <AppProviders>
+          <NuqsAdapter>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </NuqsAdapter>
+        </AppProviders>
       </body>
     </html>
   )
