@@ -41,12 +41,12 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - Define PERMISSIONS in lib/constants/permissions.ts
     - _Requirements: 19.2, 19.3, 19.4_
 
-- [ ] 4. Implement utility functions
-  - [ ] 4.1 Create error handling utilities
+- [x] 4. Implement utility functions
+  - [x] 4.1 Create error handling utilities
     - Implement handleApiError, getErrorMessage, error type checkers in lib/utils/error-handler.ts
     - _Requirements: 9.1, 9.2, 9.4, 9.5, 9.6_
   
-  - [ ] 4.2 Create validation utilities
+  - [x] 4.2 Create validation utilities
     - Implement isValidEmail, isStrongPassword, getPasswordStrength in lib/utils/validators.ts
     - _Requirements: 18.3, 18.4_
   
@@ -55,7 +55,7 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - **Property 23: Password Strength Validation**
     - **Validates: Requirements 18.3, 18.4**
   
-  - [ ] 4.4 Create formatting utilities
+  - [x] 4.4 Create formatting utilities
     - Implement formatDate, formatDateTime, formatFullName, formatRelativeTime in lib/utils/formatters.ts
     - _Requirements: 18.1, 18.2_
   
@@ -64,7 +64,7 @@ This implementation plan breaks down the foundation layer into discrete, increme
     - **Property 21: Name Formatting**
     - **Validates: Requirements 18.1, 18.2**
   
-  - [ ] 4.6 Create storage utilities
+  - [x] 4.6 Create storage utilities
     - Implement safeGetNestedProperty, debounce in lib/utils/storage.ts
     - _Requirements: 18.5, 18.6_
   
