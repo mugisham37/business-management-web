@@ -238,14 +238,14 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Test token attachment
     - _Requirements: 11.2, 11.3, 11.4, 11.5_
 
-- [ ] 10. Implement Zustand store for onboarding state
-  - [ ] 10.1 Create onboarding store
+- [x] 10. Implement Zustand store for onboarding state
+  - [x] 10.1 Create onboarding store
     - Create `web/src/stores/onboarding.store.ts`
     - Define OnboardingStore interface
     - Initialize state with empty data
     - _Requirements: 10.1_
   
-  - [ ] 10.2 Implement state update actions
+  - [x] 10.2 Implement state update actions
     - Implement setBusinessInfo action
     - Implement setFeatures action
     - Implement setTeamSize action
@@ -255,19 +255,19 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Each action should call API client to save progress
     - _Requirements: 10.2, 10.4_
   
-  - [ ] 10.3 Implement loadProgress action
+  - [x] 10.3 Implement loadProgress action
     - Call API client getProgress
     - Update store state with retrieved data
     - Handle errors
     - _Requirements: 1.3, 10.3_
   
-  - [ ] 10.4 Implement step tracking actions
+  - [x] 10.4 Implement step tracking actions
     - Implement setCurrentStep action
     - Implement markStepComplete action
     - Update completedSteps array
     - _Requirements: 6.1_
   
-  - [ ] 10.5 Implement completeOnboarding action
+  - [x] 10.5 Implement completeOnboarding action
     - Call API client completeOnboarding
     - Update local state
     - _Requirements: 13.1_
