@@ -60,4 +60,13 @@ export const API_ENDPOINTS = {
     GET_ALL: '/sessions',
     DELETE: (id: string) => `/sessions/${id}`,
   },
+
+  // Onboarding endpoints (5 total)
+  ONBOARDING: {
+    SAVE_PROGRESS: '/onboarding/progress',
+    GET_PROGRESS: '/onboarding/progress',
+    COMPLETE: '/onboarding/complete',
+    RECOMMEND_PLAN: '/onboarding/recommend-plan',
+    SELECT_PLAN: '/onboarding/select-plan',
+  },
 } as const;

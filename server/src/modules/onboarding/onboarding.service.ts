@@ -323,13 +323,36 @@ export class OnboardingService {
   /**
    * Update organization limits based on selected plan
    * 
+   * Looks up the plan definition by tier and updates the organization's
+   * subscription settings and limits accordingly.
+   * 
    * @param organizationId - Organization ID
    * @param planTier - Selected plan tier
+   * 
+   * Requirements: 8.1, 8.2, 8.3, 8.4
    */
-  async selectPlan(organizationId: string, planTier: string): Promise<void> {
-    // TODO: Implement selectPlan logic
-    // This will be implemented in task 6.1
+  async selectPlan(organizationId: string, planTier: PlanTier): Promise<void> {
     this.logger.log(`Selecting plan ${planTier} for organization: ${organizationId}`);
+
+    // Look up plan definition by tier
+    const planDefinition = PLAN_DEFINITIONS.find(plan => plan.tier === planTier);
+
+    if (!planDefinition) {
+      throw new Error(`Invalid plan tier: ${planTier}`);
+    }
+
+    // Update organization with plan limits and subscription details
+    await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        maxUsers: planDefinition.maxUsers,
+        maxLocations: planDefinition.maxLocations,
+        subscriptionPlan: planTier,
+        subscriptionStatus: 'trial',
+      },
+    });
+
+    this.logger.log(`Successfully selected ${planTier} plan for organization: ${organizationId}`);
   }
 
   /**

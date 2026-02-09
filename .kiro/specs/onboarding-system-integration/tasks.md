@@ -114,8 +114,8 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Test score bounds
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6. Implement selectPlan method
-  - [ ] 6.1 Write selectPlan service method
+- [x] 6. Implement selectPlan method
+  - [x] 6.1 Write selectPlan service method
     - Look up plan definition by tier
     - Update Organization.maxUsers to plan.maxUsers
     - Update Organization.maxLocations to plan.maxLocations
@@ -127,8 +127,8 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - **Property 11: Plan Selection Updates Organization Limits**
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.4**
 
-- [ ] 7. Implement onboarding controller endpoints
-  - [ ] 7.1 Implement POST /api/onboarding/progress endpoint
+- [x] 7. Implement onboarding controller endpoints
+  - [x] 7.1 Implement POST /api/onboarding/progress endpoint
     - Add @Post('progress') decorator
     - Add @UseGuards(JwtAuthGuard)
     - Extract user from @CurrentUser decorator
@@ -138,7 +138,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Add error handling
     - _Requirements: 2.1, 2.5_
   
-  - [ ] 7.2 Implement GET /api/onboarding/progress endpoint
+  - [x] 7.2 Implement GET /api/onboarding/progress endpoint
     - Add @Get('progress') decorator
     - Add @UseGuards(JwtAuthGuard)
     - Extract user from @CurrentUser decorator
@@ -146,7 +146,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Return formatted response
     - _Requirements: 2.2, 2.5_
   
-  - [ ] 7.3 Implement POST /api/onboarding/complete endpoint
+  - [x] 7.3 Implement POST /api/onboarding/complete endpoint
     - Add @Post('complete') decorator
     - Add @UseGuards(JwtAuthGuard)
     - Extract user from @CurrentUser decorator
@@ -154,7 +154,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Return success response
     - _Requirements: 2.3, 2.5_
   
-  - [ ] 7.4 Implement POST /api/onboarding/recommend-plan endpoint
+  - [x] 7.4 Implement POST /api/onboarding/recommend-plan endpoint
     - Add @Post('recommend-plan') decorator
     - Add @UseGuards(JwtAuthGuard)
     - Extract user from @CurrentUser decorator
@@ -162,7 +162,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Return plan recommendations
     - _Requirements: 2.4, 2.5_
   
-  - [ ] 7.5 Implement POST /api/onboarding/select-plan endpoint
+  - [x] 7.5 Implement POST /api/onboarding/select-plan endpoint
     - Add @Post('select-plan') decorator
     - Add @UseGuards(JwtAuthGuard)
     - Extract user from @CurrentUser decorator
@@ -180,52 +180,52 @@ Each task builds on previous work and includes checkpoints to validate progress.
 - [ ] 8. Checkpoint - Backend API complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement frontend API client
-  - [ ] 9.1 Create API client class
+- [x] 9. Implement frontend API client
+  - [x] 9.1 Create API client class
     - Create `web/src/lib/api/onboarding.ts`
     - Implement OnboardingApiClient class
     - Add base URL and axios instance configuration
     - Add token attachment interceptor
     - _Requirements: 11.1, 11.5_
   
-  - [ ] 9.2 Implement saveProgress method
+  - [x] 9.2 Implement saveProgress method
     - Make POST request to /api/onboarding/progress
     - Transform request data
     - Handle response
     - Handle errors
     - _Requirements: 1.1, 11.2_
   
-  - [ ] 9.3 Implement getProgress method
+  - [x] 9.3 Implement getProgress method
     - Make GET request to /api/onboarding/progress
     - Handle response
     - Handle errors
     - _Requirements: 1.3, 11.2_
   
-  - [ ] 9.4 Implement completeOnboarding method
+  - [x] 9.4 Implement completeOnboarding method
     - Make POST request to /api/onboarding/complete
     - Handle response
     - Handle errors
     - _Requirements: 13.1, 11.2_
   
-  - [ ] 9.5 Implement recommendPlan method
+  - [x] 9.5 Implement recommendPlan method
     - Make POST request to /api/onboarding/recommend-plan
     - Handle response
     - Handle errors
     - _Requirements: 5.5, 11.2_
   
-  - [ ] 9.6 Implement selectPlan method
+  - [x] 9.6 Implement selectPlan method
     - Make POST request to /api/onboarding/select-plan
     - Handle response
     - Handle errors
     - _Requirements: 8.1, 11.2_
   
-  - [ ] 9.7 Add retry logic for transient failures
+  - [x] 9.7 Add retry logic for transient failures
     - Implement exponential backoff
     - Configure maximum retry attempts (3)
     - Only retry on network errors and 5xx responses
     - _Requirements: 11.3_
   
-  - [ ] 9.8 Add timeout configuration
+  - [x] 9.8 Add timeout configuration
     - Set request timeout to 10 seconds
     - Handle timeout errors
     - _Requirements: 11.4_

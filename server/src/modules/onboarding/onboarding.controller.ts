@@ -12,6 +12,14 @@ import { OnboardingService } from './onboarding.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
+import { SaveProgressDto, SelectPlanDto } from './dto';
+import {
+  SaveProgressResponse,
+  GetProgressResponse,
+  CompleteOnboardingResponse,
+  RecommendPlanResponse,
+  SelectPlanResponse,
+} from './dto/response.dto';
 
 /**
  * Onboarding Controller
@@ -49,16 +57,30 @@ export class OnboardingController {
    */
   @Post('progress')
   @HttpCode(HttpStatus.OK)
-  async saveProgress(@CurrentUser() user: User, @Body() dto: any) {
+  async saveProgress(
+    @CurrentUser() user: User,
+    @Body() dto: SaveProgressDto,
+  ): Promise<SaveProgressResponse> {
     this.logger.log(`Save progress request for organization: ${user.organizationId}`);
     
-    // TODO: Implement saveProgress logic
-    // This will be implemented in task 4.1
-    
-    return {
-      success: true,
-      message: 'Progress saved successfully',
-    };
+    try {
+      // Call service to save progress
+      const updatedData = await this.onboardingService.saveProgress(
+        user.organizationId,
+        dto.data,
+      );
+      
+      return {
+        success: true,
+        data: updatedData,
+        message: 'Progress saved successfully',
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error saving progress: ${errorMessage}`, errorStack);
+      throw error;
+    }
   }
 
   /**
@@ -77,16 +99,23 @@ export class OnboardingController {
    */
   @Get('progress')
   @HttpCode(HttpStatus.OK)
-  async getProgress(@CurrentUser() user: User) {
+  async getProgress(@CurrentUser() user: User): Promise<GetProgressResponse> {
     this.logger.log(`Get progress request for organization: ${user.organizationId}`);
     
-    // TODO: Implement getProgress logic
-    // This will be implemented in task 4.2
-    
-    return {
-      success: true,
-      data: null,
-    };
+    try {
+      // Call service to get progress
+      const progress = await this.onboardingService.getProgress(user.organizationId);
+      
+      return {
+        success: true,
+        data: progress,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error getting progress: ${errorMessage}`, errorStack);
+      throw error;
+    }
   }
 
   /**
@@ -105,16 +134,26 @@ export class OnboardingController {
    */
   @Post('complete')
   @HttpCode(HttpStatus.OK)
-  async completeOnboarding(@CurrentUser() user: User) {
+  async completeOnboarding(@CurrentUser() user: User): Promise<CompleteOnboardingResponse> {
     this.logger.log(`Complete onboarding request for organization: ${user.organizationId}`);
     
-    // TODO: Implement completeOnboarding logic
-    // This will be implemented in task 4.3
-    
-    return {
-      success: true,
-      message: 'Onboarding completed successfully',
-    };
+    try {
+      // Call service to complete onboarding
+      await this.onboardingService.completeOnboarding(user.organizationId);
+      
+      const completedAt = new Date();
+      
+      return {
+        success: true,
+        message: 'Onboarding completed successfully',
+        completedAt,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error completing onboarding: ${errorMessage}`, errorStack);
+      throw error;
+    }
   }
 
   /**
@@ -133,16 +172,23 @@ export class OnboardingController {
    */
   @Post('recommend-plan')
   @HttpCode(HttpStatus.OK)
-  async recommendPlan(@CurrentUser() user: User) {
+  async recommendPlan(@CurrentUser() user: User): Promise<RecommendPlanResponse> {
     this.logger.log(`Recommend plan request for organization: ${user.organizationId}`);
     
-    // TODO: Implement recommendPlan logic
-    // This will be implemented in task 5.5
-    
-    return {
-      success: true,
-      data: [],
-    };
+    try {
+      // Call service to generate plan recommendations
+      const recommendations = await this.onboardingService.recommendPlan(user.organizationId);
+      
+      return {
+        success: true,
+        recommendations,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error recommending plan: ${errorMessage}`, errorStack);
+      throw error;
+    }
   }
 
   /**
@@ -159,15 +205,26 @@ export class OnboardingController {
    */
   @Post('select-plan')
   @HttpCode(HttpStatus.OK)
-  async selectPlan(@CurrentUser() user: User, @Body() dto: any) {
+  async selectPlan(
+    @CurrentUser() user: User,
+    @Body() dto: SelectPlanDto,
+  ): Promise<SelectPlanResponse> {
     this.logger.log(`Select plan request for organization: ${user.organizationId}`);
     
-    // TODO: Implement selectPlan logic
-    // This will be implemented in task 6.1
-    
-    return {
-      success: true,
-      message: 'Plan selected successfully',
-    };
+    try {
+      // Call service to select plan and update organization limits
+      await this.onboardingService.selectPlan(user.organizationId, dto.planTier);
+      
+      return {
+        success: true,
+        message: 'Plan selected successfully',
+        selectedPlan: dto.planTier,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error selecting plan: ${errorMessage}`, errorStack);
+      throw error;
+    }
   }
 }
