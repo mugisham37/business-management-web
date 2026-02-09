@@ -120,7 +120,7 @@ export const authApi = {
 
   /**
    * Change password for authenticated user
-   * POST /auth/change-password
+   * POST /auth/password/change
    */
   changePassword: (data: ChangePasswordRequest) =>
     apiClient.post<ApiResponse<void>>(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, data),
@@ -128,6 +128,9 @@ export const authApi = {
   /**
    * Get current authenticated user
    * GET /auth/me
+   * 
+   * Note: This endpoint needs to be added to the backend
+   * For now, we'll extract user from JWT token
    */
   getCurrentUser: () =>
     apiClient.get<ApiResponse<User>>(API_ENDPOINTS.AUTH.ME),

@@ -1,483 +1,236 @@
 "use client"
 
 import * as React from "react"
-import { siteConfig } from "@/app/siteConfig"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuSubMenu,
-  DropdownMenuSubMenuContent,
-  DropdownMenuSubMenuTrigger,
-  DropdownMenuTrigger,
-  DropdownMenuIconWrapper,
-} from "@/components/ui/DropdownMenu"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import { useAuth } from "@/hooks/useAuth"
+import { useLogout } from "@/hooks/api/useAuth"
+import { useRouter } from "next/navigation"
+import { Avatar } from "@/components/ui/Avatar"
 import { Badge } from "@/components/ui/Badge"
-import { cx } from "@/lib/utils"
-import { 
-  ArrowUpRight, 
-  Monitor, 
-  Moon, 
-  Sun, 
-  Settings, 
-  User, 
-  LogOut,
-  HelpCircle,
-  MessageSquare,
-  FileText,
-  Keyboard
-} from "lucide-react"
-import { 
-  RiArrowRightUpLine,
+import { Divider } from "@/components/ui/Divider"
+import { cx, focusRing } from "@/lib/utils"
+import {
+  RiUser3Line,
+  RiSettings3Line,
+  RiLogoutBoxLine,
+  RiShieldKeyholeLine,
   RiComputerLine,
-  RiMoonLine,
-  RiSunLine,
 } from "@remixicon/react"
-import { useTheme } from "next-themes"
-
-// =============================================================================
-// TYPE DEFINITIONS
-// =============================================================================
 
 export interface DropdownUserProfileProps {
   children: React.ReactNode
-  align?: "center" | "start" | "end"
-  widthMode?: "trigger" | "min" | "auto"
+  align?: "start" | "center" | "end"
   sideOffset?: number
   collisionPadding?: number
   loop?: boolean
-  user?: {
-    name?: string
-    email?: string
-    role?: string
-    plan?: string
-    avatar?: string
-  }
-  links?: {
-    profile?: string
-    settings?: string
-    changelog?: string
-    documentation?: string
-    community?: string
-    keyboardShortcuts?: string
-  }
-  showKeyboardShortcuts?: boolean
+  disabled?: boolean
+  widthMode?: "trigger" | "min" | "full"
   showThemeSelector?: boolean
   showProfileActions?: boolean
   showHelpResources?: boolean
   onProfileClick?: () => void
   onSettingsClick?: () => void
-  onKeyboardShortcutsClick?: () => void
   onSignOut?: () => void
-  disabled?: boolean
   variant?: "default" | "customer"
-  iconLibrary?: "lucide" | "remix"
 }
-
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
 
 export function DropdownUserProfile({
   children,
-  align = "start",
-  widthMode = "min",
+  align = "end",
   sideOffset = 8,
   collisionPadding = 8,
   loop = true,
-  user = {
-    name: "Emma Stone",
-    email: "emma.stone@acme.com",
-    role: "Admin",
-    plan: "Pro"
-  },
-  links = {
-    profile: "/profile",
-    settings: "/settings",
-    changelog: siteConfig.baseLinks.changelog,
-    documentation: "/docs",
-    community: "#",
-    keyboardShortcuts: "#"
-  },
-  showKeyboardShortcuts = true,
-  showThemeSelector = true,
+  disabled = false,
+  widthMode = "min",
   showProfileActions = true,
-  showHelpResources = true,
   onProfileClick,
   onSettingsClick,
-  onKeyboardShortcutsClick,
   onSignOut,
-  disabled = false,
-  variant = "default",
-  iconLibrary = "lucide",
 }: DropdownUserProfileProps) {
-  const [mounted, setMounted] = React.useState(false)
-  const { theme, setTheme } = useTheme()
-  
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { user } = useAuth()
+  const logout = useLogout()
+  const router = useRouter()
+  const [open, setOpen] = React.useState(false)
 
-  const handleSignOut = React.useCallback(() => {
-    if (onSignOut) {
-      onSignOut()
-    } else {
-      window.location.href = siteConfig.baseLinks.login
-    }
-  }, [onSignOut])
-
-  const handleProfileClick = React.useCallback(() => {
+  const handleProfileClick = () => {
     if (onProfileClick) {
       onProfileClick()
-    } else if (links.profile) {
-      window.location.href = links.profile
+    } else {
+      router.push('/dashboard/settings/general')
     }
-  }, [onProfileClick, links.profile])
+    setOpen(false)
+  }
 
-  const handleSettingsClick = React.useCallback(() => {
+  const handleSettingsClick = () => {
     if (onSettingsClick) {
       onSettingsClick()
-    } else if (links.settings) {
-      window.location.href = links.settings
+    } else {
+      router.push('/dashboard/settings/general')
     }
-  }, [onSettingsClick, links.settings])
-
-  const handleKeyboardShortcutsClick = React.useCallback(() => {
-    if (onKeyboardShortcutsClick) {
-      onKeyboardShortcutsClick()
-    } else if (links.keyboardShortcuts && links.keyboardShortcuts !== "#") {
-      window.location.href = links.keyboardShortcuts
-    }
-  }, [onKeyboardShortcutsClick, links.keyboardShortcuts])
-
-  if (!mounted) {
-    return null
+    setOpen(false)
   }
 
-  // Icon components based on library preference
-  const SunIcon = iconLibrary === "remix" ? RiSunLine : Sun
-  const MoonIcon = iconLibrary === "remix" ? RiMoonLine : Moon
-  const MonitorIcon = iconLibrary === "remix" ? RiComputerLine : Monitor
-  const ExternalLinkIcon = iconLibrary === "remix" ? RiArrowRightUpLine : ArrowUpRight
+  const handleSecurityClick = () => {
+    router.push('/dashboard/settings/security')
+    setOpen(false)
+  }
 
-  // Customer variant uses simpler layout
-  if (variant === "customer") {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild disabled={disabled}>
-          {children}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
+  const handleSessionsClick = () => {
+    router.push('/dashboard/settings/sessions')
+    setOpen(false)
+  }
+
+  const handleSignOut = async () => {
+    try {
+      if (onSignOut) {
+        onSignOut()
+      } else {
+        await logout.mutateAsync()
+        router.push('/auth/login')
+      }
+    } catch (err) {
+      console.error('Logout failed:', err)
+    }
+    setOpen(false)
+  }
+
+  if (!user) {
+    return <>{children}</>
+  }
+
+  const getInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName && !lastName) return 'U'
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase()
+  }
+
+  const initials = getInitials(user.firstName, user.lastName)
+  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User'
+
+  return (
+    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuPrimitive.Trigger asChild disabled={disabled}>
+        {children}
+      </DropdownMenuPrimitive.Trigger>
+
+      <DropdownMenuPrimitive.Portal>
+        <DropdownMenuPrimitive.Content
           align={align}
-          className="!min-w-[calc(var(--radix-dropdown-menu-trigger-width))]"
-        >
-          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
-          {showThemeSelector && (
-            <DropdownMenuGroup>
-              <DropdownMenuSubMenu>
-                <DropdownMenuSubMenuTrigger>Theme</DropdownMenuSubMenuTrigger>
-                <DropdownMenuSubMenuContent>
-                  <DropdownMenuRadioGroup
-                    value={theme}
-                    onValueChange={(value) => {
-                      setTheme(value)
-                    }}
-                  >
-                    <DropdownMenuRadioItem
-                      aria-label="Switch to Light Mode"
-                      value="light"
-                      iconType="check"
-                    >
-                      <SunIcon className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                      Light
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      aria-label="Switch to Dark Mode"
-                      value="dark"
-                      iconType="check"
-                    >
-                      <MoonIcon
-                        className="size-[var(--dropdown-icon-wrapper-size)] shrink-0"
-                        aria-hidden="true"
-                      />
-                      Dark
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      aria-label="Switch to System Mode"
-                      value="system"
-                      iconType="check"
-                    >
-                      <MonitorIcon
-                        className="size-[var(--dropdown-icon-wrapper-size)] shrink-0"
-                        aria-hidden="true"
-                      />
-                      System
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubMenuContent>
-              </DropdownMenuSubMenu>
-            </DropdownMenuGroup>
+          sideOffset={sideOffset}
+          collisionPadding={collisionPadding}
+          loop={loop}
+          className={cx(
+            "z-50 min-w-[16rem] overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-xl",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+            "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+            "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            widthMode === "trigger" && "w-[var(--radix-dropdown-menu-trigger-width)]",
+            widthMode === "full" && "w-full",
           )}
-          {showHelpResources && (
+        >
+          {/* User Info Header */}
+          <div className="px-3 py-3">
+            <div className="flex items-center gap-3">
+              <Avatar
+                size="default"
+                fallback={initials}
+                alt={fullName}
+                variant="default"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {fullName}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user.email}
+                </p>
+                {user.role && (
+                  <Badge variant="neutral" size="sm" className="mt-1">
+                    {user.role.name}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Divider className="my-1" />
+
+          {/* Menu Items */}
+          {showProfileActions && (
             <>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  Changelog
-                  <ExternalLinkIcon
-                    className="external-link-icon"
-                    aria-hidden="true"
-                  />
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Documentation
-                  <ExternalLinkIcon
-                    className="external-link-icon"
-                    aria-hidden="true"
-                  />
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  Join Slack community
-                  <ExternalLinkIcon
-                    className="external-link-icon"
-                    aria-hidden="true"
-                  />
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
+              <DropdownMenuPrimitive.Item
+                className={cx(
+                  "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none",
+                  "text-foreground hover:bg-muted focus:bg-muted",
+                  "transition-colors duration-150",
+                  focusRing,
+                )}
+                onSelect={handleProfileClick}
+              >
+                <RiUser3Line className="h-4 w-4 text-muted-foreground" />
+                <span>Profile</span>
+              </DropdownMenuPrimitive.Item>
+
+              <DropdownMenuPrimitive.Item
+                className={cx(
+                  "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none",
+                  "text-foreground hover:bg-muted focus:bg-muted",
+                  "transition-colors duration-150",
+                  focusRing,
+                )}
+                onSelect={handleSettingsClick}
+              >
+                <RiSettings3Line className="h-4 w-4 text-muted-foreground" />
+                <span>Settings</span>
+              </DropdownMenuPrimitive.Item>
+
+              <DropdownMenuPrimitive.Item
+                className={cx(
+                  "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none",
+                  "text-foreground hover:bg-muted focus:bg-muted",
+                  "transition-colors duration-150",
+                  focusRing,
+                )}
+                onSelect={handleSecurityClick}
+              >
+                <RiShieldKeyholeLine className="h-4 w-4 text-muted-foreground" />
+                <span>Security</span>
+              </DropdownMenuPrimitive.Item>
+
+              <DropdownMenuPrimitive.Item
+                className={cx(
+                  "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none",
+                  "text-foreground hover:bg-muted focus:bg-muted",
+                  "transition-colors duration-150",
+                  focusRing,
+                )}
+                onSelect={handleSessionsClick}
+              >
+                <RiComputerLine className="h-4 w-4 text-muted-foreground" />
+                <span>Active sessions</span>
+              </DropdownMenuPrimitive.Item>
+
+              <Divider className="my-1" />
             </>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <a href={siteConfig.baseLinks.login} className="w-full">
-                Sign out
-              </a>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  }
 
-  // Default variant with full features
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={disabled}>
-        {children}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align={align}
-        widthMode={widthMode}
-        sideOffset={sideOffset}
-        collisionPadding={collisionPadding}
-        loop={loop}
-        className="min-w-[280px]"
-      >
-        <DropdownMenuLabel className="dropdown-user-label">
-          <div className="dropdown-user-label-header">
-            <div className="dropdown-user-label-text">
-              <span className="font-medium text-foreground">
-                {user.name}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {user.email}
-              </span>
-            </div>
-            {user.plan && (
-              <Badge variant="gradient" size="sm">
-                {user.plan}
-              </Badge>
-            )}
-          </div>
-          {user.role && (
-            <Badge variant="neutral" size="sm" className="w-fit">
-              {user.role}
-            </Badge>
-          )}
-        </DropdownMenuLabel>
-
-        {showProfileActions && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem 
-                onClick={handleProfileClick}
-                shortcut={showKeyboardShortcuts ? "⌘P" : undefined}
-              >
-                <DropdownMenuIconWrapper>
-                  <User className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                </DropdownMenuIconWrapper>
-                View Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleSettingsClick}
-                shortcut={showKeyboardShortcuts ? "⌘," : undefined}
-              >
-                <DropdownMenuIconWrapper>
-                  <Settings className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                </DropdownMenuIconWrapper>
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </>
-        )}
-
-        {showThemeSelector && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuSubMenu>
-                <DropdownMenuSubMenuTrigger iconType="lucide">
-                  <DropdownMenuIconWrapper>
-                    <Monitor className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                  </DropdownMenuIconWrapper>
-                  Theme
-                  <span className="ml-auto text-xs text-muted-foreground capitalize">
-                    {theme}
-                  </span>
-                </DropdownMenuSubMenuTrigger>
-                <DropdownMenuSubMenuContent>
-                  <DropdownMenuRadioGroup
-                    value={theme}
-                    onValueChange={setTheme}
-                  >
-                    <DropdownMenuRadioItem
-                      value="light"
-                      iconType="check"
-                      iconLibrary="lucide"
-                      aria-label="Switch to Light Mode"
-                    >
-                      <DropdownMenuIconWrapper>
-                        <Sun className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                      </DropdownMenuIconWrapper>
-                      Light
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="dark"
-                      iconType="check"
-                      iconLibrary="lucide"
-                      aria-label="Switch to Dark Mode"
-                    >
-                      <DropdownMenuIconWrapper>
-                        <Moon className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                      </DropdownMenuIconWrapper>
-                      Dark
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="system"
-                      iconType="check"
-                      iconLibrary="lucide"
-                      aria-label="Switch to System Mode"
-                    >
-                      <DropdownMenuIconWrapper>
-                        <Monitor className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                      </DropdownMenuIconWrapper>
-                      System
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubMenuContent>
-              </DropdownMenuSubMenu>
-            </DropdownMenuGroup>
-          </>
-        )}
-
-        {showHelpResources && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              {links.changelog && (
-                <DropdownMenuItem asChild>
-                  <a 
-                    href={links.changelog} 
-                    className="flex items-center w-full"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuIconWrapper>
-                      <FileText className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                    </DropdownMenuIconWrapper>
-                    Changelog
-                    <ArrowUpRight
-                      className="external-link-icon"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </DropdownMenuItem>
-              )}
-              {links.documentation && (
-                <DropdownMenuItem asChild>
-                  <a 
-                    href={links.documentation} 
-                    className="flex items-center w-full"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuIconWrapper>
-                      <HelpCircle className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                    </DropdownMenuIconWrapper>
-                    Documentation
-                    <ArrowUpRight
-                      className="external-link-icon"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </DropdownMenuItem>
-              )}
-              {links.community && (
-                <DropdownMenuItem asChild>
-                  <a 
-                    href={links.community} 
-                    className="flex items-center w-full"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <DropdownMenuIconWrapper>
-                      <MessageSquare className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                    </DropdownMenuIconWrapper>
-                    Join Slack community
-                    <ArrowUpRight
-                      className="external-link-icon"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </DropdownMenuItem>
-              )}
-              {showKeyboardShortcuts && (
-                <DropdownMenuItem 
-                  onClick={handleKeyboardShortcutsClick}
-                  shortcut="⌘K"
-                >
-                  <DropdownMenuIconWrapper>
-                    <Keyboard className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-                  </DropdownMenuIconWrapper>
-                  Keyboard shortcuts
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-          </>
-        )}
-
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem 
-            onClick={handleSignOut}
+          {/* Sign Out */}
+          <DropdownMenuPrimitive.Item
             className={cx(
-              "dropdown-item-destructive"
+              "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none",
+              "text-destructive hover:bg-destructive/10 focus:bg-destructive/10",
+              "transition-colors duration-150",
+              focusRing,
             )}
-            shortcut={showKeyboardShortcuts ? "⌘Q" : undefined}
+            onSelect={handleSignOut}
+            disabled={logout.isPending}
           >
-            <DropdownMenuIconWrapper>
-              <LogOut className="size-[var(--dropdown-icon-wrapper-size)] shrink-0" aria-hidden="true" />
-            </DropdownMenuIconWrapper>
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <RiLogoutBoxLine className="h-4 w-4" />
+            <span>{logout.isPending ? 'Signing out...' : 'Sign out'}</span>
+          </DropdownMenuPrimitive.Item>
+        </DropdownMenuPrimitive.Content>
+      </DropdownMenuPrimitive.Portal>
+    </DropdownMenuPrimitive.Root>
   )
 }

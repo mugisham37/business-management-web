@@ -6,7 +6,7 @@
  */
 
 export const API_ENDPOINTS = {
-  // Authentication endpoints (12 total)
+  // Authentication endpoints (13 total)
   AUTH: {
     REGISTER: '/auth/register',
     VERIFY_EMAIL: '/auth/verify-email',
@@ -19,8 +19,8 @@ export const API_ENDPOINTS = {
     LOGOUT_ALL: '/auth/logout-all',
     PASSWORD_RESET_REQUEST: '/auth/password-reset/request',
     PASSWORD_RESET_CONFIRM: '/auth/password-reset/confirm',
-    CHANGE_PASSWORD: '/auth/change-password',
-    ME: '/auth/me',
+    CHANGE_PASSWORD: '/auth/password/change',
+    ME: '/auth/me', // Get current authenticated user
   },
 
   // MFA endpoints (5 total)

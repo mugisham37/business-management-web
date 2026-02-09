@@ -9,10 +9,12 @@ import { Alert } from "@/components/ui/Alert"
 import { RiAlertLine, RiArrowLeftLine } from "@remixicon/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useTeamMemberLogin } from "@/hooks/api/useAuth"
 
 export default function TeamLogin() {
   const router = useRouter()
-  const [loading, setLoading] = React.useState(false)
+  const teamLogin = useTeamMemberLogin()
+  
   const [error, setError] = React.useState<string | null>(null)
   const [formData, setFormData] = React.useState({
     companyCode: "",
@@ -37,16 +39,27 @@ export default function TeamLogin() {
       return
     }
 
-    setLoading(true)
     setError(null)
 
-    // Simulate authentication
-    setTimeout(() => {
-      console.log("Team login:", formData)
-      // In real app, authenticate and redirect based on role
-      router.push("/dashboard/overview")
-    }, 1200)
+    try {
+      await teamLogin.mutateAsync({
+        email: formData.username, // Can be username or email
+        password: formData.password,
+        organizationId: formData.companyCode, // Company code maps to org ID
+      })
+
+      router.push('/dashboard/overview')
+    } catch (err: any) {
+      const message = err.response?.data?.message
+      if (Array.isArray(message)) {
+        setError(message.join(', '))
+      } else {
+        setError(message || 'Login failed. Please check your credentials.')
+      }
+    }
   }
+
+  const isLoading = teamLogin.isPending
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6 bg-background">
@@ -140,7 +153,7 @@ export default function TeamLogin() {
               type="submit"
               variant="primary"
               className="w-full"
-              isLoading={loading}
+              isLoading={isLoading}
               loadingText="Signing in..."
             >
               Sign in

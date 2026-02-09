@@ -1,6 +1,7 @@
 "use client"
 import React from "react"
-
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
 import { cx } from "@/lib/utils"
 import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
 
@@ -9,13 +10,45 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
   }
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login?redirect=/dashboard/overview')
+    }
+  }, [isLoading, isAuthenticated, router])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render dashboard if not authenticated
+  if (!isAuthenticated || !user) {
+    return null
+  }
+
   return (
     <>
-      <Sidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+      <Sidebar 
+        isCollapsed={isCollapsed} 
+        toggleSidebar={toggleSidebar}
+        brandName={user.organization?.name || 'Dashboard'}
+      />
       <main
         className={cx(
           isCollapsed ? "lg:pl-[60px]" : "lg:pl-64",

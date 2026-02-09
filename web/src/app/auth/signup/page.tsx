@@ -12,10 +12,12 @@ import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthInd
 import { RiAlertLine, RiCheckLine } from "@remixicon/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRegister } from "@/hooks/api/useAuth"
 
 export default function Signup() {
   const router = useRouter()
-  const [loading, setLoading] = React.useState(false)
+  const register = useRegister()
+  
   const [error, setError] = React.useState<string | null>(null)
   const [formData, setFormData] = React.useState({
     email: "",
@@ -47,21 +49,40 @@ export default function Signup() {
       return
     }
 
-    setLoading(true)
     setError(null)
 
-    // Simulate account creation
-    setTimeout(() => {
-      console.log("Signup:", formData)
-      // In real app, create account and send verification email
-      router.push("/auth/verify-email")
-    }, 1500)
+    try {
+      // Split full name into first and last name
+      const nameParts = formData.fullName.trim().split(' ')
+      const firstName = nameParts[0] || 'User'
+      const lastName = nameParts.slice(1).join(' ') || ''
+
+      await register.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+        firstName,
+        lastName,
+        organizationName: formData.businessName,
+      })
+
+      // Redirect to email verification page
+      router.push('/auth/verify-email?email=' + encodeURIComponent(formData.email))
+    } catch (err: any) {
+      const message = err.response?.data?.message
+      if (Array.isArray(message)) {
+        setError(message.join(', '))
+      } else {
+        setError(message || 'Registration failed. Please try again.')
+      }
+    }
   }
 
   const handleOAuthClick = (provider: string) => {
     console.log("OAuth signup with:", provider)
-    // In real app, redirect to OAuth provider
+    // TODO: Implement OAuth flow when backend supports it
   }
+
+  const isLoading = register.isPending
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6 bg-background">
@@ -217,7 +238,7 @@ export default function Signup() {
               type="submit"
               variant="primary"
               className="w-full"
-              isLoading={loading}
+              isLoading={isLoading}
               loadingText="Creating account..."
               disabled={!agreedToTerms}
             >

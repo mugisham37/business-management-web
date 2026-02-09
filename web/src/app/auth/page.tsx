@@ -8,19 +8,27 @@ import Logo from "@/components/ui/Logo"
 import { Alert } from "@/components/ui/Alert"
 import { OAuthButtons } from "@/components/auth/OAuthButtons"
 import { RiAlertLine, RiArrowRightLine } from "@remixicon/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import React from "react"
+import { useLogin, useMfaLogin } from "@/hooks/api/useAuth"
 
-type LoginStep = "email" | "password"
+type LoginStep = "email" | "password" | "mfa"
 
 export default function Login() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/dashboard/overview'
+  
+  const login = useLogin()
+  const mfaLogin = useMfaLogin()
+  
   const [step, setStep] = React.useState<LoginStep>("email")
-  const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const [mfaCode, setMfaCode] = React.useState("")
+  const [tempToken, setTempToken] = React.useState("")
   const [rememberMe, setRememberMe] = React.useState(false)
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -31,15 +39,9 @@ export default function Login() {
       return
     }
 
-    setLoading(true)
     setError(null)
-
-    // Simulate email detection
-    setTimeout(() => {
-      // In real app, check if email exists in database
-      setLoading(false)
-      setStep("password")
-    }, 800)
+    // Move to password step
+    setStep("password")
   }
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -50,20 +52,64 @@ export default function Login() {
       return
     }
 
-    setLoading(true)
     setError(null)
 
-    // Simulate authentication
-    setTimeout(() => {
-      console.log("Login:", { email, password, rememberMe })
-      router.push("/dashboard/overview")
-    }, 1200)
+    try {
+      const result = await login.mutateAsync({
+        email,
+        password,
+      })
+
+      // Check if MFA is required
+      if ('requiresMFA' in result && result.requiresMFA) {
+        setTempToken(result.tempToken)
+        setStep("mfa")
+        return
+      }
+
+      // Success - redirect to intended destination
+      router.push(redirectTo)
+    } catch (err: any) {
+      const message = err.response?.data?.message
+      if (Array.isArray(message)) {
+        setError(message.join(', '))
+      } else {
+        setError(message || 'Login failed. Please check your credentials.')
+      }
+    }
+  }
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!mfaCode || mfaCode.length !== 6) {
+      setError("Please enter a valid 6-digit code")
+      return
+    }
+
+    setError(null)
+
+    try {
+      await mfaLogin.mutateAsync({
+        tempToken,
+        mfaCode,
+      })
+
+      // Success - redirect to intended destination
+      router.push(redirectTo)
+    } catch (err: any) {
+      const message = err.response?.data?.message
+      setError(message || 'Invalid MFA code. Please try again.')
+      setMfaCode("") // Clear the code for retry
+    }
   }
 
   const handleOAuthClick = (provider: string) => {
     console.log("OAuth login with:", provider)
-    // In real app, redirect to OAuth provider
+    // TODO: Implement OAuth flow when backend supports it
   }
+
+  const isLoading = login.isPending || mfaLogin.isPending
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6 bg-background">
@@ -79,7 +125,9 @@ export default function Login() {
         {/* Header */}
         <div className="mt-6 flex flex-col">
           <h1 className="text-2xl font-semibold text-foreground">
-            {step === "email" ? "Sign in to your business" : "Welcome back"}
+            {step === "email" && "Sign in to your business"}
+            {step === "password" && "Welcome back"}
+            {step === "mfa" && "Two-factor authentication"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {step === "email" ? (
@@ -92,13 +140,15 @@ export default function Login() {
                   Sign up
                 </Link>
               </>
-            ) : (
+            ) : step === "password" ? (
               <button
                 onClick={() => setStep("email")}
                 className="text-primary hover:text-primary/80 transition-colors font-medium"
               >
                 {email}
               </button>
+            ) : (
+              <span>Enter the 6-digit code from your authenticator app</span>
             )}
           </p>
         </div>
@@ -110,7 +160,7 @@ export default function Login() {
               {/* OAuth Buttons */}
               <OAuthButtons
                 onProviderClick={handleOAuthClick}
-                loading={loading}
+                loading={isLoading}
                 variant="vertical"
               />
 
@@ -150,7 +200,7 @@ export default function Login() {
                   type="submit"
                   variant="primary"
                   className="w-full"
-                  isLoading={loading}
+                  isLoading={isLoading}
                   loadingText="Checking..."
                 >
                   Continue
@@ -168,7 +218,7 @@ export default function Login() {
                 </Link>
               </div>
             </>
-          ) : (
+          ) : step === "password" ? (
             <>
               {/* Password Form */}
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -225,7 +275,7 @@ export default function Login() {
                   type="submit"
                   variant="primary"
                   className="w-full"
-                  isLoading={loading}
+                  isLoading={isLoading}
                   loadingText="Signing in..."
                 >
                   Sign in
@@ -237,9 +287,74 @@ export default function Login() {
               {/* OAuth Buttons */}
               <OAuthButtons
                 onProviderClick={handleOAuthClick}
-                loading={loading}
+                loading={isLoading}
                 variant="vertical"
               />
+            </>
+          ) : (
+            <>
+              {/* MFA Form */}
+              <form onSubmit={handleMfaSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <RiAlertLine className="h-4 w-4" />
+                    <div>
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="mfaCode">Authentication code</Label>
+                  <Input
+                    id="mfaCode"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={mfaCode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '')
+                      setMfaCode(value)
+                      if (error) setError(null)
+                    }}
+                    hasError={!!error}
+                    variant="tremor"
+                    required
+                    autoFocus
+                    className="text-center text-2xl tracking-widest"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the 6-digit code from your authenticator app
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full"
+                  isLoading={isLoading}
+                  loadingText="Verifying..."
+                  disabled={mfaCode.length !== 6}
+                >
+                  Verify and sign in
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("password")
+                      setMfaCode("")
+                      setError(null)
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Back to password
+                  </button>
+                </div>
+              </form>
             </>
           )}
         </div>
