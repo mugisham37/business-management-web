@@ -11,3 +11,4 @@ export {
   checkAllPermissions,
   PermissionGate,
 } from './permissions';
+export { AuthProvider, useAuthContext } from './auth-context';
