@@ -31,6 +31,83 @@ let failedQueue: Array<{
 }> = [];
 
 /**
+ * Log request details in development mode
+ * @param config - Axios request configuration
+ */
+const logRequest = (config: InternalAxiosRequestConfig): void => {
+  if (!API_CONFIG.LOGGING.LOG_REQUESTS) return;
+
+  console.group(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+  console.log('URL:', `${config.baseURL}${config.url}`);
+  console.log('Method:', config.method?.toUpperCase());
+  
+  if (config.headers) {
+    const headers = { ...config.headers };
+    // Mask sensitive headers
+    if (headers.Authorization) {
+      headers.Authorization = 'Bearer ***';
+    }
+    console.log('Headers:', headers);
+  }
+  
+  if (config.params) {
+    console.log('Params:', config.params);
+  }
+  
+  if (config.data) {
+    console.log('Data:', config.data);
+  }
+  
+  console.groupEnd();
+};
+
+/**
+ * Log response details in development mode
+ * @param response - Axios response
+ */
+const logResponse = (response: AxiosResponse): void => {
+  if (!API_CONFIG.LOGGING.LOG_RESPONSES) return;
+
+  console.group(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+  console.log('Status:', response.status, response.statusText);
+  console.log('Headers:', response.headers);
+  console.log('Data:', response.data);
+  console.groupEnd();
+};
+
+/**
+ * Log error details with environment-specific verbosity
+ * @param error - Axios error
+ */
+const logError = (error: AxiosError<any>): void => {
+  if (!API_CONFIG.LOGGING.LOG_ERRORS) return;
+
+  const config = error.config;
+  const response = error.response;
+
+  console.group(`❌ API Error: ${config?.method?.toUpperCase()} ${config?.url}`);
+  
+  if (response) {
+    console.log('Status:', response.status, response.statusText);
+    console.log('Error Data:', response.data);
+  } else if (error.request) {
+    console.log('Network Error:', 'No response received from server');
+  } else {
+    console.log('Request Setup Error:', error.message);
+  }
+
+  // Verbose error logging in development
+  if (API_CONFIG.LOGGING.VERBOSE_ERRORS) {
+    console.log('Full Error Object:', error);
+    if (error.stack) {
+      console.log('Stack Trace:', error.stack);
+    }
+  }
+
+  console.groupEnd();
+};
+
+/**
  * Process the queue of requests waiting for token refresh
  * @param error - Error if refresh failed, null if successful
  * @param token - New access token if refresh succeeded
@@ -106,6 +183,9 @@ export function setupInterceptors(client: AxiosInstance): void {
   // ============================================================================
   client.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      // Log request in development mode
+      logRequest(config);
+      
       // Serialize request data (convert Date objects to ISO strings)
       if (config.data) {
         config.data = serializeRequestData(config.data);
@@ -134,6 +214,7 @@ export function setupInterceptors(client: AxiosInstance): void {
       return config;
     },
     (error) => {
+      logError(error);
       return Promise.reject(error);
     }
   );
@@ -143,6 +224,9 @@ export function setupInterceptors(client: AxiosInstance): void {
   // ============================================================================
   client.interceptors.response.use(
     (response: AxiosResponse) => {
+      // Log response in development mode
+      logResponse(response);
+      
       // Deserialize response data (convert ISO date strings to Date objects)
       if (response.data) {
         response.data = deserializeResponseData(response.data);
@@ -154,6 +238,9 @@ export function setupInterceptors(client: AxiosInstance): void {
       return response;
     },
     async (error: AxiosError<any>) => {
+      // Log error with environment-specific verbosity
+      logError(error);
+      
       // Handle duplicate request errors
       if (error && (error as any).isDuplicate) {
         try {

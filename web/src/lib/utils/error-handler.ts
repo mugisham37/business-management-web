@@ -3,6 +3,7 @@
 
 import { AxiosError } from 'axios';
 import { ApiError } from '@/types/api/responses';
+import { API_CONFIG } from '@/lib/constants/api';
 
 /**
  * Handles Axios errors and transforms them into standardized ApiError format
@@ -10,15 +11,17 @@ import { ApiError } from '@/types/api/responses';
  * @param error - The Axios error object
  * @returns Standardized ApiError object
  * 
- * Requirements: 9.1, 9.2, 9.4, 9.5, 9.6
+ * Requirements: 9.1, 9.2, 9.4, 9.5, 9.6, 9.7
  */
 export function handleApiError(error: AxiosError<ApiError>): ApiError {
+  let apiError: ApiError;
+
   if (error.response) {
     // Server responded with error (4xx, 5xx)
-    return error.response.data;
+    apiError = error.response.data;
   } else if (error.request) {
     // Request made but no response received (network error)
-    return {
+    apiError = {
       statusCode: 0,
       message: 'Network error. Please check your connection.',
       error: 'NetworkError',
@@ -26,13 +29,29 @@ export function handleApiError(error: AxiosError<ApiError>): ApiError {
     };
   } else {
     // Error setting up request
-    return {
+    apiError = {
       statusCode: 0,
       message: error.message || 'An unexpected error occurred',
       error: 'UnknownError',
       timestamp: new Date().toISOString(),
     };
   }
+
+  // Log detailed error information in development mode
+  if (API_CONFIG.LOGGING.VERBOSE_ERRORS) {
+    console.error('🔴 Detailed Error Information:');
+    console.error('API Error:', apiError);
+    console.error('Original Error:', error);
+    if (error.config) {
+      console.error('Request Config:', {
+        method: error.config.method,
+        url: error.config.url,
+        baseURL: error.config.baseURL,
+      });
+    }
+  }
+
+  return apiError;
 }
 
 /**
