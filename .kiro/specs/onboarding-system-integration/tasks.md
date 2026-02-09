@@ -278,19 +278,19 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Test API integration
     - _Requirements: 10.2, 10.3, 10.4_
 
-- [ ] 11. Implement React Query hooks
-  - [ ] 11.1 Create useOnboarding hooks file
+- [x] 11. Implement React Query hooks
+  - [x] 11.1 Create useOnboarding hooks file
     - Create `web/src/hooks/useOnboarding.ts`
     - Set up React Query client configuration
     - _Requirements: 11.1_
   
-  - [ ] 11.2 Implement query hooks
+  - [x] 11.2 Implement query hooks
     - Implement useOnboardingProgress hook
     - Implement usePlanRecommendations hook
     - Configure caching and refetching
     - _Requirements: 1.3, 5.5_
   
-  - [ ] 11.3 Implement mutation hooks
+  - [x] 11.3 Implement mutation hooks
     - Implement useSaveProgress hook
     - Implement useCompleteOnboarding hook
     - Implement useSelectPlan hook

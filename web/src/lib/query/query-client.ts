@@ -132,6 +132,13 @@ export const queryKeys = {
     all: ['mfa'] as const,
     status: () => [...queryKeys.mfa.all, 'status'] as const,
   },
+  
+  // Onboarding
+  onboarding: {
+    all: ['onboarding'] as const,
+    progress: () => [...queryKeys.onboarding.all, 'progress'] as const,
+    recommendations: () => [...queryKeys.onboarding.all, 'recommendations'] as const,
+  },
 } as const;
 
 /**
@@ -188,5 +195,26 @@ export const cacheInvalidation = {
    */
   invalidateMfaStatus: () => {
     return queryClient.invalidateQueries({ queryKey: queryKeys.mfa.status() });
+  },
+  
+  /**
+   * Invalidate onboarding progress
+   */
+  invalidateOnboardingProgress: () => {
+    return queryClient.invalidateQueries({ queryKey: queryKeys.onboarding.progress() });
+  },
+  
+  /**
+   * Invalidate plan recommendations
+   */
+  invalidateOnboardingRecommendations: () => {
+    return queryClient.invalidateQueries({ queryKey: queryKeys.onboarding.recommendations() });
+  },
+  
+  /**
+   * Invalidate all onboarding queries
+   */
+  invalidateOnboarding: () => {
+    return queryClient.invalidateQueries({ queryKey: queryKeys.onboarding.all });
   },
 };
