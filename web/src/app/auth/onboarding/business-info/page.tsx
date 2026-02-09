@@ -14,6 +14,8 @@ import {
 import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
 import { useRouter } from "next/navigation"
 import type { BusinessType } from "@/types/onboarding"
+import { useOnboardingStore } from "@/stores/onboarding.store"
+import { Alert } from "@/components/ui/Alert"
 
 const INDUSTRIES = [
   "Retail",
@@ -79,7 +81,7 @@ const COUNTRIES = [
 
 export default function BusinessInfo() {
   const router = useRouter()
-  const [loading, setLoading] = React.useState(false)
+  const { data, setBusinessInfo, loadProgress, isLoading, error } = useOnboardingStore()
   const [formData, setFormData] = React.useState({
     businessName: "",
     industry: "",
@@ -89,20 +91,64 @@ export default function BusinessInfo() {
     website: "",
   })
 
+  // Load existing progress on mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        await loadProgress()
+      } catch (err) {
+        // Error is handled by the store
+        console.error('Failed to load progress:', err)
+      }
+    }
+    loadData()
+  }, [loadProgress])
+
+  // Populate form with existing data
+  React.useEffect(() => {
+    if (data.businessInfo) {
+      setFormData({
+        businessName: data.businessInfo.businessName || "",
+        industry: data.businessInfo.industry || "",
+        businessType: data.businessInfo.businessType || "",
+        country: data.businessInfo.country || "",
+        registrationNumber: data.businessInfo.registrationNumber || "",
+        website: data.businessInfo.website || "",
+      })
+    }
+  }, [data.businessInfo])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
 
-    // Simulate saving
-    setTimeout(() => {
-      console.log("Business info:", formData)
+    try {
+      // Transform form data correctly - omit optional empty fields
+      const businessInfo: any = {
+        businessName: formData.businessName,
+        industry: formData.industry,
+        businessType: formData.businessType as BusinessType,
+        country: formData.country,
+      }
+
+      // Only include optional fields if they have values
+      if (formData.registrationNumber) {
+        businessInfo.registrationNumber = formData.registrationNumber
+      }
+      if (formData.website) {
+        businessInfo.website = formData.website
+      }
+
+      await setBusinessInfo(businessInfo)
       router.push("/auth/onboarding/products")
-    }, 600)
+    } catch (err) {
+      // Error is handled by the store and displayed below
+      console.error('Failed to save business info:', err)
+    }
   }
 
   const isFormValid =
@@ -117,10 +163,16 @@ export default function BusinessInfo() {
       description="This helps us customize your experience and recommend the right features."
       onSubmit={handleSubmit}
       backHref="/auth/onboarding/welcome"
-      loading={loading}
+      loading={isLoading}
       disabled={!isFormValid}
     >
       <div className="space-y-6">
+        {/* Error message */}
+        {error && (
+          <Alert variant="destructive">
+            <p>{error}</p>
+          </Alert>
+        )}
         {/* Business Name */}
         <div
           className="space-y-2 motion-safe:animate-revealBottom"

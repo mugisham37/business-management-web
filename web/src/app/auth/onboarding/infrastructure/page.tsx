@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
+import { Alert } from "@/components/ui/Alert"
 import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup"
 import {
@@ -17,6 +18,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { SVGProps } from "react"
 import React, { useEffect, useState } from "react"
+import { useOnboardingStore } from "@/stores/onboarding.store"
+import type { CloudProvider, TransactionVolume } from "@/types/onboarding-api"
 
 type Region = {
   value: string
@@ -209,13 +212,39 @@ const cloudProviderIcons = {
 }
 
 export default function PricingCalculator() {
-  const [cloudProvider, setCloudProvider] = useState<"aws" | "azure">("aws")
+  const [cloudProvider, setCloudProvider] = useState<CloudProvider>("aws")
   const [region, setRegion] = useState(regionOptions.aws[0].value)
   const [activeHours, setActiveHours] = useState([6])
   const [storageVolume, setStorageVolume] = useState(6)
   const [compression, setCompression] = useState("false")
-  const [loading, setLoading] = React.useState(false)
+  const [transactionVolume, setTransactionVolume] = useState<TransactionVolume>("Low (<1k/month)")
   const router = useRouter()
+  const { data, setInfrastructure, loadProgress, isLoading, error } = useOnboardingStore()
+
+  // Load existing progress on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await loadProgress()
+      } catch (err) {
+        // Error is handled by the store
+        console.error('Failed to load progress:', err)
+      }
+    }
+    loadData()
+  }, [loadProgress])
+
+  // Populate form with existing data
+  useEffect(() => {
+    if (data.infrastructure) {
+      setCloudProvider(data.infrastructure.provider)
+      setRegion(data.infrastructure.region)
+      setStorageVolume(data.infrastructure.storage)
+      setTransactionVolume(data.infrastructure.transactionVolume)
+      // Note: activeHours and compression are not stored in the backend
+      // They are UI-only fields for the pricing calculator
+    }
+  }, [data.infrastructure])
 
   useEffect(() => {
     if (regionOptions[cloudProvider].length > 0) {
@@ -223,13 +252,29 @@ export default function PricingCalculator() {
     }
   }, [cloudProvider])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      console.log("Form submitted")
-      router.push("/dashboard/overview")
-    }, 1200)
+    
+    // Validate storage range
+    if (storageVolume < 6 || storageVolume > 128) {
+      return
+    }
+
+    try {
+      // Transform number inputs and validate ranges
+      await setInfrastructure({
+        provider: cloudProvider,
+        storage: storageVolume,
+        region,
+        compliance: [], // Default empty array - can be extended later
+        transactionVolume,
+      })
+      
+      router.push("/auth/onboarding/plan-recommendation")
+    } catch (err) {
+      // Error is handled by the store and displayed below
+      console.error('Failed to save infrastructure:', err)
+    }
   }
 
   const calculatePrice = () => {
@@ -277,6 +322,13 @@ export default function PricingCalculator() {
         </p>
       </div>
 
+      {/* Error message */}
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <p>{error}</p>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-8">
         <div className="flex flex-col gap-6">
           <fieldset
@@ -294,7 +346,7 @@ export default function PricingCalculator() {
               id="cloud-provider"
               value={cloudProvider}
               onValueChange={(value) =>
-                setCloudProvider(value as "aws" | "azure")
+                setCloudProvider(value as CloudProvider)
               }
               className="mt-2 grid grid-cols-1 gap-4 sm:text-sm md:grid-cols-2"
               aria-label="Select cloud provider"
@@ -412,6 +464,33 @@ export default function PricingCalculator() {
             className="space-y-2 motion-safe:animate-revealBottom"
             style={{
               animationDuration: "var(--animation-slide-down-duration)",
+              animationDelay: `700ms`,
+              animationFillMode: "var(--animation-fill-mode)",
+            }}
+          >
+            <Label
+              className="text-base font-medium text-foreground sm:text-sm"
+              htmlFor="transaction-volume"
+            >
+              Expected transaction volume
+            </Label>
+            <Select value={transactionVolume} onValueChange={(value) => setTransactionVolume(value as TransactionVolume)}>
+              <SelectTrigger id="transaction-volume" className="w-full">
+                <SelectValue placeholder="Select transaction volume" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Low (<1k/month)">Low (&lt;1k/month)</SelectItem>
+                <SelectItem value="Medium (1k-50k/month)">Medium (1k-50k/month)</SelectItem>
+                <SelectItem value="High (50k-500k/month)">High (50k-500k/month)</SelectItem>
+                <SelectItem value="Enterprise (500k+/month)">Enterprise (500k+/month)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div
+            className="space-y-2 motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "var(--animation-slide-down-duration)",
               animationDelay: `800ms`,
               animationFillMode: "var(--animation-fill-mode)",
             }}
@@ -467,22 +546,22 @@ export default function PricingCalculator() {
               disabled={
                 !cloudProvider ||
                 !region ||
-                !activeHours ||
-                !storageVolume ||
-                !compression ||
-                loading
+                !transactionVolume ||
+                storageVolume < 6 ||
+                storageVolume > 128 ||
+                isLoading
               }
               aria-disabled={
                 !cloudProvider ||
                 !region ||
-                !activeHours ||
-                !storageVolume ||
-                !compression ||
-                loading
+                !transactionVolume ||
+                storageVolume < 6 ||
+                storageVolume > 128 ||
+                isLoading
               }
-              isLoading={loading}
+              isLoading={isLoading}
             >
-              {loading ? "Submitting..." : "Continue"}
+              {isLoading ? "Submitting..." : "Continue"}
             </Button>
           </div>
         </div>

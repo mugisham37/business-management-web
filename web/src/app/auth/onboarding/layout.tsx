@@ -18,6 +18,7 @@ const steps: Step[] = [
   { name: "Products", href: "/auth/onboarding/products" },
   { name: "Employees", href: "/auth/onboarding/employees" },
   { name: "Infrastructure", href: "/auth/onboarding/infrastructure" },
+  { name: "Plan", href: "/auth/onboarding/plan-recommendation" },
 ]
 
 interface StepProgressProps {

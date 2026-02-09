@@ -1,5 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/Button"
+import { Alert } from "@/components/ui/Alert"
 import {
   RadioCardGroup,
   RadioCardIndicator,
@@ -8,28 +9,76 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
+import { useOnboardingStore } from "@/stores/onboarding.store"
+import type { GrowthProjection } from "@/types/onboarding-api"
 
 const employeeCounts = [
-  { value: "1", label: "1" },
-  { value: "2-5", label: "2 – 5" },
-  { value: "6-20", label: "6 – 20" },
-  { value: "21-100", label: "21 – 100" },
-  { value: "101-500", label: "101 – 500" },
-  { value: "501+", label: "501+" },
+  { value: "1", label: "1", numericValue: 1 },
+  { value: "2-5", label: "2 – 5", numericValue: 3 },
+  { value: "6-20", label: "6 – 20", numericValue: 13 },
+  { value: "21-100", label: "21 – 100", numericValue: 60 },
+  { value: "101-500", label: "101 – 500", numericValue: 300 },
+  { value: "501+", label: "501+", numericValue: 501 },
 ]
 
 export default function Employees() {
   const [selectedEmployeeCount, setSelectedEmployeeCount] = useState("")
-  const [loading, setLoading] = React.useState(false)
+  const [growthProjection, setGrowthProjection] = useState<GrowthProjection>("None")
   const router = useRouter()
+  const { data, setTeamSize, loadProgress, isLoading, error } = useOnboardingStore()
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Load existing progress on mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        await loadProgress()
+      } catch (err) {
+        // Error is handled by the store
+        console.error('Failed to load progress:', err)
+      }
+    }
+    loadData()
+  }, [loadProgress])
+
+  // Populate form with existing data
+  React.useEffect(() => {
+    if (data.teamSize) {
+      // Find the matching employee count range
+      const matchingCount = employeeCounts.find(
+        count => count.numericValue === data.teamSize?.current
+      )
+      if (matchingCount) {
+        setSelectedEmployeeCount(matchingCount.value)
+      }
+      if (data.teamSize.growthProjection) {
+        setGrowthProjection(data.teamSize.growthProjection)
+      }
+    }
+  }, [data.teamSize])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      console.log("Form submitted with employee count:", selectedEmployeeCount)
+    
+    try {
+      // Transform radio selection to numeric value
+      const selectedCount = employeeCounts.find(
+        count => count.value === selectedEmployeeCount
+      )
+      
+      if (!selectedCount) {
+        return
+      }
+
+      await setTeamSize({
+        current: selectedCount.numericValue,
+        growthProjection,
+      })
+      
       router.push("/auth/onboarding/infrastructure")
-    }, 600)
+    } catch (err) {
+      // Error is handled by the store and displayed below
+      console.error('Failed to save team size:', err)
+    }
   }
 
   return (
@@ -49,6 +98,14 @@ export default function Employees() {
           This will help us customize the experience to you.
         </p>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <p>{error}</p>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-4">
         <fieldset>
           <legend className="sr-only">Select number of employees</legend>
@@ -94,11 +151,11 @@ export default function Employees() {
           <Button
             className="state-disabled"
             type="submit"
-            disabled={!selectedEmployeeCount || loading}
-            aria-disabled={!selectedEmployeeCount || loading}
-            isLoading={loading}
+            disabled={!selectedEmployeeCount || isLoading}
+            aria-disabled={!selectedEmployeeCount || isLoading}
+            isLoading={isLoading}
           >
-            {loading ? "Submitting..." : "Continue"}
+            {isLoading ? "Submitting..." : "Continue"}
           </Button>
         </div>
       </form>

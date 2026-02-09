@@ -297,8 +297,8 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Configure optimistic updates
     - _Requirements: 1.1, 13.1, 8.1_
 
-- [ ] 12. Update onboarding pages to use API integration
-  - [ ] 12.1 Update business-info page
+- [x] 12. Update onboarding pages to use API integration
+  - [x] 12.1 Update business-info page
     - Import useOnboarding store
     - Load existing progress on mount
     - Call setBusinessInfo on form submit
@@ -306,7 +306,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Transform form data correctly
     - _Requirements: 1.1, 1.3, 12.1, 12.2, 12.3, 12.4, 12.5_
   
-  - [ ] 12.2 Update products page
+  - [x] 12.2 Update products page
     - Import useOnboarding store
     - Load existing progress on mount
     - Call setFeatures on form submit
@@ -314,7 +314,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Transform checkbox selections to array
     - _Requirements: 1.1, 1.3, 12.1_
   
-  - [ ] 12.3 Update employees page
+  - [x] 12.3 Update employees page
     - Import useOnboarding store
     - Load existing progress on mount
     - Call setTeamSize on form submit
@@ -322,7 +322,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Transform radio selection correctly
     - _Requirements: 1.1, 1.3, 12.2_
   
-  - [ ] 12.4 Update infrastructure page
+  - [x] 12.4 Update infrastructure page
     - Import useOnboarding store
     - Load existing progress on mount
     - Call setInfrastructure on form submit
@@ -334,8 +334,8 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - **Property 17: Data Type Transformation Correctness**
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4**
 
-- [ ] 13. Implement plan recommendation page
-  - [ ] 13.1 Create plan recommendation page component
+- [x] 13. Implement plan recommendation page
+  - [x] 13.1 Create plan recommendation page component
     - Create `web/src/app/auth/onboarding/plan-recommendation/page.tsx`
     - Use usePlanRecommendations hook to fetch recommendations
     - Display recommended plan prominently
@@ -344,7 +344,7 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Add "Select Plan" buttons
     - _Requirements: 5.5, 5.6, 5.7, 5.8_
   
-  - [ ] 13.2 Implement plan selection handler
+  - [x] 13.2 Implement plan selection handler
     - Call useSelectPlan mutation on button click
     - Show loading state during selection
     - Handle errors

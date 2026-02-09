@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { Checkbox } from "@/components/ui/Checkbox"
 import { Label } from "@/components/ui/Label"
+import { Alert } from "@/components/ui/Alert"
 import { cx } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useOnboardingStore } from "@/stores/onboarding.store"
 
 interface Category {
   id: string
@@ -114,8 +116,35 @@ const CategoryItem = ({
 
 export default function Products() {
   const [checkedItems, setCheckedItems] = React.useState<CheckedItems>({})
-  const [loading, setLoading] = React.useState(false)
   const router = useRouter()
+  const { data, setFeatures, loadProgress, isLoading, error } = useOnboardingStore()
+
+  // Load existing progress on mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        await loadProgress()
+      } catch (err) {
+        // Error is handled by the store
+        console.error('Failed to load progress:', err)
+      }
+    }
+    loadData()
+  }, [loadProgress])
+
+  // Populate form with existing data
+  React.useEffect(() => {
+    if (data.features?.selectedFeatures) {
+      const newCheckedItems: CheckedItems = {}
+      data.features.selectedFeatures.forEach((featureName) => {
+        const category = categories.find(cat => cat.title === featureName)
+        if (category) {
+          newCheckedItems[category.id] = true
+        }
+      })
+      setCheckedItems(newCheckedItems)
+    }
+  }, [data.features])
 
   const handleCheckedChange = (categoryId: string, isChecked: boolean) => {
     setCheckedItems((prevCheckedItems) => ({
@@ -126,18 +155,29 @@ export default function Products() {
 
   const isAnyItemChecked = Object.values(checkedItems).some(Boolean)
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!isAnyItemChecked) {
       return
     }
     
-    setLoading(true)
-    
-    setTimeout(() => {
+    try {
+      // Transform checkbox selections to array of strings
+      const selectedFeatures = Object.entries(checkedItems)
+        .filter(([_, isChecked]) => isChecked)
+        .map(([categoryId]) => {
+          const category = categories.find(cat => cat.id === categoryId)
+          return category?.title || ''
+        })
+        .filter(title => title !== '')
+
+      await setFeatures({ selectedFeatures })
       router.push("/auth/onboarding/employees")
-    }, 400)
+    } catch (err) {
+      // Error is handled by the store and displayed below
+      console.error('Failed to save features:', err)
+    }
   }
 
   return (
@@ -157,6 +197,14 @@ export default function Products() {
           You can choose multiple. This will help us customize the experience.
         </p>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <p>{error}</p>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-4">
         <fieldset>
           <legend className="sr-only">
@@ -190,11 +238,11 @@ export default function Products() {
           <Button
             className="state-disabled"
             type="submit"
-            disabled={!isAnyItemChecked || loading}
-            aria-disabled={!isAnyItemChecked || loading}
-            isLoading={loading}
+            disabled={!isAnyItemChecked || isLoading}
+            aria-disabled={!isAnyItemChecked || isLoading}
+            isLoading={isLoading}
           >
-            {loading ? "Submitting..." : "Continue"}
+            {isLoading ? "Submitting..." : "Continue"}
           </Button>
         </div>
       </form>
