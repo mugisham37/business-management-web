@@ -36,10 +36,35 @@ export class OnboardingService {
     organizationId: string,
     stepData: any,
   ): Promise<any> {
-    // TODO: Implement saveProgress logic
-    // This will be implemented in task 4.1
     this.logger.log(`Saving progress for organization: ${organizationId}`);
-    return {};
+
+    // Retrieve the organization to get existing onboarding data
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { onboardingData: true },
+    });
+
+    if (!organization) {
+      throw new Error(`Organization with ID ${organizationId} not found`);
+    }
+
+    // Get existing onboarding data or initialize as empty object
+    const existingData = (organization.onboardingData as any) || {};
+
+    // Merge new step data with existing data, preserving all previous data
+    const updatedData = {
+      ...existingData,
+      ...stepData,
+    };
+
+    // Update the organization with merged data
+    const updated = await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: { onboardingData: updatedData },
+      select: { onboardingData: true },
+    });
+
+    return updated.onboardingData;
   }
 
   /**
@@ -49,10 +74,39 @@ export class OnboardingService {
    * @returns Current onboarding progress or null if not started
    */
   async getProgress(organizationId: string): Promise<any | null> {
-    // TODO: Implement getProgress logic
-    // This will be implemented in task 4.2
     this.logger.log(`Getting progress for organization: ${organizationId}`);
-    return null;
+
+    // Query organization by ID and extract onboarding fields
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        onboardingData: true,
+        onboardingCompleted: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!organization) {
+      throw new Error(`Organization with ID ${organizationId} not found`);
+    }
+
+    // Return null if no onboarding data exists
+    if (!organization.onboardingData) {
+      return null;
+    }
+
+    // Transform to OnboardingProgress format
+    const progress = {
+      organizationId: organization.id,
+      data: organization.onboardingData,
+      onboardingCompleted: organization.onboardingCompleted,
+      startedAt: organization.createdAt,
+      lastUpdatedAt: organization.updatedAt,
+    };
+
+    return progress;
   }
 
   /**
@@ -61,9 +115,16 @@ export class OnboardingService {
    * @param organizationId - Organization ID
    */
   async completeOnboarding(organizationId: string): Promise<void> {
-    // TODO: Implement completeOnboarding logic
-    // This will be implemented in task 4.3
     this.logger.log(`Completing onboarding for organization: ${organizationId}`);
+
+    // Update Organization.onboardingCompleted to true
+    await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        onboardingCompleted: true,
+        updatedAt: new Date(), // Set completion timestamp
+      },
+    });
   }
 
   /**

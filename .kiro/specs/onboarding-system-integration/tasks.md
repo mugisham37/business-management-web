@@ -46,22 +46,22 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Define SaveProgressResponse, GetProgressResponse, CompleteOnboardingResponse, RecommendPlanResponse, SelectPlanResponse
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 4. Implement onboarding service core methods
-  - [ ] 4.1 Implement saveProgress method
+- [x] 4. Implement onboarding service core methods
+  - [x] 4.1 Implement saveProgress method
     - Write logic to merge new step data with existing onboardingData
     - Use Prisma to update Organization.onboardingData JSON field
     - Ensure data preservation (don't overwrite existing steps)
     - Return updated onboarding data
     - _Requirements: 1.1, 1.2, 1.5_
   
-  - [ ] 4.2 Implement getProgress method
+  - [x] 4.2 Implement getProgress method
     - Query Organization by ID
     - Extract onboardingData and onboardingCompleted fields
     - Transform to OnboardingProgress format
     - Return null if no progress exists
     - _Requirements: 1.3_
   
-  - [ ] 4.3 Implement completeOnboarding method
+  - [x] 4.3 Implement completeOnboarding method
     - Update Organization.onboardingCompleted to true
     - Set completion timestamp
     - _Requirements: 6.5, 13.1_
