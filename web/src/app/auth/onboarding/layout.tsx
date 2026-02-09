@@ -10,6 +10,7 @@ import { useOnboardingStore } from "@/stores/onboarding.store"
 import { useOnboardingProgress } from "@/hooks/useOnboarding"
 import { getProgressPercentage } from "@/config/onboarding.config"
 import type { OnboardingStep } from "@/types/onboarding-api"
+import { useAuthContext } from "@/lib/auth/auth-context"
 
 interface Step {
   name: string
@@ -98,6 +99,23 @@ const Layout = ({
   const scrolled = scrollY > 15
   const router = useRouter()
   const { data: progress } = useOnboardingProgress()
+  const { isAuthenticated, isLoading: authLoading, isInitialized } = useAuthContext()
+
+  /**
+   * Verify JWT token on page load and redirect to login if not authenticated
+   * Requirements: 7.1, 7.4
+   */
+  React.useEffect(() => {
+    // Wait for auth to initialize before checking
+    if (!isInitialized) {
+      return
+    }
+
+    // If not authenticated after initialization, redirect to login
+    if (!isAuthenticated && !authLoading) {
+      router.push('/auth/login?redirect=/auth/onboarding')
+    }
+  }, [isAuthenticated, authLoading, isInitialized, router])
 
   /**
    * Redirect to dashboard if onboarding is already completed
@@ -108,6 +126,23 @@ const Layout = ({
       router.push("/dashboard/overview")
     }
   }, [progress?.onboardingCompleted, router])
+
+  // Show loading state while auth is initializing
+  if (!isInitialized || authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render content if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <>

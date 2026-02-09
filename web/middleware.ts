@@ -20,7 +20,8 @@ const PUBLIC_ROUTES = [
 const AUTH_ROUTES = ['/auth/login', '/auth/signup', '/auth/team'];
 
 // Protected routes that require authentication
-const PROTECTED_ROUTES = ['/dashboard', '/settings', '/users', '/roles'];
+// Requirements: 7.1, 7.4
+const PROTECTED_ROUTES = ['/dashboard', '/settings', '/users', '/roles', '/auth/onboarding'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

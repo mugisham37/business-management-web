@@ -65,8 +65,9 @@ export default function Signup() {
         organizationName: formData.businessName,
       })
 
-      // Redirect to email verification page
-      router.push('/auth/verify-email?email=' + encodeURIComponent(formData.email))
+      // Redirect to onboarding after successful signup
+      // Requirements: 7.2
+      router.push('/auth/onboarding')
     } catch (err: any) {
       const message = err.response?.data?.message
       if (Array.isArray(message)) {

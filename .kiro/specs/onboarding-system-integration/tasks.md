@@ -411,13 +411,13 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - **Property 9: Completion State Consistency**
     - **Validates: Requirements 6.5, 13.1, 13.2**
 
-- [ ] 17. Implement authentication integration
-  - [ ] 17.1 Add authentication guards to onboarding pages
+- [x] 17. Implement authentication integration
+  - [x] 17.1 Add authentication guards to onboarding pages
     - Verify JWT token on page load
     - Redirect to login if not authenticated
     - _Requirements: 7.1, 7.4_
   
-  - [ ] 17.2 Update signup flow to redirect to onboarding
+  - [x] 17.2 Update signup flow to redirect to onboarding
     - Modify signup success handler
     - Redirect to /auth/onboarding/welcome after signup
     - _Requirements: 7.2_
