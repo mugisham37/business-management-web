@@ -15,15 +15,15 @@ Each task builds on previous work and includes checkpoints to validate progress.
   - Set up dependency injection for OrganizationsService and PrismaService
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 2. Implement shared TypeScript types
-  - [ ] 2.1 Create shared types for onboarding data structures
+- [x] 2. Implement shared TypeScript types
+  - [x] 2.1 Create shared types for onboarding data structures
     - Create `server/src/modules/onboarding/types/onboarding.types.ts`
     - Define OnboardingData, BusinessInfo, ProductFeatures, TeamSize, LocationsData, InfrastructureData, IntegrationsData interfaces
     - Define OnboardingProgress and PlanRecommendation interfaces
     - Define PlanTier, BusinessType, CloudProvider, and other type aliases
     - _Requirements: 4.1, 4.2_
   
-  - [ ] 2.2 Copy shared types to frontend
+  - [x] 2.2 Copy shared types to frontend
     - Create `web/src/types/onboarding-api.ts`
     - Copy type definitions from backend
     - Ensure compatibility with existing frontend types
