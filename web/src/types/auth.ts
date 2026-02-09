@@ -1,67 +1,34 @@
-// Authentication and User Types
-// Comprehensive type definitions for the auth system
+// Authentication and JWT Types
 
-export type AccountType = "PRIMARY_OWNER" | "MANAGER" | "WORKER" | "VIEWER"
+import type { User } from './user';
 
-export type AccountStatus =
-  | "ANONYMOUS"
-  | "AUTHENTICATED_PENDING_VERIFICATION"
-  | "AUTHENTICATED_PENDING_ONBOARDING"
-  | "AUTHENTICATED_ACTIVE"
-  | "AUTHENTICATED_SUSPENDED"
-  | "AUTHENTICATED_TRIAL"
-  | "AUTHENTICATED_EXPIRED"
-
-export type AuthProvider = "EMAIL" | "GOOGLE" | "GITHUB"
-
-export interface User {
-  id: string
-  email: string
-  username?: string
-  fullName?: string
-  accountType: AccountType
-  accountStatus: AccountStatus
-  organizationId: string
-  createdBy?: string
-  mfaEnabled: boolean
-  emailVerified: boolean
-  avatar?: string
-  createdAt: Date
-  updatedAt: Date
+/**
+ * JWT Payload structure
+ * Decoded from access tokens
+ */
+export interface JwtPayload {
+  sub: string; // user ID
+  email: string;
+  organizationId: string;
+  roleId: string;
+  permissions: string[];
+  iat: number; // issued at timestamp
+  exp: number; // expiration timestamp
 }
 
-export interface AuthSession {
-  userId: string
-  token: string
-  expiresAt: Date
-  deviceInfo?: string
+/**
+ * Authentication context state
+ */
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
-export interface LoginCredentials {
-  email?: string
-  username?: string
-  password: string
-  rememberMe?: boolean
-}
-
-export interface SignupData {
-  email: string
-  password: string
-  businessName: string
-  fullName?: string
-}
-
-export interface MFASetup {
-  secret: string
-  qrCode: string
-  backupCodes: string[]
-}
-
-export interface PasswordResetRequest {
-  email: string
-}
-
-export interface PasswordReset {
-  token: string
-  newPassword: string
-}
+/**
+ * Token storage keys
+ */
+export const TOKEN_KEYS = {
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+} as const;
