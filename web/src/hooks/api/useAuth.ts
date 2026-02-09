@@ -2,6 +2,7 @@
  * Authentication API Hooks with React Query
  * 
  * Provides cached, optimistic, and type-safe hooks for auth operations.
+ * Synchronized with AuthContext for consistent state management.
  * 
  * Features:
  * - Automatic caching for current user
@@ -16,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/lib/api/services/auth.api';
 import { queryKeys, cacheInvalidation } from '@/lib/query/query-client';
 import { TokenManager } from '@/lib/auth/token-manager';
+import { useAuthContext } from '@/lib/auth/auth-context';
 import type {
   RegisterRequest,
   LoginRequest,
@@ -52,24 +54,13 @@ export function useCurrentUser() {
 
 /**
  * Register mutation
+ * Synchronized with AuthContext
  * 
  * @returns Mutation object
- * 
- * @example
- * ```tsx
- * const register = useRegister();
- * 
- * await register.mutateAsync({
- *   email: 'user@example.com',
- *   password: 'password',
- *   firstName: 'John',
- *   lastName: 'Doe',
- *   organizationName: 'Acme Inc',
- * });
- * ```
  */
 export function useRegister() {
   const queryClient = useQueryClient();
+  const { updateUser } = useAuthContext();
 
   return useMutation({
     mutationFn: async (data: RegisterRequest) => {
@@ -77,13 +68,16 @@ export function useRegister() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      // Store access token
-      TokenManager.setAccessToken(data.accessToken);
+      console.log('[useRegister] Registration successful, updating state...');
       
-      // Store refresh token
+      // Store tokens
+      TokenManager.setAccessToken(data.accessToken);
       if (data.refreshToken) {
         TokenManager.setRefreshToken(data.refreshToken);
       }
+      
+      // Update AuthContext
+      updateUser(data.user);
       
       // Set current user in cache
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
@@ -93,54 +87,47 @@ export function useRegister() {
 
 /**
  * Login mutation
+ * Synchronized with AuthContext - uses AuthContext.login method
  * 
  * @returns Mutation object
  */
 export function useLogin() {
   const queryClient = useQueryClient();
+  const { login: authLogin, updateUser } = useAuthContext();
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      const response = await authApi.login(data);
-      return response.data.data;
+      console.log('[useLogin] Calling AuthContext login...');
+      return await authLogin(data);
     },
     onSuccess: (data) => {
-      console.log('useLogin onSuccess called with data:', data)
+      console.log('[useLogin] Login successful');
       
-      // Check if MFA is required (backend returns requiresMFA)
-      if ('requiresMFA' in data && data.requiresMFA) {
-        console.log('MFA required, skipping token storage')
-        // Don't set token yet, wait for MFA
+      // If MFA is required, don't update user state yet
+      if (data.requiresMFA) {
+        console.log('[useLogin] MFA required, waiting for MFA completion');
         return;
       }
 
-      console.log('Storing tokens...')
-      // Store access token
-      TokenManager.setAccessToken(data.accessToken);
-      console.log('Access token stored')
-      
-      // Store refresh token
-      if (data.refreshToken) {
-        TokenManager.setRefreshToken(data.refreshToken);
-        console.log('Refresh token stored in cookie')
-      } else {
-        console.warn('No refresh token in response!')
-      }
-      
-      // Set current user in cache
+      // Cache user data in React Query
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
-      console.log('User data cached')
+      console.log('[useLogin] User data cached');
+    },
+    onError: (error) => {
+      console.error('[useLogin] Login failed:', error);
     },
   });
 }
 
 /**
  * Team member login mutation
+ * Synchronized with AuthContext
  * 
  * @returns Mutation object
  */
 export function useTeamMemberLogin() {
   const queryClient = useQueryClient();
+  const { updateUser } = useAuthContext();
 
   return useMutation({
     mutationFn: async (data: TeamMemberLoginRequest) => {
@@ -148,18 +135,17 @@ export function useTeamMemberLogin() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      // Check if MFA is required (backend returns requiresMFA)
+      // Check if MFA is required
       if ('requiresMFA' in data && data.requiresMFA) {
         return;
       }
 
       TokenManager.setAccessToken(data.accessToken);
-      
-      // Store refresh token
       if (data.refreshToken) {
         TokenManager.setRefreshToken(data.refreshToken);
       }
       
+      updateUser(data.user);
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
   });
@@ -167,11 +153,13 @@ export function useTeamMemberLogin() {
 
 /**
  * MFA login mutation
+ * Synchronized with AuthContext
  * 
  * @returns Mutation object
  */
 export function useMfaLogin() {
   const queryClient = useQueryClient();
+  const { updateUser } = useAuthContext();
 
   return useMutation({
     mutationFn: async (data: MfaLoginRequest) => {
@@ -179,13 +167,14 @@ export function useMfaLogin() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      TokenManager.setAccessToken(data.accessToken);
+      console.log('[useMfaLogin] MFA login successful, updating state...');
       
-      // Store refresh token
+      TokenManager.setAccessToken(data.accessToken);
       if (data.refreshToken) {
         TokenManager.setRefreshToken(data.refreshToken);
       }
       
+      updateUser(data.user);
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
   });
@@ -193,21 +182,21 @@ export function useMfaLogin() {
 
 /**
  * Logout mutation
+ * Synchronized with AuthContext - uses AuthContext.logout method
  * 
  * @returns Mutation object
  */
 export function useLogout() {
   const queryClient = useQueryClient();
+  const { logout: authLogout } = useAuthContext();
 
   return useMutation({
     mutationFn: async () => {
-      const response = await authApi.logout();
-      return response.data;
+      console.log('[useLogout] Calling AuthContext logout...');
+      await authLogout();
     },
     onSuccess: () => {
-      // Clear tokens
-      TokenManager.clearTokens();
-      
+      console.log('[useLogout] Logout successful, clearing cache...');
       // Clear all cached data
       queryClient.clear();
     },
@@ -237,11 +226,13 @@ export function useLogoutAll() {
 /**
  * Verify email mutation
  * Auto-logs in the user after successful verification
+ * Synchronized with AuthContext
  * 
  * @returns Mutation object
  */
 export function useVerifyEmail() {
   const queryClient = useQueryClient();
+  const { updateUser } = useAuthContext();
 
   return useMutation({
     mutationFn: async (data: VerifyEmailRequest) => {
@@ -249,13 +240,16 @@ export function useVerifyEmail() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      // Store access token
-      TokenManager.setAccessToken(data.accessToken);
+      console.log('[useVerifyEmail] Email verified, updating state...');
       
-      // Store refresh token
+      // Store tokens
+      TokenManager.setAccessToken(data.accessToken);
       if (data.refreshToken) {
         TokenManager.setRefreshToken(data.refreshToken);
       }
+      
+      // Update AuthContext
+      updateUser(data.user);
       
       // Set current user in cache
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);

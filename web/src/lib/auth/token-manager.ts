@@ -4,10 +4,13 @@
  * Manages secure storage and operations for JWT access and refresh tokens.
  * 
  * Security Design:
- * - Access tokens: Stored in memory only (not in localStorage/sessionStorage)
- * - Refresh tokens: Stored in cookies for persistence across page reloads
+ * - Access tokens: Stored in memory + sessionStorage for persistence
+ * - Refresh tokens: Stored in httpOnly-like cookies for security
  * 
- * This design protects against XSS attacks by keeping tokens out of localStorage/sessionStorage.
+ * This design balances security with functionality:
+ * - Memory storage prevents XSS in most cases
+ * - SessionStorage allows page reload recovery
+ * - Refresh tokens in cookies enable automatic session restoration
  */
 
 import { jwtDecode } from 'jwt-decode';
@@ -16,24 +19,59 @@ import { JwtPayload } from '@/types/auth';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
+const ACCESS_TOKEN_STORAGE_KEY = 'access_token_temp';
 
 class TokenManagerClass {
   private accessToken: string | null = null;
+  private isInitialized: boolean = false;
 
   /**
-   * Get the current access token from memory
+   * Get the current access token from memory or sessionStorage
    * @returns The access token or null if not set
    */
   getAccessToken(): string | null {
-    return this.accessToken;
+    // First check memory
+    if (this.accessToken) {
+      return this.accessToken;
+    }
+
+    // Fallback to sessionStorage for page reload recovery
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+        if (stored) {
+          // Validate token before using
+          if (!this.isTokenExpired(stored)) {
+            this.accessToken = stored;
+            return stored;
+          } else {
+            // Clean up expired token
+            sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to read access token from storage:', error);
+      }
+    }
+
+    return null;
   }
 
   /**
-   * Set the access token in memory
+   * Set the access token in memory and sessionStorage
    * @param token - The JWT access token to store
    */
   setAccessToken(token: string): void {
     this.accessToken = token;
+    
+    // Also store in sessionStorage for page reload recovery
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+      } catch (error) {
+        console.error('Failed to store access token:', error);
+      }
+    }
   }
 
   /**
@@ -56,15 +94,26 @@ class TokenManagerClass {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     });
-    console.log('Refresh token cookie set:', REFRESH_TOKEN_COOKIE)
   }
 
   /**
-   * Clear all tokens (access token from memory and refresh token cookie)
+   * Clear all tokens (access token from memory/storage and refresh token cookie)
    */
   clearTokens(): void {
     this.accessToken = null;
-    Cookies.remove(REFRESH_TOKEN_COOKIE);
+    this.isInitialized = false;
+    
+    // Clear sessionStorage
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+      } catch (error) {
+        console.error('Failed to clear access token from storage:', error);
+      }
+    }
+    
+    // Clear cookie
+    Cookies.remove(REFRESH_TOKEN_COOKIE, { path: '/' });
   }
 
   /**
@@ -84,6 +133,7 @@ class TokenManagerClass {
 
   /**
    * Check if a token is expired based on its exp claim
+   * Includes 30 second buffer to prevent edge cases
    * @param token - The JWT token to check
    * @returns true if the token is expired, false otherwise
    */
@@ -94,7 +144,8 @@ class TokenManagerClass {
     }
     
     const currentTime = Date.now() / 1000; // Convert to seconds
-    return decoded.exp < currentTime;
+    const bufferTime = 30; // 30 second buffer
+    return decoded.exp < (currentTime + bufferTime);
   }
 
   /**
@@ -102,10 +153,28 @@ class TokenManagerClass {
    * @returns The decoded JWT payload or null if no token is set
    */
   getUserFromToken(): JwtPayload | null {
-    if (!this.accessToken) {
+    const token = this.getAccessToken();
+    if (!token) {
       return null;
     }
-    return this.decodeToken(this.accessToken);
+    return this.decodeToken(token);
+  }
+
+  /**
+   * Check if we have a valid session (either access token or refresh token)
+   * @returns true if session exists, false otherwise
+   */
+  hasSession(): boolean {
+    const accessToken = this.getAccessToken();
+    const refreshToken = this.getRefreshToken();
+    
+    // Valid if we have a non-expired access token
+    if (accessToken && !this.isTokenExpired(accessToken)) {
+      return true;
+    }
+    
+    // Or if we have a refresh token (can restore session)
+    return !!refreshToken;
   }
 
   /**
@@ -138,7 +207,8 @@ class TokenManagerClass {
       });
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Token refresh failed');
       }
 
       const data = await response.json();
@@ -146,11 +216,15 @@ class TokenManagerClass {
       const newRefreshToken = data.data.refreshToken;
       
       this.setAccessToken(newAccessToken);
-      this.setRefreshToken(newRefreshToken);
+      if (newRefreshToken) {
+        this.setRefreshToken(newRefreshToken);
+      }
       
       return newAccessToken;
     } catch (error) {
       console.error('Failed to refresh access token:', error);
+      // Clear tokens on refresh failure
+      this.clearTokens();
       throw error;
     }
   }
@@ -161,21 +235,65 @@ class TokenManagerClass {
    * @returns Promise resolving to true if session was restored, false otherwise
    */
   async initializeSession(): Promise<boolean> {
+    // Prevent multiple simultaneous initializations
+    if (this.isInitialized) {
+      return this.hasSession();
+    }
+
+    // Check if we already have a valid access token
+    const existingToken = this.getAccessToken();
+    if (existingToken && !this.isTokenExpired(existingToken)) {
+      this.isInitialized = true;
+      return true;
+    }
+
+    // Try to restore session using refresh token
     const refreshToken = this.getRefreshToken();
     
-    // If no refresh token exists, silently return false (user not logged in)
+    // If no refresh token exists, user is not logged in
     if (!refreshToken) {
+      this.isInitialized = true;
       return false;
     }
 
     try {
       await this.refreshAccessToken();
+      this.isInitialized = true;
       return true;
     } catch (error) {
       console.error('Failed to initialize session:', error);
       this.clearTokens();
+      this.isInitialized = true;
       return false;
     }
+  }
+
+  /**
+   * Validate current session and refresh if needed
+   * @returns Promise resolving to true if session is valid
+   */
+  async validateSession(): Promise<boolean> {
+    const accessToken = this.getAccessToken();
+    
+    // If we have a valid access token, we're good
+    if (accessToken && !this.isTokenExpired(accessToken)) {
+      return true;
+    }
+
+    // Try to refresh
+    try {
+      await this.refreshAccessToken();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Reset initialization state (useful for testing or forced re-initialization)
+   */
+  resetInitialization(): void {
+    this.isInitialized = false;
   }
 }
 

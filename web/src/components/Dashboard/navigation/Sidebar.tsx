@@ -5,6 +5,7 @@ import { siteConfig } from "@/app/siteConfig"
 import { Button } from "@/components/ui/Button"
 import { Tooltip } from "@/components/ui/Tooltip"
 import { cx, focusRing } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
 import {
   BarChartBig,
   Building2,
@@ -186,6 +187,7 @@ export function Sidebar({
   ...props
 }: SidebarProps) {
   const isActive = useActiveNavigation()
+  const { user, isLoading: authLoading } = useAuth()
   
   const handleToggleSidebar = React.useCallback(() => {
     if (toggleSidebar) {
@@ -199,6 +201,19 @@ export function Sidebar({
       handleToggleSidebar()
     }
   }, [handleToggleSidebar])
+
+  // Prepare user data for UserProfile component
+  const userProfileData = React.useMemo(() => {
+    if (!user) return undefined
+    
+    return {
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+      email: user.email,
+      role: user.role?.name,
+      avatar: user.avatar,
+      initials: `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || undefined,
+    }
+  }, [user])
 
   return (
     <>
@@ -294,7 +309,11 @@ export function Sidebar({
           
           {/* User Profile */}
           <div className="mt-auto border-t border-gray-200 pt-3 dark:border-gray-800">
-            <UserProfileDesktop />
+            <UserProfileDesktop 
+              user={userProfileData}
+              isLoading={authLoading}
+              isCollapsed={isCollapsed}
+            />
           </div>
         </aside>
       </nav>
@@ -314,7 +333,10 @@ export function Sidebar({
         </Link>
         
         <div className="flex items-center gap-1 sm:gap-2">
-          <UserProfileMobile />
+          <UserProfileMobile 
+            user={userProfileData}
+            isLoading={authLoading}
+          />
           <MobileSidebar 
             title={brandName}
             sections={navigation}

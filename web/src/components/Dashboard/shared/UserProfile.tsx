@@ -91,7 +91,7 @@ export const UserProfileDesktop = React.forwardRef<
   UserProfileDesktopProps
 >(({
   isCollapsed = false,
-  user = defaultUser,
+  user,
   isLoading = false,
   showStatus = true,
   showRole = true,
@@ -105,7 +105,12 @@ export const UserProfileDesktop = React.forwardRef<
   variant = "default",
   ...props
 }, ref) => {
-  const userData = React.useMemo(() => ({ ...defaultUser, ...user }), [user])
+  // Use provided user or fall back to default only if no user is provided
+  const userData = React.useMemo(() => {
+    if (!user) return defaultUser
+    return { ...defaultUser, ...user }
+  }, [user])
+  
   const initials = userData.initials || getInitials(userData.name)
   
   const handleUserClick = React.useCallback(() => {
@@ -255,7 +260,7 @@ export const UserProfileMobile = React.forwardRef<
   HTMLButtonElement,
   UserProfileMobileProps
 >(({
-  user = defaultUser,
+  user,
   isLoading = false,
   showStatus = true,
   showTooltip = true,
@@ -268,7 +273,12 @@ export const UserProfileMobile = React.forwardRef<
   variant = "default",
   ...props
 }, ref) => {
-  const userData = React.useMemo(() => ({ ...defaultUser, ...user }), [user])
+  // Use provided user or fall back to default only if no user is provided
+  const userData = React.useMemo(() => {
+    if (!user) return defaultUser
+    return { ...defaultUser, ...user }
+  }, [user])
+  
   const initials = userData.initials || getInitials(userData.name)
   
   const handleUserClick = React.useCallback(() => {

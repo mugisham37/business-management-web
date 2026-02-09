@@ -55,34 +55,32 @@ export default function Login() {
     setError(null)
 
     try {
+      console.log('[Login] Submitting password...');
       const result = await login.mutateAsync({
         email,
         password,
       })
 
-      console.log('Login result:', result)
+      console.log('[Login] Login result:', result);
 
-      // Check if MFA is required (backend returns requiresMFA)
-      if ('requiresMFA' in result && result.requiresMFA) {
-        console.log('MFA required, showing MFA step')
+      // Check if MFA is required
+      if (result.requiresMFA) {
+        console.log('[Login] MFA required, showing MFA step');
         setTempToken(result.tempToken || '')
         setStep("mfa")
         return
       }
 
-      console.log('Login successful, tokens should be stored')
-      console.log('Access token exists:', !!result.accessToken)
-      console.log('Refresh token exists:', !!result.refreshToken)
+      console.log('[Login] Login successful, user authenticated');
       
-      // Success - tokens are already stored by the mutation's onSuccess
-      // Wait a bit longer to ensure cookies are set
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // Small delay to ensure state propagation
+      await new Promise(resolve => setTimeout(resolve, 150))
       
-      console.log('Redirecting to:', redirectTo)
-      // Use window.location.href for full page reload to ensure middleware sees the cookie
-      window.location.href = redirectTo
+      console.log('[Login] Redirecting to:', redirectTo);
+      // Use Next.js router for client-side navigation (no page reload)
+      router.push(redirectTo)
     } catch (err: any) {
-      console.error('Login error:', err)
+      console.error('[Login] Login error:', err)
       const message = err.response?.data?.message
       if (Array.isArray(message)) {
         setError(message.join(', '))
@@ -103,18 +101,22 @@ export default function Login() {
     setError(null)
 
     try {
+      console.log('[Login] Submitting MFA code...');
       await mfaLogin.mutateAsync({
         tempToken,
         mfaCode,
       })
 
-      // Success - tokens are already stored by the mutation's onSuccess
-      // Wait a bit longer to ensure cookies are set
-      await new Promise(resolve => setTimeout(resolve, 200))
+      console.log('[Login] MFA verification successful');
       
-      // Use window.location.href for full page reload to ensure middleware sees the cookie
-      window.location.href = redirectTo
+      // Small delay to ensure state propagation
+      await new Promise(resolve => setTimeout(resolve, 150))
+      
+      console.log('[Login] Redirecting to:', redirectTo);
+      // Use Next.js router for client-side navigation
+      router.push(redirectTo)
     } catch (err: any) {
+      console.error('[Login] MFA verification error:', err);
       const message = err.response?.data?.message
       setError(message || 'Invalid MFA code. Please try again.')
       setMfaCode("") // Clear the code for retry

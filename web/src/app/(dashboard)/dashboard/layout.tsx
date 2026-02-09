@@ -10,28 +10,55 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { user, isAuthenticated, isLoading } = useAuth()
+  const { user, isAuthenticated, isLoading, isInitialized } = useAuth()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
   
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
   }
 
-  // Redirect to login if not authenticated
+  // Track component mount
   React.useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/login?redirect=/dashboard/overview')
+    setIsMounted(true)
+  }, [])
+
+  // Redirect to login if not authenticated (with grace period)
+  React.useEffect(() => {
+    // Don't check until component is mounted and initialization is complete
+    if (!isMounted || !isInitialized) {
+      return
     }
-  }, [isLoading, isAuthenticated, router])
+
+    // If still loading, wait
+    if (isLoading) {
+      return
+    }
+
+    // Give a small grace period for state to propagate
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        console.log('[Dashboard Layout] Not authenticated, redirecting to login');
+        router.push('/auth/login?redirect=/dashboard/overview')
+      } else {
+        console.log('[Dashboard Layout] User authenticated:', user?.email);
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [isMounted, isInitialized, isLoading, isAuthenticated, router, user])
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (!isInitialized || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+        <div className="text-center space-y-4">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Loading your dashboard...</p>
+            <p className="text-xs text-muted-foreground">Please wait</p>
+          </div>
         </div>
       </div>
     )
