@@ -15,7 +15,8 @@ import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
 import { useRouter } from "next/navigation"
 import type { BusinessType } from "@/types/onboarding"
 import { useOnboardingStore } from "@/stores/onboarding.store"
-import { Alert } from "@/components/ui/Alert"
+import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
+import { logError } from "@/lib/utils/error-logger"
 
 const INDUSTRIES = [
   "Retail",
@@ -97,8 +98,11 @@ export default function BusinessInfo() {
       try {
         await loadProgress()
       } catch (err) {
-        // Error is handled by the store
-        console.error('Failed to load progress:', err)
+        // Error is handled by the store and logged
+        logError(err instanceof Error ? err : new Error('Failed to load progress'), {
+          step: 'business-info',
+          metadata: { action: 'loadProgress' }
+        })
       }
     }
     loadData()
@@ -146,9 +150,18 @@ export default function BusinessInfo() {
       await setBusinessInfo(businessInfo)
       router.push("/auth/onboarding/products")
     } catch (err) {
-      // Error is handled by the store and displayed below
-      console.error('Failed to save business info:', err)
+      // Error is handled by the store and logged
+      logError(err instanceof Error ? err : new Error('Failed to save business info'), {
+        step: 'business-info',
+        metadata: { action: 'submit', formData: businessInfo }
+      })
     }
+  }
+
+  const handleRetry = async () => {
+    // Retry the last submission
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as any
+    await handleSubmit(submitEvent)
   }
 
   const isFormValid =
@@ -169,9 +182,12 @@ export default function BusinessInfo() {
       <div className="space-y-6">
         {/* Error message */}
         {error && (
-          <Alert variant="destructive">
-            <p>{error}</p>
-          </Alert>
+          <ErrorMessage
+            error={error}
+            title="Failed to save business information"
+            onRetry={handleRetry}
+            isRetrying={isLoading}
+          />
         )}
         {/* Business Name */}
         <div

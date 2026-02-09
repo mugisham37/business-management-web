@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { Checkbox } from "@/components/ui/Checkbox"
 import { Label } from "@/components/ui/Label"
-import { Alert } from "@/components/ui/Alert"
+import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
+import { logError } from "@/lib/utils/error-logger"
 import { cx } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -125,8 +126,11 @@ export default function Products() {
       try {
         await loadProgress()
       } catch (err) {
-        // Error is handled by the store
-        console.error('Failed to load progress:', err)
+        // Error is handled by the store and logged
+        logError(err instanceof Error ? err : new Error('Failed to load progress'), {
+          step: 'products',
+          metadata: { action: 'loadProgress' }
+        })
       }
     }
     loadData()
@@ -175,9 +179,18 @@ export default function Products() {
       await setFeatures({ selectedFeatures })
       router.push("/auth/onboarding/employees")
     } catch (err) {
-      // Error is handled by the store and displayed below
-      console.error('Failed to save features:', err)
+      // Error is handled by the store and logged
+      logError(err instanceof Error ? err : new Error('Failed to save features'), {
+        step: 'products',
+        metadata: { action: 'submit', selectedFeatures }
+      })
     }
+  }
+
+  const handleRetry = async () => {
+    // Retry the last submission
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as any
+    await handleSubmit(submitEvent)
   }
 
   return (
@@ -200,9 +213,13 @@ export default function Products() {
 
       {/* Error message */}
       {error && (
-        <Alert variant="destructive" className="mt-4">
-          <p>{error}</p>
-        </Alert>
+        <ErrorMessage
+          error={error}
+          title="Failed to save product features"
+          onRetry={handleRetry}
+          isRetrying={isLoading}
+          className="mt-4"
+        />
       )}
 
       <form onSubmit={handleSubmit} className="mt-4">

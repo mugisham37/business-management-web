@@ -15,6 +15,7 @@
 
 import { create } from 'zustand';
 import { onboardingApi } from '@/lib/api/services/onboarding.api';
+import { logError } from '@/lib/utils/error-logger';
 import type {
   OnboardingData,
   OnboardingStep,
@@ -91,8 +92,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save business info';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'business-info',
+        metadata: { action: 'setBusinessInfo' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save business info',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -114,8 +123,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save features';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'products',
+        metadata: { action: 'setFeatures' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save features',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -137,8 +154,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save team size';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'employees',
+        metadata: { action: 'setTeamSize' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save team size',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -160,8 +185,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save locations';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'locations',
+        metadata: { action: 'setLocations' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save locations',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -183,8 +216,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save infrastructure';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'infrastructure',
+        metadata: { action: 'setInfrastructure' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save infrastructure',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -206,8 +247,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save integrations';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'integrations',
+        metadata: { action: 'setIntegrations' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to save integrations',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -233,8 +282,15 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
         set({ isLoading: false });
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load progress';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        metadata: { action: 'loadProgress' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to load progress',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -251,8 +307,16 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
       await onboardingApi.completeOnboarding();
       set({ isLoading: false });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to complete onboarding';
+      
+      // Log error with context
+      logError(error instanceof Error ? error : new Error(errorMessage), {
+        step: 'completion',
+        metadata: { action: 'completeOnboarding' }
+      });
+      
       set({
-        error: error instanceof Error ? error.message : 'Failed to complete onboarding',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;

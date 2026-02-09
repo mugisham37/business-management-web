@@ -1,6 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/Button"
-import { Alert } from "@/components/ui/Alert"
+import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
+import { logError } from "@/lib/utils/error-logger"
 import {
   RadioCardGroup,
   RadioCardIndicator,
@@ -33,8 +34,11 @@ export default function Employees() {
       try {
         await loadProgress()
       } catch (err) {
-        // Error is handled by the store
-        console.error('Failed to load progress:', err)
+        // Error is handled by the store and logged
+        logError(err instanceof Error ? err : new Error('Failed to load progress'), {
+          step: 'employees',
+          metadata: { action: 'loadProgress' }
+        })
       }
     }
     loadData()
@@ -76,9 +80,18 @@ export default function Employees() {
       
       router.push("/auth/onboarding/infrastructure")
     } catch (err) {
-      // Error is handled by the store and displayed below
-      console.error('Failed to save team size:', err)
+      // Error is handled by the store and logged
+      logError(err instanceof Error ? err : new Error('Failed to save team size'), {
+        step: 'employees',
+        metadata: { action: 'submit', teamSize: selectedCount.numericValue, growthProjection }
+      })
     }
+  }
+
+  const handleRetry = async () => {
+    // Retry the last submission
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as any
+    await handleSubmit(submitEvent)
   }
 
   return (
@@ -101,9 +114,13 @@ export default function Employees() {
 
       {/* Error message */}
       {error && (
-        <Alert variant="destructive" className="mt-4">
-          <p>{error}</p>
-        </Alert>
+        <ErrorMessage
+          error={error}
+          title="Failed to save team size"
+          onRetry={handleRetry}
+          isRetrying={isLoading}
+          className="mt-4"
+        />
       )}
 
       <form onSubmit={handleSubmit} className="mt-4">

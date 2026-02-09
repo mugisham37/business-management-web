@@ -6,7 +6,8 @@ import { StepContainer } from "@/components/onboarding/StepContainer"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert"
+import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
+import { logError } from "@/lib/utils/error-logger"
 import { usePlanRecommendations, useSelectPlan } from "@/hooks/useOnboarding"
 import { Loader2, CheckCircle, TrendingUp, Users, MapPin, Sparkles } from "lucide-react"
 import type { PlanRecommendation, PlanTier } from "@/types/onboarding-api"
@@ -43,8 +44,11 @@ export default function PlanRecommendationPage() {
       // Navigate to next step on success
       router.push("/dashboard/overview")
     } catch (err) {
-      // Error is handled by the mutation and displayed below
-      console.error('Failed to select plan:', err)
+      // Error is handled by the mutation and logged
+      logError(err instanceof Error ? err : new Error('Failed to select plan'), {
+        step: 'plan-recommendation',
+        metadata: { action: 'selectPlan', planTier }
+      })
       setSelectedPlanTier(null)
     }
   }
@@ -79,21 +83,15 @@ export default function PlanRecommendationPage() {
         description="We encountered an issue while generating your plan recommendations."
         showBack={false}
       >
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : 'Failed to load plan recommendations'}
-          </AlertDescription>
-        </Alert>
+        <ErrorMessage
+          error={error}
+          title="Failed to load plan recommendations"
+          onRetry={() => refetch()}
+          isRetrying={isLoading}
+          className="mb-6"
+        />
         
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            Try Again
-          </Button>
           <Button
             variant="ghost"
             onClick={() => router.push("/auth/onboarding/infrastructure")}
@@ -135,14 +133,12 @@ export default function PlanRecommendationPage() {
       <div className="space-y-6">
         {/* Mutation error */}
         {selectPlan.isError && (
-          <Alert variant="destructive">
-            <AlertTitle>Failed to select plan</AlertTitle>
-            <AlertDescription>
-              {selectPlan.error instanceof Error 
-                ? selectPlan.error.message 
-                : 'An error occurred while selecting your plan. Please try again.'}
-            </AlertDescription>
-          </Alert>
+          <ErrorMessage
+            error={selectPlan.error}
+            title="Failed to select plan"
+            onRetry={() => selectedPlanTier && handleSelectPlan(selectedPlanTier)}
+            isRetrying={selectPlan.isPending}
+          />
         )}
 
         {/* Recommended Plan */}

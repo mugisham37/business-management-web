@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
-import { Alert } from "@/components/ui/Alert"
+import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
+import { logError } from "@/lib/utils/error-logger"
 import { RadioCardGroup, RadioCardItem } from "@/components/ui/RadioGroup"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup"
 import {
@@ -227,8 +228,11 @@ export default function PricingCalculator() {
       try {
         await loadProgress()
       } catch (err) {
-        // Error is handled by the store
-        console.error('Failed to load progress:', err)
+        // Error is handled by the store and logged
+        logError(err instanceof Error ? err : new Error('Failed to load progress'), {
+          step: 'infrastructure',
+          metadata: { action: 'loadProgress' }
+        })
       }
     }
     loadData()
@@ -272,9 +276,24 @@ export default function PricingCalculator() {
       
       router.push("/auth/onboarding/plan-recommendation")
     } catch (err) {
-      // Error is handled by the store and displayed below
-      console.error('Failed to save infrastructure:', err)
+      // Error is handled by the store and logged
+      logError(err instanceof Error ? err : new Error('Failed to save infrastructure'), {
+        step: 'infrastructure',
+        metadata: { 
+          action: 'submit',
+          provider: cloudProvider,
+          storage: storageVolume,
+          region,
+          transactionVolume
+        }
+      })
     }
+  }
+
+  const handleRetry = async () => {
+    // Retry the last submission
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as any
+    await handleSubmit(submitEvent)
   }
 
   const calculatePrice = () => {
@@ -324,9 +343,13 @@ export default function PricingCalculator() {
 
       {/* Error message */}
       {error && (
-        <Alert variant="destructive" className="mt-4">
-          <p>{error}</p>
-        </Alert>
+        <ErrorMessage
+          error={error}
+          title="Failed to save infrastructure settings"
+          onRetry={handleRetry}
+          isRetrying={isLoading}
+          className="mt-4"
+        />
       )}
 
       <form onSubmit={handleSubmit} className="mt-8">
