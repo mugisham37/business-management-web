@@ -29,19 +29,19 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - Ensure compatibility with existing frontend types
     - _Requirements: 4.1, 4.2_
 
-- [ ] 3. Implement backend DTOs with validation
-  - [ ] 3.1 Create SaveProgressDto and nested DTOs
+- [x] 3. Implement backend DTOs with validation
+  - [x] 3.1 Create SaveProgressDto and nested DTOs
     - Create `server/src/modules/onboarding/dto/save-progress.dto.ts`
     - Implement OnboardingDataDto, BusinessInfoDto, ProductFeaturesDto, TeamSizeDto, LocationsDataDto, InfrastructureDataDto, IntegrationsDataDto
     - Add class-validator decorators for all validation rules
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
   
-  - [ ] 3.2 Create SelectPlanDto
+  - [x] 3.2 Create SelectPlanDto
     - Create `server/src/modules/onboarding/dto/select-plan.dto.ts`
     - Add validation for plan tier enum
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
   
-  - [ ] 3.3 Create response DTOs
+  - [x] 3.3 Create response DTOs
     - Create response interfaces for all endpoints
     - Define SaveProgressResponse, GetProgressResponse, CompleteOnboardingResponse, RecommendPlanResponse, SelectPlanResponse
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
