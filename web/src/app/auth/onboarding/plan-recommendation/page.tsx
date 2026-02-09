@@ -2,13 +2,14 @@
 
 import React from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { StepContainer } from "@/components/onboarding/StepContainer"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 import { ErrorMessage } from "@/components/onboarding/ErrorMessage"
 import { logError } from "@/lib/utils/error-logger"
-import { usePlanRecommendations, useSelectPlan } from "@/hooks/useOnboarding"
+import { usePlanRecommendations, useSelectPlan, useCompleteOnboarding } from "@/hooks/useOnboarding"
 import { Loader2, CheckCircle, TrendingUp, Users, MapPin, Sparkles } from "lucide-react"
 import type { PlanRecommendation, PlanTier } from "@/types/onboarding-api"
 import { cx } from "@/lib/utils"
@@ -26,6 +27,7 @@ export default function PlanRecommendationPage() {
   const router = useRouter()
   const { data: recommendations, isLoading, error, refetch } = usePlanRecommendations()
   const selectPlan = useSelectPlan()
+  const completeOnboarding = useCompleteOnboarding()
   const [selectedPlanTier, setSelectedPlanTier] = React.useState<PlanTier | null>(null)
 
   // Extract recommended and alternative plans
@@ -34,14 +36,27 @@ export default function PlanRecommendationPage() {
 
   /**
    * Handle plan selection
-   * Requirements: 8.1, 8.2, 8.3, 8.4
+   * Requirements: 8.1, 8.2, 8.3, 8.4, 13.1, 13.2, 13.3
    */
   const handleSelectPlan = async (planTier: PlanTier) => {
     setSelectedPlanTier(planTier)
     
     try {
+      // Select the plan (updates organization limits)
       await selectPlan.mutateAsync(planTier)
-      // Navigate to next step on success
+      
+      // Mark onboarding as complete
+      // Requirements: 13.1, 13.2
+      await completeOnboarding.mutateAsync()
+      
+      // Show success message
+      // Requirements: 13.3
+      toast.success("Welcome aboard!", {
+        description: `Your ${planTier} plan is ready. Let's get started!`,
+      })
+      
+      // Navigate to dashboard on success
+      // Requirements: 13.3
       router.push("/dashboard/overview")
     } catch (err) {
       // Error is handled by the mutation and logged
@@ -132,12 +147,12 @@ export default function PlanRecommendationPage() {
     >
       <div className="space-y-6">
         {/* Mutation error */}
-        {selectPlan.isError && (
+        {(selectPlan.isError || completeOnboarding.isError) && (
           <ErrorMessage
-            error={selectPlan.error}
-            title="Failed to select plan"
+            error={selectPlan.error || completeOnboarding.error}
+            title="Failed to complete onboarding"
             onRetry={() => selectedPlanTier && handleSelectPlan(selectedPlanTier)}
-            isRetrying={selectPlan.isPending}
+            isRetrying={selectPlan.isPending || completeOnboarding.isPending}
           />
         )}
 
@@ -147,6 +162,7 @@ export default function PlanRecommendationPage() {
             plan={recommendedPlan}
             onSelect={handleSelectPlan}
             isSelecting={selectPlan.isPending && selectedPlanTier === recommendedPlan.tier}
+          isCompleting={completeOnboarding.isPending && selectedPlanTier === recommendedPlan.tier}
           />
         )}
 
@@ -169,6 +185,7 @@ export default function PlanRecommendationPage() {
                   plan={plan}
                   onSelect={handleSelectPlan}
                   isSelecting={selectPlan.isPending && selectedPlanTier === plan.tier}
+                  isCompleting={completeOnboarding.isPending && selectedPlanTier === plan.tier}
                 />
               ))}
             </div>
@@ -188,9 +205,11 @@ interface RecommendedPlanCardProps {
   plan: PlanRecommendation
   onSelect: (tier: PlanTier) => void
   isSelecting: boolean
+  isCompleting: boolean
 }
 
-function RecommendedPlanCard({ plan, onSelect, isSelecting }: RecommendedPlanCardProps) {
+function RecommendedPlanCard({ plan, onSelect, isSelecting, isCompleting }: RecommendedPlanCardProps) {
+  const isLoading = isSelecting || isCompleting
   return (
     <Card
       className={cx(
@@ -299,9 +318,9 @@ function RecommendedPlanCard({ plan, onSelect, isSelecting }: RecommendedPlanCar
           size="lg"
           className="w-full"
           onClick={() => onSelect(plan.tier)}
-          disabled={isSelecting}
-          isLoading={isSelecting}
-          loadingText="Selecting..."
+          disabled={isLoading}
+          isLoading={isLoading}
+          loadingText={isCompleting ? "Completing..." : "Selecting..."}
         >
           Select {plan.tier} Plan
         </Button>
@@ -319,9 +338,11 @@ interface AlternativePlanCardProps {
   plan: PlanRecommendation
   onSelect: (tier: PlanTier) => void
   isSelecting: boolean
+  isCompleting: boolean
 }
 
-function AlternativePlanCard({ plan, onSelect, isSelecting }: AlternativePlanCardProps) {
+function AlternativePlanCard({ plan, onSelect, isSelecting, isCompleting }: AlternativePlanCardProps) {
+  const isLoading = isSelecting || isCompleting
   return (
     <Card
       className={cx(
@@ -386,9 +407,9 @@ function AlternativePlanCard({ plan, onSelect, isSelecting }: AlternativePlanCar
           size="sm"
           className="w-full"
           onClick={() => onSelect(plan.tier)}
-          disabled={isSelecting}
-          isLoading={isSelecting}
-          loadingText="Selecting..."
+          disabled={isLoading}
+          isLoading={isLoading}
+          loadingText={isCompleting ? "Completing..." : "Selecting..."}
         >
           Select {plan.tier}
         </Button>

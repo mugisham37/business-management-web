@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/Button"
 import Logo from "@/components/ui/Logo"
 import { useScrollPosition } from "@/hooks/useScroll"
 import { cx } from "@/lib/utils"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import React from "react"
 import { useOnboardingStore } from "@/stores/onboarding.store"
+import { useOnboardingProgress } from "@/hooks/useOnboarding"
 import { getProgressPercentage } from "@/config/onboarding.config"
 import type { OnboardingStep } from "@/types/onboarding-api"
 
@@ -95,6 +96,18 @@ const Layout = ({
 }>) => {
   const { y: scrollY } = useScrollPosition()
   const scrolled = scrollY > 15
+  const router = useRouter()
+  const { data: progress } = useOnboardingProgress()
+
+  /**
+   * Redirect to dashboard if onboarding is already completed
+   * Requirements: 13.4
+   */
+  React.useEffect(() => {
+    if (progress?.onboardingCompleted) {
+      router.push("/dashboard/overview")
+    }
+  }, [progress?.onboardingCompleted, router])
 
   return (
     <>

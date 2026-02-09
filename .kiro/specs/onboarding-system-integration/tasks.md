@@ -391,18 +391,18 @@ Each task builds on previous work and includes checkpoints to validate progress.
     - **Property 8: Progress Tracking Accuracy**
     - **Validates: Requirements 6.1, 6.2**
 
-- [ ] 16. Implement onboarding completion flow
-  - [ ] 16.1 Add completion logic to final step
+- [x] 16. Implement onboarding completion flow
+  - [x] 16.1 Add completion logic to final step
     - Call completeOnboarding when user finishes
     - Update organization in database
     - _Requirements: 13.1, 13.2_
   
-  - [ ] 16.2 Add redirect to dashboard
+  - [x] 16.2 Add redirect to dashboard
     - Redirect to /dashboard after completion
     - Show success message
     - _Requirements: 13.3_
   
-  - [ ] 16.3 Add redirect for completed onboarding
+  - [x] 16.3 Add redirect for completed onboarding
     - Check onboardingCompleted flag on onboarding page load
     - Redirect to dashboard if already completed
     - _Requirements: 13.4_
