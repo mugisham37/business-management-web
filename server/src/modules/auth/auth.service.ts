@@ -974,9 +974,13 @@ export class AuthService {
    * SHALL initiate the onboarding flow
    * 
    * @param token - Verification token
-   * @returns Success message
+   * @param metadata - Session metadata (IP, user agent, etc.) for auto-login
+   * @returns Login result with tokens, user data, and onboarding flag
    */
-  async verifyEmail(token: string): Promise<{ message: string; shouldOnboard: boolean }> {
+  async verifyEmail(
+    token: string,
+    metadata?: SessionMetadata,
+  ): Promise<LoginResult & { shouldOnboard: boolean }> {
     try {
       // Find verification token
       const verificationToken = await this.prisma.emailVerificationToken.findUnique({
@@ -1012,7 +1016,7 @@ export class AuthService {
       });
 
       // Mark user email as verified
-      await this.prisma.user.update({
+      const updatedUser = await this.prisma.user.update({
         where: { id: verificationToken.userId },
         data: {
           emailVerified: true,
@@ -1030,8 +1034,56 @@ export class AuthService {
       );
       const shouldOnboard = isPrimaryOwner && !!organization && !organization.onboardingCompleted;
 
+      // Get user permissions
+      const permissionCodes = await this.permissions.getUserPermissions(updatedUser.id);
+
+      // Generate tokens for auto-login
+      const tokens = await this.generateTokens(updatedUser, permissionCodes);
+
+      // Create session with metadata (use defaults if not provided)
+      const sessionMetadata: SessionMetadata = metadata || {
+        ipAddress: 'unknown',
+        userAgent: 'unknown',
+      };
+      await this.sessions.create(updatedUser.id, tokens.refreshToken, sessionMetadata);
+
+      // Update last login time
+      await this.prisma.user.update({
+        where: { id: updatedUser.id },
+        data: {
+          lastLoginAt: new Date(),
+        },
+      });
+
+      // Audit log successful email verification and auto-login
+      await this.audit.log({
+        organizationId: updatedUser.organizationId,
+        userId: updatedUser.id,
+        action: 'email_verified',
+        resource: 'authentication',
+        resourceId: updatedUser.id,
+        outcome: 'success',
+        ipAddress: sessionMetadata.ipAddress,
+        userAgent: sessionMetadata.userAgent,
+        metadata: {
+          email: updatedUser.email,
+          isPrimaryOwner,
+          shouldOnboard,
+          autoLogin: true,
+        },
+      });
+
+      this.logger.log(`User auto-logged in after email verification: ${updatedUser.id}`);
+
       return {
-        message: 'Email verified successfully',
+        ...tokens,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          organizationId: updatedUser.organizationId,
+        },
         shouldOnboard,
       };
     } catch (error) {

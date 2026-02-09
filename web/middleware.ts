@@ -4,11 +4,11 @@ import type { NextRequest } from 'next/server';
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/auth/login',
-  '/auth/register',
   '/auth/verify-email',
   '/auth/reset-password',
   '/auth/team',
   '/auth/signup',
+  '/auth/forgot-password',
   '/',
   '/about',
   '/pricing',
@@ -17,7 +17,7 @@ const PUBLIC_ROUTES = [
 ];
 
 // Auth-only routes that authenticated users should not access
-const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/signup'];
+const AUTH_ROUTES = ['/auth/login', '/auth/signup', '/auth/team'];
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = ['/dashboard', '/settings', '/users', '/roles'];
@@ -31,11 +31,19 @@ export function middleware(request: NextRequest) {
   // Check if user is authenticated
   const isAuthenticated = !!refreshToken;
 
+  console.log('[Middleware]', {
+    pathname,
+    hasRefreshToken: !!refreshToken,
+    isAuthenticated,
+    cookies: request.cookies.getAll().map(c => c.name)
+  })
+
   // Allow public routes
   if (PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route))) {
     // Redirect authenticated users away from auth pages to dashboard
     if (isAuthenticated && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      console.log('[Middleware] Redirecting authenticated user from auth page to dashboard')
+      return NextResponse.redirect(new URL('/dashboard/overview', request.url));
     }
     return NextResponse.next();
   }
@@ -43,11 +51,13 @@ export function middleware(request: NextRequest) {
   // Protect authenticated routes
   if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!isAuthenticated) {
+      console.log('[Middleware] Redirecting unauthenticated user to login')
       // Redirect to login and preserve the intended destination
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
+    console.log('[Middleware] Allowing access to protected route')
   }
 
   return NextResponse.next();

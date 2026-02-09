@@ -29,10 +29,13 @@ export default function VerifyEmail() {
   const handleVerification = async () => {
     setStatus('verifying');
     try {
-      await verifyEmail.mutateAsync({ token: token! });
+      const result = await verifyEmail.mutateAsync({ token: token! });
       setStatus('success');
-      // Redirect to login after 3 seconds
-      setTimeout(() => router.push('/auth/login'), 3000);
+      
+      // Auto-redirect after successful verification
+      setTimeout(() => {
+        router.push('/auth/onboarding');
+      }, 2000);
     } catch (err: any) {
       setStatus('error');
       const message = err.response?.data?.message;
@@ -131,15 +134,13 @@ export default function VerifyEmail() {
                 Your email has been successfully verified.
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Redirecting to login...
+                Redirecting you to get started...
               </p>
 
               <div className="mt-8">
-                <Link href="/auth/login">
-                  <Button variant="primary" className="w-full">
-                    Continue to login
-                  </Button>
-                </Link>
+                <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary animate-pulse" style={{ width: '100%' }} />
+                </div>
               </div>
             </>
           )}

@@ -62,12 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const initializeAuth = async () => {
     try {
-      const success = await TokenManager.initializeSession();
-      if (success) {
+      // Check if we have an access token
+      const token = TokenManager.getAccessToken();
+      if (token) {
+        // Try to load user from the token
         await loadUser();
       }
     } catch (error) {
       console.error('Failed to initialize auth:', error);
+      // Clear tokens if initialization fails
+      TokenManager.clearTokens();
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.data.data);
     } catch (error) {
       console.error('Failed to load user:', error);
+      // Clear tokens if user fetch fails (token might be invalid)
+      TokenManager.clearTokens();
       setUser(null);
     }
   };

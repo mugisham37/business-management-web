@@ -260,7 +260,7 @@ export function setupInterceptors(client: AxiosInstance): void {
 
           // Only redirect if we're in a browser environment
           if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
+            window.location.href = '/auth';
           }
 
           return Promise.reject(refreshError);

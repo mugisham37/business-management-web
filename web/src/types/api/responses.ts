@@ -49,7 +49,24 @@ export interface PaginatedResponse<T> {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken?: string;
   user: User;
+  requiresMFA?: boolean;
+  tempToken?: string;
+  userId?: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
+
+export interface VerifyEmailResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+  shouldOnboard: boolean;
 }
 
 // ============================================================================

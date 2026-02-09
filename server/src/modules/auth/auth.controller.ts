@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   UseGuards,
   Req,
@@ -84,14 +85,23 @@ export class AuthController {
    * SHALL validate the token and mark the email as verified
    * 
    * @param dto - Verification token
-   * @returns Success message and onboarding flag
+   * @param req - Request object for session metadata
+   * @returns Success message, tokens, user data, and onboarding flag
    */
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
+  async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: any) {
     this.logger.log('Email verification request');
     
-    const result = await this.authService.verifyEmail(dto.token);
+    // Extract session metadata from request
+    const metadata = {
+      ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+      userAgent: req.headers['user-agent'] || 'unknown',
+      deviceFingerprint: req.headers['x-device-fingerprint'],
+      location: req.headers['x-geo-location'],
+    };
+    
+    const result = await this.authService.verifyEmail(dto.token, metadata);
     
     return {
       success: true,
@@ -461,6 +471,48 @@ export class AuthController {
     return {
       success: true,
       data: result,
+    };
+  }
+
+  /**
+   * Get current authenticated user
+   * 
+   * GET /auth/me
+   * 
+   * Returns the current user's profile information based on JWT token.
+   * Used by the frontend to verify authentication and load user data.
+   * 
+   * @param user - Current user from JWT
+   * @returns User profile data
+   */
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getCurrentUser(@CurrentUser() user: User) {
+    this.logger.log(`Get current user request: ${user.id}`);
+    
+    // Get full user details with organization
+    const fullUser = await this.usersService.findById(user.id, user.organizationId);
+    
+    if (!fullUser) {
+      throw new UnauthorizedException('User not found');
+    }
+    
+    return {
+      success: true,
+      data: {
+        id: fullUser.id,
+        email: fullUser.email,
+        firstName: fullUser.firstName,
+        lastName: fullUser.lastName,
+        username: fullUser.username,
+        organizationId: fullUser.organizationId,
+        status: fullUser.status,
+        emailVerified: fullUser.emailVerified,
+        mfaEnabled: fullUser.mfaEnabled,
+        lastLoginAt: fullUser.lastLoginAt,
+        createdAt: fullUser.createdAt,
+      },
     };
   }
 }

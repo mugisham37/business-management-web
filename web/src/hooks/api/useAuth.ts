@@ -105,22 +105,31 @@ export function useLogin() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      // Check if MFA is required
-      if ('mfaRequired' in data && data.mfaRequired) {
+      console.log('useLogin onSuccess called with data:', data)
+      
+      // Check if MFA is required (backend returns requiresMFA)
+      if ('requiresMFA' in data && data.requiresMFA) {
+        console.log('MFA required, skipping token storage')
         // Don't set token yet, wait for MFA
         return;
       }
 
+      console.log('Storing tokens...')
       // Store access token
       TokenManager.setAccessToken(data.accessToken);
+      console.log('Access token stored')
       
       // Store refresh token
       if (data.refreshToken) {
         TokenManager.setRefreshToken(data.refreshToken);
+        console.log('Refresh token stored in cookie')
+      } else {
+        console.warn('No refresh token in response!')
       }
       
       // Set current user in cache
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
+      console.log('User data cached')
     },
   });
 }
@@ -139,8 +148,8 @@ export function useTeamMemberLogin() {
       return response.data.data;
     },
     onSuccess: (data) => {
-      // Check if MFA is required
-      if ('mfaRequired' in data && data.mfaRequired) {
+      // Check if MFA is required (backend returns requiresMFA)
+      if ('requiresMFA' in data && data.requiresMFA) {
         return;
       }
 
@@ -227,18 +236,29 @@ export function useLogoutAll() {
 
 /**
  * Verify email mutation
+ * Auto-logs in the user after successful verification
  * 
  * @returns Mutation object
  */
 export function useVerifyEmail() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: VerifyEmailRequest) => {
       const response = await authApi.verifyEmail(data);
-      return response.data;
+      return response.data.data;
     },
-    onSuccess: () => {
-      // Invalidate current user to refetch with updated emailVerified status
-      cacheInvalidation.invalidateCurrentUser();
+    onSuccess: (data) => {
+      // Store access token
+      TokenManager.setAccessToken(data.accessToken);
+      
+      // Store refresh token
+      if (data.refreshToken) {
+        TokenManager.setRefreshToken(data.refreshToken);
+      }
+      
+      // Set current user in cache
+      queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
   });
 }

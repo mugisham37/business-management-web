@@ -37,6 +37,7 @@ import type {
 import type {
   ApiResponse,
   AuthResponse,
+  VerifyEmailResponse,
 } from '@/types/api/responses';
 import type { User } from '@/types/user';
 
@@ -51,9 +52,10 @@ export const authApi = {
   /**
    * Verify email address with token
    * POST /auth/verify-email
+   * Returns tokens and user data for auto-login
    */
   verifyEmail: (data: VerifyEmailRequest) =>
-    apiClient.post<ApiResponse<void>>(API_ENDPOINTS.AUTH.VERIFY_EMAIL, data),
+    apiClient.post<ApiResponse<VerifyEmailResponse>>(API_ENDPOINTS.AUTH.VERIFY_EMAIL, data),
 
   /**
    * Resend email verification
@@ -128,9 +130,6 @@ export const authApi = {
   /**
    * Get current authenticated user
    * GET /auth/me
-   * 
-   * Note: This endpoint needs to be added to the backend
-   * For now, we'll extract user from JWT token
    */
   getCurrentUser: () =>
     apiClient.get<ApiResponse<User>>(API_ENDPOINTS.AUTH.ME),

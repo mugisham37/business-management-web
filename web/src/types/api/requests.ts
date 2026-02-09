@@ -34,7 +34,7 @@ export interface TeamMemberLoginRequest {
 
 export interface MfaLoginRequest {
   tempToken: string;
-  code: string;
+  mfaCode: string;
 }
 
 export interface PasswordResetRequestRequest {

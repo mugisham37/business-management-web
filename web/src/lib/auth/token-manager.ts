@@ -52,9 +52,11 @@ class TokenManagerClass {
     // Store for 7 days (matching backend expiry)
     Cookies.set(REFRESH_TOKEN_COOKIE, token, {
       expires: 7,
+      path: '/',
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     });
+    console.log('Refresh token cookie set:', REFRESH_TOKEN_COOKIE)
   }
 
   /**

@@ -60,16 +60,29 @@ export default function Login() {
         password,
       })
 
-      // Check if MFA is required
+      console.log('Login result:', result)
+
+      // Check if MFA is required (backend returns requiresMFA)
       if ('requiresMFA' in result && result.requiresMFA) {
-        setTempToken(result.tempToken)
+        console.log('MFA required, showing MFA step')
+        setTempToken(result.tempToken || '')
         setStep("mfa")
         return
       }
 
-      // Success - redirect to intended destination
-      router.push(redirectTo)
+      console.log('Login successful, tokens should be stored')
+      console.log('Access token exists:', !!result.accessToken)
+      console.log('Refresh token exists:', !!result.refreshToken)
+      
+      // Success - tokens are already stored by the mutation's onSuccess
+      // Wait a bit longer to ensure cookies are set
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      console.log('Redirecting to:', redirectTo)
+      // Use window.location.href for full page reload to ensure middleware sees the cookie
+      window.location.href = redirectTo
     } catch (err: any) {
+      console.error('Login error:', err)
       const message = err.response?.data?.message
       if (Array.isArray(message)) {
         setError(message.join(', '))
@@ -95,8 +108,12 @@ export default function Login() {
         mfaCode,
       })
 
-      // Success - redirect to intended destination
-      router.push(redirectTo)
+      // Success - tokens are already stored by the mutation's onSuccess
+      // Wait a bit longer to ensure cookies are set
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Use window.location.href for full page reload to ensure middleware sees the cookie
+      window.location.href = redirectTo
     } catch (err: any) {
       const message = err.response?.data?.message
       setError(message || 'Invalid MFA code. Please try again.')
