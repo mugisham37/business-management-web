@@ -6,6 +6,7 @@ import { CacheModule } from './common/cache';
 import { EmailModule } from './common/email';
 import { OrganizationsModule } from './modules/organizations';
 import { AuthModule } from './modules/auth';
+import { OnboardingModule } from './modules/onboarding';
 import { TenantIsolationMiddleware } from './common/middleware';
 
 @Module({
@@ -20,6 +21,7 @@ import { TenantIsolationMiddleware } from './common/middleware';
     DatabaseModule,
     OrganizationsModule,
     AuthModule,
+    OnboardingModule,
   ],
   controllers: [],
   providers: [],
