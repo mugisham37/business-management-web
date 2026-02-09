@@ -277,6 +277,10 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
    */
   subscribe(channel: string, handler: (message: any) => void): void {
     try {
+      if (!this.redisSubClient) {
+        this.logger.error(`Error setting up subscription for channel ${channel}: Redis subscriber not initialized`);
+        return;
+      }
       this.redisSubClient.subscribe(channel, (err) => {
         if (err) {
           this.logger.error(`Error subscribing to channel ${channel}:`, err);

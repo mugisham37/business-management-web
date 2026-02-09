@@ -2,9 +2,9 @@
 
 import React from "react"
 import { Button } from "@/components/ui/Button"
-import { RiGithubFill, RiGoogleFill, RiMicrosoftFill } from "@remixicon/react"
+import { RiGithubFill, RiGoogleFill } from "@remixicon/react"
 
-export type OAuthProvider = "google" | "microsoft" | "github"
+export type OAuthProvider = "google" | "github"
 
 interface OAuthButtonsProps {
   onProviderClick?: (provider: OAuthProvider) => void
@@ -44,30 +44,6 @@ export function OAuthButtons({
       >
         <RiGoogleFill className="h-4 w-4" aria-hidden="true" />
         Continue with Google
-      </Button>
-
-      <Button
-        type="button"
-        variant="secondary"
-        size={size}
-        className="w-full"
-        onClick={() => handleClick("microsoft")}
-        disabled={disabled || loading}
-      >
-        <RiMicrosoftFill className="h-4 w-4" aria-hidden="true" />
-        Continue with Microsoft
-      </Button>
-
-      <Button
-        type="button"
-        variant="secondary"
-        size={size}
-        className="w-full"
-        onClick={() => handleClick("github")}
-        disabled={disabled || loading}
-      >
-        <RiGithubFill className="h-5 w-5" aria-hidden="true" />
-        Continue with GitHub
       </Button>
     </div>
   )

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import { AuditService } from '../../common/audit/audit.service';
@@ -31,7 +31,7 @@ export interface ScopedPermission {
  * Requirements: 7.3, 7.4, 7.5, 7.6, 7.7, 8.1, 8.2, 8.3, 8.4, 8.5
  */
 @Injectable()
-export class PermissionsService {
+export class PermissionsService implements OnModuleInit {
   private readonly logger = new Logger(PermissionsService.name);
   private readonly CACHE_INVALIDATION_CHANNEL = 'permission:invalidate';
 
@@ -40,8 +40,10 @@ export class PermissionsService {
     private readonly cache: CacheService,
     @Inject(forwardRef(() => AuditService))
     private readonly audit: AuditService,
-  ) {
-    // Subscribe to cache invalidation events
+  ) {}
+
+  async onModuleInit() {
+    // Subscribe to cache invalidation events after all modules are initialized
     this.setupCacheInvalidation();
   }
 

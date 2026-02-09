@@ -14,8 +14,8 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  // Get logger service from DI container
-  const logger = app.get(LoggerService);
+  // Get logger service from DI container (resolve is required for transient-scoped providers)
+  const logger = await app.resolve(LoggerService);
 
   // Enable global exception filter
   app.useGlobalFilters(new HttpExceptionFilter(logger));

@@ -1,4 +1,4 @@
-import { Injectable, LoggerService as NestLoggerService, Scope } from '@nestjs/common';
+import { Injectable, LoggerService as NestLoggerService, Optional, Scope } from '@nestjs/common';
 import { AsyncLocalStorage } from 'async_hooks';
 
 export enum LogLevel {
@@ -60,7 +60,7 @@ export class LoggerService implements NestLoggerService {
     /social[_-]?security/i,
   ];
 
-  constructor(context?: string) {
+  constructor(@Optional() context?: string) {
     this.context = context;
   }
 

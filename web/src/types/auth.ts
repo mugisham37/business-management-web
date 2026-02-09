@@ -12,7 +12,7 @@ export type AccountStatus =
   | "AUTHENTICATED_TRIAL"
   | "AUTHENTICATED_EXPIRED"
 
-export type AuthProvider = "EMAIL" | "GOOGLE" | "MICROSOFT" | "GITHUB"
+export type AuthProvider = "EMAIL" | "GOOGLE" | "GITHUB"
 
 export interface User {
   id: string
