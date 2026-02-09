@@ -46,6 +46,8 @@ export interface RegisterDto {
   email: string;
   password: string;
   organizationName: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface RegisterResult {
@@ -744,11 +746,17 @@ export class AuthService {
       // Hash password with Argon2id
       const passwordHash = await this.security.hashPassword(dto.password);
 
-      // Extract first and last name from email (simple approach)
-      const emailLocalPart = dto.email.split('@')[0];
-      const nameParts = emailLocalPart.split(/[._-]/);
-      const firstName = nameParts[0] || 'User';
-      const lastName = nameParts[1] || 'Owner';
+      // Use provided names or extract from email as fallback
+      let firstName = dto.firstName || '';
+      let lastName = dto.lastName || '';
+
+      if (!firstName || !lastName) {
+        // Extract first and last name from email (simple approach)
+        const emailLocalPart = dto.email.split('@')[0];
+        const nameParts = emailLocalPart.split(/[._-]/);
+        firstName = firstName || nameParts[0] || 'User';
+        lastName = lastName || nameParts[1] || 'Owner';
+      }
 
       // Create user with SUPER_ADMIN role
       // Note: emailVerified is set to false by default
@@ -757,8 +765,8 @@ export class AuthService {
           organizationId: organization.id,
           email: dto.email,
           passwordHash,
-          firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
-          lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
+          firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
+          lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase(),
           status: 'active',
           emailVerified: false,
         },

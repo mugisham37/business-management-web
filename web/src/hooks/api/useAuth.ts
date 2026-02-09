@@ -80,6 +80,11 @@ export function useRegister() {
       // Store access token
       TokenManager.setAccessToken(data.accessToken);
       
+      // Store refresh token
+      if (data.refreshToken) {
+        TokenManager.setRefreshToken(data.refreshToken);
+      }
+      
       // Set current user in cache
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
@@ -109,6 +114,11 @@ export function useLogin() {
       // Store access token
       TokenManager.setAccessToken(data.accessToken);
       
+      // Store refresh token
+      if (data.refreshToken) {
+        TokenManager.setRefreshToken(data.refreshToken);
+      }
+      
       // Set current user in cache
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
@@ -135,6 +145,12 @@ export function useTeamMemberLogin() {
       }
 
       TokenManager.setAccessToken(data.accessToken);
+      
+      // Store refresh token
+      if (data.refreshToken) {
+        TokenManager.setRefreshToken(data.refreshToken);
+      }
+      
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
   });
@@ -155,6 +171,12 @@ export function useMfaLogin() {
     },
     onSuccess: (data) => {
       TokenManager.setAccessToken(data.accessToken);
+      
+      // Store refresh token
+      if (data.refreshToken) {
+        TokenManager.setRefreshToken(data.refreshToken);
+      }
+      
       queryClient.setQueryData(queryKeys.auth.currentUser(), data.user);
     },
   });

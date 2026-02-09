@@ -33,7 +33,7 @@ import {
   TopIssue,
 } from "@/data/retention/schema"
 import { valueFormatter } from "@/lib/formatters"
-import { cx, focusRing } from "@/lib/utils"
+import { cx } from "@/lib/utils"
 import { RiCloseLine, RiExpandDiagonalLine } from "@remixicon/react"
 import { useState } from "react"
 
@@ -55,6 +55,9 @@ const getCohortTextClass = (value: number, minValue: number, maxValue: number): 
     ? "cohort-text-light"
     : "cohort-text-dark"
 }
+
+const getBackgroundColor = getCohortColorClass
+const getTextColor = getCohortTextClass
 
 interface CohortDetailsDialogProps {
   cohort: CohortData | null

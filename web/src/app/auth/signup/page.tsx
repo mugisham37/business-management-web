@@ -116,7 +116,7 @@ export default function Signup() {
           {/* OAuth Buttons */}
           <OAuthButtons
             onProviderClick={handleOAuthClick}
-            loading={loading}
+            loading={isLoading}
             variant="vertical"
           />
 

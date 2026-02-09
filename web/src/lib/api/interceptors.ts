@@ -123,19 +123,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request deduplication map
-const pendingRequests = new Map<string, Promise<AxiosResponse>>();
-
-/**
- * Generate a unique key for a request based on method, URL, and data
- * @param config - Axios request configuration
- * @returns Unique request key
- */
-const getRequestKey = (config: InternalAxiosRequestConfig): string => {
-  const { method, url, data, params } = config;
-  return `${method}:${url}:${JSON.stringify(data)}:${JSON.stringify(params)}`;
-};
-
 /**
  * Check if an HTTP method is idempotent
  * Idempotent methods: GET, PUT, DELETE, HEAD, OPTIONS
@@ -197,20 +184,6 @@ export function setupInterceptors(client: AxiosInstance): void {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Request deduplication for concurrent identical requests
-      const requestKey = getRequestKey(config);
-      const pendingRequest = pendingRequests.get(requestKey);
-
-      if (pendingRequest) {
-        // Return the existing pending request instead of making a new one
-        return Promise.reject({
-          config,
-          message: 'Duplicate request',
-          isDuplicate: true,
-          pendingRequest,
-        });
-      }
-
       return config;
     },
     (error) => {
@@ -232,23 +205,11 @@ export function setupInterceptors(client: AxiosInstance): void {
         response.data = deserializeResponseData(response.data);
       }
       
-      // Remove from pending requests on success
-      const requestKey = getRequestKey(response.config as InternalAxiosRequestConfig);
-      pendingRequests.delete(requestKey);
       return response;
     },
     async (error: AxiosError<any>) => {
       // Log error with environment-specific verbosity
       logError(error);
-      
-      // Handle duplicate request errors
-      if (error && (error as any).isDuplicate) {
-        try {
-          return await (error as any).pendingRequest;
-        } catch (err) {
-          return Promise.reject(err);
-        }
-      }
 
       const originalRequest = error.config as InternalAxiosRequestConfig & {
         _retry?: boolean;
@@ -258,10 +219,6 @@ export function setupInterceptors(client: AxiosInstance): void {
       if (!originalRequest) {
         return Promise.reject(handleApiError(error));
       }
-
-      // Remove from pending requests on error
-      const requestKey = getRequestKey(originalRequest);
-      pendingRequests.delete(requestKey);
 
       // ========================================================================
       // HANDLE 401 UNAUTHORIZED - TOKEN REFRESH
@@ -341,21 +298,5 @@ export function setupInterceptors(client: AxiosInstance): void {
       // ========================================================================
       return Promise.reject(handleApiError(error));
     }
-  );
-
-  // ============================================================================
-  // TRACK PENDING REQUESTS
-  // ============================================================================
-  client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      const requestKey = getRequestKey(config);
-      
-      // Create a promise for this request and store it
-      const requestPromise = client(config);
-      pendingRequests.set(requestKey, requestPromise);
-
-      return config;
-    },
-    (error) => Promise.reject(error)
   );
 }
