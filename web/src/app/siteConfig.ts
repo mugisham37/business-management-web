@@ -15,6 +15,11 @@ export const siteConfig = {
     reports: "/dashboard/reports",
     transactions: "/dashboard/transactions",
     onboarding: "/auth/onboarding/products",
+    quotes: {
+      overview: "/dashboard/business/quotes/overview",
+      monitoring: "/dashboard/business/quotes/monitoring",
+      audits: "/dashboard/business/quotes/audits",
+    },
     settings: {
       general: "/dashboard/settings/general",
       billing: "/dashboard/settings/billing",

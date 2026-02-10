@@ -77,8 +77,14 @@ export function percentageFormatter(value: number): string {
  * Collection of formatter utilities for data display
  */
 export const formatters = {
-  percentage: percentageFormatter,
-  currency: (value: number) => `$${value.toLocaleString()}`,
+  percentage: (options: { number: number }) => percentageFormatter(options.number),
+  currency: (options: { number: number; maxFractionDigits?: number }) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: options.maxFractionDigits ?? 2,
+    }).format(options.number);
+  },
   number: (value: number) => value.toLocaleString(),
   unit: (value: number) => value.toLocaleString(),
   compact: (value: number) => {

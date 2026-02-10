@@ -87,6 +87,37 @@ export const getColorClassName = (
   return chartColors[color]?.[type] ?? fallbackColor[type]
 }
 
+export const getConditionalColorClassName = (
+  value: number,
+  color: AvailableChartColorsKeys,
+): string => {
+  // Returns color class based on value intensity
+  // For conditional coloring based on data values
+  const baseColor = chartColors[color]
+  if (!baseColor) return "fill-gray-500"
+  
+  // Use fill color for bar charts
+  return baseColor.fill
+}
+
+export const getGradientColorClassName = (
+  color: AvailableChartColorsKeys,
+): string => {
+  // Returns gradient color classes for the specified color
+  const colorMap: Record<AvailableChartColorsKeys, string> = {
+    blue: "from-blue-400 to-blue-600",
+    emerald: "from-emerald-400 to-emerald-600",
+    violet: "from-violet-400 to-violet-600",
+    amber: "from-amber-400 to-amber-600",
+    gray: "from-gray-400 to-gray-600",
+    cyan: "from-cyan-400 to-cyan-600",
+    indigo: "from-indigo-400 to-indigo-600",
+    pink: "from-pink-400 to-pink-600",
+  }
+  
+  return colorMap[color] ?? "from-gray-400 to-gray-600"
+}
+
 // Tremor Raw getYAxisDomain [v0.0.0]
 
 export const getYAxisDomain = (
