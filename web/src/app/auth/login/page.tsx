@@ -1,10 +1,10 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { Logo } from "@/components/ui/Logo"
+import { Button } from "@/components/ui/button"
+import { Divider } from "@/components/ui/divider"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import { RiGithubFill, RiGoogleFill } from "@remixicon/react"
 import { useRouter } from "next/navigation"
 import React from "react"
@@ -26,7 +26,7 @@ export default function Login() {
     <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6">
       <div className="flex w-full flex-col items-start sm:max-w-sm">
         <div className="relative flex items-center justify-center rounded-lg bg-white p-3 shadow-lg ring-1 ring-black/5">
-          <Logo
+          <DatabaseLogo
             className="size-8 text-blue-500 dark:text-blue-500"
             aria-label="Insights logo"
           />
@@ -93,7 +93,7 @@ export default function Login() {
             </div>
             <Button
               type="submit"
-              isLoading={loading}
+              disabled={loading}
             >
               {loading ? "" : "Continue"}
             </Button>

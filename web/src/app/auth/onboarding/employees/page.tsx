@@ -1,10 +1,10 @@
 "use client"
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import {
   RadioCardGroup,
   RadioCardIndicator,
   RadioCardItem,
-} from "@/components/RadioCardGroup"
+} from "@/components/ui/radio-card-group"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
@@ -50,7 +50,7 @@ export default function Employees() {
           <legend className="sr-only">Select number of employees</legend>
           <RadioCardGroup
             value={selectedEmployeeCount}
-            onValueChange={(value) => setSelectedEmployeeCount(value)}
+            onValueChange={(value: string) => setSelectedEmployeeCount(value)}
             required
             aria-label="Number of employees"
           >
@@ -92,7 +92,6 @@ export default function Employees() {
             type="submit"
             disabled={!selectedEmployeeCount || loading}
             aria-disabled={!selectedEmployeeCount || loading}
-            isLoading={loading}
           >
             {loading ? "Submitting..." : "Continue"}
           </Button>

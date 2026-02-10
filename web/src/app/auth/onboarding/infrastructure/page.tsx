@@ -1,18 +1,18 @@
 "use client"
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { RadioCardGroup, RadioCardItem } from "@/components/RadioCardGroup"
-import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioCardGroup, RadioCardItem } from "@/components/ui/radio-card-group"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Slider } from "@/components/Slider"
+} from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { SVGProps } from "react"
@@ -287,7 +287,7 @@ export default function PricingCalculator() {
             <RadioCardGroup
               id="cloud-provider"
               value={cloudProvider}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setCloudProvider(value as "aws" | "azure")
               }
               className="mt-2 grid grid-cols-1 gap-4 sm:text-sm md:grid-cols-2"
@@ -342,7 +342,7 @@ export default function PricingCalculator() {
                 min={6}
                 max={128}
                 value={storageVolume}
-                onChange={(e) => setStorageVolume(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStorageVolume(Number(e.target.value))}
                 aria-describedby="storage-description"
               />
               <p id="storage-description" className="sr-only">
@@ -355,7 +355,7 @@ export default function PricingCalculator() {
               </legend>
               <RadioGroup
                 value={compression}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setCompression(value)
                 }}
                 className="flex gap-6 pt-2.5"
@@ -474,7 +474,6 @@ export default function PricingCalculator() {
                 !compression ||
                 loading
               }
-              isLoading={loading}
             >
               {loading ? "Submitting..." : "Continue"}
             </Button>

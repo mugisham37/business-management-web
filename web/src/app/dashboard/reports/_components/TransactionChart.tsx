@@ -1,6 +1,6 @@
 "use client"
 import { BarChartVariant } from "@/components/ui/bar-chart-variant"
-import { Tooltip } from "@/components/ui/tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { Transaction } from "@/data/schema"
 import { transactions } from "@/data/transactions"
 import { AvailableChartColorsKeys } from "@/lib/chartUtils"
@@ -227,8 +227,13 @@ export function TransactionChart({
           >
             {config.title}
           </h2>
-          <Tooltip side="bottom" content={config.tooltipContent}>
-            <InfoIcon className="size-4 text-gray-600 dark:text-gray-400" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon className="size-4 text-gray-600 dark:text-gray-400" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {config.tooltipContent}
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

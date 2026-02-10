@@ -178,7 +178,6 @@ function FilterAmount() {
                 placeholder={`$${minAmount}`}
                 value={localMin}
                 onChange={handleMinInputChange}
-                enableStepper={false} // has to be false because of URL change rate limits
               />
               <>
                 <span className="text-xs font-medium text-gray-500">–</span>
@@ -189,7 +188,6 @@ function FilterAmount() {
                   placeholder={`$${maxAmount}`}
                   value={localMax}
                   onChange={handleMaxInputChange}
-                  enableStepper={false} // has to be false because of URL change rate limits
                 />
               </>
             </div>

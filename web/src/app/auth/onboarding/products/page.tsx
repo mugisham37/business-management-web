@@ -1,9 +1,9 @@
 "use client"
-import { badgeVariants } from "@/components/Badge"
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { Checkbox } from "@/components/Checkbox"
-import { Label } from "@/components/Label"
+import { badgeVariants } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { cx } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import React from "react"
@@ -72,10 +72,9 @@ const CategoryItem = ({
   onCheckedChange,
 }: CategoryItemProps) => {
   return (
-    <Card
-      asChild
+    <Label
       className={cx(
-        "cursor-pointer border-gray-300 p-5 transition-all active:scale-[99%] dark:border-gray-800",
+        "block cursor-pointer border-gray-300 p-5 transition-all active:scale-[99%] dark:border-gray-800",
         "has-[:checked]:border-blue-500",
         "duration-500 has-[:checked]:dark:border-blue-500",
         // base
@@ -84,36 +83,36 @@ const CategoryItem = ({
         "focus-within:ring-blue-200 focus-within:dark:ring-blue-700/30",
         // border color
         "focus-within:border-blue-500 focus-within:dark:border-blue-700",
+        "rounded-xl border bg-card shadow-xs"
       )}
+      htmlFor={category.id}
     >
-      <Label className="block" htmlFor={category.id}>
-        <div className="mb-2 flex items-center gap-2.5">
-          <Checkbox
-            id={category.id}
-            name={category.title}
-            checked={checked}
-            onCheckedChange={(isChecked) =>
-              onCheckedChange(category.id, isChecked === true)
-            }
-          />
-          <span className="text-base font-medium sm:text-sm">
-            {category.title}
-          </span>
-        </div>
-        {category.subcategories.length > 0 && (
-          <ul className="ml-6 mt-2 flex flex-wrap gap-1.5">
-            {category.subcategories.map((subcategory) => (
-              <li
-                className={badgeVariants({ variant: "neutral" })}
-                key={subcategory}
-              >
-                {subcategory}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Label>
-    </Card>
+      <div className="mb-2 flex items-center gap-2.5">
+        <Checkbox
+          id={category.id}
+          name={category.title}
+          checked={checked}
+          onCheckedChange={(isChecked: boolean) =>
+            onCheckedChange(category.id, isChecked === true)
+          }
+        />
+        <span className="text-base font-medium sm:text-sm">
+          {category.title}
+        </span>
+      </div>
+      {category.subcategories.length > 0 && (
+        <ul className="ml-6 mt-2 flex flex-wrap gap-1.5">
+          {category.subcategories.map((subcategory) => (
+            <li
+              className={badgeVariants({ variant: "secondary" })}
+              key={subcategory}
+            >
+              {subcategory}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Label>
   )
 }
 
@@ -185,7 +184,6 @@ export default function Products() {
             type="submit"
             disabled={!isAnyItemChecked || loading}
             aria-disabled={!isAnyItemChecked || loading}
-            isLoading={loading}
           >
             {loading ? "Submitting..." : "Continue"}
           </Button>

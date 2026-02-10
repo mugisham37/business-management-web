@@ -1,6 +1,6 @@
 "use client"
-import { Button } from "@/components/Button"
-import { Logo } from "@/components/ui/Logo"
+import { Button } from "@/components/ui/button"
+import { DatabaseLogo } from "../../../../public/DatabaseLogo"
 import useScroll from "@/lib/useScroll"
 import { cx } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -74,7 +74,7 @@ const Layout = ({
           className="hidden flex-nowrap items-center gap-0.5 md:flex"
           aria-hidden="true"
         >
-          <Logo
+          <DatabaseLogo
             className="w-7 p-px text-blue-500 dark:text-blue-500"
             aria-hidden="true"
           />

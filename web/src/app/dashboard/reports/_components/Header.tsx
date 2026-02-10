@@ -83,7 +83,7 @@ export default function Header() {
               <FilterExpenseStatus />
               <FilterAmount />
               <Button
-                variant="light"
+                variant="outline"
                 className="h-fit dark:border-gray-800"
                 onClick={handleResetFilters}
               >
@@ -99,7 +99,7 @@ export default function Header() {
         <FilterExpenseStatus />
         <FilterAmount />
         <Button
-          variant="light"
+          variant="outline"
           className="h-fit dark:border-gray-800"
           onClick={handleResetFilters}
         >

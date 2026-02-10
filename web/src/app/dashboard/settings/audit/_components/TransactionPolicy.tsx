@@ -114,7 +114,7 @@ export default function TransactionPolicy() {
           </h3>
           <CategoryBar
             values={[8, 3, 89]}
-            colors={["rose", "orange", "gray"]}
+            colors={["pink", "amber", "gray"]}
             showLabels={false}
             className="mt-10"
             aria-labelledby="overview-heading"
@@ -180,7 +180,7 @@ export default function TransactionPolicy() {
                 className="flex items-center justify-between py-2.5"
               >
                 <Badge
-                  variant={item.category === "block" ? "error" : "warning"}
+                  variant={item.category === "block" ? "destructive" : "warning"}
                   className="gap-2"
                 >
                   <span
