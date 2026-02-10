@@ -2,11 +2,23 @@
 
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -14,66 +26,192 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { ModalAddUser } from "@/components/Dashboard/settings/ModalAddUser"
 import { invitedUsers, roles, users } from "@/data/data"
 import { RiAddLine, RiMore2Fill } from "@remixicon/react"
 
+// Combine active users and pending invitations into a single dataset
+const allUsers = [
+  ...users.map((user) => ({
+    ...user,
+    status: "active" as const,
+    dateAdded: "Jan 13, 2022", // Mock data - should come from backend
+    lastActive: "Mar 2, 2024", // Mock data - should come from backend
+  })),
+  ...invitedUsers.map((user) => ({
+    name: user.email.split("@")[0],
+    initials: user.initials,
+    email: user.email,
+    role: user.role,
+    status: "pending" as const,
+    dateAdded: "Jul 14, 2024", // Mock data - should come from backend
+    lastActive: "--",
+    expires: user.expires,
+  })),
+]
+
 export default function Users() {
   return (
-    <>
-      <section aria-labelledby="existing-users">
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h3
-              id="existing-users"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-            >
-              Users
-            </h3>
-            <p className="text-sm leading-6 text-gray-500">
-              Workspace administrators can add, manage, and remove users.
-            </p>
-          </div>
-          <ModalAddUser>
-            <Button className="mt-4 w-full gap-2 sm:mt-0 sm:w-fit">
-              <RiAddLine className="-ml-1 size-4 shrink-0" aria-hidden="true" />
-              Add user
-            </Button>
-          </ModalAddUser>
+    <section aria-labelledby="users-heading">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-3">
+        <div>
+          <h2
+            id="users-heading"
+            className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+          >
+            Users
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Workspace administrators can add, manage, and remove users. Invite
+            new members and assign roles to control access.
+          </p>
         </div>
-        <ul
-          role="list"
-          className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
-        >
-          {users.map((user) => (
-            <li
-              key={user.name}
-              className="flex items-center justify-between gap-x-6 py-2.5"
+        <div className="md:col-span-2">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <h3
+              id="users-list-heading"
+              className="text-sm font-medium text-gray-900 dark:text-gray-50"
             >
-              <div className="flex items-center gap-x-4 truncate">
-                <span
-                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs text-gray-700 sm:flex dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
-                  aria-hidden="true"
-                >
-                  {user.initials}
-                </span>
-                <div className="truncate">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
-                    {user.name}
-                  </p>
-                  <p className="truncate text-xs text-gray-500">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {user.role === "admin" ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <Select
-                          defaultValue={user.role}
-                          disabled={user.role === "admin"}
+              All workspace members
+            </h3>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full gap-2 sm:w-fit">
+                  <RiAddLine className="-ml-1 size-4 shrink-0" aria-hidden="true" />
+                  Add user
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <form>
+                  <DialogHeader>
+                    <DialogTitle>Invite people to your workspace</DialogTitle>
+                    <DialogDescription className="mt-1 text-sm leading-6">
+                      With free plan, you can add up to 10 users to each workspace.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <Label htmlFor="email-new-user" className="font-medium">
+                        Email
+                      </Label>
+                      <Input
+                        id="email-new-user"
+                        name="email-new-user"
+                        type="email"
+                        placeholder="Insert email..."
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="role-new-user" className="font-medium">
+                        Select role
+                      </Label>
+                      <Select name="role-new-user">
+                        <SelectTrigger
+                          id="role-new-user"
+                          className="mt-2"
                         >
+                          <SelectValue placeholder="Select role..." />
+                        </SelectTrigger>
+                        <SelectContent align="end">
+                          {roles.map((role) => (
+                            <SelectItem
+                              key={role.value}
+                              value={role.value}
+                              disabled={role.value === "admin"}
+                            >
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter className="mt-6">
+                    <DialogClose asChild>
+                      <Button
+                        className="mt-2 w-full sm:mt-0 sm:w-fit"
+                        variant="secondary"
+                      >
+                        Go back
+                      </Button>
+                    </DialogClose>
+                    <Button type="submit" className="w-full sm:w-fit">
+                      Add user
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-full">Name / Email</TableHead>
+                  <TableHead>Date added</TableHead>
+                  <TableHead>Last active</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allUsers.map((user) => (
+                  <TableRow key={user.email}>
+                    <TableCell className="w-full">
+                      <div className="flex items-center gap-x-4">
+                        <span
+                          className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+                            user.status === "pending"
+                              ? "border border-dashed border-gray-300 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
+                              : "border border-gray-300 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {user.initials}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+                              {user.name}
+                            </p>
+                            {user.status === "pending" && (
+                              <span className="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-400/10 dark:text-gray-300">
+                                pending
+                              </span>
+                            )}
+                          </div>
+                          <p className="truncate text-xs text-gray-500">
+                            {user.email}
+                            {user.status === "pending" && user.expires && (
+                              <span className="ml-1">
+                                • Expires in {user.expires} days
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-gray-500">
+                      {user.dateAdded}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-gray-500">
+                      {user.lastActive}
+                    </TableCell>
+                    <TableCell>
+                      {user.status === "pending" ? (
+                        <Select defaultValue={user.role}>
                           <SelectTrigger className="h-8 w-32">
                             <SelectValue placeholder="Select" />
                           </SelectTrigger>
@@ -89,137 +227,131 @@ export default function Users() {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-44 text-xs" sideOffset={5}>
-                      A workspace must have at least one admin
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Select
-                    defaultValue={user.role}
-                    disabled={user.role === "admin"}
-                  >
-                    <SelectTrigger className="h-8 w-32">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent align="end">
-                      {roles.map((role) => (
-                        <SelectItem
-                          key={role.value}
-                          value={role.value}
-                          disabled={role.value === "admin"}
-                        >
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
-                    >
-                      <RiMore2Fill
-                        className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
-                        aria-hidden="true"
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem disabled={user.role === "admin"}>
-                      View details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-600 dark:text-red-500"
-                      disabled={user.role === "admin"}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="mt-12" aria-labelledby="pending-invitations">
-        <h2
-          id="pending-invitations"
-          className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-        >
-          Pending invitations
-        </h2>
-        <ul
-          role="list"
-          className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
-        >
-          {invitedUsers.map((user) => (
-            <li
-              key={user.initials}
-              className="flex items-center justify-between gap-x-6 py-2.5"
-            >
-              <div className="flex items-center gap-x-4">
-                <span
-                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-dashed border-gray-300 bg-white text-xs text-gray-700 sm:flex dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
-                  aria-hidden="true"
-                >
-                  {user.initials}
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                    {user.email}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Expires in {user.expires} days
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select defaultValue={user.role}>
-                  <SelectTrigger className="h-8 w-32">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent align="end">
-                    {roles.map((role) => (
-                      <SelectItem
-                        key={role.value}
-                        value={role.value}
-                        disabled={role.value === "admin"}
-                      >
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
-                    >
-                      <RiMore2Fill
-                        className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
-                        aria-hidden="true"
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem
-                      className="text-red-600 dark:text-red-500"
-                      disabled={user.role === "admin"}
-                    >
-                      Revoke invitation
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </>
+                      ) : user.role === "admin" ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <Select
+                                defaultValue={user.role}
+                                disabled={user.role === "admin"}
+                              >
+                                <SelectTrigger className="h-8 w-32">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent align="end">
+                                  {roles.map((role) => (
+                                    <SelectItem
+                                      key={role.value}
+                                      value={role.value}
+                                      disabled={role.value === "admin"}
+                                    >
+                                      {role.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-44 text-xs" sideOffset={5}>
+                            A workspace must have at least one admin
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Select defaultValue={user.role}>
+                          <SelectTrigger className="h-8 w-32">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent align="end">
+                            {roles.map((role) => (
+                              <SelectItem
+                                key={role.value}
+                                value={role.value}
+                                disabled={role.value === "admin"}
+                              >
+                                {role.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+                            aria-label={`Actions for ${user.name}`}
+                          >
+                            <RiMore2Fill
+                              className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
+                              aria-hidden="true"
+                            />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-36">
+                          {user.status === "pending" ? (
+                            <>
+                              <DropdownMenuItem>Resend invitation</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                                Revoke invitation
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <>
+                              <DropdownMenuItem disabled={user.role === "admin"}>
+                                View details
+                              </DropdownMenuItem>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    className="text-red-600 dark:text-red-500"
+                                    disabled={user.role === "admin"}
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-lg">
+                                  <DialogHeader>
+                                    <DialogTitle>Please confirm</DialogTitle>
+                                    <DialogDescription className="mt-1 text-sm leading-6">
+                                      Are you sure you want to delete {user.name}?
+                                      This action cannot be undone.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <DialogFooter className="mt-6">
+                                    <DialogClose asChild>
+                                      <Button
+                                        className="mt-2 w-full sm:mt-0 sm:w-fit"
+                                        variant="secondary"
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </DialogClose>
+                                    <DialogClose asChild>
+                                      <Button
+                                        className="w-full sm:w-fit"
+                                        variant="destructive"
+                                      >
+                                        Delete
+                                      </Button>
+                                    </DialogClose>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

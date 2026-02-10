@@ -12,10 +12,14 @@ export const siteConfig = {
     terms: "/terms",
     overview: "/dashboard/overview",
     details: "/dashboard/details",
+    reports: "/dashboard/reports",
+    transactions: "/dashboard/transactions",
+    onboarding: "/auth/onboarding/products",
     settings: {
       general: "/dashboard/settings/general",
       billing: "/dashboard/settings/billing",
       users: "/dashboard/settings/users",
+      audit: "/dashboard/settings/audit",
     },
   },
 }

@@ -1,8 +1,8 @@
 "use client"
 
-import { Badge, BadgeProps } from "@/components/Badge"
-import { Button } from "@/components/Button"
-import { Checkbox } from "@/components/Checkbox"
+import { Badge, BadgeProps } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { expense_statuses, Transaction } from "@/data/schema"
 import { formatters } from "@/lib/utils"
 import { ColumnDef, createColumnHelper, Row } from "@tanstack/react-table"
@@ -37,7 +37,7 @@ export const getColumns = ({
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
           onCheckedChange={() => row.toggleSelected()}
           className="translate-y-0.5"
           aria-label="Select row"
@@ -121,7 +121,7 @@ export const getColumns = ({
       cell: ({ getValue }) => {
         return (
           <span className="font-medium">
-            {formatters.currency({ number: getValue() })}
+            {formatters.currency(getValue())}
           </span>
         )
       },

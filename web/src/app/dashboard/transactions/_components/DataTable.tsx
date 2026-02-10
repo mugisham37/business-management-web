@@ -5,9 +5,8 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeaderCell,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/table"
 import { cx } from "@/lib/utils"
 import * as React from "react"
 
@@ -67,7 +66,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                   className="border-y border-gray-200 dark:border-gray-800"
                 >
                   {headerGroup.headers.map((header) => (
-                    <TableHeaderCell
+                    <TableHead
                       key={header.id}
                       className={cx(
                         "whitespace-nowrap py-1",
@@ -78,7 +77,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                         header.column.columnDef.header,
                         header.getContext(),
                       )}
-                    </TableHeaderCell>
+                    </TableHead>
                   ))}
                 </TableRow>
               ))}

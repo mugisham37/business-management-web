@@ -1,8 +1,8 @@
-import { Button } from "@/components/Button"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
-import { Slider } from "@/components/Slider"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Slider } from "@/components/ui/slider"
 import { transactions } from "@/data/transactions"
 import { cx, focusRing, formatters } from "@/lib/utils"
 import { useQueryState } from "nuqs"
@@ -22,7 +22,7 @@ function FilterAmount() {
 
   const [range, setRange] = useQueryState("amount_range", {
     defaultValue: `${minAmount}-${maxAmount}`,
-    parse: (value) => {
+    parse: (value: string) => {
       try {
         const [min, max] = value.split("-").map(Number)
         if (isNaN(min) || isNaN(max)) {
@@ -34,7 +34,7 @@ function FilterAmount() {
         return `${minAmount}-${maxAmount}`
       }
     },
-    serialize: (value) => value,
+    serialize: (value: string) => value,
   })
 
   const [min, max] = React.useMemo(() => {
@@ -123,8 +123,8 @@ function FilterAmount() {
               "mt-2 block w-full text-left font-normal tabular-nums md:w-36 dark:bg-[#090E1A] hover:dark:bg-gray-950/50",
             )}
           >
-            {formatters.currency({ number: localMin, maxFractionDigits: 0 })} -{" "}
-            {formatters.currency({ number: localMax, maxFractionDigits: 0 })}
+            {formatters.currency(localMin)} -{" "}
+            {formatters.currency(localMax)}
           </Button>
         </PopoverTrigger>
         <PopoverContent

@@ -2,13 +2,13 @@ const fs = require("fs")
 const path = require("path")
 
 function generateRandomData(
-  previousValue,
-  min,
-  max,
-  variance,
-  isWeekend,
-  weekendReduction,
-  momentum,
+  previousValue: number,
+  min: number,
+  max: number,
+  variance: number,
+  isWeekend: boolean,
+  weekendReduction: boolean,
+  momentum: number,
 ) {
   let drift = (Math.random() - 0.5) * 2 * variance
   drift += momentum // Apply momentum
@@ -36,14 +36,22 @@ function generateRandomData(
   }
 }
 
-function generateData(startDate, endDate, categories) {
-  const overviews = []
+interface Category {
+  name: string
+  min: number
+  max: number
+  variance: number
+  weekendReduction: boolean
+}
+
+function generateData(startDate: string, endDate: string, categories: Category[]) {
+  const overviews: any[] = []
   let currentDate = new Date(startDate)
   const endDateObj = new Date(endDate)
 
   // Initialize previous values with average values for each category
-  const previousValues = {}
-  const momenta = {} // Track momentum for each category
+  const previousValues: Record<string, number> = {}
+  const momenta: Record<string, number> = {} // Track momentum for each category
   categories.forEach((category) => {
     previousValues[category.name] = (category.min + category.max) / 2 // Initialize with mid-point value
     momenta[category.name] = 0 // Initialize momentum
@@ -51,7 +59,7 @@ function generateData(startDate, endDate, categories) {
 
   while (currentDate <= endDateObj) {
     const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6 // 0 = Sunday, 6 = Saturday
-    const dataEntry = {
+    const dataEntry: Record<string, any> = {
       date: currentDate.toISOString().split("T")[0] + "T00:00:00",
     }
 
@@ -77,7 +85,7 @@ function generateData(startDate, endDate, categories) {
   return overviews
 }
 
-const categories = [
+const categories: Category[] = [
   {
     name: "Rows written",
     min: 2500,
@@ -148,7 +156,7 @@ export const overviews: OverviewData[] = ${JSON.stringify(overviews, null, 2)};
 
 const outputPath = path.join(__dirname, "overview-data.ts")
 
-fs.writeFile(outputPath, dataString, (err) => {
+fs.writeFile(outputPath, dataString, (err: any) => {
   if (err) throw err
   console.log(`Data has been written to ${outputPath}`)
 })

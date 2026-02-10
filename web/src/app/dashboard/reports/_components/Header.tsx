@@ -4,8 +4,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/Accordion"
-import { Button } from "@/components/Button"
+} from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
 import useScroll from "@/lib/useScroll"
 import { cx } from "@/lib/utils"
 import { useQueryState } from "nuqs"

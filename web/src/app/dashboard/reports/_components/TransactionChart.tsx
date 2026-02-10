@@ -1,6 +1,6 @@
 "use client"
-import { BarChartVariant } from "@/components/BarChartVariant"
-import { Tooltip } from "@/components/Tooltip"
+import { BarChartVariant } from "@/components/ui/bar-chart-variant"
+import { Tooltip } from "@/components/ui/tooltip"
 import { Transaction } from "@/data/schema"
 import { transactions } from "@/data/transactions"
 import { AvailableChartColorsKeys } from "@/lib/chartUtils"
@@ -58,7 +58,7 @@ const chartConfigs: Record<ChartType, ChartConfig> = {
       }))
     },
     valueFormatter: (number: number) =>
-      formatters.currency({ number: number, maxFractionDigits: 0 }),
+      formatters.currency(number),
     xValueFormatter: (dateString: string) => {
       const date = new Date(dateString)
       return date.toLocaleDateString("en-GB", {
@@ -115,7 +115,7 @@ const chartConfigs: Record<ChartType, ChartConfig> = {
         .map(([category, value]) => ({ key: category, value }))
     },
     valueFormatter: (number: number) =>
-      formatters.currency({ number: number, maxFractionDigits: 0 }),
+      formatters.currency(number),
     layout: "vertical",
     color: "emerald",
   },
@@ -137,7 +137,7 @@ const chartConfigs: Record<ChartType, ChartConfig> = {
         .map(([merchant, value]) => ({ key: merchant, value }))
     },
     valueFormatter: (number: number) =>
-      formatters.currency({ number: number, maxFractionDigits: 0 }),
+      formatters.currency(number),
     layout: "vertical",
     color: "orange",
   },
@@ -173,7 +173,7 @@ export function TransactionChart({
 }) {
   const [range] = useQueryState<RangeKey>("range", {
     defaultValue: DEFAULT_RANGE,
-    parse: (value): RangeKey =>
+    parse: (value: string): RangeKey =>
       Object.keys(RANGE_DAYS).includes(value)
         ? (value as RangeKey)
         : DEFAULT_RANGE,
@@ -200,7 +200,7 @@ export function TransactionChart({
   const chartData = useMemo(() => {
     const currentDate = new Date()
     const filterDate = new Date(currentDate)
-    const daysToSubtract = RANGE_DAYS[range] || RANGE_DAYS[DEFAULT_RANGE]
+    const daysToSubtract = RANGE_DAYS[range as keyof typeof RANGE_DAYS] || RANGE_DAYS[DEFAULT_RANGE]
     filterDate.setDate(currentDate.getDate() - daysToSubtract)
 
     const filters: Filters = {

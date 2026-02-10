@@ -1,25 +1,24 @@
 "use client"
-import { DataTableDrawerFeed } from "@/app/(dashboard)/transactions/_components/DataTableDrawerFeed"
-import { Button } from "@/components/Button"
+import { DataTableDrawerFeed } from "@/app/dashboard/transactions/_components/DataTableDrawerFeed"
+import { Button } from "@/components/ui/button"
 import {
   Drawer,
-  DrawerBody,
   DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/Drawer"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+} from "@/components/ui/drawer"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs"
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Transaction, expense_statuses } from "@/data/schema"
 import { Download, File, Trash2 } from "lucide-react"
 import React from "react"
@@ -31,7 +30,7 @@ interface DataTableDrawerProps {
   datas: Transaction | undefined
 }
 
-import { Badge, BadgeProps } from "@/components/Badge"
+import { Badge, BadgeProps } from "@/components/ui/badge"
 import { categories } from "@/data/schema"
 import { formatters } from "@/lib/utils"
 import { format } from "date-fns"
@@ -102,7 +101,7 @@ export function DataTableDrawer({
           <DrawerHeader className="-px-6 w-full">
             <DrawerTitle className="flex w-full items-center justify-between">
               <span>{datas.merchant}</span>
-              <span>{formatters.currency({ number: datas.amount })}</span>
+              <span>{formatters.currency(datas.amount)}</span>
             </DrawerTitle>
             <div className="mt-1 flex items-center justify-between">
               <span className="text-left text-sm text-gray-500 dark:text-gray-500">
@@ -116,7 +115,7 @@ export function DataTableDrawer({
               </Badge>
             </div>
           </DrawerHeader>
-          <DrawerBody className="-mx-6 overflow-y-scroll">
+          <div className="-mx-6 overflow-y-scroll">
             <Tabs defaultValue="details">
               <TabsList className="px-6">
                 <TabsTrigger value="details" className="px-4">
@@ -213,7 +212,7 @@ export function DataTableDrawer({
                 <DataTableDrawerFeed />
               </TabsContent>
             </Tabs>
-          </DrawerBody>
+          </div>
           <DrawerFooter className="-mx-6 -mb-2 gap-2 bg-white px-6 dark:bg-gray-925">
             <DrawerClose>
               <Button variant="secondary" className="w-full">

@@ -1,18 +1,18 @@
-import { Label } from "@/components/Label"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 import { useQueryState } from "nuqs"
 import { DEFAULT_RANGE, RANGE_DAYS, RANGE_LABELS, RangeKey } from "./dateRanges"
 
 const FilterDate = () => {
   const [range, setRange] = useQueryState<RangeKey>("range", {
     defaultValue: DEFAULT_RANGE,
-    parse: (value): RangeKey =>
+    parse: (value: string): RangeKey =>
       Object.keys(RANGE_DAYS).includes(value)
         ? (value as RangeKey)
         : DEFAULT_RANGE,

@@ -1,14 +1,14 @@
-import { Badge } from "@/components/Badge"
-import { Button } from "@/components/Button"
-import { CategoryBar } from "@/components/CategoryBar"
-import { Input } from "@/components/Input"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { CategoryBar } from "@/components/ui/category-bar"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 import { cx } from "@/lib/utils"
 import { ChevronRight, Trash2 } from "lucide-react"
 import { useState } from "react"
@@ -280,7 +280,7 @@ export default function TransactionPolicy() {
                   <Button
                     variant="secondary"
                     className="w-full sm:w-fit"
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                       e.preventDefault()
                       setIsKeyword(!isKeyword)
                     }}
@@ -297,7 +297,7 @@ export default function TransactionPolicy() {
           <Button
             variant="secondary"
             className={cx("mt-4 w-full sm:w-fit", isKeyword && "hidden")}
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.preventDefault()
               setIsKeyword(!isKeyword)
             }}

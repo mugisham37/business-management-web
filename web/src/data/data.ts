@@ -575,3 +575,22 @@ export const usage: Usage[] = [
     lastEdited: "01/01/2022 16:18",
   },
 ]
+
+export const departments: { value: string; label: string }[] = [
+  {
+    value: "all-areas",
+    label: "All areas",
+  },
+  {
+    value: "IT",
+    label: "IT",
+  },
+  {
+    value: "sales",
+    label: "Sales",
+  },
+  {
+    value: "marketing",
+    label: "Marketing",
+  },
+]

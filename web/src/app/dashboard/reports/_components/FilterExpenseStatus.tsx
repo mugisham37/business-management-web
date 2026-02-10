@@ -1,11 +1,11 @@
-import { Label } from "@/components/Label"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 import { expense_statuses } from "@/data/schema"
 import { cx } from "@/lib/utils"
 import { useQueryState } from "nuqs"
@@ -25,7 +25,7 @@ function FilterExpenseStatus() {
   const DEFAULT_STATUS = "all"
   const [status, setStatus] = useQueryState<string>("expense_status", {
     defaultValue: DEFAULT_STATUS,
-    parse: (value) =>
+    parse: (value: string) =>
       [DEFAULT_STATUS, ...expense_statuses.map((s) => s.value)].includes(value)
         ? value
         : DEFAULT_STATUS,
