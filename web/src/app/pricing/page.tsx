@@ -1,12 +1,12 @@
 "use client"
-import { Badge } from "@/components/Badge"
-import { Button } from "@/components/Button"
-import { Label } from "@/components/Label"
-import { Switch } from "@/components/Switch"
-import { Tooltip } from "@/components/Tooltip"
-import { ArrowAnimated } from "@/components/ui/ArrowAnimated"
-import { Faqs } from "@/components/ui/Faqs"
-import Testimonial from "@/components/ui/Testimonial"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { ArrowAnimated } from "@/components/landing/ArrowAnimated"
+import { Faqs } from "@/components/landing/Faqs"
+import Testimonial from "@/components/landing/Testimonial"
 import { cx } from "@/lib/utils"
 import {
   RiCheckLine,
@@ -533,11 +533,16 @@ export default function Pricing() {
                         >
                           <span>{feature.name}</span>
                           {feature.tooltip ? (
-                            <Tooltip side="right" content={feature.tooltip}>
-                              <RiInformationLine
-                                className="size-4 shrink-0 text-gray-700 dark:text-gray-400"
-                                aria-hidden="true"
-                              />
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <RiInformationLine
+                                  className="size-4 shrink-0 text-gray-700 dark:text-gray-400"
+                                  aria-hidden="true"
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent side="right">
+                                {feature.tooltip}
+                              </TooltipContent>
                             </Tooltip>
                           ) : null}
                         </th>
@@ -589,7 +594,7 @@ export default function Pricing() {
                     <td key={plan.name} className="px-6 pt-6 lg:px-8">
                       {plan.isStarter ? (
                         <Button
-                          variant="light"
+                          variant="ghost"
                           asChild
                           className="group bg-transparent px-0 text-base hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
                         >
@@ -600,7 +605,7 @@ export default function Pricing() {
                         </Button>
                       ) : (
                         <Button
-                          variant="light"
+                          variant="ghost"
                           asChild
                           className="group bg-transparent px-0 text-base text-indigo-600 hover:bg-transparent dark:bg-transparent dark:text-indigo-400 hover:dark:bg-transparent"
                         >

@@ -1,6 +1,6 @@
 import { RiPlayCircleFill } from "@remixicon/react"
 import Link from "next/link"
-import { Button } from "../Button"
+import { Button } from "@/components/ui/button"
 import HeroImage from "./HeroImage"
 
 export default function Hero() {
@@ -32,7 +32,7 @@ export default function Hero() {
         </Button>
         <Button
           asChild
-          variant="light"
+          variant="ghost"
           className="group gap-x-2 bg-transparent font-semibold hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
         >
           <Link

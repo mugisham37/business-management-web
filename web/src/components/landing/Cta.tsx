@@ -1,7 +1,7 @@
 "use client"
 import Balancer from "react-wrap-balancer"
-import { Button } from "../Button"
-import { Input } from "../Input"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export default function Cta() {
   return (
@@ -60,7 +60,6 @@ export default function Cta() {
                     required
                     id="email"
                     className="h-10 w-full min-w-0 flex-auto"
-                    inputClassName="h-full"
                     placeholder="Your Work Email "
                   />
                   <Button
