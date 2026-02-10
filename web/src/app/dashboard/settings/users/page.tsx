@@ -1,21 +1,21 @@
 "use client"
 
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/Dropdown"
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Tooltip } from "@/components/Tooltip"
-import { ModalAddUser } from "@/components/ui/settings/ModalAddUser"
+} from "@/components/ui/select"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { ModalAddUser } from "@/components/Dashboard/settings/ModalAddUser"
 import { invitedUsers, roles, users } from "@/data/data"
 import { RiAddLine, RiMore2Fill } from "@remixicon/react"
 
@@ -67,33 +67,33 @@ export default function Users() {
               </div>
               <div className="flex items-center gap-2">
                 {user.role === "admin" ? (
-                  <Tooltip
-                    content="A workspace must have at least one admin"
-                    className="max-w-44 text-xs"
-                    sideOffset={5}
-                    triggerAsChild={true}
-                  >
-                    <div>
-                      <Select
-                        defaultValue={user.role}
-                        disabled={user.role === "admin"}
-                      >
-                        <SelectTrigger className="h-8 w-32">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent align="end">
-                          {roles.map((role) => (
-                            <SelectItem
-                              key={role.value}
-                              value={role.value}
-                              disabled={role.value === "admin"}
-                            >
-                              {role.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <Select
+                          defaultValue={user.role}
+                          disabled={user.role === "admin"}
+                        >
+                          <SelectTrigger className="h-8 w-32">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent align="end">
+                            {roles.map((role) => (
+                              <SelectItem
+                                key={role.value}
+                                value={role.value}
+                                disabled={role.value === "admin"}
+                              >
+                                {role.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-44 text-xs" sideOffset={5}>
+                      A workspace must have at least one admin
+                    </TooltipContent>
                   </Tooltip>
                 ) : (
                   <Select
