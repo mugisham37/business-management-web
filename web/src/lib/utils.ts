@@ -34,7 +34,7 @@ export const focusInput = [
   'focus:ring-indigo-200 focus:dark:ring-indigo-700/30',
   // border color
   'focus:border-indigo-500 focus:dark:border-indigo-700',
-] as const;
+];
 
 // Tremor Raw focusRing [v0.0.1]
 /**
@@ -46,7 +46,7 @@ export const focusRing = [
   'outline outline-offset-2 outline-0 focus-visible:outline-2',
   // outline color
   'outline-indigo-500 dark:outline-indigo-500',
-] as const;
+];
 
 // Tremor Raw hasErrorInput [v0.0.1]
 /**
@@ -60,4 +60,30 @@ export const hasErrorInput = [
   'border-red-500 dark:border-red-700',
   // ring color
   'ring-red-200 dark:ring-red-700/30',
-] as const;
+];
+
+/**
+ * Formats a number as a percentage with sign.
+ * 
+ * @param value - The number to format as percentage
+ * @returns A formatted percentage string with + or - sign
+ */
+export function percentageFormatter(value: number): string {
+  const formatted = `${Math.abs(value).toFixed(1)}%`;
+  return value >= 0 ? `+${formatted}` : `-${formatted}`;
+}
+
+/**
+ * Collection of formatter utilities for data display
+ */
+export const formatters = {
+  percentage: percentageFormatter,
+  currency: (value: number) => `$${value.toLocaleString()}`,
+  number: (value: number) => value.toLocaleString(),
+  unit: (value: number) => value.toLocaleString(),
+  compact: (value: number) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+    return value.toString();
+  },
+};

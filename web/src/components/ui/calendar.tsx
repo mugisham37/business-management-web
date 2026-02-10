@@ -54,3 +54,4 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: R
 }
 
 export { Calendar };
+export type { Matcher } from 'react-day-picker';
