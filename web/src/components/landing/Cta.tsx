@@ -20,7 +20,7 @@ export default function Cta() {
                 <div className="flex size-full gap-2">
                   {Array.from({ length: 41 }, (_, idx2) => (
                     <div key={`inner-${idx}-${idx2}`}>
-                      <div className="size-5 rounded-md shadow shadow-indigo-500/20 ring-1 ring-black/5 dark:shadow-indigo-500/20 dark:ring-white/5"></div>
+                      <div className="size-5 rounded-md shadow shadow-primary/20 ring-1 ring-border"></div>
                     </div>
                   ))}
                 </div>
@@ -33,19 +33,19 @@ export default function Cta() {
             <div>
               <h3
                 id="cta-title"
-                className="inline-block bg-gradient-to-t from-gray-900 to-gray-800 bg-clip-text p-2 text-4xl font-bold tracking-tighter text-transparent md:text-6xl dark:from-gray-50 dark:to-gray-300"
+                className="inline-block bg-gradient-to-t from-foreground to-foreground/80 bg-clip-text p-2 text-4xl font-bold tracking-tighter text-transparent md:text-6xl"
               >
                 Ready to get started?
               </h3>
-              <p className="mx-auto mt-4 max-w-2xl text-gray-600 sm:text-lg dark:text-gray-400">
+              <p className="mx-auto mt-4 max-w-2xl text-muted-foreground sm:text-lg">
                 <Balancer>
                   Launch a new cluster or migrate to Database with zero
                   downtime.
                 </Balancer>
               </p>
             </div>
-            <div className="mt-14 w-full rounded-[16px] bg-gray-300/5 p-1.5 ring-1 ring-black/[3%] backdrop-blur dark:bg-gray-900/10 dark:ring-white/[3%]">
-              <div className="rounded-xl bg-white p-4 shadow-lg shadow-indigo-500/10 ring-1 ring-black/5 dark:bg-gray-950 dark:shadow-indigo-500/10 dark:ring-white/5">
+            <div className="mt-14 w-full rounded-[16px] bg-muted/50 p-1.5 ring-1 ring-border backdrop-blur">
+              <div className="rounded-xl bg-card p-4 shadow-lg shadow-primary/10 ring-1 ring-border">
                 <form
                   className="flex flex-col items-center gap-3 sm:flex-row"
                   onSubmit={(e) => e.preventDefault()}
@@ -72,11 +72,11 @@ export default function Cta() {
                 </form>
               </div>
             </div>
-            <p className="mt-4 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+            <p className="mt-4 text-xs text-muted-foreground sm:text-sm">
               Not sure where to start?{" "}
               <a
                 href="#"
-                className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-500 dark:hover:text-indigo-400"
+                className="font-semibold text-primary hover:text-primary/80"
               >
                 Talk to sales
               </a>
