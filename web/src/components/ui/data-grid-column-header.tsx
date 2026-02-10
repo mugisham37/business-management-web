@@ -1,7 +1,7 @@
 import { HTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/src/lib/utils';
-import { Button } from '@/src/components/ui/button';
-import { useDataGrid } from '@/src/components/ui/data-grid';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useDataGrid } from '@/components/ui/data-grid';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,7 +14,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/src/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import { Column } from '@tanstack/react-table';
 import {
   ArrowDown,

@@ -10,19 +10,19 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/src/components/ui/command';
+} from '@/components/ui/command';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/src/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/src/components/ui/popover';
-import { Switch } from '@/src/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/src/components/ui/tooltip';
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { AlertCircle, Check, Plus, X } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 // i18n Configuration Interface
 export interface FilterI18nConfig {

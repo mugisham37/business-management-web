@@ -28,29 +28,57 @@ code {
 code .line::before {
   content: counter(step);
   counter-increment: step;
-  @apply mr-8 inline-block w-4 text-right text-gray-600;
+  margin-right: 2rem;
+  display: inline-block;
+  width: 1rem;
+  text-align: right;
+  color: rgb(75 85 99);
+}
+
+@media (prefers-color-scheme: dark) {
+  code .line::before {
+    color: rgb(75 85 99);
+  }
 }
 .mask {
   mask-image: radial-gradient(rgba(0, 0, 0, 1) 0%, transparent 80%);
 }
 
 a {
-  @apply scroll-my-24 decoration-gray-400 transition-all;
+  scroll-margin-top: 6rem;
+  scroll-margin-bottom: 6rem;
+  text-decoration-color: rgb(156 163 175);
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
 .anchor-link {
-  @apply invisible absolute -ml-4 w-3/4 max-w-2xl cursor-pointer pr-2 no-underline;
+  visibility: hidden;
+  position: absolute;
+  margin-left: -1rem;
+  width: 75%;
+  max-width: 42rem;
+  cursor: pointer;
+  padding-right: 0.5rem;
+  text-decoration: none;
 }
 
 .anchor-link:hover {
-  @apply visible;
+  visibility: visible;
 }
 
 .anchor-link:after {
-  @apply text-gray-400 dark:text-gray-600;
+  color: rgb(156 163 175);
   content: "#";
 }
 
+@media (prefers-color-scheme: dark) {
+  .anchor-link:after {
+    color: rgb(75 85 99);
+  }
+}
+
 *:hover > .anchor-link {
-  @apply visible;
+  visibility: visible;
 }
