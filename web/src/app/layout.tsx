@@ -1,5 +1,6 @@
 import Footer from "@/components/landing/Footer"
 import { Navigation } from "@/components/landing/Navbar"
+import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
@@ -51,33 +52,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} min-h-screen scroll-auto antialiased selection:bg-primary/10 selection:text-primary bg-background`}
+        className={`${inter.className} min-h-screen overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:selection:bg-indigo-900 dark:selection:text-indigo-300 bg-background dark:bg-gray-950`}
+        suppressHydrationWarning
       >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           disableTransitionOnChange
         >
-          <Navigation />
           {children}
-          <Footer />
         </ThemeProvider>
-      </body>
-    </html>
-  )
-}
-return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.className} overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
-        suppressHydrationWarning
-      >
-        <div className="mx-auto max-w-screen-2xl">
-          <ThemeProvider defaultTheme="system" attribute="class">
-            <Sidebar />
-            <main className="lg:pl-72">{children}</main>
-          </ThemeProvider>
-        </div>
       </body>
     </html>
   )
