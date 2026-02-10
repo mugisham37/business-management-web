@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
 
@@ -60,7 +61,9 @@ export default function RootLayout({
           defaultTheme="system"
           disableTransitionOnChange
         >
-          {children}
+          <NuqsAdapter>
+            {children}
+          </NuqsAdapter>
         </ThemeProvider>
       </body>
     </html>

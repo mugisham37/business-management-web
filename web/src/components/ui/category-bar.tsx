@@ -11,7 +11,7 @@ import {
 } from "@/lib/chartUtils"
 import { cx } from "@/lib/utils"
 
-import { Tooltip } from "./Tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent } from "./tooltip"
 
 const getMarkerBgColor = (
   marker: number | undefined,
@@ -184,20 +184,23 @@ const CategoryBar = React.forwardRef<HTMLDivElement, CategoryBarProps>(
               }}
             >
               {marker.tooltip ? (
-                <Tooltip triggerAsChild content={marker.tooltip}>
-                  <div
-                    aria-hidden="true"
-                    className={cx(
-                      "relative mx-auto h-4 w-1 rounded-full ring-2",
-                      "ring-white dark:ring-gray-950",
-                      markerBgColor,
-                    )}
-                  >
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <div
-                      aria-hidden
-                      className="absolute size-7 -translate-x-[45%] -translate-y-[15%]"
-                    ></div>
-                  </div>
+                      aria-hidden="true"
+                      className={cx(
+                        "relative mx-auto h-4 w-1 rounded-full ring-2",
+                        "ring-white dark:ring-gray-950",
+                        markerBgColor,
+                      )}
+                    >
+                      <div
+                        aria-hidden
+                        className="absolute size-7 -translate-x-[45%] -translate-y-[15%]"
+                      ></div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{marker.tooltip}</TooltipContent>
                 </Tooltip>
               ) : (
                 <div

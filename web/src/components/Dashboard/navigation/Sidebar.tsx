@@ -27,6 +27,8 @@ import {
 import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
 
 const platformNavigation = [
+  { name: "Overview", href: siteConfig.baseLinks.overview, icon: Home },
+  { name: "Details", href: siteConfig.baseLinks.details, icon: ListChecks },
   { name: "Reports", href: "/dashboard/reports", icon: BarChartBig },
   {
     name: "Transactions",
@@ -37,34 +39,6 @@ const platformNavigation = [
     name: "Settings",
     href: siteConfig.baseLinks.settings.general,
     icon: Settings2,
-  },
-] as const
-
-const analyticsNavigation = [
-  { name: "Overview", href: siteConfig.baseLinks.overview, icon: Home },
-  { name: "Details", href: siteConfig.baseLinks.details, icon: ListChecks },
-] as const
-
-const shortcuts = [
-  {
-    name: "Add new user",
-    href: "/dashboard/settings/users",
-    icon: LinkIcon,
-  },
-  {
-    name: "Workspace usage",
-    href: "/dashboard/settings/billing#billing-overview",
-    icon: LinkIcon,
-  },
-  {
-    name: "Cost spend control",
-    href: "/dashboard/settings/billing#cost-spend-control",
-    icon: LinkIcon,
-  },
-  {
-    name: "Overview – Rows written",
-    href: "/dashboard/overview#usage-overview",
-    icon: LinkIcon,
   },
 ] as const
 
@@ -207,92 +181,7 @@ export function Sidebar({
               </ul>
             </div>
 
-            {/* Analytics Section */}
-            <div>
-              <span
-                aria-hidden={isCollapsed}
-                className={cx(
-                  "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity dark:text-gray-500",
-                  isCollapsed ? "opacity-0" : "opacity-100",
-                )}
-              >
-                Analytics
-              </span>
-              <ul role="list" className="mt-1 space-y-2">
-                {analyticsNavigation.map((item) => (
-                  <li key={item.name}>{renderNavLink(item, isCollapsed)}</li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Shortcuts Section */}
-            {!isCollapsed && (
-              <div>
-                <span className="block h-6 text-xs font-medium leading-6 text-gray-500 dark:text-gray-500">
-                  Shortcuts
-                </span>
-                <ul aria-label="shortcuts" role="list" className="mt-1 space-y-2">
-                  {shortcuts.map((item) => (
-                    <li key={item.name}>{renderNavLink(item, false)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Setup Section */}
-            <div>
-              <span
-                aria-hidden={isCollapsed}
-                className={cx(
-                  "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity dark:text-gray-500",
-                  isCollapsed ? "opacity-0" : "opacity-100",
-                )}
-              >
-                Setup
-              </span>
-              <ul role="list" className="mt-1 space-y-2">
-                <li>
-                  {isCollapsed ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link
-                          href="/auth/onboarding/products"
-                          className={cx(
-                            isActive("/auth/onboarding")
-                              ? "text-blue-600 dark:text-blue-500"
-                              : "text-gray-700 dark:text-gray-300",
-                            "inline-flex items-center rounded-md p-2 text-sm font-medium transition hover:bg-gray-200/50 hover:dark:bg-gray-900",
-                            focusRing,
-                          )}
-                        >
-                          <Compass
-                            className="size-5 shrink-0"
-                            aria-hidden="true"
-                          />
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" sideOffset={6}>
-                        Onboarding
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <Link
-                      href="/auth/onboarding/products"
-                      className={cx(
-                        isActive("/auth/onboarding")
-                          ? "text-blue-600 dark:text-blue-500"
-                          : "text-gray-700 dark:text-gray-300",
-                        "flex items-center gap-x-2.5 rounded-md p-2 text-sm font-medium transition hover:bg-gray-200/50 hover:dark:bg-gray-900",
-                        focusRing,
-                      )}
-                    >
-                      <Compass className="size-5 shrink-0" aria-hidden="true" />
-                      Onboarding
-                    </Link>
-                  )}
-                </li>
-              </ul>
-            </div>
           </nav>
 
           {/* User Profile */}

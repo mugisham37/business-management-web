@@ -59,7 +59,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
         <Filterbar table={table} />
         <div className="relative overflow-hidden overflow-x-auto">
           <Table>
-            <TableHead>
+            <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
@@ -81,7 +81,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                   ))}
                 </TableRow>
               ))}
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
