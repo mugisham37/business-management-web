@@ -1,6 +1,6 @@
 "use client"
 import { TabNavigation, TabNavigationLink } from "@/components/ui/tab-navigation"
-import { MetricsCards } from "@/components/Dashboard/business/homepage/MetricsCards"
+import { MetricsCards } from "@/components/dashboard/business/homepage/MetricsCards"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import React from "react"

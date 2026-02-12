@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/Dashboard/business/navigation/AppSidebar"
-import { Breadcrumbs } from "@/components/Dashboard/business/navigation/Breadcrumbs"
+import { AppSidebar } from "@/components/dashboard/business/navigation/AppSidebar"
+import { Breadcrumbs } from "@/components/dashboard/business/navigation/Breadcrumbs"
 import { cookies } from "next/headers"
 
 export default async function BusinessLayout({
