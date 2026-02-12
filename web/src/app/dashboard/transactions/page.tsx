@@ -21,7 +21,7 @@ export default function Example() {
 
   return (
     <>
-      <h1 className="text-lg font-semibold text-gray-900 sm:text-xl dark:text-gray-50">
+      <h1 className="text-lg font-semibold text-foreground sm:text-xl">
         Details
       </h1>
       <div className="mt-4 sm:mt-6 lg:mt-10">

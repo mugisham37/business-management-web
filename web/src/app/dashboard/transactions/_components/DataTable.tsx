@@ -63,7 +63,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="border-y border-gray-200 dark:border-gray-800"
+                  className="border-y border-border"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
@@ -87,21 +87,21 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    className="group select-none hover:bg-gray-50 hover:dark:bg-gray-900"
+                    className="group select-none hover:bg-muted"
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <TableCell
                         key={cell.id}
                         className={cx(
                           row.getIsSelected()
-                            ? "bg-gray-50 dark:bg-gray-900"
+                            ? "bg-muted"
                             : "",
-                          "relative whitespace-nowrap py-2 text-gray-700 first:w-10 dark:text-gray-300",
+                          "relative whitespace-nowrap py-2 text-foreground first:w-10",
                           cell.column.columnDef.meta?.className,
                         )}
                       >
                         {index === 0 && row.getIsSelected() && (
-                          <div className="absolute inset-y-0 left-0 w-0.5 bg-blue-500 dark:bg-blue-500" />
+                          <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" />
                         )}
                         {flexRender(
                           cell.column.columnDef.cell,
