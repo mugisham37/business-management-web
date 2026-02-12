@@ -9,13 +9,13 @@ export function Breadcrumbs() {
           <li className="flex">
             <Link
               href="#"
-              className="text-gray-500 transition hover:text-gray-700 dark:text-gray-400 hover:dark:text-gray-300"
+              className="text-muted-foreground transition hover:text-foreground"
             >
               Home
             </Link>
           </li>
           <ChevronRight
-            className="size-4 shrink-0 text-gray-600 dark:text-gray-400"
+            className="size-4 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
           <li className="flex">
@@ -23,7 +23,7 @@ export function Breadcrumbs() {
               <Link
                 href="#"
                 // aria-current={page.current ? 'page' : undefined}
-                className="text-gray-900 dark:text-gray-50"
+                className="text-foreground"
               >
                 Quotes
               </Link>

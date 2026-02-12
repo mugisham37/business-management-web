@@ -33,7 +33,7 @@ export function Navigation() {
         "fixed inset-x-3 top-4 z-50 mx-auto flex max-w-6xl transform-gpu animate-slide-down-fade justify-center overflow-hidden rounded-xl border border-transparent px-3 py-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1.03)] will-change-transform",
         open === true ? "h-52" : "h-16",
         scrolled || open === true
-          ? "backdrop-blur-nav max-w-3xl border-border bg-card/80 shadow-xl shadow-black/5"
+          ? "backdrop-blur-nav max-w-3xl border-border bg-card/80 shadow-xl shadow-primary/5"
           : "bg-card/0",
       )}
     >

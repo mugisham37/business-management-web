@@ -1,12 +1,50 @@
 "use client"
 import createGlobe from "cobe"
 import { FunctionComponent, useEffect, useRef } from "react"
+import { useTheme } from "next-themes"
 
 export const GlobalDatabase: FunctionComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     let phi = 4.7
+    
+    // Get theme-aware colors from CSS variables
+    const isDark = resolvedTheme === "dark"
+    
+    // Extract colors from CSS variables
+    const getColorFromCSS = (variable: string): [number, number, number] => {
+      if (typeof window === "undefined") return [0.5, 0.5, 0.5]
+      
+      const color = getComputedStyle(document.documentElement)
+        .getPropertyValue(variable)
+        .trim()
+      
+      // Parse oklch color format: oklch(L C H)
+      const match = color.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/)
+      if (match) {
+        const lightness = parseFloat(match[1])
+        // Convert lightness to RGB-like values for the globe
+        return [lightness * 0.8, lightness * 0.8, lightness * 0.8]
+      }
+      
+      // Fallback values
+      return isDark ? [0.2, 0.2, 0.2] : [0.4, 0.4, 0.4]
+    }
+
+    const baseColor = getColorFromCSS("--muted-foreground")
+    const glowColor: [number, number, number] = isDark 
+      ? [baseColor[0] * 0.5, baseColor[1] * 0.5, baseColor[2] * 0.5]
+      : [baseColor[0] * 0.6, baseColor[1] * 0.6, baseColor[2] * 0.6]
+    
+    // Use border color for markers
+    const borderColor = getColorFromCSS("--border")
+    const markerColor: [number, number, number] = [
+      borderColor[0] * 255,
+      borderColor[1] * 255,
+      borderColor[2] * 255
+    ]
 
     const globe = createGlobe(canvasRef.current!, {
       devicePixelRatio: 2,
@@ -14,14 +52,14 @@ export const GlobalDatabase: FunctionComponent = () => {
       height: 1200 * 2,
       phi: 0,
       theta: -0.3,
-      dark: 1,
+      dark: isDark ? 1 : 0.8,
       diffuse: 1.2,
       mapSamples: 25000,
-      mapBrightness: 13,
-      mapBaseBrightness: 0.05,
-      baseColor: [0.3, 0.3, 0.3],
-      glowColor: [0.15, 0.15, 0.15],
-      markerColor: [100, 100, 100],
+      mapBrightness: isDark ? 13 : 10,
+      mapBaseBrightness: isDark ? 0.05 : 0.1,
+      baseColor,
+      glowColor,
+      markerColor,
       markers: [
         // { location: [37.7595, -122.4367], size: 0.03 }, // San Francisco
         // { location: [40.7128, -74.006], size: 0.03 }, // New York City
@@ -37,7 +75,7 @@ export const GlobalDatabase: FunctionComponent = () => {
     return () => {
       globe.destroy()
     }
-  }, [])
+  }, [resolvedTheme])
 
   const features = [
     {
@@ -59,7 +97,7 @@ export const GlobalDatabase: FunctionComponent = () => {
     <div className="px-3">
       <section
         aria-labelledby="global-database-title"
-        className="relative mx-auto mt-28 flex w-full max-w-6xl flex-col items-center justify-center overflow-hidden rounded-3xl bg-card pt-24 shadow-xl shadow-black/30 md:mt-40"
+        className="relative mx-auto mt-28 flex w-full max-w-6xl flex-col items-center justify-center overflow-hidden rounded-3xl bg-card pt-24 shadow-xl shadow-primary/30 md:mt-40"
       >
         <div className="absolute top-[17rem] size-[40rem] rounded-full bg-primary blur-3xl md:top-[20rem]" />
         <div className="z-10 inline-block rounded-lg border border-primary/20 bg-primary/20 px-3 py-1.5 font-semibold uppercase leading-4 tracking-tight sm:text-sm">

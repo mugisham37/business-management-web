@@ -104,17 +104,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     )
   }
   return (
-    <Sidebar {...props} className="bg-gray-50 dark:bg-gray-925">
+    <Sidebar {...props} className="bg-sidebar">
       <SidebarHeader className="px-3 py-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-md bg-white p-1.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
-            <Logo className="size-6 text-blue-500 dark:text-blue-500" />
+          <span className="flex size-9 items-center justify-center rounded-md bg-card p-1.5 shadow-sm ring-1 ring-border">
+            <Logo className="size-6 text-sidebar-primary" />
           </span>
           <div>
-            <span className="block text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <span className="block text-sm font-semibold text-sidebar-foreground">
               Innovex Systems
             </span>
-            <span className="block text-xs text-gray-900 dark:text-gray-50">
+            <span className="block text-xs text-sidebar-foreground">
               Premium Starter Plan
             </span>
           </div>
@@ -160,7 +160,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <button
                     onClick={() => toggleMenu(item.name)}
                     className={cx(
-                      "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-gray-900 transition hover:bg-gray-200/50 sm:text-sm dark:text-gray-400 hover:dark:bg-gray-900 hover:dark:text-gray-50",
+                      "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-sidebar-foreground transition hover:bg-sidebar-accent/50 sm:text-sm dark:text-muted-foreground hover:dark:bg-sidebar-accent/50 hover:dark:text-sidebar-foreground",
                       focusRing,
                     )}
                   >
@@ -176,14 +176,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         openMenus.includes(item.name)
                           ? "rotate-0"
                           : "-rotate-90",
-                        "size-5 shrink-0 transform text-gray-400 transition-transform duration-150 ease-in-out dark:text-gray-600",
+                        "size-5 shrink-0 transform text-muted-foreground transition-transform duration-150 ease-in-out",
                       )}
                       aria-hidden="true"
                     />
                   </button>
                   {item.children && openMenus.includes(item.name) && (
                     <SidebarMenuSub>
-                      <div className="absolute inset-y-0 left-4 w-px bg-gray-300 dark:bg-gray-800" />
+                      <div className="absolute inset-y-0 left-4 w-px bg-border" />
                       {item.children.map((child) => (
                         <SidebarMenuItem key={child.name}>
                           <SidebarSubLink
@@ -203,7 +203,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="border-t border-gray-200 dark:border-gray-800" />
+        <div className="border-t border-sidebar-border" />
         <UserProfile />
       </SidebarFooter>
     </Sidebar>

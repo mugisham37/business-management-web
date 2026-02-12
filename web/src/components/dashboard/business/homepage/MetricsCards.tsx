@@ -1,4 +1,3 @@
-type Category = "red" | "orange" | "emerald" | "gray"
 type Metric = {
   label: string
   value: number
@@ -6,44 +5,29 @@ type Metric = {
   fraction: string
 }
 
-const getCategory = (value: number): Category => {
-  if (value < 0.3) return "red"
-  if (value < 0.7) return "orange"
-  return "emerald"
+const getBarsCount = (value: number): number => {
+  if (value < 0.3) return 1
+  if (value < 0.7) return 2
+  return 3
 }
 
-const categoryConfig = {
-  red: {
-    activeClass: "bg-red-500 dark:bg-red-500",
-    bars: 1,
-  },
-  orange: {
-    activeClass: "bg-orange-500 dark:bg-orange-500",
-    bars: 2,
-  },
-  emerald: {
-    activeClass: "bg-emerald-500 dark:bg-emerald-500",
-    bars: 3,
-  },
-  gray: {
-    activeClass: "bg-gray-300 dark:bg-gray-800",
-    bars: 0,
-  },
-} as const
+const getBarClass = (index: number, activeBars: number): string => {
+  if (index >= activeBars) return "bg-muted"
+  
+  if (activeBars === 1) return "bg-destructive"
+  if (activeBars === 2) return "bg-accent"
+  return "bg-secondary"
+}
 
 function Indicator({ number }: { number: number }) {
-  const category = getCategory(number)
-  const config = categoryConfig[category]
-  const inactiveClass = "bg-gray-300 dark:bg-gray-800"
+  const activeBars = getBarsCount(number)
 
   return (
     <div className="flex gap-0.5">
       {[0, 1, 2].map((index) => (
         <div
           key={index}
-          className={`h-3.5 w-1 rounded-sm ${
-            index < config.bars ? config.activeClass : inactiveClass
-          }`}
+          className={`h-3.5 w-1 rounded-sm ${getBarClass(index, activeBars)}`}
         />
       ))}
     </div>
@@ -74,14 +58,14 @@ const metrics: Metric[] = [
 function MetricCard({ metric }: { metric: Metric }) {
   return (
     <div>
-      <dt className="text-sm text-gray-500 dark:text-gray-500">
+      <dt className="text-sm text-muted-foreground">
         {metric.label}
       </dt>
       <dd className="mt-1.5 flex items-center gap-2">
         <Indicator number={metric.value} />
-        <p className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+        <p className="text-lg font-semibold text-foreground">
           {metric.percentage}{" "}
-          <span className="font-medium text-gray-400 dark:text-gray-600">
+          <span className="font-medium text-muted-foreground">
             - {metric.fraction}
           </span>
         </p>
@@ -93,7 +77,7 @@ function MetricCard({ metric }: { metric: Metric }) {
 export function MetricsCards() {
   return (
     <>
-      <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+      <h1 className="text-lg font-semibold text-foreground">
         Overview
       </h1>
       <dl className="mt-6 flex flex-wrap items-center gap-x-12 gap-y-8">

@@ -185,8 +185,8 @@ export default function Footer() {
           <div className="rounded-full border border-border py-1 pl-1 pr-2">
             <div className="flex items-center gap-1.5">
               <div className="relative size-4 shrink-0">
-                <div className="absolute inset-[1px] rounded-full bg-emerald-500/20" />
-                <div className="absolute inset-1 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+                <div className="absolute inset-[1px] rounded-full bg-secondary/20" />
+                <div className="absolute inset-1 rounded-full bg-secondary" />
               </div>
               <span className="text-xs text-foreground">
                 All systems operational
