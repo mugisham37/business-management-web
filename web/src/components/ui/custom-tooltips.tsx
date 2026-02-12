@@ -93,10 +93,7 @@ export const CustomTooltip2 = ({
               <p className="font-medium text-gray-900 dark:text-gray-50">
                 {category === "Quotes"
                   ? formatters.unit(data[category] as number)
-                  : formatters.currency({
-                      number: data[category] as number,
-                      maxFractionDigits: 0,
-                    })}
+                  : formatters.currency(data[category] as number, 0)}
               </p>
             </div>
           </li>
@@ -227,7 +224,7 @@ export const CustomTooltip4 = ({ payload, active }: TooltipProps) => {
               {payload[0].category}
             </p>
             <p className="font-medium text-gray-900 dark:text-gray-50">
-              {formatters.percentage({ number: payload[0].value })}
+              {formatters.percentage(payload[0].value)}
             </p>
           </div>
         </li>
@@ -241,7 +238,7 @@ export const CustomTooltip4 = ({ payload, active }: TooltipProps) => {
               Benchmark
             </p>
             <p className="font-medium text-gray-900 dark:text-gray-50">
-              {formatters.percentage({ number: PEER_AVERAGE })}
+              {formatters.percentage(PEER_AVERAGE)}
             </p>
           </div>
         </li>

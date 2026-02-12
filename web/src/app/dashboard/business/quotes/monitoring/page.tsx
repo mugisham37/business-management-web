@@ -105,7 +105,7 @@ export default function Monitoring() {
               categories: ["Quotes"],
               yAxisLabel: "Number of quotes / Deal size ($)",
               valueFormatter: (value: number) =>
-                formatters.currency({ number: value, maxFractionDigits: 0 }),
+                formatters.currency(value, 0),
             }}
             lineSeries={{
               categories: ["Total deal size"],
@@ -176,7 +176,7 @@ export default function Monitoring() {
             categories={["Density"]}
             colors={["amber"]}
             valueFormatter={(value: number) =>
-              formatters.percentage({ number: value })
+              formatters.percentage(value)
             }
             yAxisWidth={55}
             yAxisLabel="Competition density (%)"
@@ -189,7 +189,7 @@ export default function Monitoring() {
             categories={["Density"]}
             colors={["amber"]}
             valueFormatter={(value: number) =>
-              formatters.percentage({ number: value })
+              formatters.percentage(value)
             }
             showYAxis={false}
             barCategoryGap="30%"
