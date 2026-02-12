@@ -21,12 +21,12 @@ export default function CopyToClipboard({ code }: { code: string }) {
   return (
     <button
       onClick={copyToClipboard}
-      className="select-none rounded border border-white/10 bg-white/20 p-1.5 backdrop-blur-xl"
+      className="select-none rounded border border-border/50 bg-muted/50 p-1.5 backdrop-blur-xl hover:bg-muted transition-colors"
     >
       {!copied ? (
-        <RiFileCopy2Line aria-hidden="true" className="size-5 text-white" />
+        <RiFileCopy2Line aria-hidden="true" className="size-5 text-foreground" />
       ) : (
-        <RiCheckLine aria-hidden="true" className="size-5 text-white" />
+        <RiCheckLine aria-hidden="true" className="size-5 text-foreground" />
       )}
     </button>
   )

@@ -22,6 +22,7 @@ type GridBackgroundProps = HTMLMotionProps<'div'> & {
     shadow?: string;
     speed?: number;
   };
+  useThemeColors?: boolean; // New prop to enable theme integration
 };
 
 function GridBackground({
@@ -30,32 +31,40 @@ function GridBackground({
   gridSize = '8:8',
   colors = {},
   beams = {},
+  useThemeColors = true,
   ...props
 }: GridBackgroundProps) {
   const {
-    background = 'bg-slate-900',
-    borderColor = 'border-slate-700/50',
+    background = useThemeColors ? 'bg-background' : 'bg-background',
+    borderColor = useThemeColors ? 'border-border/50' : 'border-border/50',
     borderSize = '1px',
     borderStyle = 'solid',
   } = colors;
 
   const {
     count = 12,
-    colors: beamColors = [
-      'bg-cyan-400',
-      'bg-purple-400',
-      'bg-fuchsia-400',
-      'bg-violet-400',
-      'bg-blue-400',
-      'bg-indigo-400',
-      'bg-green-400',
-      'bg-yellow-400',
-      'bg-orange-400',
-      'bg-red-400',
-      'bg-pink-400',
-      'bg-rose-400',
-    ],
-    shadow = 'shadow-lg shadow-cyan-400/50 rounded-full',
+    colors: beamColors = useThemeColors
+      ? [
+          'bg-primary',
+          'bg-secondary',
+          'bg-accent',
+          'bg-chart-1',
+          'bg-chart-2',
+          'bg-chart-3',
+          'bg-chart-4',
+          'bg-chart-5',
+        ]
+      : [
+          'bg-primary',
+          'bg-secondary',
+          'bg-accent',
+          'bg-chart-1',
+          'bg-chart-2',
+          'bg-chart-3',
+          'bg-chart-4',
+          'bg-chart-5',
+        ],
+    shadow = useThemeColors ? 'shadow-lg shadow-primary/50 rounded-full' : 'shadow-lg shadow-primary/50 rounded-full',
     speed = 4,
   } = beams;
 

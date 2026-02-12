@@ -17,7 +17,7 @@ function GradientBackground({
     <motion.div
       data-slot="gradient-background"
       className={cn(
-        'size-full bg-gradient-to-br from-fuchsia-400 from-0% via-50% via-violet-500 to-fuchsia-600 to-100% bg-[length:300%_300%]',
+        'size-full bg-gradient-to-br from-primary from-0% via-50% via-secondary to-accent to-100% bg-[length:300%_300%]',
         className,
       )}
       animate={{

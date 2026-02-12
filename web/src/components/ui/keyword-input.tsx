@@ -11,16 +11,15 @@ const inputStyles = tv({
     // base
     "relative block w-full appearance-none rounded-md border px-2.5 py-2 shadow-sm outline-none transition sm:text-sm",
     // border color
-    "border-gray-300 dark:border-gray-800",
+    "border-input",
     // text color
-    "text-gray-900 dark:text-gray-50",
+    "text-foreground",
     // placeholder color
-    "placeholder-gray-400 dark:placeholder-gray-500",
+    "placeholder-muted-foreground",
     // background color
-    "bg-white dark:bg-gray-950",
+    "bg-background",
     // disabled
-    "disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400",
-    "disabled:dark:border-gray-700 disabled:dark:bg-gray-800 disabled:dark:text-gray-500",
+    "disabled:border-input disabled:bg-muted disabled:text-muted-foreground",
     // focus
     focusInput,
     // invalid (optional)
@@ -56,7 +55,7 @@ const KeywordInput = React.forwardRef<HTMLInputElement, InputProps>(
         />
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <span
-            className="size-2 rounded-sm bg-rose-600 dark:bg-rose-500"
+            className="size-2 rounded-sm bg-destructive"
             aria-hidden="true"
           />
         </div>

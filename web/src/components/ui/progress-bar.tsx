@@ -13,24 +13,24 @@ const progressBarVariants = tv({
   variants: {
     variant: {
       default: {
-        background: "bg-indigo-100 dark:bg-indigo-500/30",
-        bar: "bg-indigo-600 dark:bg-indigo-500",
+        background: "bg-primary/20",
+        bar: "bg-primary",
       },
       neutral: {
-        background: "bg-gray-200 dark:bg-gray-500/40",
-        bar: "bg-gray-500 dark:bg-gray-500",
+        background: "bg-muted",
+        bar: "bg-muted-foreground",
       },
       warning: {
-        background: "bg-yellow-200 dark:bg-yellow-500/30",
-        bar: "bg-yellow-500 dark:bg-yellow-500",
+        background: "bg-accent/20",
+        bar: "bg-accent",
       },
       error: {
-        background: "bg-red-200 dark:bg-red-500/30",
-        bar: "bg-red-500 dark:bg-red-500",
+        background: "bg-destructive/20",
+        bar: "bg-destructive",
       },
       success: {
-        background: "bg-emerald-200 dark:bg-emerald-500/30",
-        bar: "bg-emerald-500 dark:bg-emerald-500",
+        background: "bg-secondary/20",
+        bar: "bg-secondary",
       },
     },
   },
@@ -96,7 +96,7 @@ const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
               // base
               "ml-2 whitespace-nowrap text-sm font-medium leading-none",
               // text color
-              "text-gray-900 dark:text-gray-50",
+              "text-foreground",
             )}
           >
             {label}

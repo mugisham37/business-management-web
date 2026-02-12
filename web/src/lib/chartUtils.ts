@@ -2,54 +2,86 @@
 
 export type ColorUtility = "bg" | "stroke" | "fill" | "text"
 
+// Theme-connected chart colors using CSS variables from global.css
 export const chartColors = {
+  "chart-1": {
+    bg: "bg-chart-1",
+    stroke: "stroke-chart-1",
+    fill: "fill-chart-1",
+    text: "text-chart-1",
+  },
+  "chart-2": {
+    bg: "bg-chart-2",
+    stroke: "stroke-chart-2",
+    fill: "fill-chart-2",
+    text: "text-chart-2",
+  },
+  "chart-3": {
+    bg: "bg-chart-3",
+    stroke: "stroke-chart-3",
+    fill: "fill-chart-3",
+    text: "text-chart-3",
+  },
+  "chart-4": {
+    bg: "bg-chart-4",
+    stroke: "stroke-chart-4",
+    fill: "fill-chart-4",
+    text: "text-chart-4",
+  },
+  "chart-5": {
+    bg: "bg-chart-5",
+    stroke: "stroke-chart-5",
+    fill: "fill-chart-5",
+    text: "text-chart-5",
+  },
+  // Legacy color names mapped to theme colors for backward compatibility
   blue: {
-    bg: "bg-blue-500",
-    stroke: "stroke-blue-500",
-    fill: "fill-blue-500",
-    text: "text-blue-500",
+    bg: "bg-chart-1",
+    stroke: "stroke-chart-1",
+    fill: "fill-chart-1",
+    text: "text-chart-1",
   },
   emerald: {
-    bg: "bg-emerald-500",
-    stroke: "stroke-emerald-500",
-    fill: "fill-emerald-500",
-    text: "text-emerald-500",
+    bg: "bg-chart-2",
+    stroke: "stroke-chart-2",
+    fill: "fill-chart-2",
+    text: "text-chart-2",
   },
   violet: {
-    bg: "bg-violet-500",
-    stroke: "stroke-violet-500",
-    fill: "fill-violet-500",
-    text: "text-violet-500",
+    bg: "bg-chart-3",
+    stroke: "stroke-chart-3",
+    fill: "fill-chart-3",
+    text: "text-chart-3",
   },
   amber: {
-    bg: "bg-amber-500",
-    stroke: "stroke-amber-500",
-    fill: "fill-amber-500",
-    text: "text-amber-500",
-  },
-  gray: {
-    bg: "bg-gray-400 dark:bg-gray-600",
-    stroke: "stroke-gray-400 dark:stroke-gray-600",
-    fill: "fill-gray-400 dark:fill-gray-600",
-    text: "text-gray-400 dark:text-gray-600",
+    bg: "bg-chart-4",
+    stroke: "stroke-chart-4",
+    fill: "fill-chart-4",
+    text: "text-chart-4",
   },
   cyan: {
-    bg: "bg-cyan-500",
-    stroke: "stroke-cyan-500",
-    fill: "fill-cyan-500",
-    text: "text-cyan-500",
+    bg: "bg-chart-5",
+    stroke: "stroke-chart-5",
+    fill: "fill-chart-5",
+    text: "text-chart-5",
+  },
+  gray: {
+    bg: "bg-muted",
+    stroke: "stroke-muted",
+    fill: "fill-muted",
+    text: "text-muted-foreground",
   },
   indigo: {
-    bg: "bg-indigo-600 dark:bg-indigo-500",
-    stroke: "stroke-indigo-600 dark:stroke-indigo-500",
-    fill: "fill-indigo-600 dark:fill-indigo-500",
-    text: "text-indigo-600 dark:text-indigo-500",
+    bg: "bg-primary",
+    stroke: "stroke-primary",
+    fill: "fill-primary",
+    text: "text-primary",
   },
   pink: {
-    bg: "bg-pink-500",
-    stroke: "stroke-pink-500",
-    fill: "fill-pink-500",
-    text: "text-pink-500",
+    bg: "bg-accent",
+    stroke: "stroke-accent",
+    fill: "fill-accent",
+    text: "text-accent",
   },
 } as const satisfies {
   [color: string]: {
@@ -59,9 +91,14 @@ export const chartColors = {
 
 export type AvailableChartColorsKeys = keyof typeof chartColors
 
-export const AvailableChartColors: AvailableChartColorsKeys[] = Object.keys(
-  chartColors,
-) as Array<AvailableChartColorsKeys>
+// Default to theme chart colors (chart-1 through chart-5)
+export const AvailableChartColors: AvailableChartColorsKeys[] = [
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
+]
 
 export const constructCategoryColors = (
   categories: string[],
@@ -79,10 +116,10 @@ export const getColorClassName = (
   type: ColorUtility,
 ): string => {
   const fallbackColor = {
-    bg: "bg-gray-500",
-    stroke: "stroke-gray-500",
-    fill: "fill-gray-500",
-    text: "text-gray-500",
+    bg: "bg-muted",
+    stroke: "stroke-muted",
+    fill: "fill-muted",
+    text: "text-muted-foreground",
   }
   return chartColors[color]?.[type] ?? fallbackColor[type]
 }
@@ -94,7 +131,7 @@ export const getConditionalColorClassName = (
   // Returns color class based on value intensity
   // For conditional coloring based on data values
   const baseColor = chartColors[color]
-  if (!baseColor) return "fill-gray-500"
+  if (!baseColor) return "fill-muted"
   
   // Use fill color for bar charts
   return baseColor.fill
@@ -104,18 +141,24 @@ export const getGradientColorClassName = (
   color: AvailableChartColorsKeys,
 ): string => {
   // Returns gradient color classes for the specified color
-  const colorMap: Record<AvailableChartColorsKeys, string> = {
-    blue: "from-blue-400 to-blue-600",
-    emerald: "from-emerald-400 to-emerald-600",
-    violet: "from-violet-400 to-violet-600",
-    amber: "from-amber-400 to-amber-600",
-    gray: "from-gray-400 to-gray-600",
-    cyan: "from-cyan-400 to-cyan-600",
-    indigo: "from-indigo-400 to-indigo-600",
-    pink: "from-pink-400 to-pink-600",
+  // Using theme colors for gradients
+  const colorMap: Partial<Record<AvailableChartColorsKeys, string>> = {
+    "chart-1": "from-chart-1/80 to-chart-1",
+    "chart-2": "from-chart-2/80 to-chart-2",
+    "chart-3": "from-chart-3/80 to-chart-3",
+    "chart-4": "from-chart-4/80 to-chart-4",
+    "chart-5": "from-chart-5/80 to-chart-5",
+    blue: "from-chart-1/80 to-chart-1",
+    emerald: "from-chart-2/80 to-chart-2",
+    violet: "from-chart-3/80 to-chart-3",
+    amber: "from-chart-4/80 to-chart-4",
+    cyan: "from-chart-5/80 to-chart-5",
+    gray: "from-muted/80 to-muted",
+    indigo: "from-primary/80 to-primary",
+    pink: "from-accent/80 to-accent",
   }
   
-  return colorMap[color] ?? "from-gray-400 to-gray-600"
+  return colorMap[color] ?? "from-muted/80 to-muted"
 }
 
 // Tremor Raw getYAxisDomain [v0.0.0]

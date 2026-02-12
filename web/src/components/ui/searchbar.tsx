@@ -10,22 +10,19 @@ const inputStyles = tv({
   base: [
     // base
     "relative block w-full appearance-none rounded-md border px-2.5 py-1.5 outline-none transition sm:text-sm",
-    // border color (border only used in dark mode for better aesthetics in filterbar)
-    "border-transparent dark:border-gray-800",
+    // border color
+    "border-border",
     // text color
-    "text-gray-900 dark:text-gray-50",
+    "text-foreground",
     // placeholder color
-    "placeholder-gray-400 dark:placeholder-gray-500",
+    "placeholder-muted-foreground",
     // background color
-    "bg-gray-100 dark:bg-gray-950",
+    "bg-muted",
     // disabled
-    "disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400",
-    "disabled:dark:border-gray-700 disabled:dark:bg-gray-800 disabled:dark:text-gray-500",
+    "disabled:border-input disabled:bg-muted disabled:text-muted-foreground",
     // focus
     focusInput,
-    // invalid (optional)
-    // "aria-[invalid=true]:dark:ring-red-400/20 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-200 aria-[invalid=true]:border-red-500 invalid:ring-2 invalid:ring-red-200 invalid:border-red-500"
-    // remove search cancel button (optional)
+    // remove search cancel button
     "[&::--webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
   ],
   variants: {
@@ -74,7 +71,7 @@ const Searchbar = React.forwardRef<HTMLInputElement, InputProps>(
             // base
             "pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center",
             // text color
-            "text-gray-400 dark:text-gray-600",
+            "text-muted-foreground",
           )}
         >
           <RiSearchLine

@@ -116,7 +116,7 @@ export const DEFAULT_I18N: FilterI18nConfig = {
   selectedCount: 'selected',
   percent: '%',
   defaultCurrency: '$',
-  defaultColor: '#000000',
+  defaultColor: 'hsl(var(--muted-foreground))',
   addFilterTitle: 'Add filter',
 
   // Operators
@@ -220,10 +220,8 @@ const filterInputVariants = cva(
     'has-[[data-slot=filters-input]:focus-visible]:z-1',
     'has-[[data-slot=filters-input]:[aria-invalid=true]]:border',
     'has-[[data-slot=filters-input]:[aria-invalid=true]]:border-solid',
-    'has-[[data-slot=filters-input]:[aria-invalid=true]]:border-destructive/60',
-    'has-[[data-slot=filters-input]:[aria-invalid=true]]:ring-destructive/10',
-    'dark:has-[[data-slot=filters-input]:[aria-invalid=true]]:border-destructive',
-    'dark:has-[[data-slot=filters-input]:[aria-invalid=true]]:ring-destructive/20',
+    'has-[[data-slot=filters-input]:[aria-invalid=true]]:border-destructive',
+    'has-[[data-slot=filters-input]:[aria-invalid=true]]:ring-destructive/30',
   ],
   {
     variants: {
@@ -283,7 +281,7 @@ const filterRemoveButtonVariants = cva(
 
 const filterAddButtonVariants = cva(
   [
-    'inline-flex items-center shrink-0 justify-center transition shrink-0 text-foreground shadow-xs shadow-black/5',
+    'inline-flex items-center shrink-0 justify-center transition shrink-0 text-foreground shadow-xs',
     '[&_svg:not([role=img]):not([class*=text-]):not([class*=opacity-])]:opacity-60',
   ],
   {
@@ -451,7 +449,7 @@ const filtersContainerVariants = cva('flex flex-wrap items-center', {
   },
 });
 
-const filterItemVariants = cva('flex items-center shadow-xs shadow-black/5', {
+const filterItemVariants = cva('flex items-center shadow-xs', {
   variants: {
     variant: {
       solid: 'gap-px',

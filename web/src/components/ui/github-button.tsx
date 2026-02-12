@@ -12,7 +12,7 @@ const githubButtonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-zinc-950 hover:bg-zinc-900 text-white border-gray-700 dark:bg-zinc-50 dark:border-gray-300 dark:text-zinc-950 dark:hover:bg-zinc-50',
+          'bg-foreground hover:bg-foreground/90 text-background border-border',
         outline: 'bg-background text-accent-foreground border border-input hover:bg-accent',
       },
       size: {
@@ -262,7 +262,7 @@ function GithubButton({
         <div className="relative inline-flex shrink-0">
           <Star className="fill-muted-foreground text-muted-foreground" aria-hidden="true" />
           <Star
-            className="absolute top-0 start-0 text-yellow-400 fill-yellow-400"
+            className="absolute top-0 start-0 text-accent fill-accent"
             size={18}
             aria-hidden="true"
             style={{

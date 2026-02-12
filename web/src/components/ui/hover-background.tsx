@@ -12,20 +12,30 @@ type HoverBackgroundProps = HTMLMotionProps<'div'> & {
     objects?: string[];
     glow?: string;
   };
+  useThemeColors?: boolean; // New prop to enable theme integration
 };
 
-function HoverBackground({ className, objectCount = 12, children, colors = {}, ...props }: HoverBackgroundProps) {
+function HoverBackground({ className, objectCount = 12, children, colors = {}, useThemeColors = true, ...props }: HoverBackgroundProps) {
   const {
-    background = 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
-    objects = [
-      'bg-cyan-400/20',
-      'bg-purple-400/20',
-      'bg-fuchsia-400/20',
-      'bg-violet-400/20',
-      'bg-blue-400/20',
-      'bg-indigo-400/20',
-    ],
-    glow = 'shadow-cyan-400/50',
+    background = useThemeColors ? 'bg-gradient-to-br from-background via-primary/20 to-background' : 'bg-gradient-to-br from-background via-primary/20 to-background',
+    objects = useThemeColors
+      ? [
+          'bg-primary/20',
+          'bg-secondary/20',
+          'bg-accent/20',
+          'bg-chart-1/20',
+          'bg-chart-2/20',
+          'bg-chart-3/20',
+        ]
+      : [
+          'bg-primary/20',
+          'bg-secondary/20',
+          'bg-accent/20',
+          'bg-chart-1/20',
+          'bg-chart-2/20',
+          'bg-chart-3/20',
+        ],
+    glow = useThemeColors ? 'shadow-primary/50' : 'shadow-primary/50',
   } = colors;
 
   const [isHovered, setIsHovered] = React.useState(false);
@@ -115,7 +125,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
     >
       {/* Subtle ambient glow */}
       <motion.div
-        className="absolute inset-0 bg-gradient-radial from-white/5 via-transparent to-transparent"
+        className="absolute inset-0 bg-gradient-radial from-foreground/5 via-transparent to-transparent"
         animate={{
           opacity: [0.3, 0.6, 0.3],
           scale: [1, 1.1, 1],
@@ -132,7 +142,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
         <motion.div
           key={obj.id}
           className={cn(
-            'absolute backdrop-blur-sm border border-white/10',
+            'absolute backdrop-blur-sm border border-border/30',
             obj.color,
             obj.shape === 'circle' ? 'rounded-full' : 'rounded-lg rotate-45',
           )}
@@ -181,7 +191,7 @@ function HoverBackground({ className, objectCount = 12, children, colors = {}, .
           {Array.from({ length: 20 }).map((_, i) => (
             <motion.div
               key={`particle-${i}`}
-              className="absolute w-1 h-1 bg-white/60 rounded-full"
+              className="absolute w-1 h-1 bg-foreground/60 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
