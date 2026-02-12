@@ -103,28 +103,19 @@ export const columns = [
       const value = getValue()
 
       function Indicator({ number }: { number: number }) {
-        let category
-        if (number === 0) {
-          category = "zero"
-        } else if (number < 9) {
-          category = "bad"
-        } else if (number >= 9 && number <= 15) {
-          category = "ok"
-        } else {
-          category = "good"
-        }
-
         const getBarClass = (index: number) => {
-          if (category === "zero") {
-            return "bg-gray-300 dark:bg-gray-800"
-          } else if (category === "good") {
-            return "bg-indigo-600 dark:bg-indigo-500"
-          } else if (category === "ok" && index < 2) {
-            return "bg-indigo-600 dark:bg-indigo-500"
-          } else if (category === "bad" && index < 1) {
-            return "bg-indigo-600 dark:bg-indigo-500"
+          if (number === 0) {
+            return "bg-muted"
+          } else if (number > 15) {
+            // good: all bars active
+            return "bg-primary"
+          } else if (number >= 9 && number <= 15) {
+            // ok: first two bars active
+            return index < 2 ? "bg-primary" : "bg-muted"
+          } else {
+            // bad: only first bar active
+            return index < 1 ? "bg-primary" : "bg-muted"
           }
-          return "bg-gray-300 dark:bg-gray-800"
         }
 
         return (

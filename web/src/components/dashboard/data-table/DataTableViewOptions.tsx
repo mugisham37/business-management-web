@@ -225,7 +225,7 @@ function ListItem({
             ref={dragHandleRef}
             aria-label={`Reorder ${item.label}`}
           >
-            <RiDraggable className="size-5 text-gray-400 dark:text-gray-600" />
+            <RiDraggable className="size-5 text-muted-foreground" />
           </Button>
         </div>
         {closestEdge && <DropIndicator edge={closestEdge} gap="1px" />}
