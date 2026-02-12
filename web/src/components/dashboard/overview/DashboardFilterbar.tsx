@@ -133,7 +133,7 @@ export function Filterbar({
           fromDate={minDate}
           align="start"
         />
-        <span className="hidden text-sm font-medium text-gray-500 sm:block">
+        <span className="hidden text-sm font-medium text-muted-foreground sm:block">
           compared to
         </span>
         <Select
@@ -188,7 +188,7 @@ export function Filterbar({
                 <Label
                   htmlFor={category.title}
                   key={category.title}
-                  className="relative cursor-pointer rounded-md border border-gray-200 p-4 shadow-sm dark:border-gray-800"
+                  className="relative cursor-pointer rounded-md border border-border p-4 shadow-sm"
                 >
                   <Checkbox
                     id={category.title}

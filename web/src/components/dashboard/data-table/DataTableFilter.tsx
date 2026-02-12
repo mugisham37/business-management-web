@@ -27,6 +27,19 @@ import {
 import { cx, focusRing } from "@/lib/utils"
 import React from "react"
 
+/**
+ * DataTableFilter Component
+ * 
+ * Theme Integration:
+ * - All colors use semantic tokens from global.css
+ * - Primary color (text-primary) for active/selected states maps to --primary
+ * - Muted colors (text-muted-foreground, bg-muted) map to --muted and --muted-foreground
+ * - Border colors (border-border) map to --border
+ * - Destructive color (text-destructive) for remove actions maps to --destructive
+ * - All colors automatically adapt to light/dark mode via global.css
+ * - No hardcoded color values - fully theme-responsive
+ */
+
 export type ConditionFilter = {
   condition: string
   value: [number | string, number | string]

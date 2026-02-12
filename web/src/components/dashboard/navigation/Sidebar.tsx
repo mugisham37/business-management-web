@@ -73,12 +73,12 @@ export function Sidebar({
         href={item.href}
         className={cx(
           isActive(item.href)
-            ? "text-blue-600 dark:text-blue-500"
-            : "text-gray-700 hover:text-gray-900 dark:text-gray-300 hover:dark:text-gray-50",
+            ? "text-sidebar-primary"
+            : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
           collapsed
             ? "inline-flex items-center rounded-md p-2"
             : "flex items-center gap-x-2.5 rounded-md p-2",
-          "text-sm font-medium transition hover:bg-gray-200/50 hover:dark:bg-gray-900",
+          "text-sm font-medium transition hover:bg-muted",
           focusRing,
         )}
       >
@@ -113,7 +113,7 @@ export function Sidebar({
       >
         <aside
           className={cx(
-            "flex grow flex-col gap-y-4 overflow-y-auto border-r border-gray-200 bg-white whitespace-nowrap dark:border-gray-800 dark:bg-gray-950",
+            "flex grow flex-col gap-y-4 overflow-y-auto border-r border-sidebar-border bg-sidebar whitespace-nowrap",
             isCollapsed ? "px-3 py-4" : "p-4",
           )}
         >
@@ -128,17 +128,17 @@ export function Sidebar({
                     aria-label={
                       isCollapsed ? "Expand sidebar" : "Collapse sidebar"
                     }
-                    className="group inline-flex rounded-md p-2 hover:bg-gray-200/50 hover:dark:bg-gray-900"
+                    className="group inline-flex rounded-md p-2 hover:bg-muted"
                     onClick={toggleSidebar}
                   >
                     {isCollapsed ? (
                       <PanelRightClose
-                        className="size-5 shrink-0 text-gray-500 group-hover:text-gray-700 dark:text-gray-500 group-hover:dark:text-gray-300"
+                        className="size-5 shrink-0 text-muted-foreground group-hover:text-sidebar-foreground"
                         aria-hidden="true"
                       />
                     ) : (
                       <PanelRightOpen
-                        className="size-5 shrink-0 text-gray-500 group-hover:text-gray-700 dark:text-gray-500 group-hover:dark:text-gray-300"
+                        className="size-5 shrink-0 text-muted-foreground group-hover:text-sidebar-foreground"
                         aria-hidden="true"
                       />
                     )}
@@ -146,7 +146,7 @@ export function Sidebar({
                 )}
                 <span
                   className={cx(
-                    "text-sm font-semibold text-gray-900 transition-opacity dark:text-gray-50",
+                    "text-sm font-semibold text-sidebar-foreground transition-opacity",
                     isCollapsed ? "opacity-0" : "opacity-100",
                   )}
                 >
@@ -168,7 +168,7 @@ export function Sidebar({
               <span
                 aria-hidden={isCollapsed}
                 className={cx(
-                  "block h-6 text-xs font-medium leading-6 text-gray-500 transition-opacity dark:text-gray-500",
+                  "block h-6 text-xs font-medium leading-6 text-muted-foreground transition-opacity",
                   isCollapsed ? "opacity-0" : "opacity-100",
                 )}
               >
@@ -185,18 +185,18 @@ export function Sidebar({
           </nav>
 
           {/* User Profile */}
-          <div className="mt-auto border-t border-gray-200 pt-3 dark:border-gray-800">
+          <div className="mt-auto border-t border-sidebar-border pt-3">
             <UserProfileDesktop isCollapsed={isCollapsed} />
           </div>
         </aside>
       </nav>
 
       {/* top navbar (xs-lg) */}
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:hidden dark:border-gray-800 dark:bg-gray-950">
+      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 shadow-sm sm:px-6 lg:hidden">
         {showWorkspaceDropdown ? (
           <WorkspacesDropdownMobile />
         ) : (
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+          <span className="text-sm font-semibold text-sidebar-foreground">
             <a aria-label="Home Link" href="/">
               Acme Corp.
             </a>

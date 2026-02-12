@@ -11,9 +11,13 @@ const getBarsCount = (value: number): number => {
   return 3
 }
 
+// Maps bar states to theme colors from global.css
+// Low performance (1 bar) -> destructive, Medium (2 bars) -> accent, High (3 bars) -> secondary
 const getBarClass = (index: number, activeBars: number): string => {
   if (index >= activeBars) return "bg-muted"
   
+  // These classes map directly to CSS variables in global.css
+  // --destructive, --accent, --secondary (with light/dark mode support)
   if (activeBars === 1) return "bg-destructive"
   if (activeBars === 2) return "bg-accent"
   return "bg-secondary"

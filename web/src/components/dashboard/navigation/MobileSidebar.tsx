@@ -67,10 +67,10 @@ export default function MobileSidebar() {
         <Button
           variant="ghost"
           aria-label="open sidebar"
-          className="group flex items-center rounded-md p-1.5 text-sm font-medium hover:bg-gray-100 data-[state=open]:bg-gray-100 data-[state=open]:bg-gray-400/10 hover:dark:bg-gray-400/10"
+          className="group flex items-center rounded-md p-1.5 text-sm font-medium hover:bg-muted data-[state=open]:bg-muted"
         >
           <Menu
-            className="size-6 shrink-0 text-gray-600 dark:text-gray-400"
+            className="size-6 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
         </Button>
@@ -85,7 +85,7 @@ export default function MobileSidebar() {
             className="flex flex-1 flex-col space-y-8"
           >
             <div>
-              <span className="block h-6 text-xs font-medium leading-6 text-gray-500 dark:text-gray-400">
+              <span className="block h-6 text-xs font-medium leading-6 text-muted-foreground">
                 Platform
               </span>
               <ul role="list" className="mt-1 space-y-1.5">
@@ -96,9 +96,9 @@ export default function MobileSidebar() {
                         href={item.href}
                         className={cx(
                           isActive(item.href)
-                            ? "text-blue-600 dark:text-blue-500"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                            ? "text-primary"
+                            : "text-foreground/70 hover:text-foreground",
+                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-muted sm:text-sm",
                           focusRing,
                         )}
                       >
@@ -115,7 +115,7 @@ export default function MobileSidebar() {
             </div>
 
             <div>
-              <span className="block h-6 text-xs font-medium leading-6 text-gray-500 dark:text-gray-400">
+              <span className="block h-6 text-xs font-medium leading-6 text-muted-foreground">
                 Analytics
               </span>
               <ul role="list" className="mt-1 space-y-1.5">
@@ -126,9 +126,9 @@ export default function MobileSidebar() {
                         href={item.href}
                         className={cx(
                           isActive(item.href)
-                            ? "text-blue-600 dark:text-blue-500"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                            ? "text-primary"
+                            : "text-foreground/70 hover:text-foreground",
+                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-muted sm:text-sm",
                           focusRing,
                         )}
                       >
@@ -145,7 +145,7 @@ export default function MobileSidebar() {
             </div>
 
             <div>
-              <span className="block h-6 text-xs font-medium leading-6 text-gray-500 dark:text-gray-400">
+              <span className="block h-6 text-xs font-medium leading-6 text-muted-foreground">
                 Setup
               </span>
               <ul role="list" className="mt-1 space-y-1.5">
@@ -155,9 +155,9 @@ export default function MobileSidebar() {
                       href="/auth/onboarding/products"
                       className={cx(
                         isActive("/auth/onboarding")
-                          ? "text-blue-600 dark:text-blue-500"
-                          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                        "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                          ? "text-primary"
+                          : "text-foreground/70 hover:text-foreground",
+                        "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-muted sm:text-sm",
                         focusRing,
                       )}
                     >

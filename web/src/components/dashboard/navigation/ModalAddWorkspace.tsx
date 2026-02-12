@@ -80,7 +80,7 @@ export function ModalAddWorkspace({
           <form>
             <DialogHeader>
               <DialogTitle>Add new workspace</DialogTitle>
-              <DialogDescription className="mt-1 text-sm leading-6">
+              <DialogDescription className="mt-1 text-sm leading-6 text-muted-foreground">
                 With free plan, you can add up to 10 workspaces.
               </DialogDescription>
               <div className="mt-4 grid grid-cols-2 gap-4">
@@ -140,7 +140,7 @@ export function ModalAddWorkspace({
                       <SelectItem value="us-west-01">us-west-01</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     For best performance, choose a region closest to your
                     application.
                   </p>
@@ -169,7 +169,7 @@ export function ModalAddWorkspace({
                           ) : (
                             <span>{database.label}</span>
                           )}
-                          <p className="mt-1 text-xs text-gray-500">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             1/8 vCPU, 1 GB RAM
                           </p>
                         </div>

@@ -121,7 +121,7 @@ export function ChartCard({
     <div className={cx("transition")}>
       <div className="flex items-center justify-between gap-x-2">
         <div className="flex items-center gap-x-2">
-          <dt className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
+          <dt className="font-bold text-foreground sm:text-sm">
             {title}
           </dt>
           {selectedPeriod !== "no-comparison" && (
@@ -132,11 +132,11 @@ export function ChartCard({
         </div>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
-        <dd className="text-xl text-gray-900 dark:text-gray-50">
+        <dd className="text-xl text-foreground">
           {formatter(value)}
         </dd>
         {selectedPeriod !== "no-comparison" && (
-          <dd className="text-sm text-gray-500">
+          <dd className="text-sm text-muted-foreground">
             from {formatter(previousValue)}
           </dd>
         )}
@@ -145,7 +145,7 @@ export function ChartCard({
         className="mt-6 h-32"
         data={chartData || []}
         index="formattedDate"
-        colors={["indigo", "gray"]}
+        colors={["chart-1", "chart-2"]}
         startEndOnly={true}
         valueFormatter={(value: number) => formatter(value as number)}
         showYAxis={false}
