@@ -120,7 +120,7 @@ function FilterAmount() {
             variant="secondary"
             className={cx(
               focusRing,
-              "mt-2 block w-full text-left font-normal tabular-nums md:w-36 dark:bg-[#090E1A] hover:dark:bg-gray-950/50",
+              "mt-2 block w-full text-left font-normal tabular-nums md:w-36",
             )}
           >
             {formatters.currency(localMin)} -{" "}
@@ -135,7 +135,7 @@ function FilterAmount() {
             {distributionData.map((bin, index) => (
               <div
                 key={index}
-                className={`w-full rounded-sm ${bin.isInRange ? "bg-blue-500 dark:bg-blue-500" : "bg-gray-200 dark:bg-gray-800"} transition-all`}
+                className={`w-full rounded-sm ${bin.isInRange ? "bg-primary" : "bg-muted"} transition-all`}
                 style={{ height: `${bin.height}%` }}
               />
             ))}
@@ -152,14 +152,14 @@ function FilterAmount() {
             />
           </div>
           <div className="mt-4 space-y-2">
-            <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-50">
+            <p className="text-base sm:text-sm font-medium text-foreground">
               Popular ranges:
             </p>
             {presetOptions.map((option) => (
               <Button
                 key={option.label}
                 variant="secondary"
-                className="w-full justify-start font-normal dark:bg-gray-950"
+                className="w-full justify-start font-normal"
                 onClick={() => handlePresetClick(option.min, option.max)}
               >
                 {option.label}
@@ -167,7 +167,7 @@ function FilterAmount() {
             ))}
           </div>
           <div className="mt-4 space-y-2">
-            <p className="text-base sm:text-sm font-medium text-gray-900 dark:text-gray-50">
+            <p className="text-base sm:text-sm font-medium text-foreground">
               Custom range:
             </p>
             <div className="flex w-full items-center gap-2">
@@ -180,7 +180,7 @@ function FilterAmount() {
                 onChange={handleMinInputChange}
               />
               <>
-                <span className="text-xs font-medium text-gray-500">–</span>
+                <span className="text-xs font-medium text-muted-foreground">–</span>
                 <Input
                   name="Maximum Amount"
                   type="number"

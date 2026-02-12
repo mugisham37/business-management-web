@@ -223,13 +223,13 @@ export function TransactionChart({
         <div className="flex gap-2">
           <h2
             id={`${type}-chart-title`}
-            className="text-sm text-gray-600 dark:text-gray-400"
+            className="text-sm text-muted-foreground"
           >
             {config.title}
           </h2>
           <Tooltip>
             <TooltipTrigger asChild>
-              <InfoIcon className="size-4 text-gray-600 dark:text-gray-400" />
+              <InfoIcon className="size-4 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent side="bottom">
               {config.tooltipContent}
@@ -238,7 +238,7 @@ export function TransactionChart({
         </div>
       </div>
       <p
-        className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-50"
+        className="mt-2 text-2xl font-semibold text-foreground"
         aria-live="polite"
       >
         {config.valueFormatter(totalValue)}

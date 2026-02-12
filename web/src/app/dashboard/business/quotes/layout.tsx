@@ -19,7 +19,7 @@ export default function Layout({
   const pathname = usePathname()
   return (
     <>
-      <div className="bg-white dark:bg-gray-925">
+      <div className="bg-background">
         <div className="p-4 sm:p-6">
           <MetricsCards />
         </div>

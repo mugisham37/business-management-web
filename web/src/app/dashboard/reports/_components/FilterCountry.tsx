@@ -66,7 +66,7 @@ const ContinentCheckbox = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="sticky top-0 z-50 flex items-center gap-2 rounded-md bg-gray-100 px-1 py-1 dark:bg-gray-900">
+      <div className="sticky top-0 z-50 flex items-center gap-2 rounded-md bg-muted px-1 py-1">
         <Checkbox
           id={continent.name}
           checked={allSelected ? true : someSelected ? "indeterminate" : false}
@@ -162,11 +162,11 @@ function FilterCountry() {
           <Button
             variant="secondary"
             className={cx(
-              "flex justify-start gap-1.5 font-normal md:justify-center dark:bg-[#090E1A] hover:dark:bg-gray-950/50",
+              "flex justify-start gap-1.5 font-normal md:justify-center",
             )}
           >
             Selected Locations
-            <span className="flex shrink-0 items-center justify-center rounded bg-gray-200 px-1 tabular-nums text-gray-900 dark:bg-gray-800 dark:text-gray-50">
+            <span className="flex shrink-0 items-center justify-center rounded bg-muted px-1 tabular-nums text-foreground">
               {selectedCountries.length}
             </span>
           </Button>
@@ -193,7 +193,7 @@ function FilterCountry() {
                     />
                   ))
                 ) : (
-                  <span className="mt-2 block text-base sm:text-sm text-gray-500 dark:text-gray-500">
+                  <span className="mt-2 block text-base sm:text-sm text-muted-foreground">
                     No results found
                   </span>
                 )}

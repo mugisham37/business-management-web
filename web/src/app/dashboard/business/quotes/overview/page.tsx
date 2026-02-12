@@ -39,12 +39,12 @@ const quotes = [
 ]
 
 const colorClasses = [
-  "bg-blue-500 dark:bg-blue-500",
-  "bg-purple-500 dark:bg-purple-500",
-  "bg-emerald-500 dark:bg-emerald-500",
-  "bg-cyan-500 dark:bg-cyan-500",
-  "bg-rose-500 dark:bg-rose-500",
-  "bg-indigo-500 dark:bg-indigo-500",
+  "bg-chart-1",
+  "bg-chart-2",
+  "bg-chart-3",
+  "bg-chart-4",
+  "bg-chart-5",
+  "bg-primary",
 ]
 
 const getRandomColor = (initials: string) => {
@@ -78,14 +78,14 @@ export default function Overview() {
             className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
           >
             <Download
-              className="-ml-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-600"
+              className="-ml-0.5 size-4 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
             Export
           </Button>
         </div>
       </div>
-      <div className="border-t border-gray-200 dark:border-gray-800">
+      <div className="border-t border-border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -104,10 +104,10 @@ export default function Overview() {
                   <TableHead
                     scope="colgroup"
                     colSpan={6}
-                    className="bg-gray-50 py-3 pl-4 sm:pl-6 dark:bg-gray-900"
+                    className="bg-muted py-3 pl-4 sm:pl-6"
                   >
                     {quote.region}
-                    <span className="ml-2 font-medium text-gray-600 dark:text-gray-400">
+                    <span className="ml-2 font-medium text-muted-foreground">
                       {quote.project.length}
                     </span>
                   </TableHead>
@@ -125,7 +125,7 @@ export default function Overview() {
                             key={nameIndex}
                             className={cx(
                               getRandomColor(name.initials),
-                              "inline-flex size-5 items-center justify-center rounded-full text-xs font-medium text-white ring-2 ring-white dark:text-white dark:ring-[#090E1A]",
+                              "inline-flex size-5 items-center justify-center rounded-full text-xs font-medium text-primary-foreground ring-2 ring-background",
                             )}
                           >
                             {name.initials}
@@ -148,19 +148,12 @@ export default function Overview() {
                       >
                         <span
                           className={cx(
-                            "size-1.5 shrink-0 rounded-full",
-                            "bg-gray-500 dark:bg-gray-500",
+                            "size-1.5 shrink-0 rounded-full bg-muted-foreground",
                             {
-                              "bg-emerald-600 dark:bg-emerald-400":
-                                item.status === "Closed",
+                              "bg-chart-5": item.status === "Closed",
                             },
                             {
-                              "bg-gray-500 dark:bg-gray-500":
-                                item.status === "Drafted",
-                            },
-                            {
-                              "bg-blue-500 dark:bg-blue-500":
-                                item.status === "Sent",
+                              "bg-chart-1": item.status === "Sent",
                             },
                           )}
                           aria-hidden="true"

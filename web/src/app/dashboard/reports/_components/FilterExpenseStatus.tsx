@@ -12,13 +12,17 @@ import { useQueryState } from "nuqs"
 
 type ExpenseStatus = (typeof expense_statuses)[number]
 
-const statusColorMap: {
-  [key in ExpenseStatus["value"]]?: string
+const variantColorMap: {
+  [key: string]: string
 } = {
-  pending: "bg-gray-500 dark:bg-gray-500",
-  approved: "bg-emerald-600 dark:bg-emerald-500",
-  actionRequired: "bg-rose-600 dark:bg-rose-500",
-  inAudit: "bg-yellow-600 dark:bg-yellow-500",
+  success: "bg-chart-5",
+  neutral: "bg-muted-foreground",
+  error: "bg-destructive",
+  warning: "bg-accent",
+}
+
+const getStatusColor = (status: ExpenseStatus): string => {
+  return variantColorMap[status.variant] || "bg-muted-foreground"
 }
 
 function FilterExpenseStatus() {
@@ -53,8 +57,7 @@ function FilterExpenseStatus() {
               <div className="flex items-center gap-x-2.5">
                 <span
                   className={cx(
-                    statusColorMap[status.value] ||
-                      "bg-gray-600 dark:bg-gray-500",
+                    getStatusColor(status),
                     "inline-block size-2 shrink-0 rounded-full",
                   )}
                   aria-hidden="true"

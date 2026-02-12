@@ -51,19 +51,19 @@ export default function Monitoring() {
           className="w-full gap-2 py-1.5 text-base sm:w-fit sm:text-sm"
         >
           <SlidersHorizontal
-            className="-ml-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-600"
+            className="-ml-0.5 size-4 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
           Report Filters
         </Button>
       </div>
-      <dl className="grid grid-cols-1 gap-x-14 gap-y-10 border-t border-gray-200 p-6 md:grid-cols-2 dark:border-gray-800">
+      <dl className="grid grid-cols-1 gap-x-14 gap-y-10 border-t border-border p-6 md:grid-cols-2">
         <div className="flex flex-col justify-between p-0">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="text-sm font-semibold text-foreground">
               Inherent risk
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="mt-0.5 text-sm/6 text-muted-foreground">
               Risk scenarios over time grouped by risk level
             </dd>
           </div>
@@ -71,7 +71,7 @@ export default function Monitoring() {
             data={dataChart}
             index="date"
             categories={["Current year", "Same period last year"]}
-            colors={["blue", "gray"]}
+            colors={["chart-1", "chart-4"]}
             yAxisWidth={45}
             yAxisLabel="Number of inherent risks"
             barCategoryGap="20%"
@@ -82,7 +82,7 @@ export default function Monitoring() {
             data={dataChart}
             index="date"
             categories={["Current year", "Same period last year"]}
-            colors={["blue", "gray"]}
+            colors={["chart-1", "chart-4"]}
             showYAxis={false}
             barCategoryGap="20%"
             className="mt-4 h-60 md:hidden"
@@ -90,10 +90,10 @@ export default function Monitoring() {
         </div>
         <div className="flex flex-col justify-between">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="text-sm font-semibold text-foreground">
               Quote-to-Deal ratio
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="mt-0.5 text-sm/6 text-muted-foreground">
               Number of quotes compared to total deal size for given month
             </dd>
           </div>
@@ -109,7 +109,7 @@ export default function Monitoring() {
             }}
             lineSeries={{
               categories: ["Total deal size"],
-              colors: ["gray"],
+              colors: ["chart-4"],
               showYAxis: false,
             }}
             className="mt-4 hidden h-60 md:block"
@@ -124,7 +124,7 @@ export default function Monitoring() {
             }}
             lineSeries={{
               categories: ["Total deal size"],
-              colors: ["gray"],
+              colors: ["chart-4"],
               showYAxis: false,
             }}
             className="mt-4 h-60 md:hidden"
@@ -132,10 +132,10 @@ export default function Monitoring() {
         </div>
         <div className="flex flex-col justify-between">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="text-sm font-semibold text-foreground">
               ESG impact
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="mt-0.5 text-sm/6 text-muted-foreground">
               Evaluation of addressed ESG criteria in biddings over time
             </dd>
           </div>
@@ -143,7 +143,7 @@ export default function Monitoring() {
             data={dataChart3}
             index="date"
             categories={["Addressed", "Unrealized"]}
-            colors={["emerald", "gray"]}
+            colors={["chart-5", "chart-4"]}
             type="percent"
             yAxisWidth={55}
             yAxisLabel="% of criteria addressed"
@@ -154,7 +154,7 @@ export default function Monitoring() {
             data={dataChart3}
             index="date"
             categories={["Addressed", "Unrealized"]}
-            colors={["emerald", "gray"]}
+            colors={["chart-5", "chart-4"]}
             showYAxis={false}
             type="percent"
             barCategoryGap="30%"
@@ -163,10 +163,10 @@ export default function Monitoring() {
         </div>
         <div className="flex flex-col justify-between">
           <div>
-            <dt className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+            <dt className="text-sm font-semibold text-foreground">
               Bidder density
             </dt>
-            <dd className="mt-0.5 text-sm/6 text-gray-500 dark:text-gray-500">
+            <dd className="mt-0.5 text-sm/6 text-muted-foreground">
               Competition level measured by number and size of bidders over time
             </dd>
           </div>
@@ -174,7 +174,7 @@ export default function Monitoring() {
             data={dataChart4}
             index="date"
             categories={["Density"]}
-            colors={["amber"]}
+            colors={["chart-3"]}
             valueFormatter={(value: number) =>
               formatters.percentage(value)
             }
@@ -187,7 +187,7 @@ export default function Monitoring() {
             data={dataChart4}
             index="date"
             categories={["Density"]}
-            colors={["amber"]}
+            colors={["chart-3"]}
             valueFormatter={(value: number) =>
               formatters.percentage(value)
             }
