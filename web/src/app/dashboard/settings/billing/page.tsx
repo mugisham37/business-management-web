@@ -87,16 +87,16 @@ export default function Billing() {
   const [isSpendMgmtEnabled, setIsSpendMgmtEnabled] = React.useState(true)
   return (
     <>
-      <div className="rounded-lg bg-gray-50 p-6 ring-1 ring-inset ring-gray-200 dark:bg-gray-400/10 dark:ring-gray-800">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+      <div className="rounded-lg bg-muted/50 p-6 ring-1 ring-inset ring-border">
+        <h4 className="text-sm font-semibold text-foreground">
           This workspace is currently on free plan
         </h4>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
           Boost your analytics and unlock advanced features with our premium
           plans.{" "}
           <a
             href="#"
-            className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-500"
+            className="inline-flex items-center gap-1 text-primary"
           >
             Compare plans
             <RiArrowRightUpLine
@@ -112,11 +112,11 @@ export default function Billing() {
             <div>
               <h2
                 id="billing-overview-heading"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                className="scroll-mt-10 font-semibold text-foreground"
               >
                 Billing
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Overview of current billing cycle based on fixed and on-demand
                 charges.
               </p>
@@ -124,7 +124,7 @@ export default function Billing() {
             <div className="md:col-span-2">
               <h3
                 id="current-cycle-heading"
-                className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+                className="text-sm font-semibold text-foreground"
               >
                 Current billing cycle (Aug 31 – Sep 30, 2024)
               </h3>
@@ -170,7 +170,7 @@ export default function Billing() {
                     <TableHead
                       scope="row"
                       colSpan={3}
-                      className="border-transparent pb-1.5 text-right font-normal text-gray-600 dark:border-transparent dark:text-gray-400"
+                      className="border-transparent pb-1.5 text-right font-normal text-muted-foreground"
                     >
                       Subtotal
                     </TableHead>
@@ -182,7 +182,7 @@ export default function Billing() {
                     <TableHead
                       scope="row"
                       colSpan={3}
-                      className="border-transparent py-1.5 text-right font-normal text-gray-600 dark:border-transparent dark:text-gray-400"
+                      className="border-transparent py-1.5 text-right font-normal text-muted-foreground"
                     >
                       VAT (7.7%)
                     </TableHead>
@@ -194,11 +194,11 @@ export default function Billing() {
                     <TableHead
                       scope="row"
                       colSpan={3}
-                      className="border-transparent py-1.5 text-right dark:border-transparent dark:text-gray-300"
+                      className="border-transparent py-1.5 text-right text-foreground"
                     >
                       Total
                     </TableHead>
-                    <TableCell className="py-1.5 text-right text-gray-900 dark:text-gray-300">
+                    <TableCell className="py-1.5 text-right text-foreground">
                       $220.80
                     </TableCell>
                   </TableRow>
@@ -213,11 +213,11 @@ export default function Billing() {
             <div>
               <h2
                 id="payment-method-heading"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                className="scroll-mt-10 font-semibold text-foreground"
               >
                 Payment method
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Payments will be taken from the card(s) listed below. You can add
                 additional credit cards.
               </p>
@@ -226,7 +226,7 @@ export default function Billing() {
               <div className="flex items-center justify-between">
                 <h3
                   id="cards-heading"
-                  className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+                  className="text-sm font-semibold text-foreground"
                 >
                   Cards
                 </h3>
@@ -339,7 +339,7 @@ export default function Billing() {
               </div>
               <Table className="mt-4" aria-labelledby="cards-heading">
                 <TableHeader>
-                  <TableRow className="border-b border-gray-200 dark:border-gray-800">
+                  <TableRow className="border-b border-border">
                     <TableHead className="text-xs font-medium uppercase">
                       Provider
                     </TableHead>
@@ -365,7 +365,7 @@ export default function Billing() {
                     <TableCell className="py-2.5">MasterCard</TableCell>
                     <TableCell className="flex items-center gap-1.5 py-2.5">
                       <CircleCheck
-                        className="size-4 text-emerald-600 dark:text-emerald-500"
+                        className="size-4 text-chart-5"
                         aria-hidden="true"
                       />
                       <span>Active</span>
@@ -376,7 +376,7 @@ export default function Billing() {
                     <TableCell className="py-2.5 text-right">
                       <a
                         href="#"
-                        className="font-medium text-blue-600 dark:text-blue-500"
+                        className="font-medium text-primary"
                         aria-label="Edit MasterCard ending in 1234"
                       >
                         Edit
@@ -395,11 +395,11 @@ export default function Billing() {
               <div>
                 <h2
                   id="cost-spend-control"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Cost spend control
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Set hard caps for on-demand charges.
                 </p>
               </div>
@@ -414,24 +414,24 @@ export default function Billing() {
                     <div>
                       {isSpendMgmtEnabled ? (
                         <>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                          <p className="text-sm font-medium text-foreground">
                             &#36;280 / 350 (62.2&#37;)
                           </p>
                           <Label
                             htmlFor="spend-mgmt"
-                            className="text-gray-500 dark:text-gray-500"
+                            className="text-muted-foreground"
                           >
                             Spend management enabled
                           </Label>
                         </>
                       ) : (
                         <>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                          <p className="text-sm font-medium text-foreground">
                             &#36;0 / 0 (0&#37;)
                           </p>
                           <Label
                             htmlFor="spend-mgmt"
-                            className="text-gray-500 dark:text-gray-500"
+                            className="text-muted-foreground"
                           >
                             Spend management disabled
                           </Label>
@@ -509,11 +509,11 @@ export default function Billing() {
             <div>
               <h2
                 id="billing-address-heading"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                className="scroll-mt-10 font-semibold text-foreground"
               >
                 Billing address
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 If you would like to add a postal address to every invoice, enter
                 it here.
               </p>
@@ -521,7 +521,7 @@ export default function Billing() {
             <div className="md:col-span-2">
               <h3
                 id="update-address-heading"
-                className="text-sm font-semibold text-gray-900 dark:text-gray-50"
+                className="text-sm font-semibold text-foreground"
               >
                 Update address
               </h3>
@@ -616,35 +616,35 @@ export default function Billing() {
               <div>
                 <h2
                   id="add-ons"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Add-Ons
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Additional services to boost your services.
                 </p>
               </div>
               <div className="space-y-6 md:col-span-2">
                 <Card className="overflow-hidden p-0">
                   <div className="px-4 pb-6 pt-4">
-                    <span className="text-sm text-gray-500">$25/month</span>
-                    <h4 className="mt-4 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                    <span className="text-sm text-muted-foreground">$25/month</span>
+                    <h4 className="mt-4 text-sm font-semibold text-foreground">
                       Advanced bot protection
                     </h4>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       Safeguard your assets with our cutting-edge bot
                       protection. Our AI solution identifies and mitigates
                       automated traffic to protect your workspace from bad bots.
                     </p>
                   </div>
-                  <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
+                  <div className="flex items-center justify-between border-t border-border bg-muted/50 p-4">
                     <div className="flex items-center gap-3">
                       <Switch id="bot-protection" name="bot-protection" />
                       <Label htmlFor="bot-protection">Activate</Label>
                     </div>
                     <a
                       href="#"
-                      className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-500"
+                      className="inline-flex items-center gap-1 text-sm text-primary"
                     >
                       Learn more
                       <RiArrowRightUpLine
@@ -656,23 +656,23 @@ export default function Billing() {
                 </Card>
                 <Card className="overflow-hidden p-0">
                   <div className="px-4 pb-6 pt-4">
-                    <span className="text-sm text-gray-500">$50/month</span>
-                    <h4 className="mt-4 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                    <span className="text-sm text-muted-foreground">$50/month</span>
+                    <h4 className="mt-4 text-sm font-semibold text-foreground">
                       Workspace insights
                     </h4>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       Real-time analysis of your workspace&#39;s usage, enabling
                       you to make well-informed decisions for optimization.
                     </p>
                   </div>
-                  <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
+                  <div className="flex items-center justify-between border-t border-border bg-muted/50 p-4">
                     <div className="flex items-center gap-3">
                       <Switch id="insights" name="insights" />
                       <Label htmlFor="insights">Activate</Label>
                     </div>
                     <a
                       href="#"
-                      className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-500"
+                      className="inline-flex items-center gap-1 text-sm text-primary"
                     >
                       Learn more
                       <RiArrowRightUpLine

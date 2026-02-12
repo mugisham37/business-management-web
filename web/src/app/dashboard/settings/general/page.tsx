@@ -26,11 +26,11 @@ export default function General() {
               <div>
                 <h2
                   id="personal-information"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Personal information
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Manage your personal information and role.
                 </p>
               </div>
@@ -112,7 +112,7 @@ export default function General() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       Roles can only be changed by system admin.
                     </p>
                   </div>
@@ -131,25 +131,25 @@ export default function General() {
               <div>
                 <h2
                   id="notification-settings"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Notification settings
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Configure the types of notifications you want to receive.
                 </p>
               </div>
               <div className="md:col-span-2">
                 <fieldset>
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <legend className="text-sm font-medium text-foreground">
                     Team
                   </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Configure the types of team alerts you want to receive.
                   </p>
                   <ul
                     role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
+                    className="mt-4 divide-y divide-border"
                   >
                     <li className="flex items-center gap-x-3 py-3">
                       <Checkbox
@@ -168,15 +168,15 @@ export default function General() {
                   </ul>
                 </fieldset>
                 <fieldset className="mt-6">
-                  <legend className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <legend className="text-sm font-medium text-foreground">
                     Usage
                   </legend>
-                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Configure the types of usage alerts you want to receive.
                   </p>
                   <ul
                     role="list"
-                    className="mt-4 divide-y divide-gray-200 dark:divide-gray-800"
+                    className="mt-4 divide-y divide-border"
                   >
                     <li className="flex items-center gap-x-3 py-3">
                       <Checkbox id="api-requests" name="api-requests" />
@@ -221,16 +221,16 @@ export default function General() {
               <div>
                 <h2
                   id="danger-zone"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Danger zone
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Manage general workspace. Contact system admin for more
                   information.{" "}
                   <a
                     href="#"
-                    className="inline-flex items-center gap-1 text-indigo-600 hover:underline hover:underline-offset-4 dark:text-indigo-400"
+                    className="inline-flex items-center gap-1 text-primary hover:underline hover:underline-offset-4"
                   >
                     Learn more
                     <RiExternalLinkLine
@@ -244,17 +244,17 @@ export default function General() {
                 <Card className="p-4">
                   <div className="flex items-start justify-between gap-10">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                      <h4 className="text-sm font-medium text-foreground">
                         Leave workspace
                       </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-500">
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         Revoke your access to this team. Other people you have
                         added to the workspace will remain.
                       </p>
                     </div>
                     <Button
                       variant="secondary"
-                      className="text-red-600 dark:text-red-500"
+                      className="text-destructive"
                     >
                       Leave
                     </Button>
@@ -263,10 +263,10 @@ export default function General() {
                 <Card className="overflow-hidden p-0">
                   <div className="flex items-start justify-between gap-10 p-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-400 dark:text-gray-600">
+                      <h4 className="text-sm font-medium text-muted-foreground">
                         Delete workspace
                       </h4>
-                      <p className="mt-2 text-sm leading-6 text-gray-400 dark:text-gray-600">
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         Revoke your access to this team. Other people you have
                         added to the workspace will remain.
                       </p>
@@ -274,13 +274,13 @@ export default function General() {
                     <Button
                       variant="secondary"
                       disabled
-                      className="whitespace-nowrap text-red-600 disabled:text-red-300 disabled:opacity-50 dark:text-red-500 disabled:dark:text-red-700"
+                      className="whitespace-nowrap text-destructive disabled:opacity-50"
                     >
                       Delete workspace
                     </Button>
                   </div>
-                  <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
-                    <p className="text-sm text-gray-500">
+                  <div className="border-t border-border bg-muted/50 p-4">
+                    <p className="text-sm text-muted-foreground">
                       You cannot delete the workspace because you are not the
                       system admin.
                     </p>

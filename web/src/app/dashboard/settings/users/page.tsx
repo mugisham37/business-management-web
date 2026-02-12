@@ -65,11 +65,11 @@ export default function Users() {
         <div>
           <h2
             id="users-heading"
-            className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+            className="scroll-mt-10 font-semibold text-foreground"
           >
             Users
           </h2>
-          <p className="mt-2 text-sm leading-6 text-gray-500">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Workspace administrators can add, manage, and remove users. Invite
             new members and assign roles to control access.
           </p>
@@ -78,7 +78,7 @@ export default function Users() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <h3
               id="users-list-heading"
-              className="text-sm font-medium text-gray-900 dark:text-gray-50"
+              className="text-sm font-medium text-foreground"
             >
               All workspace members
             </h3>
@@ -153,7 +153,7 @@ export default function Users() {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+          <div className="mt-6 overflow-hidden rounded-lg border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -174,8 +174,8 @@ export default function Users() {
                         <span
                           className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
                             user.status === "pending"
-                              ? "border border-dashed border-gray-300 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
-                              : "border border-gray-300 bg-white text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
+                              ? "border border-dashed border-border bg-background text-foreground"
+                              : "border border-border bg-background text-foreground"
                           }`}
                           aria-hidden="true"
                         >
@@ -183,16 +183,16 @@ export default function Users() {
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+                            <p className="truncate text-sm font-medium text-foreground">
                               {user.name}
                             </p>
                             {user.status === "pending" && (
-                              <span className="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-400/10 dark:text-gray-300">
+                              <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                                 pending
                               </span>
                             )}
                           </div>
-                          <p className="truncate text-xs text-gray-500">
+                          <p className="truncate text-xs text-muted-foreground">
                             {user.email}
                             {user.status === "pending" && user.expires && (
                               <span className="ml-1">
@@ -203,10 +203,10 @@ export default function Users() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-gray-500">
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                       {user.dateAdded}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-gray-500">
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                       {user.lastActive}
                     </TableCell>
                     <TableCell>
@@ -280,11 +280,11 @@ export default function Users() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+                            className="group size-8 hover:border hover:border-border hover:bg-muted data-[state=open]:border-border data-[state=open]:bg-muted"
                             aria-label={`Actions for ${user.name}`}
                           >
                             <RiMore2Fill
-                              className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
+                              className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground"
                               aria-hidden="true"
                             />
                           </Button>
@@ -293,7 +293,7 @@ export default function Users() {
                           {user.status === "pending" ? (
                             <>
                               <DropdownMenuItem>Resend invitation</DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                              <DropdownMenuItem className="text-destructive">
                                 Revoke invitation
                               </DropdownMenuItem>
                             </>
@@ -305,7 +305,7 @@ export default function Users() {
                               <Dialog>
                                 <DialogTrigger asChild>
                                   <DropdownMenuItem
-                                    className="text-red-600 dark:text-red-500"
+                                    className="text-destructive"
                                     disabled={user.role === "admin"}
                                     onSelect={(e) => e.preventDefault()}
                                   >

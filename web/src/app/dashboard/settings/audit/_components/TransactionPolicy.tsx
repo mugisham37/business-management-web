@@ -18,19 +18,19 @@ const blacklist = [
     category: "Blocked transactions",
     value: "$4,653 volume",
     description: "1,234",
-    color: "bg-rose-600 dark:bg-rose-500",
+    color: "bg-chart-4",
   },
   {
     category: "Suspicious transactions",
     value: "$1,201 volume",
     description: "319",
-    color: "bg-orange-500 dark:bg-orange-500",
+    color: "bg-chart-3",
   },
   {
     category: "Successful transactions",
     value: "$213,642 volume",
     description: "10,546",
-    color: "bg-gray-500 dark:bg-gray-500",
+    color: "bg-muted",
   },
 ]
 
@@ -70,12 +70,12 @@ const keywords = [
 const keywordCategories = [
   {
     value: "Block",
-    color: "bg-rose-600 dark:bg-rose-500",
+    color: "bg-chart-4",
     description: "Blocks transactions, preventing payment.",
   },
   {
     value: "Suspicious",
-    color: "bg-orange-500 dark:bg-orange-500",
+    color: "bg-chart-3",
     description: "Processes transactions but flags for audit.",
   },
 ]
@@ -97,18 +97,18 @@ export default function TransactionPolicy() {
         <div>
           <h2
             id="transaction-policy-heading"
-            className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+            className="scroll-mt-10 font-semibold text-foreground"
           >
             Transaction policy
           </h2>
-          <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-500">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Block transactions by keywords or merchant category.
           </p>
         </div>
         <div className="md:col-span-2">
           <h3
             id="overview-heading"
-            className="text-sm font-medium text-gray-900 dark:text-gray-50"
+            className="text-sm font-medium text-foreground"
           >
             Overview of blocked transactions
           </h3>
@@ -131,18 +131,18 @@ export default function TransactionPolicy() {
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-sm leading-none text-gray-600 dark:text-gray-400">
+                  <p className="text-sm leading-none text-muted-foreground">
                     {item.category}
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-50">
+                  <p className="mt-1 text-lg font-semibold text-foreground">
                     {item.description}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {item.value}
                   </p>
                   <a
                     href="#"
-                    className="mt-2.5 flex items-center gap-0.5 text-sm font-normal text-blue-600 hover:underline hover:underline-offset-4 dark:text-blue-500"
+                    className="mt-2.5 flex items-center gap-0.5 text-sm font-normal text-primary hover:underline hover:underline-offset-4"
                     aria-label={`Details for ${item.category}`}
                   >
                     Details
@@ -158,20 +158,20 @@ export default function TransactionPolicy() {
           <div className="mt-10 flex items-center justify-between">
             <p
               id="keyword-heading"
-              className="text-sm font-medium text-gray-900 dark:text-gray-50"
+              className="text-sm font-medium text-foreground"
             >
               Keyword / Merchant category
             </p>
             <p
               id="transaction-count-heading"
-              className="text-sm font-medium text-gray-900 dark:text-gray-50"
+              className="text-sm font-medium text-foreground"
             >
               # of transactions
             </p>
           </div>
           <ul
             role="list"
-            className="mt-1 divide-y divide-gray-200 dark:divide-gray-800"
+            className="mt-1 divide-y divide-border"
             aria-labelledby="keyword-heading transaction-count-heading"
           >
             {keywords.map((item) => (
@@ -186,8 +186,8 @@ export default function TransactionPolicy() {
                   <span
                     className={cx(
                       item.category === "block"
-                        ? "bg-rose-500 dark:bg-rose-500"
-                        : "bg-orange-500 dark:bg-orange-500",
+                        ? "bg-chart-4"
+                        : "bg-chart-3",
                       "size-2 rounded-sm",
                     )}
                     aria-hidden="true"
@@ -195,16 +195,16 @@ export default function TransactionPolicy() {
                   {item.label}
                 </Badge>
                 <div className="flex items-center gap-2">
-                  <span className="pr-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="pr-2 text-sm text-muted-foreground">
                     {item.flagged}
                   </span>
                   <span
-                    className="h-5 w-px bg-gray-200 dark:bg-gray-800"
+                    className="h-5 w-px bg-border"
                     aria-hidden="true"
                   />
                   <Button
                     variant="ghost"
-                    className="p-2.5 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-rose-500 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-rose-500"
+                    className="p-2.5 text-muted-foreground hover:border hover:border-border hover:bg-muted hover:text-destructive"
                     aria-label={`Remove ${item.label}`}
                   >
                     <Trash2 className="size-4 shrink-0" aria-hidden="true" />
@@ -234,7 +234,7 @@ export default function TransactionPolicy() {
                 animationFillMode: "backwards",
               }}
             >
-              <div className="mt-4 flex flex-col items-center gap-2 rounded-md bg-gray-50 p-4 ring-1 ring-inset ring-gray-200 sm:flex-row dark:bg-gray-900 dark:ring-gray-800">
+              <div className="mt-4 flex flex-col items-center gap-2 rounded-md bg-muted/50 p-4 ring-1 ring-inset ring-border sm:flex-row">
                 <div className="flex flex-col sm:flex-row w-full items-center gap-2">
                   <Select value={value} onValueChange={setValue}>
                     <SelectTrigger className="w-full sm:w-48">
@@ -264,7 +264,7 @@ export default function TransactionPolicy() {
                             />
                             <p>{item.value}</p>
                           </div>
-                          <span className="ml-5 text-sm font-normal text-gray-700 dark:text-gray-500">
+                          <span className="ml-5 text-sm font-normal text-muted-foreground">
                             {item.description}
                           </span>
                         </SelectItem>

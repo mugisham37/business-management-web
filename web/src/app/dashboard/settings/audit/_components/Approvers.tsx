@@ -61,11 +61,11 @@ export default function Approvers() {
         <div>
           <h2
             id="approver-list-heading"
-            className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+            className="scroll-mt-10 font-semibold text-foreground"
           >
             Approvers
           </h2>
-          <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-500">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Define people who can approve bills and expenses.
           </p>
         </div>
@@ -73,13 +73,13 @@ export default function Approvers() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <h3
               id="approvers-count"
-              className="text-sm font-medium text-gray-900 dark:text-gray-50"
+              className="text-sm font-medium text-foreground"
             >
               Users with approval rights
             </h3>
             <div className="flex items-center gap-4">
               <span
-                className="hidden text-sm text-gray-600 sm:block dark:text-gray-400"
+                className="hidden text-sm text-muted-foreground sm:block"
                 aria-live="polite"
                 aria-atomic="true"
               >
@@ -164,7 +164,7 @@ export default function Approvers() {
           <ul
             role="list"
             aria-labelledby="approvers-count"
-            className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
+            className="mt-6 divide-y divide-border"
           >
             {users.map((item) => (
               <li
@@ -173,16 +173,16 @@ export default function Approvers() {
               >
                 <div className="flex w-full items-center gap-4">
                   <span
-                    className="inline-flex size-9 items-center justify-center rounded-full bg-gray-50 p-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-300 dark:bg-gray-800 dark:text-gray-50 dark:ring-gray-700"
+                    className="inline-flex size-9 items-center justify-center rounded-full bg-muted p-1.5 text-xs font-medium text-foreground ring-1 ring-border"
                     aria-hidden="true"
                   >
                     {item.initials}
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                    <p className="text-sm font-medium text-foreground">
                       {item.name}
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       {item.email}
                     </p>
                   </div>
@@ -206,7 +206,7 @@ export default function Approvers() {
                   <div>
                     <Button
                       variant="ghost"
-                      className="aspect-square p-3 text-gray-600 hover:border hover:border-gray-300 hover:bg-gray-50 hover:text-rose-500 sm:p-2.5 dark:text-gray-400 hover:dark:border-gray-800 hover:dark:bg-gray-900 hover:dark:text-rose-500"
+                      className="aspect-square p-3 text-muted-foreground hover:border hover:border-border hover:bg-muted hover:text-destructive sm:p-2.5"
                       aria-label={`Remove ${item.name}`}
                     >
                       <Trash2 className="size-4 shrink-0" aria-hidden="true" />
