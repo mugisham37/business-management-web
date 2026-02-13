@@ -1,18 +1,39 @@
+"use client"
+import React from "react"
+import { usePathname } from "next/navigation"
+import { cx } from "@/lib/utils"
+
 import { Sidebar } from "@/components/dashboard/navigation/Sidebar"
 
-export default function DashboardLayout({
+export default function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed)
+  }
+
+  // Hide main sidebar when on business routes (they have their own sidebar)
+  const isBusinessRoute = pathname.startsWith("/dashboard/business")
+
+  if (isBusinessRoute) {
+    return <>{children}</>
+  }
+
   return (
     <div className="mx-auto max-w-screen-2xl">
-      <Sidebar />
-      <main className="lg:pl-72">
-        <div className="relative">
-          <div className="p-4 sm:px-6 sm:pb-10 sm:pt-10 lg:px-10 lg:pt-7">
-            {children}
-          </div>
+      <Sidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+      <main
+        className={cx(
+          isCollapsed ? "lg:pl-[60px]" : "lg:pl-64",
+          "ease transform-gpu transition-all duration-100 will-change-transform bg-background lg:py-3 lg:pr-3",
+        )}
+      >
+        <div className="bg-background p-4 sm:p-6 lg:rounded-lg lg:border border-border">
+          {children}
         </div>
       </main>
     </div>

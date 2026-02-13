@@ -38,10 +38,10 @@ export default function Employees() {
         className="motion-safe:animate-revealBottom"
         style={{ animationDuration: "500ms" }}
       >
-        <h1 className="text-2xl font-semibold text-gray-900 sm:text-xl dark:text-gray-50">
+        <h1 className="text-2xl font-semibold sm:text-xl text-foreground">
           How many employees does your company have?
         </h1>
-        <p className="mt-6 text-gray-700 sm:text-sm dark:text-gray-300">
+        <p className="mt-6 sm:text-sm text-muted-foreground">
           This will help us customize the experience to you.
         </p>
       </div>
@@ -65,7 +65,7 @@ export default function Employees() {
                 }}
               >
                 <RadioCardItem
-                  className="active:scale-[99%] dark:bg-gray-925"
+                  className="active:scale-[99%] bg-card"
                   key={count.value}
                   value={count.value}
                   style={{
@@ -88,7 +88,7 @@ export default function Employees() {
             <Link href="/onboarding/products">Back</Link>
           </Button>
           <Button
-            className="disabled:bg-gray-200 disabled:text-gray-500"
+            className="disabled:opacity-50"
             type="submit"
             disabled={!selectedEmployeeCount || loading}
             aria-disabled={!selectedEmployeeCount || loading}

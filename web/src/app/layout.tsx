@@ -1,6 +1,6 @@
 import Footer from "@/components/landing/Footer"
 import { Navigation } from "@/components/landing/Navbar"
-import { Sidebar } from "@/components/Dashboard/navigation/Sidebar"
+import { Sidebar } from "@/components/dashboard/navigation/Sidebar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
@@ -53,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} min-h-screen overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:selection:bg-indigo-900 dark:selection:text-indigo-300 bg-background dark:bg-gray-950`}
+        className={`${inter.className} min-h-screen overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:selection:bg-indigo-900 dark:selection:text-indigo-300 bg-background text-foreground`}
         suppressHydrationWarning
       >
         <ThemeProvider

@@ -15,12 +15,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  RiArrowRightUpLine,
-  RiComputerLine,
-  RiMoonLine,
-  RiSunLine,
-} from "@remixicon/react"
+import { ArrowUpRight, Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import * as React from "react"
 
@@ -35,7 +30,6 @@ export function DropdownUserProfile({
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme()
-
   React.useEffect(() => {
     setMounted(true)
   }, [])
@@ -43,82 +37,84 @@ export function DropdownUserProfile({
   if (!mounted) {
     return null
   }
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent
-        align={align}
-        className="min-w-[calc(var(--radix-dropdown-menu-trigger-width))]"
-      >
-        <DropdownMenuLabel>emma.stone@acme.com</DropdownMenuLabel>
-        <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup
-                value={theme}
-                onValueChange={(value) => setTheme(value)}
-              >
-                <DropdownMenuRadioItem
-                  aria-label="Switch to Light Mode"
-                  value="light"
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+        <DropdownMenuContent
+          align={align}
+          className="!min-w-[calc(var(--radix-dropdown-menu-trigger-width))]"
+        >
+          <DropdownMenuLabel>emma.stone@acme.com</DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={theme}
+                  onValueChange={(value: string) => {
+                    setTheme(value)
+                  }}
                 >
-                  <RiSunLine className="size-4 shrink-0" aria-hidden="true" />
-                  Light
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem
-                  aria-label="Switch to Dark Mode"
-                  value="dark"
-                >
-                  <RiMoonLine className="size-4 shrink-0" aria-hidden="true" />
-                  Dark
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem
-                  aria-label="Switch to System Mode"
-                  value="system"
-                >
-                  <RiComputerLine
-                    className="size-4 shrink-0"
-                    aria-hidden="true"
-                  />
-                  System
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Changelog
-            <RiArrowRightUpLine
-              className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Documentation
-            <RiArrowRightUpLine
-              className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Join Slack community
-            <RiArrowRightUpLine
-              className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <a href={siteConfig.baseLinks.home}>Sign out</a>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+                  <DropdownMenuRadioItem
+                    aria-label="Switch to Light Mode"
+                    value="light"
+                  >
+                    <Sun className="size-4 shrink-0" aria-hidden="true" />
+                    Light
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    aria-label="Switch to Dark Mode"
+                    value="dark"
+                  >
+                    <Moon className="size-4 shrink-0" aria-hidden="true" />
+                    Dark
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    aria-label="Switch to System Mode"
+                    value="system"
+                  >
+                    <Monitor className="size-4 shrink-0" aria-hidden="true" />
+                    System
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
+              Changelog
+              <ArrowUpRight
+                className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Documentation
+              <ArrowUpRight
+                className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Join Slack community
+              <ArrowUpRight
+                className="mb-1 ml-1 size-3 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
+              <a href={siteConfig.baseLinks.home} className="w-full">
+                Sign out
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   )
 }

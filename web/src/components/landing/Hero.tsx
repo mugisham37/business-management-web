@@ -33,7 +33,7 @@ export default function Hero() {
         <Button
           asChild
           variant="ghost"
-          className="group gap-x-2 bg-transparent font-semibold hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
+          className="group gap-x-2 font-semibold"
         >
           <Link
             href="https://www.youtube.com/watch?v=QRZ_l7cVzzU"

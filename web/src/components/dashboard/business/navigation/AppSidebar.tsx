@@ -1,4 +1,5 @@
 "use client"
+import { siteConfig } from "@/app/siteConfig"
 import { Divider } from "@/components/ui/divider"
 import { Input } from "@/components/ui/input"
 import {
@@ -16,31 +17,25 @@ import {
 } from "@/components/ui/sidebar"
 import { cx, focusRing } from "@/lib/utils"
 import { RiArrowDownSFill } from "@remixicon/react"
-import { BookText, House, PackageSearch } from "lucide-react"
+import { ArrowLeft, BookText, House, PackageSearch } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import * as React from "react"
+import { DatabaseLogo as Logo } from "../../../../../public/DatabaseLogo"
 import { UserProfile } from "./UserProfile"
-
-// Simple Logo component
-const Logo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-  </svg>
-)
 
 const navigation = [
   {
     name: "Home",
-    href: "#",
+    href: siteConfig.baseLinks.quotes.overview,
     icon: House,
     notifications: false,
-    active: false,
   },
   {
     name: "Inbox",
     href: "#",
     icon: PackageSearch,
     notifications: 2,
-    active: false,
   },
 ] as const
 
@@ -52,18 +47,15 @@ const navigation2 = [
     children: [
       {
         name: "Quotes",
-        href: "#",
-        active: true,
+        href: siteConfig.baseLinks.quotes.overview,
       },
       {
         name: "Orders",
         href: "#",
-        active: false,
       },
       {
         name: "Insights & Reports",
         href: "#",
-        active: false,
       },
     ],
   },
@@ -75,27 +67,26 @@ const navigation2 = [
       {
         name: "Items",
         href: "#",
-        active: false,
       },
       {
         name: "Variants",
         href: "#",
-        active: false,
       },
       {
         name: "Suppliers",
         href: "#",
-        active: false,
       },
     ],
   },
 ] as const
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
   const [openMenus, setOpenMenus] = React.useState<string[]>([
     navigation2[0].name,
     navigation2[1].name,
   ])
+
   const toggleMenu = (name: string) => {
     setOpenMenus((prev: string[]) =>
       prev.includes(name)
@@ -103,22 +94,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         : [...prev, name],
     )
   }
+
+  const isActive = (href: string) => {
+    if (href === "#") return false
+    return pathname === href || pathname.startsWith(href)
+  }
+
   return (
-    <Sidebar {...props} className="bg-sidebar">
+    <Sidebar {...props} className="bg-muted">
       <SidebarHeader className="px-3 py-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-md bg-card p-1.5 shadow-sm ring-1 ring-border">
-            <Logo className="size-6 text-sidebar-primary" />
+          <span className="flex size-9 items-center justify-center rounded-md bg-background p-1.5 shadow-sm ring-1 ring-border">
+            <Logo className="size-6 text-primary" />
           </span>
           <div>
             <span className="block text-sm font-semibold text-sidebar-foreground">
               Innovex Systems
             </span>
-            <span className="block text-xs text-sidebar-foreground">
+            <span className="block text-xs text-sidebar-foreground/60">
               Premium Starter Plan
             </span>
           </div>
         </div>
+        {/* Back to Dashboard Link */}
+        <Link
+          href={siteConfig.baseLinks.overview}
+          className={cx(
+            "mt-4 flex items-center gap-2 rounded-md p-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50",
+            focusRing,
+          )}
+        >
+          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+          <span>Back to Dashboard</span>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -136,8 +144,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarLink
-                    href="#"
-                    isActive={item.active}
+                    href={item.href}
+                    isActive={isActive(item.href)}
                     icon={item.icon}
                     notifications={item.notifications}
                   >
@@ -156,11 +164,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu className="space-y-4">
               {navigation2.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  {/* @CHRIS/SEV: discussion whether to componentize (-> state mgmt) */}
                   <button
                     onClick={() => toggleMenu(item.name)}
                     className={cx(
-                      "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-sidebar-foreground transition hover:bg-sidebar-accent/50 sm:text-sm dark:text-muted-foreground hover:dark:bg-sidebar-accent/50 hover:dark:text-sidebar-foreground",
+                      "flex w-full items-center justify-between gap-x-2.5 rounded-md p-2 text-base text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50 sm:text-sm",
                       focusRing,
                     )}
                   >
@@ -183,12 +190,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </button>
                   {item.children && openMenus.includes(item.name) && (
                     <SidebarMenuSub>
-                      <div className="absolute inset-y-0 left-4 w-px bg-border" />
+                      <div className="absolute inset-y-0 left-4 w-px bg-sidebar-border" />
                       {item.children.map((child) => (
                         <SidebarMenuItem key={child.name}>
                           <SidebarSubLink
                             href={child.href}
-                            isActive={child.active}
+                            isActive={isActive(child.href)}
                           >
                             {child.name}
                           </SidebarSubLink>

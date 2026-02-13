@@ -164,32 +164,21 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block"
+        className={cx(
+          "group peer fixed inset-y-0 left-0 z-10 hidden h-svh w-[--sidebar-width] transition-[transform] duration-150 ease-in-out will-change-transform md:flex",
+          "data-[collapsible=true]:-translate-x-full",
+          "border-r border-sidebar-border",
+          className,
+        )}
         data-state={state}
         data-collapsible={state === "collapsed" ? true : false}
+        {...props}
       >
-        {/* This is what handles the sidebar gap on desktop */}
         <div
-          className={cx(
-            "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-150 ease-in-out will-change-transform",
-            "group-data-[collapsible=true]:w-0",
-          )}
-        />
-        <div
-          className={cx(
-            "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-150 ease-in-out will-change-transform md:flex",
-            "left-0 group-data-[collapsible=true]:left-[calc(var(--sidebar-width)*-1)]",
-            "border-r border-sidebar-border",
-            className,
-          )}
-          {...props}
+          data-sidebar="sidebar"
+          className="bg-sidebar text-sidebar-foreground flex h-full w-full flex-col"
         >
-          <div
-            data-sidebar="sidebar"
-            className="bg-sidebar text-sidebar-foreground flex h-full w-full flex-col"
-          >
-            {children}
-          </div>
+          {children}
         </div>
       </div>
     )

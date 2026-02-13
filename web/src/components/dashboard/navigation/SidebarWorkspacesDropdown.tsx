@@ -20,12 +20,15 @@ const workspaces = [
     name: "Retail analytics",
     initials: "RA",
     role: "Member",
-    color: "bg-primary",
   },
   // Add more workspaces...
 ]
 
-export const WorkspacesDropdownDesktop = () => {
+interface WorkspacesDropdownDesktopProps {
+  isCollapsed: boolean
+}
+
+export const WorkspacesDropdownDesktop = ({ isCollapsed }: WorkspacesDropdownDesktopProps) => {
   const [dropdownOpen, setDropdownOpen] = React.useState(false)
   const [hasOpenDialog, setHasOpenDialog] = React.useState(false)
   const dropdownTriggerRef = React.useRef<null | HTMLButtonElement>(null)
@@ -51,35 +54,46 @@ export const WorkspacesDropdownDesktop = () => {
       >
         <DropdownMenuTrigger asChild>
           <button
+            ref={dropdownTriggerRef}
             className={cx(
-              "flex w-full items-center gap-x-2.5 rounded-md border border-border bg-card p-2 text-sm shadow-sm transition-all hover:bg-muted",
+              isCollapsed
+                ? "flex aspect-square size-10 items-center justify-center rounded-md border border-sidebar-border bg-sidebar shadow-sm transition-all hover:bg-sidebar-accent/50"
+                : "flex w-full items-center gap-x-2.5 rounded-md border border-sidebar-border bg-sidebar p-2 text-sm shadow-sm transition-all hover:bg-sidebar-accent/50",
               focusInput,
             )}
           >
             <span
-              className="flex aspect-square size-8 items-center justify-center rounded bg-primary p-2 text-xs font-medium text-primary-foreground"
+              className={cx(
+                "flex items-center justify-center rounded bg-sidebar-primary text-xs font-medium text-sidebar-primary-foreground",
+                isCollapsed ? "size-6" : "aspect-square size-8 p-2"
+              )}
               aria-hidden="true"
             >
               RA
             </span>
-            <div className="flex w-full items-center justify-between gap-x-4 truncate">
-              <div className="truncate">
-                <p className="truncate whitespace-nowrap text-sm font-medium text-card-foreground">
-                  Retail analytics
-                </p>
-                <p className="whitespace-nowrap text-left text-xs text-muted-foreground">
-                  Member
-                </p>
+            {!isCollapsed && (
+              <div className="flex w-full items-center justify-between gap-x-4 truncate">
+                <div className="truncate">
+                  <p className="truncate whitespace-nowrap text-sm font-medium text-sidebar-foreground">
+                    Retail analytics
+                  </p>
+                  <p className="whitespace-nowrap text-left text-xs text-sidebar-foreground/60">
+                    Member
+                  </p>
+                </div>
+                <RiExpandUpDownLine
+                  className="size-5 shrink-0 text-sidebar-foreground/60"
+                  aria-hidden="true"
+                />
               </div>
-              <RiExpandUpDownLine
-                className="size-5 shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
-            </div>
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           hidden={hasOpenDialog}
+          side={isCollapsed ? "right" : "bottom"}
+          align={isCollapsed ? "start" : "start"}
+          sideOffset={isCollapsed ? 8 : 4}
           onCloseAutoFocus={(event: Event) => {
             if (focusRef.current) {
               focusRef.current.focus()
@@ -96,10 +110,7 @@ export const WorkspacesDropdownDesktop = () => {
               <DropdownMenuItem key={workspace.value}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
-                    className={cx(
-                      workspace.color,
-                      "flex aspect-square size-8 items-center justify-center rounded p-2 text-xs font-medium text-primary-foreground",
-                    )}
+                    className="flex aspect-square size-8 items-center justify-center rounded bg-sidebar-primary p-2 text-xs font-medium text-sidebar-primary-foreground"
                     aria-hidden="true"
                   >
                     {workspace.initials}
@@ -196,10 +207,7 @@ export const WorkspacesDropdownMobile = () => {
               <DropdownMenuItem key={workspace.value}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
-                    className={cx(
-                      workspace.color,
-                      "flex size-8 items-center justify-center rounded p-2 text-xs font-medium text-primary-foreground",
-                    )}
+                    className="flex size-8 items-center justify-center rounded bg-sidebar-primary p-2 text-xs font-medium text-sidebar-primary-foreground"
                     aria-hidden="true"
                   >
                     {workspace.initials}
