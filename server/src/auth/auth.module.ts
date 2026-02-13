@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { AuthResolver } from './auth.resolver';
 import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -33,6 +34,7 @@ import { PermissionsModule } from '../permissions/permissions.module';
   ],
   providers: [
     AuthService,
+    AuthResolver,
     GoogleOAuthStrategy,
     JwtStrategy,
     JwtRefreshStrategy,

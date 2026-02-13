@@ -1,0 +1,231 @@
+# GraphQL Schema for Multi-Tenant Authentication and Authorization System
+
+scalar DateTime
+scalar JSON
+
+# Enums
+enum UserRole {
+  OWNER
+  MANAGER
+  WORKER
+}
+
+# Types
+type Organization {
+  id: ID!
+  businessName: String!
+  businessType: String
+  employeeCount: String
+  industry: String
+  country: String
+  selectedModules: [String!]!
+  primaryGoal: String
+  cloudProvider: String
+  region: String
+  storageVolume: Int
+  compression: Boolean!
+  activeHours: Int
+  integrations: [String!]!
+  selectedPlan: String
+  billingCycle: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type User {
+  id: ID!
+  organizationId: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  phone: String
+  role: UserRole!
+  emailVerified: Boolean!
+  mfaEnabled: Boolean!
+  accountLocked: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  lastLoginAt: DateTime
+  
+  organization: Organization!
+  creator: User
+  subordinates: [User!]!
+  branches: [Branch!]!
+  departments: [Department!]!
+  permissions: [String!]!
+}
+
+type Branch {
+  id: ID!
+  organizationId: ID!
+  name: String!
+  location: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Department {
+  id: ID!
+  organizationId: ID!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AuthResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+  requiresMFA: Boolean!
+}
+
+type MFASetupResponse {
+  secret: String!
+  qrCodeUrl: String!
+  backupCodes: [String!]!
+}
+
+type AuditLog {
+  id: ID!
+  organizationId: ID!
+  userId: ID
+  action: String!
+  entityType: String
+  entityId: String
+  metadata: JSON!
+  ipAddress: String
+  userAgent: String
+  createdAt: DateTime!
+}
+
+type PermissionDefinition {
+  key: String!
+  module: String!
+  resource: String!
+  action: String!
+  description: String!
+}
+
+# Input Types
+input RegisterOrganizationInput {
+  businessName: String!
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  phone: String
+  acceptedTerms: Boolean!
+  businessType: String
+  employeeCount: String
+  industry: String
+  country: String
+  selectedModules: [String!]
+  primaryGoal: String
+  cloudProvider: String
+  region: String
+  storageVolume: Int
+  compression: Boolean
+  activeHours: Int
+  integrations: [String!]
+  selectedPlan: String
+  billingCycle: String
+}
+
+input CreateManagerInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  phone: String
+  branchIds: [ID!]
+  departmentIds: [ID!]
+  permissions: [String!]
+}
+
+input CreateWorkerInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  phone: String
+  permissions: [String!]
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  phone: String
+}
+
+input CreateBranchInput {
+  name: String!
+  location: String
+}
+
+input CreateDepartmentInput {
+  name: String!
+  description: String
+}
+
+input UserFilters {
+  role: UserRole
+  branchId: ID
+  departmentId: ID
+}
+
+input AuditLogFilters {
+  userId: ID
+  action: String
+  startDate: DateTime
+  endDate: DateTime
+  limit: Int
+  offset: Int
+}
+
+# Queries
+type Query {
+  me: User!
+  user(id: ID!): User
+  users(filters: UserFilters): [User!]!
+  branches: [Branch!]!
+  departments: [Department!]!
+  auditLogs(filters: AuditLogFilters): [AuditLog!]!
+  availablePermissions: [PermissionDefinition!]!
+}
+
+# Mutations
+type Mutation {
+  # Authentication
+  registerOrganization(input: RegisterOrganizationInput!): AuthResponse!
+  login(email: String!, password: String!, organizationId: ID!): AuthResponse!
+  loginWithGoogle(code: String!, organizationId: ID): AuthResponse!
+  verifyMFA(userId: ID!, token: String!, organizationId: ID!): AuthResponse!
+  refreshTokens(refreshToken: String!): AuthResponse!
+  logout: Boolean!
+  logoutAllDevices: Boolean!
+  
+  # Password Management
+  requestPasswordReset(email: String!, organizationId: ID): Boolean!
+  resetPassword(token: String!, newPassword: String!): Boolean!
+  changePassword(currentPassword: String!, newPassword: String!): Boolean!
+  
+  # MFA
+  enableMFA: MFASetupResponse!
+  disableMFA(totpToken: String!, currentPassword: String!): Boolean!
+  
+  # User Management
+  createManager(input: CreateManagerInput!): User!
+  createWorker(input: CreateWorkerInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean!
+  transferOwnership(newOwnerId: ID!): Boolean!
+  
+  # Permissions
+  assignPermissions(userId: ID!, permissions: [String!]!): Boolean!
+  revokePermissions(userId: ID!, permissions: [String!]!): Boolean!
+  
+  # Branches & Departments
+  createBranch(input: CreateBranchInput!): Branch!
+  createDepartment(input: CreateDepartmentInput!): Department!
+  assignBranches(userId: ID!, branchIds: [ID!]!): Boolean!
+  assignDepartments(userId: ID!, departmentIds: [ID!]!): Boolean!
+}

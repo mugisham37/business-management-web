@@ -3,21 +3,26 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { User, UserRole as PrismaUserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantContextService } from '../tenant/tenant-context.service';
 import { UserRole } from '../tenant/tenant-context.interface';
 import { AuditService } from '../audit/audit.service';
+import { PermissionRegistry } from '../permissions/permission-registry';
 import { hashPassword } from '../common/utils/password.util';
 import { CreateOwnerDto, CreateManagerDto, CreateWorkerDto, UpdateUserDto } from './dto';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantContext: TenantContextService,
     private readonly auditService: AuditService,
+    private readonly permissionRegistry: PermissionRegistry,
   ) {}
 
   /**
@@ -465,5 +470,131 @@ export class UsersService {
       branches: branchAssignments.map((assignment) => assignment.branch),
       departments: departmentAssignments.map((assignment) => assignment.department),
     };
+  }
+
+  /**
+   * Transfer ownership from current Owner to a new Owner
+   * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9, 15.10
+   */
+  async transferOwnership(
+    currentOwnerId: string,
+    newOwnerId: string,
+  ): Promise<void> {
+    const organizationId = this.tenantContext.getOrganizationId();
+
+    // Verify current owner exists and has Owner role
+    const currentOwner = await this.getUserById(currentOwnerId, organizationId);
+    if (currentOwner.role !== PrismaUserRole.OWNER) {
+      throw new BadRequestException('Current user is not an Owner');
+    }
+
+    // Verify new owner exists and is in the same organization
+    const newOwner = await this.getUserById(newOwnerId, organizationId);
+    if (newOwner.organizationId !== currentOwner.organizationId) {
+      throw new BadRequestException('Users must be in the same organization');
+    }
+
+    // Prevent self-transfer
+    if (currentOwnerId === newOwnerId) {
+      throw new BadRequestException('Cannot transfer ownership to yourself');
+    }
+
+    // Check if there are other owners in the organization
+    const ownerCount = await this.prisma.user.count({
+      where: {
+        organizationId,
+        role: PrismaUserRole.OWNER,
+      },
+    });
+
+    // If current owner is the only owner, they cannot demote themselves
+    if (ownerCount === 1) {
+      // This is allowed because we're promoting someone else to Owner
+      // The check is to prevent demotion without transfer
+    }
+
+    // Perform ownership transfer in a transaction
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Change current Owner to Manager role
+      await tx.user.update({
+        where: { id: currentOwnerId },
+        data: { role: PrismaUserRole.MANAGER },
+      });
+
+      // 2. Promote new user to Owner role
+      await tx.user.update({
+        where: { id: newOwnerId },
+        data: { role: PrismaUserRole.OWNER },
+      });
+
+      // 3. Migrate all created_by_id references from old Owner to new Owner
+      await tx.user.updateMany({
+        where: {
+          organizationId,
+          createdById: currentOwnerId,
+        },
+        data: {
+          createdById: newOwnerId,
+        },
+      });
+
+      // 4. Grant all permissions to new Owner (Owner bypass means they get all permissions automatically)
+      // Get all available permissions from registry
+      const allPermissions = this.permissionRegistry.getAvailablePermissions();
+      const permissionKeys = allPermissions.map((p) => p.key);
+
+      if (permissionKeys.length > 0) {
+        // Create permission records for the new owner
+        const permissionRecords = permissionKeys.map((permission) => ({
+          userId: newOwnerId,
+          organizationId,
+          permission,
+          grantedById: currentOwnerId,
+        }));
+
+        await tx.userPermission.createMany({
+          data: permissionRecords,
+          skipDuplicates: true,
+        });
+      }
+    });
+
+    // 5. Log role changes in audit log
+    await this.auditService.logRoleChange(
+      currentOwnerId,
+      currentOwnerId,
+      UserRole.OWNER,
+      UserRole.MANAGER,
+    );
+
+    await this.auditService.logRoleChange(
+      currentOwnerId,
+      newOwnerId,
+      newOwner.role === PrismaUserRole.MANAGER ? UserRole.MANAGER : UserRole.WORKER,
+      UserRole.OWNER,
+    );
+
+    // 6. Log ownership transfer event
+    await this.prisma.auditLog.create({
+      data: {
+        organizationId,
+        userId: currentOwnerId,
+        action: 'OWNERSHIP_TRANSFERRED',
+        entityType: 'ORGANIZATION',
+        entityId: organizationId,
+        metadata: {
+          fromUserId: currentOwnerId,
+          toUserId: newOwnerId,
+          timestamp: new Date(),
+        },
+      },
+    });
+
+    // TODO: 7. Send email notifications to both parties
+    // await this.emailService.sendOwnershipTransferNotification(currentOwner.email, newOwner.email);
+
+    this.logger.log(
+      `Ownership transferred from ${currentOwnerId} to ${newOwnerId} in organization ${organizationId}`,
+    );
   }
 }
