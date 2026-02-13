@@ -1,114 +1,471 @@
 "use client"
 
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Divider } from "@/components/ui/divider"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 import { DatabaseLogo } from "../../../../public/DatabaseLogo"
+import {
+  Shield,
+  Users,
+  Briefcase,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Building2,
+} from "lucide-react"
 import { RiGithubFill, RiGoogleFill } from "@remixicon/react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import React from "react"
+import { cx } from "@/lib/utils"
+
+type UserRole = "admin" | "manager" | "worker"
+
+interface RoleConfig {
+  id: UserRole
+  label: string
+  description: string
+  icon: React.ElementType
+  color: string
+  bgColor: string
+}
+
+const roles: RoleConfig[] = [
+  {
+    id: "admin",
+    label: "Admin",
+    description: "Organization owner",
+    icon: Shield,
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+  },
+  {
+    id: "manager",
+    label: "Manager",
+    description: "Department lead",
+    icon: Users,
+    color: "text-secondary",
+    bgColor: "bg-secondary/10",
+  },
+  {
+    id: "worker",
+    label: "Worker",
+    description: "Team member",
+    icon: Briefcase,
+    color: "text-accent",
+    bgColor: "bg-accent/10",
+  },
+]
 
 export default function Login() {
+  const router = useRouter()
+  const [selectedRole, setSelectedRole] = useState<UserRole>("admin")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [loading, setLoading] = React.useState(false)
+  const [formData, setFormData] = useState({
+    organizationId: "",
+    email: "",
+    password: "",
+  })
+
+  const selectedRoleConfig = roles.find((r) => r.id === selectedRole)!
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (selectedRole !== "admin" && !formData.organizationId.trim()) {
+      newErrors.organizationId = "Organization ID is required"
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email"
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!validateForm()) return
+
     setLoading(true)
+    
+    // Simulate API call
     setTimeout(() => {
-      console.log("Form submitted")
-      router.push("/reports")
+      console.log("Login submitted:", {
+        role: selectedRole,
+        ...formData,
+        rememberMe,
+      })
+      
+      // Route based on role
+      const routes = {
+        admin: "/dashboard/overview",
+        manager: "/dashboard/reports",
+        worker: "/dashboard/transactions",
+      }
+      
+      router.push(routes[selectedRole])
     }, 1200)
   }
 
-  const router = useRouter()
+  const handleSocialLogin = (provider: string) => {
+    console.log(`Login with ${provider}`)
+    // Implement social login
+  }
+
   return (
-    <div className="flex min-h-dvh items-center justify-center p-4 sm:p-6">
-      <div className="flex w-full flex-col items-start sm:max-w-sm">
-        <div className="relative flex items-center justify-center rounded-lg bg-white p-3 shadow-lg ring-1 ring-black/5">
-          <DatabaseLogo
-            className="size-8 text-blue-500 dark:text-blue-500"
-            aria-label="Insights logo"
-          />
-        </div>
-        <div className="mt-6 flex flex-col">
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-            Log in to Insights
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md">
+        {/* Logo and Header */}
+        <div
+          className="motion-safe:animate-revealBottom text-center"
+          style={{ animationDuration: "500ms" }}
+        >
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 shadow-lg ring-1 ring-primary/20">
+            <DatabaseLogo className="h-8 w-8 text-primary" aria-label="Insights logo" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Welcome back
           </h1>
-          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-            Don&rsquo;t have an account?{" "}
-            <a
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-400"
-              href="#"
-            >
-              Sign up
-            </a>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sign in to your account to continue
           </p>
         </div>
-        <div className="mt-10 w-full">
-          <div className="gap-2 sm:flex sm:flex-row sm:items-center">
-            <Button asChild variant="secondary" className="w-full">
-              <a href="#" className="inline-flex items-center gap-2">
-                <RiGithubFill className="size-5 shrink-0" aria-hidden="true" />
-                Login with GitHub
-              </a>
+
+        {/* Role Selection */}
+        <div
+          className="mt-8 motion-safe:animate-revealBottom"
+          style={{
+            animationDuration: "600ms",
+            animationDelay: "100ms",
+            animationFillMode: "backwards",
+          }}
+        >
+          <Label className="mb-3 block text-sm font-medium text-foreground">
+            Sign in as
+          </Label>
+          <div className="grid grid-cols-3 gap-2">
+            {roles.map((role) => {
+              const Icon = role.icon
+              const isSelected = selectedRole === role.id
+
+              return (
+                <button
+                  key={role.id}
+                  type="button"
+                  onClick={() => setSelectedRole(role.id)}
+                  className={cx(
+                    "flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all",
+                    "hover:border-primary/50 hover:bg-accent/5",
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border bg-card"
+                  )}
+                >
+                  <div
+                    className={cx(
+                      "flex h-10 w-10 items-center justify-center rounded-full",
+                      isSelected ? role.bgColor : "bg-muted"
+                    )}
+                  >
+                    <Icon
+                      className={cx(
+                        "h-5 w-5",
+                        isSelected ? role.color : "text-muted-foreground"
+                      )}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p
+                      className={cx(
+                        "text-xs font-semibold",
+                        isSelected ? "text-foreground" : "text-muted-foreground"
+                      )}
+                    >
+                      {role.label}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {role.description}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Social Login */}
+        <div
+          className="mt-6 motion-safe:animate-revealBottom"
+          style={{
+            animationDuration: "600ms",
+            animationDelay: "200ms",
+            animationFillMode: "backwards",
+          }}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialLogin("github")}
+              className="w-full"
+            >
+              <RiGithubFill className="mr-2 h-4 w-4" />
+              GitHub
             </Button>
-            <Button asChild variant="secondary" className="mt-2 w-full sm:mt-0">
-              <a href="#" className="inline-flex items-center gap-2">
-                <RiGoogleFill className="size-4" aria-hidden="true" />
-                Login with Google
-              </a>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialLogin("google")}
+              className="w-full"
+            >
+              <RiGoogleFill className="mr-2 h-4 w-4" />
+              Google
             </Button>
           </div>
-          <Divider className="my-6">or</Divider>
-          <form
-            onSubmit={handleSubmit}
-            className="flex w-full flex-col gap-y-6"
-          >
-            <div className="flex flex-col gap-y-4">
-              <div className="flex flex-col space-y-2">
-                <Label htmlFor="email-form-item" className="font-medium">
-                  Email
-                </Label>
+        </div>
+
+        <div
+          className="my-6 flex items-center gap-3 motion-safe:animate-revealBottom"
+          style={{
+            animationDuration: "600ms",
+            animationDelay: "250ms",
+            animationFillMode: "backwards",
+          }}
+        >
+          <Separator className="flex-1" />
+          <span className="text-xs text-muted-foreground">or continue with email</span>
+          <Separator className="flex-1" />
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Organization ID (for non-admins) */}
+          {selectedRole !== "admin" && (
+            <div
+              className="motion-safe:animate-revealBottom"
+              style={{
+                animationDuration: "600ms",
+                animationDelay: "300ms",
+                animationFillMode: "backwards",
+              }}
+            >
+              <Label htmlFor="organizationId" className="text-sm font-medium">
+                Organization ID <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative mt-2">
+                <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  type="email"
-                  autoComplete="email"
-                  name="email"
-                  id="email-form-item"
-                  placeholder="emily.ross@acme.ch"
+                  id="organizationId"
+                  type="text"
+                  placeholder="acme-corp"
+                  value={formData.organizationId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, organizationId: e.target.value })
+                  }
+                  className="pl-10"
+                  aria-invalid={!!errors.organizationId}
+                  aria-describedby={
+                    errors.organizationId ? "organizationId-error" : undefined
+                  }
                 />
               </div>
-              <div className="flex flex-col space-y-2">
-                <Label htmlFor="password-form-item" className="font-medium">
-                  Password
-                </Label>
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  name="password"
-                  id="password-form-item"
-                  placeholder="Password"
-                />
-              </div>
+              {errors.organizationId && (
+                <p id="organizationId-error" className="mt-1 text-sm text-destructive">
+                  {errors.organizationId}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ask your admin for your organization ID
+              </p>
             </div>
+          )}
+
+          {/* Email */}
+          <div
+            className="motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "600ms",
+              animationDelay: selectedRole !== "admin" ? "350ms" : "300ms",
+              animationFillMode: "backwards",
+            }}
+          >
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email <span className="text-destructive">*</span>
+            </Label>
+            <div className="relative mt-2">
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@company.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="pl-10"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+              />
+            </div>
+            {errors.email && (
+              <p id="email-error" className="mt-1 text-sm text-destructive">
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div
+            className="motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "600ms",
+              animationDelay: selectedRole !== "admin" ? "400ms" : "350ms",
+              animationFillMode: "backwards",
+            }}
+          >
+            <Label htmlFor="password" className="text-sm font-medium">
+              Password <span className="text-destructive">*</span>
+            </Label>
+            <div className="relative mt-2">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="px-10"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p id="password-error" className="mt-1 text-sm text-destructive">
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Remember Me & Forgot Password */}
+          <div
+            className="flex items-center justify-between motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "600ms",
+              animationDelay: selectedRole !== "admin" ? "450ms" : "400ms",
+              animationFillMode: "backwards",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label
+                htmlFor="rememberMe"
+                className="cursor-pointer text-sm font-normal"
+              >
+                Remember me
+              </Label>
+            </div>
+            <Link
+              href={`/auth/forgot-password?role=${selectedRole}${formData.email ? `&email=${encodeURIComponent(formData.email)}` : ''}${selectedRole !== 'admin' && formData.organizationId ? `&org=${encodeURIComponent(formData.organizationId)}` : ''}`}
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Submit Button */}
+          <div
+            className="motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "600ms",
+              animationDelay: selectedRole !== "admin" ? "500ms" : "450ms",
+              animationFillMode: "backwards",
+            }}
+          >
             <Button
               type="submit"
+              className="w-full"
+              size="lg"
               disabled={loading}
             >
-              {loading ? "" : "Continue"}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
-          </form>
+          </div>
+        </form>
+
+        {/* Sign Up Link */}
+        <div
+          className="mt-6 text-center motion-safe:animate-revealBottom"
+          style={{
+            animationDuration: "600ms",
+            animationDelay: selectedRole !== "admin" ? "550ms" : "500ms",
+            animationFillMode: "backwards",
+          }}
+        >
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="font-medium text-primary hover:underline"
+            >
+              Sign up for free
+            </Link>
+          </p>
         </div>
-        <Divider />
-        <p className="text-sm text-gray-700 dark:text-gray-300">
-          Forgot your password?{" "}
-          <a
-            className="text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:dark:text-blue-400"
-            href="#"
+
+        {/* Role-specific Help Text */}
+        {selectedRole !== "admin" && (
+          <div
+            className="mt-4 rounded-lg border border-border bg-muted/50 p-3 motion-safe:animate-revealBottom"
+            style={{
+              animationDuration: "600ms",
+              animationDelay: "600ms",
+              animationFillMode: "backwards",
+            }}
           >
-            Reset password
-          </a>
-        </p>
+            <p className="text-xs text-muted-foreground">
+              <strong className="text-foreground">
+                {selectedRoleConfig.label} Access:
+              </strong>{" "}
+              {selectedRole === "manager"
+                ? "You'll have access to your department's data and team management features."
+                : "You'll have access to your assigned tasks and relevant modules."}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
