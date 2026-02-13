@@ -7,6 +7,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
 import { TenantModule } from './tenant/tenant.module';
+import { BranchesModule } from './branches/branches.module';
+import { DepartmentsModule } from './departments/departments.module';
 import { validate } from './config/env.validation';
 import { loggerConfig } from './config/logger.config';
 
@@ -22,6 +24,8 @@ import { loggerConfig } from './config/logger.config';
     PrismaModule,
     RedisModule,
     HealthModule,
+    BranchesModule,
+    DepartmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
