@@ -213,13 +213,19 @@ export class AuditService {
     userId: string,
     oldTokenId: string,
     newTokenId: string,
+    organizationId?: string,
   ): Promise<void> {
     try {
-      const organizationId = this.tenantContext.getOrganizationId();
+      const orgId = organizationId || this.tryGetOrganizationId();
+
+      if (!orgId) {
+        this.logger.warn('Cannot log token rotation without organization ID');
+        return;
+      }
 
       await this.prisma.auditLog.create({
         data: {
-          organizationId,
+          organizationId: orgId,
           userId,
           action: 'TOKEN_ROTATED',
           entityType: 'REFRESH_TOKEN',
