@@ -20,3 +20,17 @@ export type {
   RefreshTokenPayload,
   VerifiedToken,
 } from './token.util';
+
+export {
+  detectSQLInjection,
+  sanitizeSQLInput,
+  detectXSS,
+  sanitizeHTML,
+  sanitizeEmail,
+  sanitizePhoneNumber,
+  sanitizeURL,
+  sanitizeText,
+  sanitizeFileName,
+} from './sanitization.util';
+
+export { calculateComplexity } from './graphql-complexity.util';
