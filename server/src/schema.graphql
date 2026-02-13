@@ -115,6 +115,17 @@ type PermissionDefinition {
   description: String!
 }
 
+type ModuleInfo {
+  name: String!
+  enabled: Boolean!
+  permissions: [PermissionDefinition!]!
+}
+
+type PermissionsByModule {
+  module: String!
+  permissions: [PermissionDefinition!]!
+}
+
 # Input Types
 input RegisterOrganizationInput {
   businessName: String!
@@ -198,6 +209,8 @@ type Query {
   departments: [Department!]!
   auditLogs(filters: AuditLogFilters): [AuditLog!]!
   availablePermissions: [PermissionDefinition!]!
+  modules: [ModuleInfo!]!
+  permissionsByModule: [PermissionsByModule!]!
 }
 
 # Mutations

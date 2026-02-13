@@ -64,7 +64,7 @@ export class EnvironmentVariables {
   @IsOptional()
   GOOGLE_CLIENT_SECRET?: string;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   @IsOptional()
   GOOGLE_CALLBACK_URL?: string;
 

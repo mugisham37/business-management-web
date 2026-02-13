@@ -32,8 +32,9 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     // Initialize subscriber for pub/sub
     if (this.redisService.isAvailable()) {
       try {
+        // duplicate() creates a new connection automatically in ioredis
+        // No need to call connect() explicitly
         this.subscriber = this.redisService.getClient().duplicate();
-        await this.subscriber.connect();
         this.logger.log('Redis subscriber initialized for pub/sub');
       } catch (error) {
         this.logger.error('Failed to initialize Redis subscriber:', error);
