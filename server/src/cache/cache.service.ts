@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Inject, forwardRef } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
+import { MetricsService } from '../health/metrics.service';
+import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 
 export interface SessionMetadata {
@@ -19,7 +21,12 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   private readonly SESSION_TTL = 604800; // 7 days in seconds
   private subscriber: Redis | null = null;
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => MetricsService))
+    private readonly metricsService: MetricsService,
+  ) {}
 
   async onModuleInit() {
     // Initialize subscriber for pub/sub
@@ -47,17 +54,21 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   async get<T>(key: string): Promise<T | null> {
     if (!this.redisService.isAvailable()) {
       this.logger.warn('Redis unavailable, returning null for get operation');
+      this.metricsService?.incrementCacheMisses();
       return null;
     }
 
     try {
       const value = await this.redisService.getClient().get(key);
       if (!value) {
+        this.metricsService?.incrementCacheMisses();
         return null;
       }
+      this.metricsService?.incrementCacheHits();
       return JSON.parse(value) as T;
     } catch (error) {
       this.logger.error(`Error getting key ${key}:`, error);
+      this.metricsService?.incrementCacheMisses();
       return null;
     }
   }
@@ -178,7 +189,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Session Management Methods
+   * Session Management Methods with Database Fallback
+   * Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.10
    */
 
   async createSession(
@@ -186,55 +198,211 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     sessionId: string,
     metadata: SessionMetadata,
   ): Promise<void> {
-    const key = this.getSessionKey(userId, sessionId);
-    await this.set(key, metadata, this.SESSION_TTL);
+    // Try Redis first
+    if (this.redisService.isAvailable()) {
+      const key = this.getSessionKey(userId, sessionId);
+      await this.set(key, metadata, this.SESSION_TTL);
+    }
+
+    // Always store in database as fallback (Requirement 13.10)
+    try {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+      await this.prisma.session.create({
+        data: {
+          sessionId: metadata.sessionId,
+          userId: metadata.userId,
+          organizationId: metadata.organizationId,
+          deviceInfo: metadata.deviceInfo,
+          ipAddress: metadata.ipAddress,
+          lastActive: metadata.lastActive,
+          createdAt: metadata.createdAt,
+          expiresAt,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Error creating session in database:`, error);
+    }
   }
 
   async getSession(
     userId: string,
     sessionId: string,
   ): Promise<SessionMetadata | null> {
-    const key = this.getSessionKey(userId, sessionId);
-    return await this.get<SessionMetadata>(key);
+    // Try Redis first
+    if (this.redisService.isAvailable()) {
+      const key = this.getSessionKey(userId, sessionId);
+      const session = await this.get<SessionMetadata>(key);
+      if (session) {
+        return session;
+      }
+    }
+
+    // Fallback to database (Requirement 13.10)
+    try {
+      const session = await this.prisma.session.findUnique({
+        where: { sessionId },
+      });
+
+      if (!session || session.userId !== userId) {
+        return null;
+      }
+
+      // Check if session is expired
+      if (session.expiresAt < new Date()) {
+        await this.prisma.session.delete({ where: { sessionId } });
+        return null;
+      }
+
+      return {
+        sessionId: session.sessionId,
+        userId: session.userId,
+        organizationId: session.organizationId,
+        deviceInfo: session.deviceInfo,
+        ipAddress: session.ipAddress,
+        lastActive: session.lastActive,
+        createdAt: session.createdAt,
+      };
+    } catch (error) {
+      this.logger.error(`Error getting session from database:`, error);
+      return null;
+    }
   }
 
   async deleteSession(userId: string, sessionId: string): Promise<void> {
-    const key = this.getSessionKey(userId, sessionId);
-    await this.delete(key);
+    // Delete from Redis
+    if (this.redisService.isAvailable()) {
+      const key = this.getSessionKey(userId, sessionId);
+      await this.delete(key);
+    }
+
+    // Delete from database
+    try {
+      await this.prisma.session.deleteMany({
+        where: {
+          sessionId,
+          userId,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Error deleting session from database:`, error);
+    }
   }
 
   async deleteAllSessions(userId: string): Promise<void> {
-    const pattern = `session:${userId}:*`;
-    await this.deletePattern(pattern);
+    // Delete from Redis
+    if (this.redisService.isAvailable()) {
+      const pattern = `session:${userId}:*`;
+      await this.deletePattern(pattern);
+    }
+
+    // Delete from database
+    try {
+      await this.prisma.session.deleteMany({
+        where: { userId },
+      });
+    } catch (error) {
+      this.logger.error(`Error deleting all sessions from database:`, error);
+    }
   }
 
   async getUserSessions(userId: string): Promise<SessionMetadata[]> {
-    if (!this.redisService.isAvailable()) {
-      this.logger.warn('Redis unavailable, returning empty sessions array');
-      return [];
+    // Try Redis first
+    if (this.redisService.isAvailable()) {
+      try {
+        const client = this.redisService.getClient();
+        const pattern = `session:${userId}:*`;
+        const keys = await client.keys(pattern);
+        
+        if (keys.length > 0) {
+          const sessions: SessionMetadata[] = [];
+          for (const key of keys) {
+            const session = await this.get<SessionMetadata>(key);
+            if (session) {
+              sessions.push(session);
+            }
+          }
+          return sessions;
+        }
+      } catch (error) {
+        this.logger.error(`Error getting user sessions from Redis:`, error);
+      }
     }
 
+    // Fallback to database (Requirement 13.10)
     try {
-      const client = this.redisService.getClient();
-      const pattern = `session:${userId}:*`;
-      const keys = await client.keys(pattern);
-      
-      if (keys.length === 0) {
-        return [];
-      }
+      const sessions = await this.prisma.session.findMany({
+        where: {
+          userId,
+          expiresAt: {
+            gte: new Date(), // Only return non-expired sessions
+          },
+        },
+        orderBy: {
+          lastActive: 'desc',
+        },
+      });
 
-      const sessions: SessionMetadata[] = [];
-      for (const key of keys) {
-        const session = await this.get<SessionMetadata>(key);
-        if (session) {
-          sessions.push(session);
-        }
-      }
-
-      return sessions;
+      return sessions.map(session => ({
+        sessionId: session.sessionId,
+        userId: session.userId,
+        organizationId: session.organizationId,
+        deviceInfo: session.deviceInfo,
+        ipAddress: session.ipAddress,
+        lastActive: session.lastActive,
+        createdAt: session.createdAt,
+      }));
     } catch (error) {
-      this.logger.error(`Error getting user sessions:`, error);
+      this.logger.error(`Error getting user sessions from database:`, error);
       return [];
+    }
+  }
+
+  async updateSessionActivity(userId: string, sessionId: string): Promise<void> {
+    const now = new Date();
+
+    // Update in Redis
+    if (this.redisService.isAvailable()) {
+      const key = this.getSessionKey(userId, sessionId);
+      const session = await this.get<SessionMetadata>(key);
+      if (session) {
+        session.lastActive = now;
+        await this.set(key, session, this.SESSION_TTL);
+      }
+    }
+
+    // Update in database
+    try {
+      await this.prisma.session.updateMany({
+        where: {
+          sessionId,
+          userId,
+        },
+        data: {
+          lastActive: now,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Error updating session activity in database:`, error);
+    }
+  }
+
+  async cleanupExpiredSessions(): Promise<number> {
+    try {
+      const result = await this.prisma.session.deleteMany({
+        where: {
+          expiresAt: {
+            lt: new Date(),
+          },
+        },
+      });
+
+      this.logger.log(`Cleaned up ${result.count} expired sessions`);
+      return result.count;
+    } catch (error) {
+      this.logger.error(`Error cleaning up expired sessions:`, error);
+      return 0;
     }
   }
 

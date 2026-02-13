@@ -86,6 +86,14 @@ type MFASetupResponse {
   backupCodes: [String!]!
 }
 
+type SessionInfo {
+  sessionId: String!
+  deviceInfo: String!
+  ipAddress: String!
+  lastActive: DateTime!
+  createdAt: DateTime!
+}
+
 type AuditLog {
   id: ID!
   organizationId: ID!
@@ -211,6 +219,10 @@ type Mutation {
   # MFA
   enableMFA: MFASetupResponse!
   disableMFA(totpToken: String!, currentPassword: String!): Boolean!
+  
+  # Session Management
+  listActiveSessions: [SessionInfo!]!
+  revokeSession(sessionId: ID!): Boolean!
   
   # User Management
   createManager(input: CreateManagerInput!): User!

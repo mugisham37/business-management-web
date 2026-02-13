@@ -201,6 +201,22 @@ model PasswordResetToken {
   @@index([token])
 }
 
+model Session {
+  id             String   @id @default(uuid())
+  sessionId      String   @unique
+  userId         String
+  organizationId String
+  deviceInfo     String
+  ipAddress      String
+  lastActive     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([userId, organizationId])
+}
+
 model AuditLog {
   id             String   @id @default(uuid())
   organizationId String

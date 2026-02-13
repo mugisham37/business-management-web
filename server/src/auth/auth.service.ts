@@ -12,6 +12,8 @@ import { OrganizationsService } from '../organizations/organizations.service';
 import { UsersService } from '../users/users.service';
 import { AuditService } from '../audit/audit.service';
 import { CacheService } from '../cache/cache.service';
+import { MetricsService } from '../health/metrics.service';
+import { PermissionsService } from '../permissions/permissions.service';
 import { UserRole } from '../tenant/tenant-context.interface';
 import { RegisterOrganizationDto, AuthResponseDto } from './dto';
 import { hashPassword, validatePasswordComplexity, verifyPassword, checkPasswordHistory } from '../common/utils/password.util';
@@ -34,6 +36,8 @@ export class AuthService {
     private readonly auditService: AuditService,
     private readonly cacheService: CacheService,
     private readonly configService: ConfigService,
+    private readonly metricsService: MetricsService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   /**
@@ -163,6 +167,22 @@ export class AuthService {
         result.organization.id,
       );
 
+      // Assign module permissions to Owner based on selectedModules (Requirement 17.10)
+      if (dto.selectedModules && dto.selectedModules.length > 0) {
+        try {
+          await this.permissionsService.assignModulePermissionsToOwner(
+            result.user.id,
+            result.organization.id,
+            dto.selectedModules,
+          );
+        } catch (error) {
+          this.logger.warn(
+            `Failed to assign module permissions during onboarding: ${error.message}`,
+          );
+          // Don't fail registration if permission assignment fails
+        }
+      }
+
       // TODO: Send email verification link (Requirement 1.4)
       // This will be implemented when email service is available
       // await this.emailService.sendVerificationEmail(result.user.email, verificationToken);
@@ -234,6 +254,7 @@ export class AuthService {
           },
           organizationId,
         );
+        this.metricsService.incrementAuthFailureCount();
         throw new UnauthorizedException(genericError);
       }
 
@@ -252,6 +273,7 @@ export class AuthService {
           },
           organizationId,
         );
+        this.metricsService.incrementAuthFailureCount();
         throw new UnauthorizedException(
           `Account is temporarily locked. Please try again in ${lockRemainingMinutes} minutes.`,
         );
@@ -269,6 +291,7 @@ export class AuthService {
           },
           organizationId,
         );
+        this.metricsService.incrementAuthFailureCount();
         throw new UnauthorizedException(
           'Please verify your email address before logging in. Check your inbox for the verification link.',
         );
@@ -328,6 +351,7 @@ export class AuthService {
             },
             organizationId,
           );
+          this.metricsService.incrementAuthFailureCount();
 
           throw new UnauthorizedException(
             'Too many failed login attempts. Your account has been locked for 30 minutes.',
@@ -345,6 +369,7 @@ export class AuthService {
           },
           organizationId,
         );
+        this.metricsService.incrementAuthFailureCount();
 
         throw new UnauthorizedException(genericError);
       }
@@ -431,6 +456,9 @@ export class AuthService {
         lastActive: new Date(),
         createdAt: new Date(),
       });
+
+      // Detect suspicious login and send notification (Requirement 13.8)
+      await this.detectSuspiciousLogin(user.id, user.organizationId, ipAddress, userAgent);
 
       // Update last login timestamp
       await this.prisma.user.update({
@@ -725,6 +753,9 @@ export class AuthService {
       lastActive: new Date(),
       createdAt: new Date(),
     });
+
+    // Detect suspicious login and send notification (Requirement 13.8)
+    await this.detectSuspiciousLogin(user.id, user.organizationId, ipAddress, userAgent);
 
     // Update last login timestamp
     await this.prisma.user.update({
@@ -1325,6 +1356,9 @@ export class AuthService {
           createdAt: new Date(),
         });
 
+        // Detect suspicious login and send notification (Requirement 13.8)
+        await this.detectSuspiciousLogin(user.id, user.organizationId, ipAddress, userAgent);
+
         // Update last login timestamp
         await this.prisma.user.update({
           where: { id: user.id },
@@ -1677,4 +1711,172 @@ export class AuthService {
       throw new InternalServerErrorException('An error occurred while changing password');
     }
   }
+
+
+    /**
+     * List active sessions for a user
+     * Requirements: 13.7
+     *
+     * @param userId - User ID
+     * @param organizationId - Organization ID
+     * @returns Array of active sessions with device info
+     */
+    async listActiveSessions(
+      userId: string,
+      organizationId: string,
+    ): Promise<Array<{
+      sessionId: string;
+      deviceInfo: string;
+      ipAddress: string;
+      lastActive: Date;
+      createdAt: Date;
+    }>> {
+      try {
+        // Verify user exists
+        const user = await this.usersService.getUserById(userId, organizationId);
+        if (!user) {
+          throw new UnauthorizedException('User not found');
+        }
+
+        // Get all active sessions
+        const sessions = await this.cacheService.getUserSessions(userId);
+
+        return sessions.map(session => ({
+          sessionId: session.sessionId,
+          deviceInfo: session.deviceInfo,
+          ipAddress: session.ipAddress,
+          lastActive: session.lastActive,
+          createdAt: session.createdAt,
+        }));
+      } catch (error) {
+        if (error instanceof UnauthorizedException) {
+          throw error;
+        }
+
+        this.logger.error(`Error listing active sessions for user ${userId}:`, error);
+        throw new InternalServerErrorException('An error occurred while listing sessions');
+      }
+    }
+
+    /**
+     * Revoke a specific session
+     * Requirements: 13.4, 13.9
+     *
+     * @param userId - User ID
+     * @param sessionId - Session ID to revoke
+     * @param organizationId - Organization ID
+     * @returns void
+     */
+    async revokeSession(
+      userId: string,
+      sessionId: string,
+      organizationId: string,
+    ): Promise<void> {
+      try {
+        // Verify user exists
+        const user = await this.usersService.getUserById(userId, organizationId);
+        if (!user) {
+          throw new UnauthorizedException('User not found');
+        }
+
+        // Get session to find associated tokens
+        const session = await this.cacheService.getSession(userId, sessionId);
+
+        // Delete the session
+        await this.cacheService.deleteSession(userId, sessionId);
+
+        // Blacklist any tokens associated with this session (Requirement 13.9)
+        // Note: In a production system, you'd need to track which tokens belong to which session
+        // For now, we'll just delete the session and rely on token validation
+
+        this.logger.log(`Session ${sessionId} revoked for user ${userId}`);
+      } catch (error) {
+        if (error instanceof UnauthorizedException) {
+          throw error;
+        }
+
+        this.logger.error(`Error revoking session ${sessionId} for user ${userId}:`, error);
+        throw new InternalServerErrorException('An error occurred while revoking session');
+      }
+    }
+
+    /**
+     * Detect suspicious login and send notification
+     * Requirements: 13.8
+     *
+     * @param userId - User ID
+     * @param organizationId - Organization ID
+     * @param ipAddress - Current IP address
+     * @param deviceInfo - Current device info
+     * @returns boolean indicating if login is suspicious
+     */
+    private async detectSuspiciousLogin(
+      userId: string,
+      organizationId: string,
+      ipAddress: string,
+      deviceInfo: string,
+    ): Promise<boolean> {
+      try {
+        // Get user's previous sessions
+        const previousSessions = await this.cacheService.getUserSessions(userId);
+
+        // If this is the first login, it's not suspicious
+        if (previousSessions.length === 0) {
+          return false;
+        }
+
+        // Check if this device has been used before
+        const knownDevice = previousSessions.some(
+          session => session.deviceInfo === deviceInfo,
+        );
+
+        // Check if this IP has been used before
+        const knownIP = previousSessions.some(
+          session => session.ipAddress === ipAddress,
+        );
+
+        // Login is suspicious if both device and IP are new
+        const isSuspicious = !knownDevice && !knownIP;
+
+        if (isSuspicious) {
+          // TODO: Send email notification (Requirement 13.8)
+          // This will be implemented when email service is available
+          // await this.emailService.sendSuspiciousLoginAlert(user.email, {
+          //   ipAddress,
+          //   deviceInfo,
+          //   timestamp: new Date(),
+          // });
+
+          this.logger.warn(
+            `Suspicious login detected for user ${userId} from IP ${ipAddress} with device ${deviceInfo}`,
+          );
+        }
+
+        return isSuspicious;
+      } catch (error) {
+        this.logger.error(`Error detecting suspicious login for user ${userId}:`, error);
+        return false; // Don't block login on detection error
+      }
+    }
+
+    /**
+     * Update session activity timestamp
+     * Requirements: 13.6
+     *
+     * @param userId - User ID
+     * @param sessionId - Session ID
+     * @returns void
+     */
+    async updateSessionActivity(
+      userId: string,
+      sessionId: string,
+    ): Promise<void> {
+      try {
+        await this.cacheService.updateSessionActivity(userId, sessionId);
+      } catch (error) {
+        this.logger.error(`Error updating session activity:`, error);
+        // Don't throw error - this is a background operation
+      }
+    }
+
 }

@@ -79,4 +79,33 @@ export class PermissionsResolver {
     );
     return true;
   }
+
+  /**
+   * Get all registered modules with their enabled status
+   * Requires 'permissions.view' permission
+   * @returns Array of module definitions
+   */
+  @Query('modules')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('permissions.view')
+  async modules() {
+    return this.permissionRegistry.getModules();
+  }
+
+  /**
+   * Get permissions grouped by module
+   * Requires 'permissions.view' permission
+   * @returns Map of module name to permissions
+   */
+  @Query('permissionsByModule')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('permissions.view')
+  async permissionsByModule() {
+    const grouped = this.permissionRegistry.getPermissionsByModule();
+    // Convert Map to array of objects for GraphQL
+    return Array.from(grouped.entries()).map(([module, permissions]) => ({
+      module,
+      permissions,
+    }));
+  }
 }

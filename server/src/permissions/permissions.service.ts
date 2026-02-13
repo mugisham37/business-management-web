@@ -78,6 +78,21 @@ export class PermissionsService {
           `Permission "${permission}" does not exist in registry`,
         );
       }
+
+      // Check if permission is from a disabled module (Requirement 17.6)
+      if (this.permissionRegistry.isPermissionDisabled(permission)) {
+        throw new BadRequestException(
+          `Permission "${permission}" cannot be used because its module is disabled`,
+        );
+      }
+
+      // Warn if permission is deprecated (Requirement 17.8)
+      const deprecationInfo = this.permissionRegistry.getDeprecationInfo(permission);
+      if (deprecationInfo.deprecated) {
+        this.logger.warn(
+          `Permission "${permission}" is deprecated. ${deprecationInfo.message || 'Please use an alternative permission.'}`,
+        );
+      }
     }
 
     // If grantor is not an Owner, validate they have all permissions they're trying to grant
@@ -443,5 +458,48 @@ export class PermissionsService {
     }
 
     return false;
+  }
+
+  /**
+   * Assign module permissions to Owner during onboarding
+   * Implements Requirement 17.10
+   * @param userId - Owner user ID
+   * @param organizationId - Organization ID
+   * @param selectedModules - Array of module names selected during onboarding
+   */
+  async assignModulePermissionsToOwner(
+    userId: string,
+    organizationId: string,
+    selectedModules: string[],
+  ): Promise<void> {
+    if (!selectedModules || selectedModules.length === 0) {
+      this.logger.log('No modules selected during onboarding, skipping permission assignment');
+      return;
+    }
+
+    // Get permissions for selected modules
+    const permissions = this.permissionRegistry.getPermissionsForModules(selectedModules);
+
+    if (permissions.length === 0) {
+      this.logger.warn(`No permissions found for selected modules: ${selectedModules.join(', ')}`);
+      return;
+    }
+
+    // Create UserPermission records for Owner
+    const permissionRecords = permissions.map((permission) => ({
+      userId,
+      organizationId,
+      permission,
+      grantedById: userId, // Owner grants to themselves
+    }));
+
+    await this.prisma.userPermission.createMany({
+      data: permissionRecords,
+      skipDuplicates: true,
+    });
+
+    this.logger.log(
+      `Assigned ${permissions.length} permissions from modules [${selectedModules.join(', ')}] to Owner ${userId}`,
+    );
   }
 }

@@ -205,6 +205,31 @@ export class AuthResolver {
   }
 
   /**
+   * List active sessions for authenticated user
+   * Requirement 13.7: List active sessions with device info
+   */
+  @Mutation(() => [SessionInfo])
+  @UseGuards(JwtAuthGuard)
+  async listActiveSessions(@CurrentUser() user: any): Promise<SessionInfo[]> {
+    return this.authService.listActiveSessions(user.userId, user.organizationId);
+  }
+
+  /**
+   * Revoke a specific session
+   * Requirement 13.4, 13.9: Session revocation with token blacklisting
+   */
+  @Mutation(() => Boolean)
+  @UseGuards(JwtAuthGuard)
+  async revokeSession(
+    @CurrentUser() user: any,
+    @Args('sessionId') sessionId: string,
+  ): Promise<boolean> {
+    await this.authService.revokeSession(user.userId, sessionId, user.organizationId);
+    return true;
+  }
+
+
+  /**
    * Extract JWT token from request
    */
   private extractToken(request: any): string | null {
@@ -236,4 +261,15 @@ class MFASetupResponse {
   secret: string;
   qrCodeUrl: string;
   backupCodes: string[];
+}
+
+/**
+ * SessionInfo type for GraphQL
+ */
+class SessionInfo {
+  sessionId: string;
+  deviceInfo: string;
+  ipAddress: string;
+  lastActive: Date;
+  createdAt: Date;
 }

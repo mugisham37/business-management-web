@@ -4,7 +4,7 @@ import { WinstonModule } from 'nest-winston';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { join } from 'path';
 import depthLimit from 'graphql-depth-limit';
 import { AppController } from './app.controller';
@@ -16,10 +16,18 @@ import { TenantModule } from './tenant/tenant.module';
 import { BranchesModule } from './branches/branches.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { AuthModule } from './auth/auth.module';
+import { OrganizationsModule } from './organizations/organizations.module';
+import { UsersModule } from './users/users.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { DataScopeModule } from './data-scope/data-scope.module';
+import { CacheModule } from './cache/cache.module';
+import { AuditModule } from './audit/audit.module';
 import { validate } from './config/env.validation';
 import { loggerConfig } from './config/logger.config';
 import { AuthThrottlerGuard } from './common/guards/auth-throttler.guard';
 import { calculateComplexity } from './common/utils/graphql-complexity.util';
+import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
+import { MetricsInterceptor } from './health/metrics.interceptor';
 
 @Module({
   imports: [
@@ -75,13 +83,21 @@ import { calculateComplexity } from './common/utils/graphql-complexity.util';
         },
       ],
     }),
+    // Core infrastructure modules
     TenantModule,
     PrismaModule,
     RedisModule,
     HealthModule,
+    // Feature modules
     AuthModule,
+    OrganizationsModule,
+    UsersModule,
+    PermissionsModule,
     BranchesModule,
     DepartmentsModule,
+    DataScopeModule,
+    CacheModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [
@@ -89,6 +105,14 @@ import { calculateComplexity } from './common/utils/graphql-complexity.util';
     {
       provide: APP_GUARD,
       useClass: AuthThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
     },
   ],
 })
