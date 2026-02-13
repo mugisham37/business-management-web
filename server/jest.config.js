@@ -12,6 +12,9 @@ module.exports = {
     '^src/(.*)$': '<rootDir>/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/../test/setup.ts'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)',
+  ],
   coverageThreshold: {
     global: {
       branches: 75,

@@ -70,13 +70,19 @@ export class AuditService {
     creatorId: string,
     createdUserId: string,
     role: UserRole,
+    organizationId?: string,
   ): Promise<void> {
     try {
-      const organizationId = this.tenantContext.getOrganizationId();
+      const orgId = organizationId || this.tryGetOrganizationId();
+
+      if (!orgId) {
+        this.logger.warn('Cannot log user creation without organization ID');
+        return;
+      }
 
       await this.prisma.auditLog.create({
         data: {
-          organizationId,
+          organizationId: orgId,
           userId: creatorId,
           action: 'USER_CREATED',
           entityType: 'USER',
