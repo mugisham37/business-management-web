@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
-import { CreateDepartmentDto } from './dto';
+import { CreateDepartmentDto, UpdateDepartmentDto } from './dto';
 
 /**
  * DepartmentsResolver
@@ -45,6 +45,37 @@ export class DepartmentsResolver {
   @RequirePermission('departments.create')
   async createDepartment(@Args('input') input: CreateDepartmentDto) {
     return this.departmentsService.createDepartment(input);
+  }
+
+  /**
+   * Update an existing department
+   * Requires 'departments.edit' permission
+   * @param id - Department ID
+   * @param input - Department update data
+   * @returns Updated department
+   */
+  @Mutation('updateDepartment')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('departments.edit')
+  async updateDepartment(
+    @Args('id') id: string,
+    @Args('input') input: UpdateDepartmentDto,
+  ) {
+    return this.departmentsService.updateDepartment(id, input);
+  }
+
+  /**
+   * Delete a department
+   * Requires 'departments.delete' permission
+   * @param id - Department ID
+   * @returns Success boolean
+   */
+  @Mutation('deleteDepartment')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('departments.delete')
+  async deleteDepartment(@Args('id') id: string) {
+    await this.departmentsService.deleteDepartment(id);
+    return true;
   }
 
   /**

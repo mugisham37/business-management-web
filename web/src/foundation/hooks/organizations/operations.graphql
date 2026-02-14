@@ -1,0 +1,49 @@
+# Organization Management Operations
+
+# Queries
+query Organization {
+  organization {
+    id
+    businessName
+    businessType
+    employeeCount
+    industry
+    country
+    selectedModules
+    primaryGoal
+    cloudProvider
+    region
+    storageVolume
+    compression
+    activeHours
+    integrations
+    selectedPlan
+    billingCycle
+    createdAt
+    updatedAt
+  }
+}
+
+# Mutations
+mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+  updateOrganization(input: $input) {
+    id
+    businessName
+    businessType
+    employeeCount
+    industry
+    country
+    selectedModules
+    primaryGoal
+    cloudProvider
+    region
+    storageVolume
+    compression
+    activeHours
+    integrations
+    selectedPlan
+    billingCycle
+    createdAt
+    updatedAt
+  }
+}

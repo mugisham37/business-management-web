@@ -67,9 +67,37 @@ export class CreateBranchInput {
     location?: Nullable<string>;
 }
 
+export class UpdateBranchInput {
+    name?: Nullable<string>;
+    location?: Nullable<string>;
+}
+
 export class CreateDepartmentInput {
     name: string;
     description?: Nullable<string>;
+}
+
+export class UpdateDepartmentInput {
+    name?: Nullable<string>;
+    description?: Nullable<string>;
+}
+
+export class UpdateOrganizationInput {
+    businessName?: Nullable<string>;
+    businessType?: Nullable<string>;
+    employeeCount?: Nullable<string>;
+    industry?: Nullable<string>;
+    country?: Nullable<string>;
+    selectedModules?: Nullable<string[]>;
+    primaryGoal?: Nullable<string>;
+    cloudProvider?: Nullable<string>;
+    region?: Nullable<string>;
+    storageVolume?: Nullable<number>;
+    compression?: Nullable<boolean>;
+    activeHours?: Nullable<number>;
+    integrations?: Nullable<string[]>;
+    selectedPlan?: Nullable<string>;
+    billingCycle?: Nullable<string>;
 }
 
 export class UserFilters {
@@ -208,6 +236,8 @@ export abstract class IQuery {
 
     abstract users(filters?: Nullable<UserFilters>): User[] | Promise<User[]>;
 
+    abstract organization(): Organization | Promise<Organization>;
+
     abstract branches(): Branch[] | Promise<Branch[]>;
 
     abstract departments(): Department[] | Promise<Department[]>;
@@ -264,9 +294,19 @@ export abstract class IMutation {
 
     abstract revokePermissions(userId: string, permissions: string[]): boolean | Promise<boolean>;
 
+    abstract updateOrganization(input: UpdateOrganizationInput): Organization | Promise<Organization>;
+
     abstract createBranch(input: CreateBranchInput): Branch | Promise<Branch>;
 
+    abstract updateBranch(id: string, input: UpdateBranchInput): Branch | Promise<Branch>;
+
+    abstract deleteBranch(id: string): boolean | Promise<boolean>;
+
     abstract createDepartment(input: CreateDepartmentInput): Department | Promise<Department>;
+
+    abstract updateDepartment(id: string, input: UpdateDepartmentInput): Department | Promise<Department>;
+
+    abstract deleteDepartment(id: string): boolean | Promise<boolean>;
 
     abstract assignBranches(userId: string, branchIds: string[]): boolean | Promise<boolean>;
 

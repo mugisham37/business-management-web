@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server';
 import { isPublicRoute, getRoutePermissions } from './foundation/config/routes';
 
 // Edge runtime configuration
-export const runtime = 'edge';
+export const runtime = 'experimental-edge';
 
 /**
  * Decode JWT payload without verification

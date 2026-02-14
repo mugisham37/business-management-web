@@ -8,7 +8,7 @@
  * - Route-based permission checking
  */
 
-import { UserRole } from '../types/generated/graphql';
+import { UserRole } from '../types/generated/graphql-types';
 
 /**
  * Minimal user interface required for permission checking

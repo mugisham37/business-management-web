@@ -24,6 +24,21 @@ mutation CreateDepartment($input: CreateDepartmentInput!) {
   }
 }
 
+mutation UpdateDepartment($id: ID!, $input: UpdateDepartmentInput!) {
+  updateDepartment(id: $id, input: $input) {
+    id
+    organizationId
+    name
+    description
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteDepartment($id: ID!) {
+  deleteDepartment(id: $id)
+}
+
 mutation AssignDepartments($userId: ID!, $departmentIds: [ID!]!) {
   assignDepartments(userId: $userId, departmentIds: $departmentIds)
 }

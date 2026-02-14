@@ -5,3 +5,5 @@
  */
 
 export { useBranches, useCreateBranch, useAssignBranches } from './useBranches';
+export { useUpdateBranch } from './useUpdateBranch';
+export { useDeleteBranch } from './useDeleteBranch';

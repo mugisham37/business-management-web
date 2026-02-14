@@ -3,6 +3,7 @@
  * 
  * Utility types, filter types, and sort types used throughout the application.
  * These types provide reusable type definitions for common patterns.
+ * For GraphQL-generated filter types like UserFilters, AuditLogFilters, import from './generated/graphql-types'
  */
 
 /**
@@ -101,26 +102,6 @@ export interface PaginationConfig {
   page?: number;
   limit?: number;
   cursor?: string;
-}
-
-/**
- * User filter options
- */
-export interface UserFilters extends FilterConfig {
-  role?: string[];
-  branchIds?: string[];
-  departmentIds?: string[];
-  mfaEnabled?: boolean;
-}
-
-/**
- * Audit log filter options
- */
-export interface AuditLogFilters extends FilterConfig {
-  userId?: string;
-  action?: string[];
-  resource?: string[];
-  dateRange?: DateRangeFilter;
 }
 
 /**

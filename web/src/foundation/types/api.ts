@@ -1,11 +1,10 @@
 /**
  * API Response Types
  * 
- * Types for API responses including pagination, authentication, and mutations.
- * These types define the structure of data returned from the GraphQL API.
+ * Types for API responses including pagination and mutations.
+ * These types are supplementary to the generated GraphQL types.
+ * For GraphQL-generated types like AuthResponse, import from './generated/graphql-types'
  */
-
-import type { User } from './models';
 
 /**
  * Page information for paginated queries
@@ -25,16 +24,6 @@ export interface PaginatedResponse<T> {
   nodes: T[];
   totalCount: number;
   pageInfo: PageInfo;
-}
-
-/**
- * Authentication response from login/OAuth mutations
- */
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  requiresMFA: boolean;
-  user?: User;
 }
 
 /**

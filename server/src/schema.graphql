@@ -180,9 +180,37 @@ input CreateBranchInput {
   location: String
 }
 
+input UpdateBranchInput {
+  name: String
+  location: String
+}
+
 input CreateDepartmentInput {
   name: String!
   description: String
+}
+
+input UpdateDepartmentInput {
+  name: String
+  description: String
+}
+
+input UpdateOrganizationInput {
+  businessName: String
+  businessType: String
+  employeeCount: String
+  industry: String
+  country: String
+  selectedModules: [String!]
+  primaryGoal: String
+  cloudProvider: String
+  region: String
+  storageVolume: Int
+  compression: Boolean
+  activeHours: Int
+  integrations: [String!]
+  selectedPlan: String
+  billingCycle: String
 }
 
 input UserFilters {
@@ -205,6 +233,7 @@ type Query {
   me: User!
   user(id: ID!): User
   users(filters: UserFilters): [User!]!
+  organization: Organization!
   branches: [Branch!]!
   departments: [Department!]!
   auditLogs(filters: AuditLogFilters): [AuditLog!]!
@@ -248,9 +277,16 @@ type Mutation {
   assignPermissions(userId: ID!, permissions: [String!]!): Boolean!
   revokePermissions(userId: ID!, permissions: [String!]!): Boolean!
   
+  # Organization
+  updateOrganization(input: UpdateOrganizationInput!): Organization!
+  
   # Branches & Departments
   createBranch(input: CreateBranchInput!): Branch!
+  updateBranch(id: ID!, input: UpdateBranchInput!): Branch!
+  deleteBranch(id: ID!): Boolean!
   createDepartment(input: CreateDepartmentInput!): Department!
+  updateDepartment(id: ID!, input: UpdateDepartmentInput!): Department!
+  deleteDepartment(id: ID!): Boolean!
   assignBranches(userId: ID!, branchIds: [ID!]!): Boolean!
   assignDepartments(userId: ID!, departmentIds: [ID!]!): Boolean!
 }

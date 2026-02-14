@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../auth/decorators/require-permission.decorator';
-import { CreateBranchDto } from './dto';
+import { CreateBranchDto, UpdateBranchDto } from './dto';
 
 /**
  * BranchesResolver
@@ -45,6 +45,37 @@ export class BranchesResolver {
   @RequirePermission('branches.create')
   async createBranch(@Args('input') input: CreateBranchDto) {
     return this.branchesService.createBranch(input);
+  }
+
+  /**
+   * Update an existing branch
+   * Requires 'branches.edit' permission
+   * @param id - Branch ID
+   * @param input - Branch update data
+   * @returns Updated branch
+   */
+  @Mutation('updateBranch')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('branches.edit')
+  async updateBranch(
+    @Args('id') id: string,
+    @Args('input') input: UpdateBranchDto,
+  ) {
+    return this.branchesService.updateBranch(id, input);
+  }
+
+  /**
+   * Delete a branch
+   * Requires 'branches.delete' permission
+   * @param id - Branch ID
+   * @returns Success boolean
+   */
+  @Mutation('deleteBranch')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @RequirePermission('branches.delete')
+  async deleteBranch(@Args('id') id: string) {
+    await this.branchesService.deleteBranch(id);
+    return true;
   }
 
   /**

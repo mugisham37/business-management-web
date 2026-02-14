@@ -4,8 +4,8 @@
  * This module exports generated GraphQL types and custom types.
  */
 
-// Generated GraphQL types
-export * from './generated/graphql';
+// Generated GraphQL types (types only, no hooks - safe for server components)
+export * from './generated/graphql-types';
 
 // Domain model types
 export * from './models';

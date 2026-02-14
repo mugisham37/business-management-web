@@ -5,3 +5,5 @@
  */
 
 export { useDepartments, useCreateDepartment, useAssignDepartments } from './useDepartments';
+export { useUpdateDepartment } from './useUpdateDepartment';
+export { useDeleteDepartment } from './useDeleteDepartment';

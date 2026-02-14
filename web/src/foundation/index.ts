@@ -27,8 +27,8 @@ export * from './config/routes';
 // ============================================================================
 // Types
 // ============================================================================
-// Generated GraphQL types (includes queries, mutations, and generated types)
-export * from './types/generated/graphql';
+// Generated GraphQL types (types only, no hooks - safe for server components)
+export * from './types/generated/graphql-types';
 
 // Additional domain models and utility types (non-conflicting exports)
 export type { 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,7 @@ import { cx } from "@/lib/utils"
 
 type PageState = "loading" | "valid" | "invalid" | "expired" | "success" | "error"
 
-export default function ResetPassword() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get("token")
@@ -549,5 +549,14 @@ export default function ResetPassword() {
         </div>
       </div>
     </div>
+  )
+}
+
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

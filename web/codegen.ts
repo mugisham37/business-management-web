@@ -5,6 +5,21 @@ const config: CodegenConfig = {
   schema: '../server/src/schema.graphql',
   documents: 'src/foundation/hooks/**/*.graphql',
   generates: {
+    // Types only (can be imported in server components)
+    'src/foundation/types/generated/graphql-types.ts': {
+      plugins: ['typescript', 'typescript-operations'],
+      config: {
+        skipTypename: false,
+        avoidOptionals: false,
+        maybeValue: 'T | null',
+        scalars: {
+          DateTime: 'string',
+          JSON: 'Record<string, any>',
+        },
+        addDocBlocks: false,
+      },
+    },
+    // Hooks (client-only)
     'src/foundation/types/generated/graphql.ts': {
       plugins: [
         'typescript',
@@ -18,22 +33,17 @@ const config: CodegenConfig = {
         skipTypename: false,
         avoidOptionals: false,
         maybeValue: 'T | null',
-        apolloReactCommonImportFrom: '@apollo/client/react',
+        apolloReactCommonImportFrom: '@apollo/client',
         apolloReactHooksImportFrom: '@apollo/client/react',
         scalars: {
           DateTime: 'string',
           JSON: 'Record<string, any>',
         },
-        // Add ts-nocheck to disable type checking for generated file
         addDocBlocks: false,
+        addInfiniteQueryField: false,
+        addSuspenseQuery: false,
       },
     },
-  },
-  hooks: {
-    afterOneFileWrite: [
-      // Add ts-nocheck at the top of the generated file
-      'bash -c "echo \'// @ts-nocheck\' | cat - src/foundation/types/generated/graphql.ts > temp && mv temp src/foundation/types/generated/graphql.ts"',
-    ],
   },
 };
 

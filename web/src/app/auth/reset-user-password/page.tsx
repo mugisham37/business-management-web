@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +39,7 @@ interface ResetRequest {
   resetterName: string
 }
 
-export default function ResetUserPassword() {
+function ResetUserPasswordContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get("token")
@@ -518,5 +518,14 @@ export default function ResetUserPassword() {
         </div>
       </div>
     </div>
+  )
+}
+
+
+export default function ResetUserPassword() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <ResetUserPasswordContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,7 +68,7 @@ const roleInfo: Record<Exclude<UserRole, null>, RoleInfo> = {
   },
 }
 
-export default function ForgotPassword() {
+function ForgotPasswordContent() {
   const searchParams = useSearchParams()
   const [step, setStep] = useState<FlowStep>("email")
   const [email, setEmail] = useState("")
@@ -568,5 +568,14 @@ export default function ForgotPassword() {
         )}
       </div>
     </div>
+  )
+}
+
+
+export default function ForgotPassword() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <ForgotPasswordContent />
+    </Suspense>
   )
 }
