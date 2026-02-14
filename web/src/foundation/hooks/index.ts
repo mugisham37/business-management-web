@@ -5,8 +5,8 @@
  * user management, permissions, branches, departments, and audit logging.
  */
 
-// Auth hooks will be exported here
-// export * from './auth';
+// Auth hooks
+export * from './auth';
 
 // User management hooks will be exported here
 // export * from './users';
