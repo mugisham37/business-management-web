@@ -6,4 +6,6 @@
  */
 
 export * from './usePermission';
+export * from './usePermissions';
+export * from './useAssignPermissions';
 export * from './PermissionGate';

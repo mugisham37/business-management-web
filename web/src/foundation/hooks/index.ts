@@ -8,8 +8,8 @@
 // Auth hooks
 export * from './auth';
 
-// User management hooks will be exported here
-// export * from './users';
+// User management hooks
+export * from './users';
 
 // Permission hooks will be exported here
 export * from './permissions';
