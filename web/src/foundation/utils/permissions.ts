@@ -8,7 +8,16 @@
  * - Route-based permission checking
  */
 
-import { User, UserRole } from '../types/generated/graphql';
+import { UserRole } from '../types/generated/graphql';
+
+/**
+ * Minimal user interface required for permission checking
+ * Only requires role and permissions fields
+ */
+export interface PermissionUser {
+  role: UserRole;
+  permissions: string[];
+}
 
 /**
  * Interface for permission checking operations
@@ -47,7 +56,7 @@ export interface PermissionChecker {
  * Configuration for the permission system
  */
 export interface PermissionSystemConfig {
-  user: User | null;
+  user: PermissionUser | null;
   routePermissions: Record<string, string[]>;
 }
 
@@ -64,7 +73,7 @@ export interface PermissionSystemConfig {
  */
 export class PermissionCheckerImpl implements PermissionChecker {
   constructor(
-    private user: User | null,
+    private user: PermissionUser | null,
     private routePermissions: Record<string, string[]>
   ) {}
 

@@ -4,19 +4,25 @@
  * Exports authentication-related utilities and managers
  */
 
-export {
+export type {
   TokenManager,
+} from './token-manager';
+
+export type {
+  AuthManager,
+  AuthUser,
+  MFASetup,
+  LoginResult,
+} from './auth-manager';
+
+export {
   TokenManagerImpl,
   initializeTokenManager,
   getTokenManager,
 } from './token-manager';
 
 export {
-  AuthManager,
   AuthManagerImpl,
-  AuthUser,
-  MFASetup,
-  LoginResult,
   initializeAuthManager,
   getAuthManager,
 } from './auth-manager';

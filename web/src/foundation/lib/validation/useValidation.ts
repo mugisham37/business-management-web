@@ -52,7 +52,7 @@ export function useValidation<T extends z.ZodType>(schema: T) {
 
       // Convert Zod errors to field-specific error messages
       const errors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const path = err.path.join('.');
         errors[path] = err.message;
       });

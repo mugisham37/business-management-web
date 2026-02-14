@@ -1,12 +1,11 @@
 /**
  * React context providers
  * 
- * This module will export GraphQLProvider, AuthProvider,
+ * This module exports GraphQLProvider, AuthProvider,
  * PermissionProvider, and the root RootProvider.
  */
 
-// Providers will be exported here as they are implemented
-// export * from './GraphQLProvider';
-// export * from './AuthProvider';
-// export * from './PermissionProvider';
-// export * from './RootProvider';
+export * from './GraphQLProvider';
+export * from './AuthProvider';
+export * from './PermissionProvider';
+// export * from './RootProvider'; // Will be implemented in Task 25

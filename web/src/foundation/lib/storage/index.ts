@@ -2,9 +2,12 @@
  * Storage module exports
  */
 
-export {
+export type {
   SecureStorage,
   SecureStorageConfig,
+} from './secure-storage';
+
+export {
   SecureStorageImpl,
   createSecureStorage,
   secureStorage,
