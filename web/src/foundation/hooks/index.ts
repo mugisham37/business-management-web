@@ -14,11 +14,11 @@ export * from './users';
 // Permission hooks will be exported here
 export * from './permissions';
 
-// Branch hooks will be exported here
-// export * from './branches';
+// Branch hooks
+export * from './branches';
 
-// Department hooks will be exported here
-// export * from './departments';
+// Department hooks
+export * from './departments';
 
-// Audit hooks will be exported here
-// export * from './audit';
+// Audit hooks
+export * from './audit';
