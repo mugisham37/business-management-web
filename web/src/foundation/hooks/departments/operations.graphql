@@ -1,0 +1,29 @@
+# Department Management Operations
+
+# Queries
+query Departments {
+  departments {
+    id
+    organizationId
+    name
+    description
+    createdAt
+    updatedAt
+  }
+}
+
+# Mutations
+mutation CreateDepartment($input: CreateDepartmentInput!) {
+  createDepartment(input: $input) {
+    id
+    organizationId
+    name
+    description
+    createdAt
+    updatedAt
+  }
+}
+
+mutation AssignDepartments($userId: ID!, $departmentIds: [ID!]!) {
+  assignDepartments(userId: $userId, departmentIds: $departmentIds)
+}

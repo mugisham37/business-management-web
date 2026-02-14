@@ -1,0 +1,168 @@
+# Authentication Operations
+
+# Queries
+query Me {
+  me {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    lastLoginAt
+    permissions
+    branches {
+      id
+      name
+      location
+    }
+    departments {
+      id
+      name
+      description
+    }
+  }
+}
+
+mutation ListActiveSessions {
+  listActiveSessions {
+    sessionId
+    deviceInfo
+    ipAddress
+    lastActive
+    createdAt
+  }
+}
+
+# Mutations
+mutation RegisterOrganization($input: RegisterOrganizationInput!) {
+  registerOrganization(input: $input) {
+    accessToken
+    refreshToken
+    requiresMFA
+    user {
+      id
+      organizationId
+      email
+      firstName
+      lastName
+      role
+      mfaEnabled
+      permissions
+    }
+  }
+}
+
+mutation Login($email: String!, $password: String!, $organizationId: ID!) {
+  login(email: $email, password: $password, organizationId: $organizationId) {
+    accessToken
+    refreshToken
+    requiresMFA
+    user {
+      id
+      organizationId
+      email
+      firstName
+      lastName
+      role
+      mfaEnabled
+      permissions
+    }
+  }
+}
+
+mutation LoginWithGoogle($code: String!, $organizationId: ID) {
+  loginWithGoogle(code: $code, organizationId: $organizationId) {
+    accessToken
+    refreshToken
+    requiresMFA
+    user {
+      id
+      organizationId
+      email
+      firstName
+      lastName
+      role
+      mfaEnabled
+      permissions
+    }
+  }
+}
+
+mutation VerifyMFA($userId: ID!, $token: String!, $organizationId: ID!) {
+  verifyMFA(userId: $userId, token: $token, organizationId: $organizationId) {
+    accessToken
+    refreshToken
+    requiresMFA
+    user {
+      id
+      organizationId
+      email
+      firstName
+      lastName
+      role
+      mfaEnabled
+      permissions
+    }
+  }
+}
+
+mutation RefreshTokens($refreshToken: String!) {
+  refreshTokens(refreshToken: $refreshToken) {
+    accessToken
+    refreshToken
+    requiresMFA
+    user {
+      id
+      organizationId
+      email
+      firstName
+      lastName
+      role
+      mfaEnabled
+      permissions
+    }
+  }
+}
+
+mutation Logout {
+  logout
+}
+
+mutation LogoutAllDevices {
+  logoutAllDevices
+}
+
+mutation EnableMFA {
+  enableMFA {
+    secret
+    qrCodeUrl
+    backupCodes
+  }
+}
+
+mutation DisableMFA($totpToken: String!, $currentPassword: String!) {
+  disableMFA(totpToken: $totpToken, currentPassword: $currentPassword)
+}
+
+mutation RequestPasswordReset($email: String!, $organizationId: ID) {
+  requestPasswordReset(email: $email, organizationId: $organizationId)
+}
+
+mutation ResetPassword($token: String!, $newPassword: String!) {
+  resetPassword(token: $token, newPassword: $newPassword)
+}
+
+mutation ChangePassword($currentPassword: String!, $newPassword: String!) {
+  changePassword(currentPassword: $currentPassword, newPassword: $newPassword)
+}
+
+mutation RevokeSession($sessionId: ID!) {
+  revokeSession(sessionId: $sessionId)
+}

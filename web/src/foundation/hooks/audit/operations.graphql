@@ -1,0 +1,17 @@
+# Audit Logging Operations
+
+# Queries
+query AuditLogs($filters: AuditLogFilters) {
+  auditLogs(filters: $filters) {
+    id
+    organizationId
+    userId
+    action
+    entityType
+    entityId
+    metadata
+    ipAddress
+    userAgent
+    createdAt
+  }
+}

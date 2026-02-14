@@ -1,0 +1,29 @@
+# Branch Management Operations
+
+# Queries
+query Branches {
+  branches {
+    id
+    organizationId
+    name
+    location
+    createdAt
+    updatedAt
+  }
+}
+
+# Mutations
+mutation CreateBranch($input: CreateBranchInput!) {
+  createBranch(input: $input) {
+    id
+    organizationId
+    name
+    location
+    createdAt
+    updatedAt
+  }
+}
+
+mutation AssignBranches($userId: ID!, $branchIds: [ID!]!) {
+  assignBranches(userId: $userId, branchIds: $branchIds)
+}

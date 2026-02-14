@@ -1,0 +1,144 @@
+# User Management Operations
+
+# Queries
+query User($id: ID!) {
+  user(id: $id) {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    lastLoginAt
+    permissions
+    branches {
+      id
+      name
+      location
+    }
+    departments {
+      id
+      name
+      description
+    }
+  }
+}
+
+query Users($filters: UserFilters) {
+  users(filters: $filters) {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    lastLoginAt
+    permissions
+    branches {
+      id
+      name
+      location
+    }
+    departments {
+      id
+      name
+      description
+    }
+  }
+}
+
+# Mutations
+mutation CreateManager($input: CreateManagerInput!) {
+  createManager(input: $input) {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    permissions
+    branches {
+      id
+      name
+      location
+    }
+    departments {
+      id
+      name
+      description
+    }
+  }
+}
+
+mutation CreateWorker($input: CreateWorkerInput!) {
+  createWorker(input: $input) {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    permissions
+  }
+}
+
+mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
+  updateUser(id: $id, input: $input) {
+    id
+    organizationId
+    email
+    firstName
+    lastName
+    phone
+    role
+    emailVerified
+    mfaEnabled
+    accountLocked
+    createdAt
+    updatedAt
+    lastLoginAt
+    permissions
+    branches {
+      id
+      name
+      location
+    }
+    departments {
+      id
+      name
+      description
+    }
+  }
+}
+
+mutation DeleteUser($id: ID!) {
+  deleteUser(id: $id)
+}
+
+mutation TransferOwnership($newOwnerId: ID!) {
+  transferOwnership(newOwnerId: $newOwnerId)
+}
