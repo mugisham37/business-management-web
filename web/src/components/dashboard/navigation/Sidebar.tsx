@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation"
 import MobileSidebar from "./MobileSidebar"
 import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
 import { WorkspacesDropdownDesktop, WorkspacesDropdownMobile } from "./SidebarWorkspacesDropdown"
+import { AuthUser } from "@/foundation/lib/auth/auth-manager"
 
 const navigation = [
   {
@@ -54,9 +55,10 @@ const navigation = [
 interface SidebarProps {
   isCollapsed: boolean
   toggleSidebar: () => void
+  user: AuthUser | null
 }
 
-export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
+export function Sidebar({ isCollapsed, toggleSidebar, user }: SidebarProps) {
   const pathname = usePathname()
   
   const isActive = (itemHref: string) => {
@@ -177,7 +179,7 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
             </div>
           </nav>
           <div className="mt-auto border-t border-sidebar-border pt-3">
-            <UserProfileDesktop isCollapsed={isCollapsed} />
+            <UserProfileDesktop isCollapsed={isCollapsed} user={user} />
           </div>
         </aside>
       </nav>
@@ -187,7 +189,7 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
           <WorkspacesDropdownMobile />
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
-          <UserProfileMobile />
+          <UserProfileMobile user={user} />
           <MobileSidebar />
         </div>
       </div>

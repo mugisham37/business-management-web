@@ -21,11 +21,15 @@ import { RiGithubFill, RiGoogleFill } from "@remixicon/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { cx } from "@/lib/utils"
+import { useAuth } from "@/foundation/providers/AuthProvider"
+import { toast } from "sonner"
+import { mapAuthError, getRedirectUrlForRole } from "@/lib/auth-utils"
+import { UserRole } from "@/foundation/types/generated/graphql"
 
-type UserRole = "admin" | "manager" | "worker"
+type LocalUserRole = "admin" | "manager" | "worker"
 
 interface RoleConfig {
-  id: UserRole
+  id: LocalUserRole
   label: string
   description: string
   icon: React.ElementType
@@ -62,11 +66,19 @@ const roles: RoleConfig[] = [
 
 export default function Login() {
   const router = useRouter()
-  const [selectedRole, setSelectedRole] = useState<UserRole>("admin")
+  const { login, verifyMFA } = useAuth()
+  const [selectedRole, setSelectedRole] = useState<LocalUserRole>("admin")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // MFA state
+  const [mfaState, setMfaState] = useState({
+    show: false,
+    userId: "",
+    code: "",
+  })
 
   const [formData, setFormData] = useState({
     organizationId: "",
@@ -97,30 +109,68 @@ export default function Login() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!validateForm()) return
 
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login submitted:", {
-        role: selectedRole,
-        ...formData,
-        rememberMe,
-      })
+    try {
+      // Call foundation login
+      const result = await login(
+        formData.email,
+        formData.password,
+        formData.organizationId
+      )
       
-      // Route based on role
-      const routes = {
-        admin: "/dashboard/overview",
-        manager: "/dashboard/reports",
-        worker: "/dashboard/transactions",
+      // Handle MFA requirement
+      if (result.requiresMFA) {
+        setMfaState({
+          show: true,
+          userId: result.user?.id || "",
+          code: "",
+        })
+        setLoading(false)
+        return
       }
       
-      router.push(routes[selectedRole])
-    }, 1200)
+      // Success - redirect based on role
+      if (result.user) {
+        toast.success("Login successful!")
+        const redirectUrl = getRedirectUrlForRole(result.user.role)
+        router.push(redirectUrl)
+      }
+    } catch (error) {
+      toast.error(mapAuthError(error as Error))
+      setLoading(false)
+    }
+  }
+
+  const handleMFASubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+    if (!mfaState.code || mfaState.code.length !== 6) {
+      toast.error("Please enter a valid 6-digit code")
+      return
+    }
+
+    setLoading(true)
+    
+    try {
+      const user = await verifyMFA(
+        mfaState.userId,
+        mfaState.code,
+        formData.organizationId
+      )
+      
+      toast.success("Login successful!")
+      const redirectUrl = getRedirectUrlForRole(user.role)
+      router.push(redirectUrl)
+    } catch (error) {
+      toast.error(mapAuthError(error as Error))
+      setLoading(false)
+    }
   }
 
   const handleSocialLogin = (provider: string) => {
@@ -254,9 +304,43 @@ export default function Login() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={mfaState.show ? handleMFASubmit : handleSubmit} className="space-y-4">
+          {/* MFA Code Input */}
+          {mfaState.show && (
+            <div
+              className="motion-safe:animate-revealBottom"
+              style={{
+                animationDuration: "600ms",
+                animationDelay: "300ms",
+                animationFillMode: "backwards",
+              }}
+            >
+              <Label htmlFor="mfaCode" className="text-sm font-medium">
+                Authentication Code <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative mt-2">
+                <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="mfaCode"
+                  type="text"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={mfaState.code}
+                  onChange={(e) =>
+                    setMfaState({ ...mfaState, code: e.target.value.replace(/\D/g, "") })
+                  }
+                  className="pl-10 text-center text-lg tracking-widest"
+                  autoFocus
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Enter the 6-digit code from your authenticator app
+              </p>
+            </div>
+          )}
+
           {/* Organization ID (for non-admins) */}
-          {selectedRole !== "admin" && (
+          {!mfaState.show && selectedRole !== "admin" && (
             <div
               className="motion-safe:animate-revealBottom"
               style={{
@@ -297,6 +381,7 @@ export default function Login() {
           )}
 
           {/* Email */}
+          {!mfaState.show && (
           <div
             className="motion-safe:animate-revealBottom"
             style={{
@@ -328,8 +413,10 @@ export default function Login() {
               </p>
             )}
           </div>
+          )}
 
           {/* Password */}
+          {!mfaState.show && (
           <div
             className="motion-safe:animate-revealBottom"
             style={{
@@ -375,8 +462,10 @@ export default function Login() {
               </p>
             )}
           </div>
+          )}
 
           {/* Remember Me & Forgot Password */}
+          {!mfaState.show && (
           <div
             className="flex items-center justify-between motion-safe:animate-revealBottom"
             style={{
@@ -405,6 +494,7 @@ export default function Login() {
               Forgot password?
             </Link>
           </div>
+          )}
 
           {/* Submit Button */}
           <div
@@ -421,7 +511,7 @@ export default function Login() {
               size="lg"
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? (mfaState.show ? "Verifying..." : "Signing in...") : (mfaState.show ? "Verify Code" : "Sign in")}
             </Button>
           </div>
         </form>

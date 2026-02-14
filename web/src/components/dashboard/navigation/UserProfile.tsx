@@ -3,18 +3,33 @@
 import { Button } from "@/components/ui/button"
 import { cx, focusRing } from "@/lib/utils"
 import { ChevronsUpDown, User } from "lucide-react"
+import { AuthUser } from "@/foundation/lib/auth/auth-manager"
 
 import { DropdownUserProfile } from "./DropdownUserProfile"
 
 interface UserProfileDesktopProps {
   isCollapsed?: boolean
+  user: AuthUser | null
 }
 
 export const UserProfileDesktop = ({
   isCollapsed,
+  user,
 }: UserProfileDesktopProps) => {
+  // Get user initials
+  const getInitials = () => {
+    if (!user) return "U"
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+  }
+
+  // Get display name
+  const getDisplayName = () => {
+    if (!user) return "User"
+    return `${user.firstName} ${user.lastName}`
+  }
+
   return (
-    <DropdownUserProfile>
+    <DropdownUserProfile user={user}>
       <Button
         aria-label="User settings"
         variant="ghost"
@@ -41,10 +56,10 @@ export const UserProfileDesktop = ({
               )}
               aria-hidden="true"
             >
-              ES
+              {getInitials()}
             </span>
             <span className={cx(isCollapsed ? "hidden" : "block")}>
-              Emma Stone
+              {getDisplayName()}
             </span>
           </span>
         )}
@@ -59,9 +74,19 @@ export const UserProfileDesktop = ({
   )
 }
 
-export const UserProfileMobile = () => {
+interface UserProfileMobileProps {
+  user: AuthUser | null
+}
+
+export const UserProfileMobile = ({ user }: UserProfileMobileProps) => {
+  // Get user initials
+  const getInitials = () => {
+    if (!user) return "U"
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+  }
+
   return (
-    <DropdownUserProfile align="end">
+    <DropdownUserProfile align="end" user={user}>
       <Button
         aria-label="User settings"
         variant="ghost"
@@ -73,7 +98,7 @@ export const UserProfileMobile = () => {
           className="flex size-8 sm:size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-xs text-foreground"
           aria-hidden="true"
         >
-          ES
+          {getInitials()}
         </span>
       </Button>
     </DropdownUserProfile>

@@ -2,6 +2,9 @@
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { useRegister } from "@/foundation/hooks/auth/useRegister"
+import { mapAuthError } from "@/lib/auth-utils"
 import Step1BusinessAccount from "./_components/Step1BusinessAccount"
 import Step2BusinessProfile from "./_components/Step2BusinessProfile"
 import Step3NeedsAssessment from "./_components/Step3NeedsAssessment"
@@ -44,6 +47,7 @@ export interface SignupFormData {
 
 export default function SignupPage() {
   const router = useRouter()
+  const { register } = useRegister()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
 
@@ -107,12 +111,54 @@ export default function SignupPage() {
   const handleSubmit = async () => {
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Final form submission:", formData)
-      // Here you would send data to your backend
+    try {
+      // Map form data to RegisterOrganizationInput
+      await register({
+        // Step 1: Business Account
+        businessName: formData.businessName,
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone || undefined,
+        acceptedTerms: formData.acceptedTerms,
+        
+        // Step 2: Business Profile
+        businessType: formData.businessType || undefined,
+        employeeCount: formData.employeeCount || undefined,
+        industry: formData.industry || undefined,
+        country: formData.country || undefined,
+        
+        // Step 3: Needs Assessment
+        selectedModules: formData.selectedModules.length > 0 ? formData.selectedModules : undefined,
+        primaryGoal: formData.primaryGoal || undefined,
+        
+        // Step 4: Technical Preferences
+        cloudProvider: formData.cloudProvider || undefined,
+        region: formData.region || undefined,
+        storageVolume: formData.storageVolume || undefined,
+        compression: formData.compression === "true" ? true : formData.compression === "false" ? false : undefined,
+        activeHours: formData.activeHours.length > 0 ? formData.activeHours[0] : undefined,
+        integrations: formData.integrations.length > 0 ? formData.integrations : undefined,
+        
+        // Step 5: Pricing
+        selectedPlan: formData.selectedPlan || undefined,
+        billingCycle: formData.billingCycle || undefined,
+      })
+      
+      // Auto-login is handled by useRegister hook via refreshSession()
+      // Registration successful - show success message
+      toast.success("Account created successfully!")
+      
+      // Redirect to dashboard overview
       router.push("/dashboard/overview")
-    }, 1500)
+    } catch (error) {
+      // Preserve form data on error (already in state)
+      // Display error message
+      toast.error(mapAuthError(error as Error))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const renderStep = () => {

@@ -17,26 +17,46 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowUpRight, Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 import * as React from "react"
+import { useAuth } from "@/foundation/providers/AuthProvider"
+import { AuthUser } from "@/foundation/lib/auth/auth-manager"
+import { toast } from "sonner"
 
 export type DropdownUserProfileProps = {
   children: React.ReactNode
   align?: "center" | "start" | "end"
+  user: AuthUser | null
 }
 
 export function DropdownUserProfile({
   children,
   align = "start",
+  user,
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme()
+  const { logout } = useAuth()
+  const router = useRouter()
+  
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Logged out successfully")
+      router.push("/auth/login")
+    } catch (error) {
+      toast.error("Failed to logout. Please try again.")
+    }
+  }
+
   if (!mounted) {
     return null
   }
+  
   return (
     <>
       <DropdownMenu>
@@ -45,7 +65,7 @@ export function DropdownUserProfile({
           align={align}
           className="!min-w-[calc(var(--radix-dropdown-menu-trigger-width))]"
         >
-          <DropdownMenuLabel>emma.stone@acme.com</DropdownMenuLabel>
+          <DropdownMenuLabel>{user?.email || "user@example.com"}</DropdownMenuLabel>
           <DropdownMenuGroup>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
@@ -107,10 +127,8 @@ export function DropdownUserProfile({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <a href={siteConfig.baseLinks.home} className="w-full">
-                Sign out
-              </a>
+            <DropdownMenuItem onClick={handleLogout}>
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

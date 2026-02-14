@@ -8,6 +8,10 @@
 export { useLogin } from './useLogin';
 export type { UseLoginReturn } from './useLogin';
 
+// Registration hooks
+export { useRegister } from './useRegister';
+export type { UseRegisterReturn } from './useRegister';
+
 // MFA hooks
 export { useEnableMFA, useDisableMFA, useVerifyMFA } from './useMFA';
 export type {

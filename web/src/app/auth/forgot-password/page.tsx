@@ -21,6 +21,9 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { cx } from "@/lib/utils"
+import { useAuth } from "@/foundation/providers/AuthProvider"
+import { toast } from "sonner"
+import { mapAuthError } from "@/lib/auth-utils"
 
 type UserRole = "admin" | "manager" | "worker" | null
 type FlowStep = "email" | "reason" | "success" | "error"
@@ -70,6 +73,7 @@ const roleInfo: Record<Exclude<UserRole, null>, RoleInfo> = {
 
 function ForgotPasswordContent() {
   const searchParams = useSearchParams()
+  const { requestPasswordReset } = useAuth()
   const [step, setStep] = useState<FlowStep>("email")
   const [email, setEmail] = useState("")
   const [organizationId, setOrganizationId] = useState("")
@@ -124,8 +128,7 @@ function ForgotPasswordContent() {
 
     setLoading(true)
 
-    // Simulate API call to detect/verify user role
-    setTimeout(() => {
+    try {
       // If role was provided from login, use it (but verify with backend in production)
       // Otherwise, detect role from email
       let finalRole: UserRole = detectedRole
@@ -140,7 +143,16 @@ function ForgotPasswordContent() {
       }
 
       setDetectedRole(finalRole)
-      setLoading(false)
+
+      // Call foundation authentication requestPasswordReset
+      // For OWNER (admin): call with email only
+      // For MANAGER/WORKER: call with email and organizationId
+      if (finalRole === "admin") {
+        await requestPasswordReset(email)
+        toast.success("Password reset link sent to your email!")
+      } else {
+        await requestPasswordReset(email, organizationId)
+      }
 
       // Admin goes directly to success (email sent)
       // Worker/Manager need to provide reason
@@ -149,7 +161,13 @@ function ForgotPasswordContent() {
       } else {
         setStep("reason")
       }
-    }, 1200)
+    } catch (err) {
+      const errorMessage = mapAuthError(err as Error)
+      toast.error(errorMessage)
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleReasonSubmit = async (e: React.FormEvent) => {
@@ -168,11 +186,19 @@ function ForgotPasswordContent() {
 
     setLoading(true)
 
-    // Simulate API call to send notification
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      // Call foundation authentication requestPasswordReset with organizationId
+      // The reason is captured but the actual API call is the same
+      await requestPasswordReset(email, organizationId)
+      toast.success("Password reset request sent successfully!")
       setStep("success")
-    }, 1200)
+    } catch (err) {
+      const errorMessage = mapAuthError(err as Error)
+      toast.error(errorMessage)
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleStartOver = () => {
