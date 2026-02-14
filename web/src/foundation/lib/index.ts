@@ -1,15 +1,15 @@
 /**
  * Core library exports
  * 
- * This module will export authentication, GraphQL client,
- * storage, and validation utilities as they are implemented.
+ * This module exports authentication, GraphQL client,
+ * storage, and validation utilities.
  */
 
 // Auth utilities
 export * from './auth';
 
-// GraphQL client will be exported here
-// export * from './graphql';
+// GraphQL client
+export * from './graphql';
 
 // Storage utilities
 export * from './storage';

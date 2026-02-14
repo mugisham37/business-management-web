@@ -7,6 +7,8 @@ import { Inter } from "next/font/google"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
+import { RootProvider } from "@/foundation/providers"
+import { ErrorBoundary } from "@/foundation/utils"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,15 +58,19 @@ export default function RootLayout({
         className={`${inter.className} min-h-screen overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:selection:bg-indigo-900 dark:selection:text-indigo-300 bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-        >
-          <NuqsAdapter>
-            {children}
-          </NuqsAdapter>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <RootProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+            >
+              <NuqsAdapter>
+                {children}
+              </NuqsAdapter>
+            </ThemeProvider>
+          </RootProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

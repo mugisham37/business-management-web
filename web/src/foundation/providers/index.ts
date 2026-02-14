@@ -8,4 +8,4 @@
 export * from './GraphQLProvider';
 export * from './AuthProvider';
 export * from './PermissionProvider';
-// export * from './RootProvider'; // Will be implemented in Task 25
+export * from './RootProvider';
