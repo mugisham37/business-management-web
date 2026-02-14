@@ -5,14 +5,14 @@
  * storage, and validation utilities as they are implemented.
  */
 
-// Auth utilities will be exported here
-// export * from './auth';
+// Auth utilities
+export * from './auth';
 
 // GraphQL client will be exported here
 // export * from './graphql';
 
-// Storage utilities will be exported here
-// export * from './storage';
+// Storage utilities
+export * from './storage';
 
 // Validation utilities will be exported here
 // export * from './validation';
