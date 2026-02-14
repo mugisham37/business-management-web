@@ -10,3 +10,13 @@ export {
   initializeTokenManager,
   getTokenManager,
 } from './token-manager';
+
+export {
+  AuthManager,
+  AuthManagerImpl,
+  AuthUser,
+  MFASetup,
+  LoginResult,
+  initializeAuthManager,
+  getAuthManager,
+} from './auth-manager';

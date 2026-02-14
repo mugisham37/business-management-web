@@ -14,5 +14,5 @@ export * from './auth';
 // Storage utilities
 export * from './storage';
 
-// Validation utilities will be exported here
-// export * from './validation';
+// Validation utilities
+export * from './validation';

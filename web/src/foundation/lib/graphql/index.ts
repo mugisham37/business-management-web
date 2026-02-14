@@ -1,9 +1,11 @@
 /**
  * GraphQL Module Exports
  * 
- * Exports cache configuration, cache manager, and Apollo links
+ * Exports Apollo Client, cache configuration, cache manager, and Apollo links
  */
 
+export { apolloClient, createApolloClient } from './client';
+export type { ApolloClientConfig } from './client';
 export { cache, createCache, typePolicies } from './cache';
 export { CacheManager, createCacheManager } from './cache-manager';
 export * from './links';

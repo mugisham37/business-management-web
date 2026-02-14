@@ -12,7 +12,7 @@
 // export * from './users';
 
 // Permission hooks will be exported here
-// export * from './permissions';
+export * from './permissions';
 
 // Branch hooks will be exported here
 // export * from './branches';
