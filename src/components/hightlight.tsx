@@ -1,25 +1,18 @@
 import React from 'react'
 
-// Reusable style objects
+// Reusable style objects - Self-contained with exact values
 const styles = {
   badge: {
-    "--border-bottom-width": "1px",
-    "--border-color": "var(--token-64e377a5-0d6a-419d-892d-eb08deb7230b, rgb(229, 229, 232))",
-    "--border-left-width": "1px",
-    "--border-right-width": "1px",
-    "--border-style": "solid",
-    "--border-top-width": "1px",
-    backgroundColor: "var(--token-03d81d49-441b-4a27-ac27-adbec865c0a8, rgb(250, 250, 250))",
+    backgroundColor: "rgb(250, 250, 250)",
+    border: "1px solid rgb(229, 229, 232)",
     borderRadius: "17px",
-    boxShadow: "0px 2px 5px 0px var(--token-01b0806d-1c81-4041-802e-d5d50172987c, rgb(240, 241, 242))",
-    opacity: "1"
+    boxShadow: "0px 2px 5px 0px rgb(240, 241, 242)",
+    opacity: 1
   } as React.CSSProperties,
   
   badgeIcon: {
-    "--1m6trwb": "0",
-    "--21h8s6": "var(--token-53318a49-e2d8-4d3b-98d7-8563add13d3d, rgb(56, 56, 61))",
-    "--pgex8v": "1.4",
-    opacity: "1"
+    opacity: 1,
+    color: "rgb(56, 56, 61)"
   } as React.CSSProperties,
   
   badgeText: {
@@ -27,64 +20,53 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-start",
-    flexShrink: "0",
-    "--extracted-r6o4lv": "var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))",
-    "--framer-link-text-color": "rgb(0, 153, 255)",
-    "--framer-link-text-decoration": "underline",
+    flexShrink: 0,
     transform: "none",
-    opacity: "1"
+    opacity: 1,
+    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
+    fontSize: "14px",
+    fontWeight: 400,
+    lineHeight: "1.3em",
+    letterSpacing: "-0.01em",
+    color: "rgb(56, 56, 61)"
   } as React.CSSProperties,
   
   featureList: {
-    "--border-bottom-width": "1px",
-    "--border-color": "var(--token-ccc95a9a-25f2-49cc-a0af-ecdbff23bfba, rgb(214, 214, 214))",
-    "--border-left-width": "1px",
-    "--border-right-width": "1px",
-    "--border-style": "solid",
-    "--border-top-width": "1px",
-    backgroundColor: "var(--token-e9d5663e-56be-412a-882e-587896e30dd7, rgba(247, 249, 250, 0.5))",
+    backgroundColor: "rgba(247, 249, 250, 0.5)",
+    border: "1px solid rgb(214, 214, 214)",
     borderRadius: "16px",
-    boxShadow: "0px 1px 3px 0px var(--token-0c21c7c4-decf-4cb8-98b2-1f4ecf98c018, rgb(248, 249, 250))",
-    opacity: "1"
+    boxShadow: "0px 1px 3px 0px rgb(248, 249, 250)",
+    opacity: 1
   } as React.CSSProperties,
   
   featureIcon: {
-    "--1m6trwb": "0",
-    "--21h8s6": "var(--token-53318a49-e2d8-4d3b-98d7-8563add13d3d, rgb(56, 56, 61))",
-    "--pgex8v": "1.5",
-    opacity: "1"
+    opacity: 1,
+    color: "rgb(56, 56, 61)"
   } as React.CSSProperties,
   
   highlightCard: {
-    "--border-bottom-width": "1px",
-    "--border-color": "var(--token-64e377a5-0d6a-419d-892d-eb08deb7230b, rgb(229, 229, 232))",
-    "--border-left-width": "1px",
-    "--border-right-width": "1px",
-    "--border-style": "solid",
-    "--border-top-width": "1px",
-    backgroundColor: "var(--token-e1c52d29-6b20-4ee3-afb3-f179ac191e9c, rgb(251, 251, 251))",
+    backgroundColor: "rgb(251, 251, 251)",
+    border: "1px solid rgb(229, 229, 232)",
     width: "100%",
     borderRadius: "10px",
-    boxShadow: "0px 2px 5px 0px var(--token-e1c52d29-6b20-4ee3-afb3-f179ac191e9c, rgb(251, 251, 251))",
-    opacity: "1"
+    boxShadow: "0px 2px 5px 0px rgb(251, 251, 251)",
+    opacity: 1
   } as React.CSSProperties,
   
   cardContainer: {
     willChange: "transform",
-    opacity: "0",
+    opacity: 0,
     transform: "translateY(50px)"
   } as React.CSSProperties,
   
   cardIcon: {
     borderRadius: "5px",
-    opacity: "1"
+    opacity: 1
   } as React.CSSProperties,
   
   cardIconSvg: {
-    "--1m6trwb": "0",
-    "--21h8s6": "var(--token-d602a9d1-da3b-45d6-b039-eac0d7c79341, rgb(66, 135, 255))",
-    "--pgex8v": "1.5",
-    opacity: "1"
+    opacity: 1,
+    color: "rgb(66, 135, 255)"
   } as React.CSSProperties,
   
   cardHeading: {
@@ -92,12 +74,14 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-start",
-    flexShrink: "0",
-    "--framer-link-text-color": "rgb(0, 153, 255)",
-    "--framer-link-text-decoration": "underline",
-    "--extracted-1w1cjl5": "var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(0, 0, 0))",
+    flexShrink: 0,
     transform: "none",
-    opacity: "1"
+    opacity: 1,
+    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
+    fontSize: "16px",
+    fontWeight: 600,
+    lineHeight: "1.3em",
+    color: "rgb(56, 56, 61)"
   } as React.CSSProperties,
   
   cardText: {
@@ -105,11 +89,33 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-start",
-    flexShrink: "0",
-    "--framer-link-text-color": "rgb(0, 153, 255)",
-    "--framer-link-text-decoration": "underline",
+    flexShrink: 0,
     transform: "none",
-    opacity: "1"
+    opacity: 1,
+    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
+    fontSize: "16px",
+    fontWeight: 400,
+    lineHeight: "1.4em",
+    color: "rgb(56, 56, 61)"
+  } as React.CSSProperties,
+  
+  mainHeading: {
+    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
+    fontSize: "50px",
+    fontWeight: 600,
+    lineHeight: "1em",
+    letterSpacing: "-0.02em",
+    textAlign: "center",
+    color: "rgb(0, 0, 0)"
+  } as React.CSSProperties,
+  
+  supportingText: {
+    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
+    fontSize: "16px",
+    fontWeight: 400,
+    lineHeight: "1.4em",
+    textAlign: "center",
+    color: "rgb(56, 56, 61)"
   } as React.CSSProperties
 }
 
@@ -155,48 +161,22 @@ const highlightCards = [
 ]
 
 // Reusable components
-const SSRVariant: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="ssr-variant hidden-187ctmn hidden-72rtr7">
-    {children}
-  </div>
-)
-
 const FeatureListItem: React.FC<{ href: string; text: string }> = ({ href, text }) => (
-  <SSRVariant>
-    <div className="framer-y09vcf-container">
-      <div 
-        className="framer-v2mcq framer-ae7Kc framer-qz94l0 framer-v-qz94l0"
-        data-border="true" 
-        data-framer-name="Feature List"
-        style={styles.featureList}
+  <div className="flex items-center gap-3 p-4" style={styles.featureList}>
+    <div className="flex-shrink-0" style={{opacity: 1}}>
+      <svg 
+        role="presentation" 
+        viewBox="0 0 24 24"
+        className="w-6 h-6"
+        style={styles.featureIcon}
       >
-        <div className="framer-12ix1hz" data-framer-name="Icon" style={{opacity: "1"} as React.CSSProperties}>
-          <svg 
-            className="framer-XpCK0 framer-184qdzk"
-            role="presentation" 
-            viewBox="0 0 24 24"
-            style={styles.featureIcon}
-          >
-            <use href={href}></use>
-          </svg>
-        </div>
-        <div 
-          className="framer-286iq4" 
-          data-framer-name="Supporting text"
-          data-framer-component-type="RichTextContainer"
-          style={styles.cardText}
-        >
-          <p 
-            className="framer-text framer-styles-preset-wct5n4"
-            data-styles-preset="OvgFe4dMx"
-            style={{"--framer-text-alignment": "left"} as React.CSSProperties}
-          >
-            {text}
-          </p>
-        </div>
-      </div>
+        <use href={href}></use>
+      </svg>
     </div>
-  </SSRVariant>
+    <div style={{...styles.cardText, textAlign: "left"}}>
+      <p>{text}</p>
+    </div>
+  </div>
 )
 
 const HighlightCard: React.FC<{
@@ -206,142 +186,78 @@ const HighlightCard: React.FC<{
   title: string;
   description: string;
 }> = ({ iconType, iconClass, iconHref, title, description }) => (
-  <SSRVariant>
-    <div className="framer-sm7yv-container" style={styles.cardContainer}>
-      <div 
-        className="framer-cfriu framer-Fz19O framer-udI2x framer-ae7Kc framer-105ryf8 framer-v-1qymzcr"
-        data-border="true" 
-        data-framer-name="Phone"
-        style={styles.highlightCard}
-      >
-        <div className="framer-pzkzdi" data-framer-name="Container" style={{opacity: "1"} as React.CSSProperties}>
-          <div className="framer-sggv0w" data-framer-name="Icon" style={styles.cardIcon}>
-            {iconType === "div" ? (
-              <div 
-                className={`${iconClass} framer-n7pu38`}
-                style={{"--21h8s6": "var(--token-d602a9d1-da3b-45d6-b039-eac0d7c79341, rgb(66, 135, 255))", opacity: "1"} as React.CSSProperties}
-              />
-            ) : (
-              <svg
-                className="framer-1qsf5 framer-n7pu38" 
-                role="presentation"
-                viewBox="0 0 24 24"
-                style={styles.cardIconSvg}
-              >
-                <use href={iconHref}></use>
-              </svg>
-            )}
+  <div className="flex flex-col" style={styles.cardContainer}>
+    <div className="p-6" style={styles.highlightCard}>
+      <div className="flex flex-col gap-4" style={{opacity: 1}}>
+        <div className="w-12 h-12 flex items-center justify-center" style={styles.cardIcon}>
+          {iconType === "div" ? (
+            <div 
+              className={iconClass}
+              style={{opacity: 1, color: "rgb(66, 135, 255)"}}
+            />
+          ) : (
+            <svg
+              role="presentation"
+              viewBox="0 0 24 24"
+              className="w-6 h-6"
+              style={styles.cardIconSvg}
+            >
+              <use href={iconHref}></use>
+            </svg>
+          )}
+        </div>
+        <div className="flex flex-col gap-2" style={{opacity: 1}}>
+          <div style={styles.cardHeading}>
+            <h6 style={{textAlign: "left"}}>
+              {title}
+            </h6>
           </div>
-          <div className="framer-1435lxg" data-framer-name="Heading &amp; Supporting Text" style={{opacity: "1"} as React.CSSProperties}>
-            <div 
-              className="framer-hea51t"
-              data-framer-component-type="RichTextContainer"
-              style={styles.cardHeading}
-            >
-              <h6 
-                className="framer-text framer-styles-preset-rlw5rm"
-                data-styles-preset="ozhLrZjZv"
-                style={{"--framer-text-alignment": "left", "--framer-text-color": "var(--extracted-1w1cjl5, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(0, 0, 0)))"} as React.CSSProperties}
-              >
-                {title}
-              </h6>
-            </div>
-            <div 
-              className="framer-yd03ol"
-              data-framer-component-type="RichTextContainer"
-              style={styles.cardText}
-            >
-              <p 
-                className="framer-text framer-styles-preset-wct5n4"
-                data-styles-preset="OvgFe4dMx"
-                style={{"--framer-text-alignment": "left"} as React.CSSProperties}
-              >
-                {description}
-              </p>
-            </div>
+          <div style={{...styles.cardText, textAlign: "left"}}>
+            <p>
+              {description}
+            </p>
           </div>
         </div>
       </div>
     </div>
-  </SSRVariant>
+  </div>
 )
 
 const hightlight = () => {
   return (
-    <section className="framer-7xdgds" data-framer-name="Highlight Section" id="highlight">
-      <div className="framer-16msori" data-framer-name="Container">
-        <div className="framer-ooyoju" data-framer-name="Heading &amp; Supporting Text">
-          <div className="framer-11kxwm6" data-framer-name="Heading Container">
-            <SSRVariant>
-              <div className="framer-qnpr8w-container">
-                <div 
-                  className="framer-Fhx2V framer-YF6mi framer-18xhfg8 framer-v-18xhfg8"
-                  data-border="true" 
-                  data-framer-name="Badge"
-                  style={styles.badge}
+    <section className="py-16 px-4" id="highlight">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col items-center gap-12">
+          <div className="flex flex-col items-center gap-8 max-w-4xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2" style={styles.badge}>
+              <div style={{opacity: 1}}>
+                <svg
+                  role="presentation"
+                  viewBox="0 0 24 24"
+                  className="w-5 h-5"
+                  style={styles.badgeIcon}
                 >
-                  <div className="framer-1l1ajhh" data-framer-name="Icon" style={{opacity: "1"} as React.CSSProperties}>
-                    <svg
-                      className="framer-fmMdU framer-qgvfsn" 
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                      style={styles.badgeIcon}
-                    >
-                      <use href="#1964567075"></use>
-                    </svg>
-                  </div>
-                  <div 
-                    className="framer-1710qob" 
-                    data-framer-component-type="RichTextContainer"
-                    style={styles.badgeText}
-                  >
-                    <p 
-                      className="framer-text framer-styles-preset-kmaoy8"
-                      data-styles-preset="MV92va9oP"
-                      style={{"--framer-text-color": "var(--extracted-r6o4lv, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38)))"} as React.CSSProperties}
-                    >
-                      Get Things Done
-                    </p>
-                  </div>
+                  <use href="#1964567075"></use>
+                </svg>
+              </div>
+              <div style={styles.badgeText}>
+                <p>Get Things Done</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-6 w-full">
+              <div className="flex flex-col items-center gap-4 w-full">
+                <div style={{...styles.mainHeading, outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: 0, transform: "none"} as React.CSSProperties}>
+                  <h2 className="text-[50px] lg:text-[38px] sm:text-[28px]">
+                    Handle complex workflows without the chaos.
+                  </h2>
+                </div>
+                <div style={{...styles.supportingText, outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: 0, transform: "none"} as React.CSSProperties}>
+                  <p>
+                    Adapts to shifting priorities and real workflows — keeping projects aligned, teams accountable, and decisions clear.
+                  </p>
                 </div>
               </div>
-            </SSRVariant>
-            <div className="framer-rntz2h" data-framer-name="Heading Content">
-              <div className="framer-8rgo21" data-framer-name="Container">
-                <SSRVariant>
-                  <div 
-                    className="framer-1qmcbs0" 
-                    data-framer-name="Heading"
-                    data-framer-component-type="RichTextContainer"
-                    style={{outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: "0", transform: "none"} as React.CSSProperties}
-                  >
-                    <h2 
-                      className="framer-text framer-styles-preset-199apa9"
-                      data-styles-preset="Ty6zNsrjE"
-                      style={{"--framer-text-alignment": "center"} as React.CSSProperties}
-                    >
-                      Handle complex workflows without the chaos.
-                    </h2>
-                  </div>
-                </SSRVariant>
-                <SSRVariant>
-                  <div 
-                    className="framer-10vpw73" 
-                    data-framer-name="Supporting text"
-                    data-framer-component-type="RichTextContainer"
-                    style={{outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: "0", transform: "none"} as React.CSSProperties}
-                  >
-                    <p 
-                      className="framer-text framer-styles-preset-wct5n4"
-                      data-styles-preset="OvgFe4dMx"
-                      style={{"--framer-text-alignment": "center"} as React.CSSProperties}
-                    >
-                      Adapts to shifting priorities and real workflows — keeping projects aligned, teams accountable, and decisions clear.
-                    </p>
-                  </div>
-                </SSRVariant>
-              </div>
-              <div className="framer-15273ea" data-framer-name="Highlight List">
+              <div className="flex flex-wrap justify-center gap-4">
                 {featureListItems.map((item, index) => (
                   <FeatureListItem key={index} href={item.href} text={item.text} />
                 ))}
@@ -349,7 +265,7 @@ const hightlight = () => {
             </div>
           </div>
         </div>
-        <div className="framer-12gsp9g" data-framer-name="Highlight Card">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {highlightCards.map((card, index) => (
             <HighlightCard
               key={index}
