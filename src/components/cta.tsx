@@ -1,6 +1,6 @@
 import React from 'react'
 
-const cta = () => {
+const Cta = () => {
   return (
    <div className="framer-ckn2al" data-framer-name="CTA Section">
                 <div className="framer-lfqpij-container">
@@ -79,4 +79,4 @@ const cta = () => {
   )
 }
 
-export default cta
+export default Cta

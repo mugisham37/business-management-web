@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-<style data-framer-css-ssr-minified=""
-
-data-framer-components="framer-lib-cursors-host framer-ZwDAi framer-u74gn PropertyOverrides framer-Fhx2V framer-LmhHe framer-i8Jnw framer-NCvKy framer-BpUsM framer-v2mcq framer-WzIzJ framer-zLRAx framer-b8top framer-eKeIr framer-Bmxwm framer-qmZa7 framer-JxHMO framer-fmMdU framer-XpCK0 framer-BIJaf framer-JK0qE framer-cfriu framer-xT4UQ framer-uxCXZ framer-O9jag framer-1qsf5 framer-VX1uG framer-4gClM framer-vR5Vf framer-Yqamd framer-ZwGvg framer-uMwCf framer-XN4Gz framer-hRWcm framer-R49vH framer-Howa8 framer-S0ioJ framer-CpbJJ framer-6W5Ea framer-Nsb3W framer-rpolD framer-DkID7 framer-dI88f framer-p3lRU framer-qYPz7 framer-N5GgA framer-bXGYf framer-4K3vP framer-zZ6b9 framer-m9QRL framer-17fFP framer-LanID framer-bMxRo">
-
 html,
 body,
 #main {
@@ -1233,7 +1229,7 @@ code.framer-text a.framer-text:hover,
 code.framer-text a.framer-text:hover span.framer-text:not([data-text-fill]),
 code.framer-text span.framer-text[data-nested-link]:hover,
 code.framer-text span.framer-text[data-nested-link]:hover span.framer-text:not([data-text-fill]) {
-  font-family: var(var(--framer-code-font-family, var(--framer-font-family, Inter, Inter Placeholder, sans-serif)));
+  font-family: var(--framer-code-font-family, var(--framer-font-family, Inter, Inter Placeholder, sans-serif));
   font-style: var(--framer-blockquote-font-style, var(--framer-code-font-style, var(--framer-font-style, normal)));
   font-weight: var(--framer-blockquote-font-weight, var(--framer-code-font-weight, var(--framer-font-weight, 400)));
   color: var(--framer-link-hover-text-color, var(--framer-blockquote-text-color, var(--framer-link-text-color, var(--framer-code-text-color, var(--framer-text-color, #000)))));
@@ -9011,5 +9007,3 @@ NavigationContainer [data-framer-component-type=NavigationContainer]>*,
   --framer-link-text-color: var(--token-ccc95a9a-25f2-49cc-a0af-ecdbff23bfba, #d6d6d6);
   --framer-link-text-decoration: none
 }
-
-<style type="text/css" data-framer-css="true"></style>
