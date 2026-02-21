@@ -1,4 +1,8 @@
 import React from 'react'
+import { Badge } from '@/components/reui/badge'
+import { Button } from '@/components/reui/button'
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/reui/card'
+import { Separator } from '@/components/reui/separator'
 
 // Type definitions for better code organization
 interface FeatureItem {
@@ -47,22 +51,6 @@ const FeatureItem: React.FC<{ text: string; isBlue?: boolean }> = ({ text, isBlu
     </div>
 )
 
-const CTAButton: React.FC = () => (
-    <div className="w-full">
-        <a 
-            className="flex items-center justify-center w-full bg-[rgb(38,38,38)] rounded-[27px] px-6 py-4 transition-opacity hover:opacity-90"
-            href="https://www.framer.com?via=green13" 
-            target="_blank"
-            rel="noopener" 
-            tabIndex={0}
-        >
-            <p className="font-['Switzer'] text-sm font-normal tracking-[-0.01em] leading-[1.3em] text-white text-center">
-                Get Started
-            </p>
-        </a>
-    </div>
-)
-
 const PricingCard: React.FC<{ plan: PricingPlan }> = ({ plan }) => {
     const isBlue = plan.variant === 'standard' || plan.variant === 'pro'
     
@@ -73,24 +61,25 @@ const PricingCard: React.FC<{ plan: PricingPlan }> = ({ plan }) => {
                     ? 'bg-[rgb(0,94,255)] shadow-[rgba(25,140,255,0.27)_0px_0px_5px_0px]' 
                     : 'backdrop-blur-[1px] bg-[rgb(240,241,242)] shadow-[0px_2px_3px_0px_rgb(248,249,250)]'
             }`}>
-                <div className={`rounded-[16px] p-8 ${
+                <Card className={`rounded-[16px] p-0 ring-0 ${
                     plan.variant === 'standard' 
                         ? 'bg-white border-0' 
                         : 'bg-[rgb(251,251,251)] border border-[rgb(229,229,232)]'
                 }`}>
-                    <div className="flex flex-col gap-6">
-                        {/* Header Section */}
+                    <CardHeader className="px-8 pt-8 pb-0">
                         <div className={`${plan.variant === 'standard' ? 'rounded-[7px]' : ''}`}>
                             <div className="flex items-center justify-between mb-5">
                                 <h5 className="font-['Inter'] text-2xl font-medium tracking-normal leading-[1.3em] text-[rgb(38,38,38)] text-left">
                                     {plan.name}
                                 </h5>
                                 {plan.badge && (
-                                    <div className="bg-[rgb(237,247,255)] rounded-[8px] px-3 py-1.5">
-                                        <p className="font-['Switzer'] text-sm font-normal tracking-[-0.01em] leading-[1.3em] text-[rgb(0,94,255)] text-center">
-                                            {plan.badge}
-                                        </p>
-                                    </div>
+                                    <Badge 
+                                        variant="primary-light" 
+                                        size="lg"
+                                        className="bg-[rgb(237,247,255)] text-[rgb(0,94,255)] rounded-[8px] px-3 py-1.5 h-auto min-w-0"
+                                    >
+                                        {plan.badge}
+                                    </Badge>
                                 )}
                             </div>
                             
@@ -102,15 +91,15 @@ const PricingCard: React.FC<{ plan: PricingPlan }> = ({ plan }) => {
                             </div>
                             
                             {/* Billing Text */}
-                            <p className={`font-['Switzer'] text-lg font-normal tracking-normal leading-[1.3em] opacity-90 text-left ${
-                                plan.variant === 'standard' ? 'text-[rgb(56,56,61)]' : 'text-[rgb(56,56,61)]'
-                            }`}>
+                            <p className="font-['Switzer'] text-lg font-normal tracking-normal leading-[1.3em] opacity-90 text-left text-[rgb(56,56,61)]">
                                 {plan.billingText}
                             </p>
                         </div>
-                        
+                    </CardHeader>
+                    
+                    <CardContent className="px-8 py-6 space-y-6">
                         {/* Divider */}
-                        <div className="w-full h-[1px] bg-[rgb(229,229,232)]"></div>
+                        <Separator decorative className="bg-[rgb(229,229,232)]" />
                         
                         {/* Features */}
                         <div className="flex flex-col gap-4">
@@ -118,13 +107,26 @@ const PricingCard: React.FC<{ plan: PricingPlan }> = ({ plan }) => {
                                 <FeatureItem key={index} text={feature.text} isBlue={isBlue} />
                             ))}
                         </div>
-                    </div>
+                    </CardContent>
                     
-                    {/* CTA Button */}
-                    <div className="mt-6">
-                        <CTAButton />
-                    </div>
-                </div>
+                    <CardFooter className="px-8 pb-8 pt-0">
+                        <Button 
+                            asChild 
+                            size="lg"
+                            className="w-full bg-[rgb(38,38,38)] text-white rounded-[27px] px-6 py-4 h-auto hover:opacity-90 hover:bg-[rgb(38,38,38)]"
+                        >
+                            <a 
+                                href="https://www.framer.com?via=green13" 
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                <span className="font-['Switzer'] text-sm font-normal tracking-[-0.01em] leading-[1.3em]">
+                                    Get Started
+                                </span>
+                            </a>
+                        </Button>
+                    </CardFooter>
+                </Card>
             </div>
         </div>
     )
@@ -179,7 +181,11 @@ const Pricing = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col items-center mb-16">
                     {/* Badge */}
-                    <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-[rgb(250,250,250)] border border-[rgb(229,229,232)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]">
+                    <Badge 
+                        variant="outline" 
+                        size="lg"
+                        className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-[rgb(250,250,250)] border-[rgb(229,229,232)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)] h-auto min-w-0"
+                    >
                         <svg 
                             className="w-6 h-6 stroke-[rgb(56,56,61)]" 
                             role="presentation" 
@@ -189,10 +195,10 @@ const Pricing = () => {
                         >
                             <use href="#1018870535"></use>
                         </svg>
-                        <p className="font-['Switzer'] text-sm font-normal tracking-[-0.01em] leading-[1.3em] text-[rgb(38,38,38)] underline">
+                        <span className="font-['Switzer'] text-sm font-normal tracking-[-0.01em] leading-[1.3em] text-[rgb(38,38,38)] underline">
                             Plans That Grow With You
-                        </p>
-                    </div>
+                        </span>
+                    </Badge>
                     
                     {/* Heading */}
                     <h2 className="font-['Switzer'] text-[50px] md:text-[38px] sm:text-[28px] font-semibold tracking-[-0.02em] leading-[1em] text-[rgb(38,38,38)] text-center mb-4">

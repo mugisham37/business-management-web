@@ -1,4 +1,9 @@
+'use client'
+
 import React from 'react'
+import { Button } from '@/components/reui/button'
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/reui/navigation-menu'
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/reui/drawer'
 
 // Menu items configuration
 const menuItems = [
@@ -48,21 +53,45 @@ const Logo = () => (
 
 // Hamburger menu icon
 const HamburgerIcon = () => (
-    <div 
-        className="flex flex-none flex-col flex-nowrap gap-1.5 h-[34px] items-center content-center justify-start overflow-visible pt-2 px-0.5 pb-0.5 relative w-[34px] aspect-square cursor-pointer opacity-100" 
-        tabIndex={0}
-    >
+    <>
         <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
         <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
         <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
-    </div>
+    </>
 )
 
-// Menu item component
+// Menu item component for desktop
 const MenuItem = ({ href, label }: { href: string; label: string }) => (
-    <div className="flex-none h-auto relative whitespace-pre w-auto flex flex-col justify-start shrink-0 opacity-100">
-        <p 
-            className="font-['Switzer'] text-sm font-medium text-[#53535c] text-center"
+    <NavigationMenuItem>
+        <NavigationMenuLink 
+            href={href}
+            className="flex-none h-auto relative whitespace-pre w-auto flex flex-col justify-start shrink-0 opacity-100"
+        >
+            <span 
+                className="font-['Switzer'] text-sm font-medium text-[#262626] hover:text-[#38383d] text-center transition-colors"
+                style={{
+                    letterSpacing: '0em',
+                    lineHeight: '1.3em',
+                    textTransform: 'none',
+                    textDecoration: 'none',
+                    margin: 0
+                }}
+            >
+                {label}
+            </span>
+        </NavigationMenuLink>
+    </NavigationMenuItem>
+)
+
+// Menu item component for mobile drawer
+const MobileMenuItem = ({ href, label, onClick }: { href: string; label: string; onClick?: () => void }) => (
+    <a 
+        href={href}
+        onClick={onClick}
+        className="flex-none h-auto relative whitespace-pre w-auto flex flex-col justify-start shrink-0 opacity-100 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+    >
+        <span 
+            className="font-['Switzer'] text-base font-medium text-[#262626] hover:text-[#38383d]"
             style={{
                 letterSpacing: '0em',
                 lineHeight: '1.3em',
@@ -71,17 +100,14 @@ const MenuItem = ({ href, label }: { href: string; label: string }) => (
                 margin: 0
             }}
         >
-            <a 
-                className="text-[#262626] hover:text-[#38383d] no-underline transition-colors" 
-                href={href}
-            >
-                {label}
-            </a>
-        </p>
-    </div>
+            {label}
+        </span>
+    </a>
 )
 
 const Nav = () => {
+    const [open, setOpen] = React.useState(false)
+
     return (
         <>
             {/* Mobile Navigation */}
@@ -98,7 +124,47 @@ const Nav = () => {
                         <div className="flex flex-1 flex-row flex-nowrap h-min items-center content-center justify-between overflow-visible p-0 relative w-px z-[1] opacity-100">
                             <div className="flex flex-none flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-between overflow-visible p-0 relative w-full opacity-100">
                                 <Logo />
-                                <HamburgerIcon />
+                                <Drawer open={open} onOpenChange={setOpen}>
+                                    <DrawerTrigger asChild>
+                                        <button 
+                                            className="flex flex-none flex-col flex-nowrap gap-1.5 h-[34px] items-center content-center justify-start overflow-visible pt-2 px-0.5 pb-0.5 relative w-[34px] aspect-square cursor-pointer opacity-100 bg-transparent border-0 outline-none"
+                                            aria-label="Open menu"
+                                        >
+                                            <HamburgerIcon />
+                                        </button>
+                                    </DrawerTrigger>
+                                    <DrawerContent className="max-h-[85vh]">
+                                        <DrawerHeader className="text-left">
+                                            <DrawerTitle className="font-['Inter'] text-xl font-extrabold text-[#262626]">
+                                                Menu
+                                            </DrawerTitle>
+                                        </DrawerHeader>
+                                        <nav className="flex flex-col gap-1 px-4 py-2 overflow-y-auto">
+                                            {menuItems.map((item) => (
+                                                <MobileMenuItem 
+                                                    key={item.href} 
+                                                    {...item} 
+                                                    onClick={() => setOpen(false)}
+                                                />
+                                            ))}
+                                        </nav>
+                                        <DrawerFooter className="pt-4">
+                                            <Button 
+                                                asChild 
+                                                className="w-full bg-[#262626] hover:bg-[#38383d] text-white rounded-[20px] h-10 font-['Switzer'] text-sm font-normal"
+                                                style={{ letterSpacing: '-0.01em' }}
+                                            >
+                                                <a
+                                                    href="https://www.framer.com?via=green13"
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                >
+                                                    Get Started
+                                                </a>
+                                            </Button>
+                                        </DrawerFooter>
+                                    </DrawerContent>
+                                </Drawer>
                             </div>
                         </div>
                     </nav>
@@ -121,40 +187,38 @@ const Nav = () => {
                             </div>
 
                             <div className="flex flex-none flex-row flex-nowrap gap-[25px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
-                                <div className="flex flex-none flex-row flex-nowrap gap-[25px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
-                                    {menuItems.map((item) => (
-                                        <MenuItem key={item.href} {...item} />
-                                    ))}
-                                </div>
+                                <NavigationMenu viewport={false} className="relative">
+                                    <NavigationMenuList className="flex flex-none flex-row flex-nowrap gap-[25px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
+                                        {menuItems.map((item) => (
+                                            <MenuItem key={item.href} {...item} />
+                                        ))}
+                                    </NavigationMenuList>
+                                </NavigationMenu>
                             </div>
 
                             <div className="flex-none h-auto relative w-auto opacity-100">
-                                <a
-                                    className="flex flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-center overflow-hidden py-2 px-[18px] relative no-underline w-min cursor-pointer bg-[#262626] rounded-[20px] opacity-100 border-0 shadow-none will-change-transform"
-                                    href="https://www.framer.com?via=green13"
-                                    target="_blank"
-                                    rel="noopener"
-                                    tabIndex={0}
+                                <Button 
+                                    asChild 
+                                    className="flex flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-center overflow-hidden py-2 px-[18px] relative no-underline w-min cursor-pointer bg-[#262626] hover:bg-[#38383d] rounded-[20px] opacity-100 border-0 shadow-none will-change-transform transition-colors"
                                 >
-                                    <div className="flex flex-none flex-row flex-nowrap gap-2 h-6 items-center content-center justify-start overflow-visible p-0 relative w-min opacity-100">
-                                        <div className="flex flex-none flex-col flex-nowrap gap-2.5 h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
-                                            <div className="flex-none h-auto relative whitespace-pre w-auto z-[1] flex flex-col justify-start shrink-0 opacity-100">
-                                                <p
-                                                    className="font-['Switzer'] text-sm font-normal text-white text-center"
-                                                    style={{
-                                                        letterSpacing: '-0.01em',
-                                                        lineHeight: '1.3em',
-                                                        textTransform: 'none',
-                                                        textDecoration: 'none',
-                                                        margin: 0
-                                                    }}
-                                                >
-                                                    Get Started
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
+                                    <a
+                                        href="https://www.framer.com?via=green13"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        <span
+                                            className="font-['Switzer'] text-sm font-normal text-white text-center"
+                                            style={{
+                                                letterSpacing: '-0.01em',
+                                                lineHeight: '1.3em',
+                                                textTransform: 'none',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            Get Started
+                                        </span>
+                                    </a>
+                                </Button>
                             </div>
                         </div>
                     </nav>

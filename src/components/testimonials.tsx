@@ -1,4 +1,8 @@
 import React from 'react'
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/reui/card'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/reui/avatar'
+import { Badge } from '@/components/reui/badge'
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/reui/carousel'
 
 // Testimonial data
 interface Testimonial {
@@ -86,93 +90,119 @@ const TESTIMONIALS_ROW_2: Testimonial[] = [
 ]
 
 // Testimonial Card Component
-const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({ testimonial }) => (
-    <div className="opacity-100" style={{fontFamily: 'Switzer, sans-serif'}}>
-        <div className="border border-[#f2f2f2] bg-[#f8f9fa] rounded-xl shadow-[0px_0px_2px_0px_#f8f9fa]">
-            <div className="border border-[#e5e5e8] bg-[#fbfbfb] rounded-[10px]">
-                <div className="border-b border-[#e5e5e8] p-4">
-                    <div className="flex gap-3 items-start">
-                        <div className="rounded-[10px] w-[43px] h-[43px] flex-shrink-0 overflow-hidden relative">
-                            <img 
-                                decoding="async"
-                                width={testimonial.image.width}
-                                height={testimonial.image.height}
-                                sizes="43px"
-                                srcSet={testimonial.image.srcSet}
-                                src={testimonial.image.src}
-                                alt=""
-                                className="block w-full h-full rounded-[inherit] object-cover object-center"
-                            />
+const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({ testimonial }) => {
+    // Generate initials for avatar fallback
+    const initials = testimonial.name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+
+    return (
+        <div className="opacity-100" style={{fontFamily: 'Switzer, sans-serif'}}>
+            <div className="border border-[#f2f2f2] bg-[#f8f9fa] rounded-xl shadow-[0px_0px_2px_0px_#f8f9fa] p-[1px]">
+                <Card className="border border-[#e5e5e8] bg-[#fbfbfb] rounded-[10px] shadow-none">
+                    <CardHeader className="border-b border-[#e5e5e8] p-4">
+                        <div className="flex gap-3 items-start">
+                            <Avatar size="default" className="w-[43px] h-[43px] rounded-[10px] flex-shrink-0">
+                                <AvatarImage 
+                                    src={testimonial.image.src}
+                                    srcSet={testimonial.image.srcSet}
+                                    alt={testimonial.name}
+                                    className="object-cover object-center"
+                                />
+                                <AvatarFallback className="bg-[#e5e5e8] text-[#38383d] text-sm">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-1 flex-1">
+                                <CardTitle className="text-[16px] font-semibold leading-[1.3em] tracking-[0em] text-[#38383d] text-left">
+                                    {testimonial.name}
+                                </CardTitle>
+                                <CardDescription className="text-[14px] font-normal leading-[1.3em] tracking-[-0.01em] text-[#53535c] text-left opacity-80">
+                                    {testimonial.role}
+                                </CardDescription>
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-1 flex-1">
-                            <h5 className="text-[16px] font-semibold leading-[1.3em] tracking-[0em] text-[#38383d] text-left m-0">
-                                {testimonial.name}
-                            </h5>
-                            <h6 className="text-[14px] font-normal leading-[1.3em] tracking-[-0.01em] text-[#53535c] text-left opacity-80 m-0">
-                                {testimonial.role}
-                            </h6>
-                        </div>
-                    </div>
-                </div>
-                <div className="p-4">
-                    <p className="text-[16px] font-normal leading-[1.4em] tracking-[0em] text-[#53535c] text-left m-0">
-                        {testimonial.quote}
-                    </p>
-                </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <p className="text-[16px] font-normal leading-[1.4em] tracking-[0em] text-[#53535c] text-left m-0">
+                            {testimonial.quote}
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
         </div>
-    </div>
-)
+    )
+}
 
-// Testimonial Group Component
-const TestimonialGroup: React.FC<{ testimonials: Testimonial[] }> = ({ testimonials }) => (
-    <div className="flex flex-col gap-[10px] flex-shrink-0">
-        {testimonials.map((testimonial, index) => (
-            <div key={`${testimonial.name}-${index}`} className="w-full">
-                <TestimonialCard testimonial={testimonial} />
-            </div>
-        ))}
-    </div>
-)
-
-// Testimonial Row Component
-const TestimonialRow: React.FC<{ testimonials: Testimonial[], maskGradient: string, transform?: string }> = ({ 
+// Testimonial Row Component with Carousel
+const TestimonialRow: React.FC<{ 
+    testimonials: Testimonial[], 
+    maskGradient: string,
+    direction?: 'forward' | 'backward'
+}> = ({ 
     testimonials, 
     maskGradient,
-    transform 
-}) => (
-    <div className="w-full h-full">
-        <section 
-            className="flex w-full h-full max-w-full max-h-full items-center justify-center m-0 p-[10px] overflow-hidden"
-            style={{
-                listStyleType: "none",
-                opacity: "1",
-                maskImage: maskGradient,
-                WebkitMaskImage: maskGradient
-            }}
-        >
-            <ul 
-                className="flex w-full h-full max-w-full max-h-full items-center justify-start m-0 p-0 gap-[10px] relative flex-row"
+    direction = 'forward'
+}) => {
+    const [api, setApi] = React.useState<CarouselApi>()
+
+    React.useEffect(() => {
+        if (!api) return
+
+        // Auto-scroll functionality
+        const intervalId = setInterval(() => {
+            if (direction === 'forward') {
+                api.scrollNext()
+            } else {
+                api.scrollPrev()
+            }
+        }, 2000) // Scroll every 2 seconds
+
+        return () => clearInterval(intervalId)
+    }, [api, direction])
+
+    return (
+        <div className="w-full h-full">
+            <div 
+                className="relative w-full h-full"
                 style={{
-                    listStyleType: "none",
-                    willChange: "auto",
-                    transform: transform || "translateX(0px)",
-                    left: transform ? "-1764px" : undefined
+                    maskImage: maskGradient,
+                    WebkitMaskImage: maskGradient
                 }}
             >
-                <li>
-                    <TestimonialGroup testimonials={testimonials} />
-                </li>
-                <li aria-hidden="true">
-                    <TestimonialGroup testimonials={testimonials} />
-                </li>
-                <li aria-hidden="true">
-                    <TestimonialGroup testimonials={testimonials} />
-                </li>
-            </ul>
-        </section>
-    </div>
-)
+                <Carousel
+                    setApi={setApi}
+                    opts={{
+                        loop: true,
+                        align: "start",
+                        skipSnaps: false,
+                        dragFree: true,
+                        containScroll: false,
+                    }}
+                    className="w-full h-full"
+                >
+                    <CarouselContent className="gap-[10px] ml-0 [&>*]:pl-0">
+                        {/* Render testimonials multiple times for seamless loop */}
+                        {[...Array(3)].map((_, groupIndex) => (
+                            <React.Fragment key={`group-${groupIndex}`}>
+                                {testimonials.map((testimonial, index) => (
+                                    <CarouselItem 
+                                        key={`${groupIndex}-${testimonial.name}-${index}`}
+                                        className="basis-auto pl-0 pr-[10px]"
+                                    >
+                                        <TestimonialCard testimonial={testimonial} />
+                                    </CarouselItem>
+                                ))}
+                            </React.Fragment>
+                        ))}
+                    </CarouselContent>
+                </Carousel>
+            </div>
+        </div>
+    )
+}
 
 const Testimonials = () => {
     return (
@@ -192,11 +222,9 @@ const Testimonials = () => {
                     <div className="flex flex-col flex-nowrap items-center justify-start gap-[10px] w-full">
                         <div className="w-full">
                             <div className="flex items-center justify-center w-full mb-4">
-                                <div 
-                                    className="inline-flex items-center justify-center gap-[6px] px-[14px] py-[8px] border border-[#e5e5e8] bg-[#fafafa] rounded-[17px]"
-                                    style={{
-                                        boxShadow: '0px 2px 5px 0px #f0f1f2'
-                                    }}
+                                <Badge 
+                                    variant="outline"
+                                    className="inline-flex items-center justify-center gap-[6px] px-[14px] py-[8px] border-[#e5e5e8] bg-[#fafafa] rounded-[17px] shadow-[0px_2px_5px_0px_#f0f1f2] h-auto min-w-0"
                                 >
                                     <div className="flex items-center justify-center opacity-100">
                                         <svg 
@@ -207,10 +235,10 @@ const Testimonials = () => {
                                             <use href="#535726797"></use>
                                         </svg>
                                     </div>
-                                    <p className="text-[14px] font-normal leading-[1.3em] tracking-[-0.01em] text-[#38383d] m-0">
+                                    <span className="text-[14px] font-normal leading-[1.3em] tracking-[-0.01em] text-[#38383d]">
                                         What Teams Are Saying
-                                    </p>
-                                </div>
+                                    </span>
+                                </Badge>
                             </div>
                             <div className="flex flex-col items-center justify-start gap-[10px] w-full">
                                 <div className="w-full">
@@ -234,9 +262,6 @@ const Testimonials = () => {
                     <div 
                         className="flex flex-col items-center justify-center gap-[2px] w-full"
                         style={{
-                            willChange: "transform", 
-                            opacity: "0", 
-                            transform: "translateY(80px)",
                             minHeight: 'min-content'
                         }}
                     >
@@ -244,13 +269,14 @@ const Testimonials = () => {
                             <TestimonialRow 
                                 testimonials={TESTIMONIALS_ROW_1}
                                 maskGradient="linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 6%, rgb(0, 0, 0) 94%, rgba(0, 0, 0, 0) 100%)"
+                                direction="forward"
                             />
                         </div>
                         <div className="w-full flex-none h-auto relative">
                             <TestimonialRow 
                                 testimonials={TESTIMONIALS_ROW_2}
                                 maskGradient="linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 12.5%, rgb(0, 0, 0) 87.5%, rgba(0, 0, 0, 0) 100%)"
-                                transform="translateX(0px)"
+                                direction="backward"
                             />
                         </div>
                     </div>

@@ -1,20 +1,7 @@
 import React from 'react';
-
-// Shared styles for image wrappers
-const imageWrapperStyle: React.CSSProperties = {
-  position: 'absolute',
-  borderRadius: 'inherit',
-  inset: '0px',
-};
-
-const imageStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  height: '100%',
-  borderRadius: 'inherit',
-  objectPosition: 'center center',
-  objectFit: 'cover',
-};
+import { AspectRatio } from '@/components/reui/aspect-ratio';
+import { Skeleton } from '@/components/reui/skeleton';
+import { Frame, FramePanel } from '@/components/reui/frame';
 
 // Image configuration
 interface ImageConfig {
@@ -44,22 +31,34 @@ const images: Record<'background' | 'foreground', ImageConfig> = {
   },
 };
 
-// Reusable BackgroundImage component
-const BackgroundImage: React.FC<{ config: ImageConfig }> = ({ config }) => (
-  <div data-framer-background-image-wrapper="true" style={imageWrapperStyle}>
-    <img
-      decoding="async"
-      loading="lazy"
-      width={config.width}
-      height={config.height}
-      sizes={config.sizes}
-      srcSet={config.srcSet}
-      src={config.baseUrl}
-      alt=""
-      style={imageStyle}
-    />
-  </div>
-);
+// Reusable BackgroundImage component with loading state
+const BackgroundImage: React.FC<{ config: ImageConfig }> = ({ config }) => {
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const aspectRatio = config.width / config.height;
+
+  return (
+    <div className="absolute inset-0 rounded-[inherit]" data-framer-background-image-wrapper="true">
+      <AspectRatio ratio={aspectRatio} className="h-full">
+        {!isLoaded && (
+          <Skeleton className="absolute inset-0 rounded-[inherit]" />
+        )}
+        <img
+          decoding="async"
+          loading="lazy"
+          width={config.width}
+          height={config.height}
+          sizes={config.sizes}
+          srcSet={config.srcSet}
+          src={config.baseUrl}
+          alt=""
+          onLoad={() => setIsLoaded(true)}
+          className="block w-full h-full rounded-[inherit] object-center object-cover"
+          style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
+        />
+      </AspectRatio>
+    </div>
+  );
+};
 
 const Overview = () => {
   return (
@@ -68,11 +67,13 @@ const Overview = () => {
       data-framer-name="Overview Section" 
       id="overview"
     >
-      <div className="[display:contents]">
-        <div 
-          className="relative flex flex-col flex-none flex-nowrap items-center justify-center content-center w-full h-min max-w-[1100px] min-h-[650px] gap-2.5 overflow-hidden rounded-[15px] px-[50px] pt-[50px] pb-0 z-0 [will-change:var(--framer-will-change-override,transform)] max-[1199px]:h-[467px] max-[1199px]:max-w-[810px] max-[1199px]:min-h-0 max-[1199px]:px-[30px] max-[1199px]:pt-[30px] max-[809px]:h-[380px] max-[809px]:max-w-[580px] max-[809px]:min-h-0 max-[809px]:rounded-[10px] max-[809px]:px-[15px] max-[809px]:pt-[15px]" 
-          data-framer-name="Visual" 
-          style={{ opacity: 1, transform: 'none' }}
+      <Frame 
+        variant="ghost" 
+        className="w-full max-w-[1100px] p-0 gap-0 max-[1199px]:max-w-[810px] max-[809px]:max-w-[580px]"
+      >
+        <FramePanel 
+          className="relative flex flex-col flex-none flex-nowrap items-center justify-center content-center w-full h-min min-h-[650px] gap-2.5 overflow-hidden rounded-[15px] px-[50px] pt-[50px] pb-0 [will-change:var(--framer-will-change-override,transform)] max-[1199px]:h-[467px] max-[1199px]:min-h-0 max-[1199px]:px-[30px] max-[1199px]:pt-[30px] max-[809px]:h-[380px] max-[809px]:min-h-0 max-[809px]:rounded-[10px] max-[809px]:px-[15px] max-[809px]:pt-[15px]" 
+          data-framer-name="Visual"
         >
           <BackgroundImage config={images.background} />
           <div 
@@ -90,8 +91,8 @@ const Overview = () => {
               <BackgroundImage config={images.foreground} />
             </div>
           </div>
-        </div>
-      </div>
+        </FramePanel>
+      </Frame>
     </section>
   );
 };

@@ -1,7 +1,13 @@
 import React from 'react'
+import { Badge } from '@/components/reui/badge'
+import { Button } from '@/components/reui/button'
+import { Card, CardContent, CardFooter } from '@/components/reui/card'
+import { Field, FieldLabel } from '@/components/reui/field'
+import { Input } from '@/components/reui/input'
+import { Textarea } from '@/components/reui/textarea'
 
 // Form field configuration
-interface FormField {
+interface FormFieldConfig {
   label: string
   name: string
   placeholder: string
@@ -9,7 +15,7 @@ interface FormField {
   required: boolean
 }
 
-const FORM_FIELDS: FormField[] = [
+const FORM_FIELDS: FormFieldConfig[] = [
   {
     label: 'First Name *',
     name: 'First Name',
@@ -50,17 +56,18 @@ const RichTextHeading: React.FC<{ children: React.ReactNode; className?: string 
   </h6>
 )
 
-const FormField: React.FC<{ field: FormField }> = ({ field }) => {
+const FormField: React.FC<{ field: FormFieldConfig }> = ({ field }) => {
   const { label, name, placeholder, type, required } = field
   
   return (
-    <label className="flex flex-col gap-2">
-      <div className="outline-none flex flex-col justify-start shrink-0">
+    <Field className="gap-2">
+      <FieldLabel htmlFor={name}>
         <RichTextHeading>{label}</RichTextHeading>
-      </div>
+      </FieldLabel>
       <div className="w-full">
         {type === 'text' ? (
-          <input
+          <Input
+            id={name}
             data-1p-ignore="true"
             data-lpignore="true"
             data-form-type="other"
@@ -72,7 +79,8 @@ const FormField: React.FC<{ field: FormField }> = ({ field }) => {
             defaultValue=""
           />
         ) : (
-          <textarea
+          <Textarea
+            id={name}
             data-1p-ignore="true"
             data-lpignore="true"
             data-form-type="other"
@@ -84,7 +92,7 @@ const FormField: React.FC<{ field: FormField }> = ({ field }) => {
           />
         )}
       </div>
-    </label>
+    </Field>
   )
 }
 
@@ -95,28 +103,26 @@ const ContactPage = () => {
         <div className="flex flex-col items-center gap-12 mb-12">
           <div className="flex flex-col items-center gap-8">
             <div className="inline-flex">
-              <div
-                className="flex items-center gap-2 px-4 py-2 bg-[rgb(250,250,250)] border border-[rgb(229,229,232)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]"
+              <Badge 
+                variant="outline"
+                size="lg"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgb(250,250,250)] border-[rgb(229,229,232)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]"
               >
-                <div className="opacity-100">
-                  <svg
-                    className="w-5 h-5"
-                    role="presentation"
-                    viewBox="0 0 24 24"
-                    style={{
-                      fill: 'rgb(56,56,61)',
-                      opacity: 1
-                    }}
-                  >
-                    <use href="#777087443"></use>
-                  </svg>
-                </div>
-                <div className="outline-none flex flex-col justify-start shrink-0">
-                  <p className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-[#38383d] text-center">
-                    Contact Us
-                  </p>
-                </div>
-              </div>
+                <svg
+                  className="w-5 h-5"
+                  role="presentation"
+                  viewBox="0 0 24 24"
+                  style={{
+                    fill: 'rgb(56,56,61)',
+                    opacity: 1
+                  }}
+                >
+                  <use href="#777087443"></use>
+                </svg>
+                <span className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-[#38383d]">
+                  Contact Us
+                </span>
+              </Badge>
             </div>
             <div className="flex flex-col items-center gap-6">
               <div className="flex flex-col items-center">
@@ -134,26 +140,28 @@ const ContactPage = () => {
             </div>
           </div>
         </div>
-        <form className="w-full flex flex-col gap-6 p-8 bg-white rounded-2xl border border-[rgb(229,229,232)]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField field={FORM_FIELDS[0]} />
-            <FormField field={FORM_FIELDS[1]} />
-          </div>
-          <FormField field={FORM_FIELDS[2]} />
-          <FormField field={FORM_FIELDS[3]} />
-          <div className="w-full">
-            <button
-              type="submit"
-              className="w-full px-6 py-4 bg-[rgb(10,141,255)] hover:bg-[rgb(8,120,220)] rounded-[10px] shadow-[rgba(0,0,0,0.1)_0px_1px_3px_0px] transition-colors duration-200"
-            >
-              <div className="outline-none flex flex-col justify-start shrink-0">
-                <p className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-white text-center">
-                  Send Message
-                </p>
+        <Card className="w-full bg-white rounded-2xl border border-[rgb(229,229,232)] shadow-none">
+          <form>
+            <CardContent className="flex flex-col gap-6 p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField field={FORM_FIELDS[0]} />
+                <FormField field={FORM_FIELDS[1]} />
               </div>
-            </button>
-          </div>
-        </form>
+              <FormField field={FORM_FIELDS[2]} />
+              <FormField field={FORM_FIELDS[3]} />
+            </CardContent>
+            <CardFooter className="px-8 pb-8 pt-0">
+              <Button
+                type="submit"
+                className="w-full px-6 py-4 bg-[rgb(10,141,255)] hover:bg-[rgb(8,120,220)] rounded-[10px] shadow-[rgba(0,0,0,0.1)_0px_1px_3px_0px] transition-colors duration-200 h-auto"
+              >
+                <span className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-white">
+                  Send Message
+                </span>
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
       </div>
     </section>
   )

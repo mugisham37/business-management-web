@@ -1,4 +1,6 @@
 import React from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/reui/card'
+import { Separator } from '@/components/reui/separator'
 
 // Terms content data
 const termsContent = [
@@ -34,7 +36,7 @@ const termsContent = [
     }
 ]
 
-// Reusable term section component
+// Reusable term section component using reui Card
 const TermSection = ({ 
     id, 
     title, 
@@ -46,27 +48,27 @@ const TermSection = ({
     content: string
     hasStrong: boolean
 }) => (
-    <div 
-        className="mb-8 opacity-100 transform-none will-change-transform" 
+    <Card 
+        className="mb-8 opacity-100 transform-none will-change-transform border-0 shadow-none bg-transparent p-0" 
         id={id}
     >
-        <div className="mb-4">
-            <h5 
+        <CardHeader className="mb-4 p-0">
+            <CardTitle 
                 className="text-lg md:text-xl font-semibold leading-[1.2em] text-left text-[#262626] m-0"
                 style={{ fontFamily: "'Switzer', sans-serif" }}
             >
                 {hasStrong ? <strong>{title}</strong> : title}
-            </h5>
-        </div>
-        <div>
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
             <p 
                 className="text-base font-normal leading-[1.4em] text-left text-[#53535c] m-0"
                 style={{ fontFamily: "'Switzer', sans-serif" }}
             >
                 {content}
             </p>
-        </div>
-    </div>
+        </CardContent>
+    </Card>
 )
 
 const page = () => {

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/reui/card'
 
 interface PolicySection {
   id: string;
@@ -47,18 +48,18 @@ const policySections: PolicySection[] = [
 ];
 
 const PolicySectionItem: React.FC<PolicySection> = ({ id, title, content, hasStrong }) => (
-  <div className="opacity-100" id={id}>
-    <div className="flex flex-col justify-start flex-shrink-0">
-      <h5 className="font-['Switzer'] text-[20px] lg:text-[18px] font-semibold leading-[1.2em] tracking-normal text-[#262626] text-left">
+  <Card className="opacity-100 border-0 shadow-none bg-transparent p-0" id={id}>
+    <CardHeader className="p-0 mb-2">
+      <CardTitle className="font-['Switzer'] text-[20px] lg:text-[18px] font-semibold leading-[1.2em] tracking-normal text-[#262626] text-left">
         {hasStrong ? <strong>{title}</strong> : title}
-      </h5>
-    </div>
-    <div className="flex flex-col justify-start flex-shrink-0">
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-0">
       <p className="font-['Switzer'] text-base font-normal leading-[1.4em] tracking-normal text-[#53535c] text-left">
         {content}
       </p>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 );
 
 const page = () => {

@@ -1,123 +1,7 @@
 import React from 'react'
-
-// Reusable style objects - Self-contained with exact values
-const styles = {
-  badge: {
-    backgroundColor: "rgb(250, 250, 250)",
-    border: "1px solid rgb(229, 229, 232)",
-    borderRadius: "17px",
-    boxShadow: "0px 2px 5px 0px rgb(240, 241, 242)",
-    opacity: 1
-  } as React.CSSProperties,
-  
-  badgeIcon: {
-    opacity: 1,
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties,
-  
-  badgeText: {
-    outline: "none",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    flexShrink: 0,
-    transform: "none",
-    opacity: 1,
-    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
-    fontSize: "14px",
-    fontWeight: 400,
-    lineHeight: "1.3em",
-    letterSpacing: "-0.01em",
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties,
-  
-  featureList: {
-    backgroundColor: "rgba(247, 249, 250, 0.5)",
-    border: "1px solid rgb(214, 214, 214)",
-    borderRadius: "16px",
-    boxShadow: "0px 1px 3px 0px rgb(248, 249, 250)",
-    opacity: 1
-  } as React.CSSProperties,
-  
-  featureIcon: {
-    opacity: 1,
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties,
-  
-  highlightCard: {
-    backgroundColor: "rgb(251, 251, 251)",
-    border: "1px solid rgb(229, 229, 232)",
-    width: "100%",
-    borderRadius: "10px",
-    boxShadow: "0px 2px 5px 0px rgb(251, 251, 251)",
-    opacity: 1
-  } as React.CSSProperties,
-  
-  cardContainer: {
-    willChange: "transform",
-    opacity: 0,
-    transform: "translateY(50px)"
-  } as React.CSSProperties,
-  
-  cardIcon: {
-    borderRadius: "5px",
-    opacity: 1
-  } as React.CSSProperties,
-  
-  cardIconSvg: {
-    opacity: 1,
-    color: "rgb(66, 135, 255)"
-  } as React.CSSProperties,
-  
-  cardHeading: {
-    outline: "none",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    flexShrink: 0,
-    transform: "none",
-    opacity: 1,
-    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
-    fontSize: "16px",
-    fontWeight: 600,
-    lineHeight: "1.3em",
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties,
-  
-  cardText: {
-    outline: "none",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    flexShrink: 0,
-    transform: "none",
-    opacity: 1,
-    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
-    fontSize: "16px",
-    fontWeight: 400,
-    lineHeight: "1.4em",
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties,
-  
-  mainHeading: {
-    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
-    fontSize: "50px",
-    fontWeight: 600,
-    lineHeight: "1em",
-    letterSpacing: "-0.02em",
-    textAlign: "center",
-    color: "rgb(0, 0, 0)"
-  } as React.CSSProperties,
-  
-  supportingText: {
-    fontFamily: '"Switzer", "Switzer Placeholder", sans-serif',
-    fontSize: "16px",
-    fontWeight: 400,
-    lineHeight: "1.4em",
-    textAlign: "center",
-    color: "rgb(56, 56, 61)"
-  } as React.CSSProperties
-}
+import { Badge } from '@/components/reui/badge'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/reui/card'
+import { FramePanel } from '@/components/reui/frame'
 
 // Feature list data
 const featureListItems = [
@@ -162,21 +46,20 @@ const highlightCards = [
 
 // Reusable components
 const FeatureListItem: React.FC<{ href: string; text: string }> = ({ href, text }) => (
-  <div className="flex items-center gap-3 p-4" style={styles.featureList}>
-    <div className="flex-shrink-0" style={{opacity: 1}}>
+  <FramePanel className="flex items-center gap-3 p-4 bg-muted/30 border-border rounded-2xl shadow-sm">
+    <div className="flex-shrink-0">
       <svg 
         role="presentation" 
         viewBox="0 0 24 24"
-        className="w-6 h-6"
-        style={styles.featureIcon}
+        className="w-6 h-6 text-foreground"
       >
         <use href={href}></use>
       </svg>
     </div>
-    <div style={{...styles.cardText, textAlign: "left"}}>
-      <p>{text}</p>
-    </div>
-  </div>
+    <p className="text-base text-foreground leading-snug">
+      {text}
+    </p>
+  </FramePanel>
 )
 
 const HighlightCard: React.FC<{
@@ -186,41 +69,34 @@ const HighlightCard: React.FC<{
   title: string;
   description: string;
 }> = ({ iconType, iconClass, iconHref, title, description }) => (
-  <div className="flex flex-col" style={styles.cardContainer}>
-    <div className="p-6" style={styles.highlightCard}>
-      <div className="flex flex-col gap-4" style={{opacity: 1}}>
-        <div className="w-12 h-12 flex items-center justify-center" style={styles.cardIcon}>
-          {iconType === "div" ? (
-            <div 
-              className={iconClass}
-              style={{opacity: 1, color: "rgb(66, 135, 255)"}}
-            />
-          ) : (
-            <svg
-              role="presentation"
-              viewBox="0 0 24 24"
-              className="w-6 h-6"
-              style={styles.cardIconSvg}
-            >
-              <use href={iconHref}></use>
-            </svg>
-          )}
-        </div>
-        <div className="flex flex-col gap-2" style={{opacity: 1}}>
-          <div style={styles.cardHeading}>
-            <h6 style={{textAlign: "left"}}>
-              {title}
-            </h6>
-          </div>
-          <div style={{...styles.cardText, textAlign: "left"}}>
-            <p>
-              {description}
-            </p>
-          </div>
-        </div>
+  <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
+    <CardContent className="p-6 flex flex-col gap-4">
+      <div className="w-12 h-12 flex items-center justify-center rounded-md">
+        {iconType === "div" ? (
+          <div 
+            className={iconClass}
+            style={{opacity: 1, color: "rgb(66, 135, 255)"}}
+          />
+        ) : (
+          <svg
+            role="presentation"
+            viewBox="0 0 24 24"
+            className="w-6 h-6 text-info"
+          >
+            <use href={iconHref}></use>
+          </svg>
+        )}
       </div>
-    </div>
-  </div>
+      <div className="flex flex-col gap-2">
+        <CardTitle className="text-base font-semibold text-foreground leading-snug">
+          {title}
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground leading-relaxed">
+          {description}
+        </CardDescription>
+      </div>
+    </CardContent>
+  </Card>
 )
 
 const hightlight = () => {
@@ -229,33 +105,24 @@ const hightlight = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center gap-12">
           <div className="flex flex-col items-center gap-8 max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2" style={styles.badge}>
-              <div style={{opacity: 1}}>
-                <svg
-                  role="presentation"
-                  viewBox="0 0 24 24"
-                  className="w-5 h-5"
-                  style={styles.badgeIcon}
-                >
-                  <use href="#1964567075"></use>
-                </svg>
-              </div>
-              <div style={styles.badgeText}>
-                <p>Get Things Done</p>
-              </div>
-            </div>
+            <Badge variant="outline" size="lg" className="gap-2 rounded-2xl shadow-sm">
+              <svg
+                role="presentation"
+                viewBox="0 0 24 24"
+                className="w-5 h-5"
+              >
+                <use href="#1964567075"></use>
+              </svg>
+              <span className="text-sm font-normal tracking-tight">Get Things Done</span>
+            </Badge>
             <div className="flex flex-col items-center gap-6 w-full">
               <div className="flex flex-col items-center gap-4 w-full">
-                <div style={{...styles.mainHeading, outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: 0, transform: "none"} as React.CSSProperties}>
-                  <h2 className="text-[50px] lg:text-[38px] sm:text-[28px]">
-                    Handle complex workflows without the chaos.
-                  </h2>
-                </div>
-                <div style={{...styles.supportingText, outline: "none", display: "flex", flexDirection: "column", justifyContent: "flex-start", flexShrink: 0, transform: "none"} as React.CSSProperties}>
-                  <p>
-                    Adapts to shifting priorities and real workflows — keeping projects aligned, teams accountable, and decisions clear.
-                  </p>
-                </div>
+                <h2 className="text-5xl lg:text-4xl sm:text-3xl font-semibold leading-tight tracking-tight text-center text-foreground">
+                  Handle complex workflows without the chaos.
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed text-center max-w-3xl">
+                  Adapts to shifting priorities and real workflows — keeping projects aligned, teams accountable, and decisions clear.
+                </p>
               </div>
               <div className="flex flex-wrap justify-center gap-4">
                 {featureListItems.map((item, index) => (

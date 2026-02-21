@@ -1,4 +1,5 @@
 import React from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/reui/card'
 
 // Changelog data structure
 interface ChangelogEntry {
@@ -185,10 +186,10 @@ const changelogData: ChangelogEntry[] = [
     }
 ]
 
-// Reusable ChangelogCard component
+// Reusable ChangelogCard component using reui Card
 const ChangelogCard = ({ date, time, title, content }: ChangelogEntry) => (
-    <div className="w-full">
-        <div className="flex flex-col gap-6 p-8 bg-white rounded-2xl border border-[#e5e5e8] shadow-sm">
+    <Card className="w-full bg-white rounded-2xl border border-[#e5e5e8] shadow-sm p-0">
+        <CardContent className="flex flex-col gap-6 p-8">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex flex-col gap-2">
                     <p className="text-lg md:text-base font-semibold leading-[1.2em] text-[#262626] text-left tracking-normal">
@@ -217,8 +218,8 @@ const ChangelogCard = ({ date, time, title, content }: ChangelogEntry) => (
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </CardContent>
+    </Card>
 )
 
 const Page = () => {
