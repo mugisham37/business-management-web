@@ -46,43 +46,15 @@ const policySections: PolicySection[] = [
   }
 ];
 
-const titleStyle = {
-  outline: 'none',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  flexShrink: 0,
-  transform: 'none'
-} as const;
-
-const contentStyle = {
-  outline: 'none',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  flexShrink: 0,
-  transform: 'none'
-} as const;
-
-const sectionStyle = {
-  willChange: 'transform',
-  opacity: 1,
-  transform: 'none'
-} as const;
-
 const PolicySectionItem: React.FC<PolicySection> = ({ id, title, content, hasStrong }) => (
-  <div className="framer-133351n" data-framer-name="Content" id={id} style={sectionStyle}>
-    <div className="framer-j0lezj" data-framer-name="Title" data-framer-component-type="RichTextContainer" style={titleStyle}>
-      <h5 className="framer-text framer-styles-preset-1h8kgs8" data-styles-preset="WvFMHHPMB">
-        {hasStrong ? <strong className="framer-text">{title}</strong> : title}
+  <div className="opacity-100" id={id}>
+    <div className="flex flex-col justify-start flex-shrink-0">
+      <h5 className="font-['Switzer'] text-[20px] lg:text-[18px] font-semibold leading-[1.2em] tracking-normal text-[#262626] text-left">
+        {hasStrong ? <strong>{title}</strong> : title}
       </h5>
     </div>
-    <div className="framer-aucqy9" data-framer-name="Content" data-framer-component-type="RichTextContainer" style={contentStyle}>
-      <p 
-        className="framer-text framer-styles-preset-111x1mv" 
-        data-styles-preset="o5a2l5TBf"
-        style={id === 'data-collection' ? {'--framer-text-alignment': 'left'} as React.CSSProperties : undefined}
-      >
+    <div className="flex flex-col justify-start flex-shrink-0">
+      <p className="font-['Switzer'] text-base font-normal leading-[1.4em] tracking-normal text-[#53535c] text-left">
         {content}
       </p>
     </div>
@@ -91,59 +63,23 @@ const PolicySectionItem: React.FC<PolicySection> = ({ id, title, content, hasStr
 
 const page = () => {
   return (
-    <section className="framer-aboa0z" data-framer-name="Hero Section" id="hero">
-      <div className="framer-1uglu1n" data-framer-name="Title">
-        <div className="framer-9zqgsy" data-framer-name="Heading Content">
-          <div 
-            className="framer-guooxy" 
-            data-framer-appear-id="guooxy" 
-            data-framer-name="Heading"
-            data-framer-component-type="RichTextContainer"
-            style={{
-              outline: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              opacity: 1,
-              flexShrink: 0,
-              transform: 'none',
-              willChange: 'transform'
-            }}
-          >
-            <h2 className="framer-text framer-styles-preset-199apa9" data-styles-preset="Ty6zNsrjE">
+    <section className="relative w-full" id="hero">
+      <div className="flex flex-col items-start">
+        <div className="flex flex-col items-start">
+          <div className="flex flex-col justify-start opacity-100 flex-shrink-0">
+            <h2 className="font-['Switzer'] text-[50px] lg:text-[38px] md:text-[28px] font-semibold leading-[1em] tracking-[-0.02em] text-black text-center">
               Privacy Policy
             </h2>
           </div>
-          <div 
-            className="framer-u2j3tj" 
-            data-framer-appear-id="u2j3tj" 
-            data-framer-name="Subheading"
-            data-framer-component-type="RichTextContainer"
-            style={{
-              outline: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              opacity: 1,
-              flexShrink: 0,
-              transform: 'perspective(1200px)',
-              willChange: 'transform'
-            }}
-          >
-            <p className="framer-text framer-styles-preset-wct5n4" data-styles-preset="OvgFe4dMx">
+          <div className="flex flex-col justify-start opacity-100 flex-shrink-0">
+            <p className="font-['Switzer'] text-base font-normal leading-[1.4em] tracking-normal text-[#53535c] text-center">
               Protecting your data with transparency and care.
             </p>
           </div>
         </div>
       </div>
-      <div 
-        className="framer-194l2vw" 
-        data-border="true" 
-        data-framer-appear-id="194l2vw"
-        data-framer-name="Content" 
-        style={{opacity: 1, transform: 'none', willChange: 'transform'}}
-      >
-        <div className="framer-1rnu4ee" data-framer-name="Container">
+      <div className="opacity-100 border border-gray-200 rounded-lg">
+        <div className="flex flex-col gap-4">
           {policySections.map((section) => (
             <PolicySectionItem key={section.id} {...section} />
           ))}

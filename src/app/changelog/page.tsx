@@ -1,39 +1,5 @@
 import React from 'react'
 
-// Common style objects
-const commonStyles = {
-    richTextContainer: {
-        outline: 'none',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        justifyContent: 'flex-start',
-        flexShrink: 0,
-        transform: 'none'
-    },
-    badge: {
-        '--border-bottom-width': '1px',
-        '--border-color': 'var(--token-64e377a5-0d6a-419d-892d-eb08deb7230b, rgb(229, 229, 232))',
-        '--border-left-width': '1px',
-        '--border-right-width': '1px',
-        '--border-style': 'solid',
-        '--border-top-width': '1px',
-        backgroundColor: 'var(--token-03d81d49-441b-4a27-ac27-adbec865c0a8, rgb(250, 250, 250))',
-        borderRadius: '17px',
-        boxShadow: '0px 2px 5px 0px var(--token-01b0806d-1c81-4041-802e-d5d50172987c, rgb(240, 241, 242))',
-        opacity: 1
-    } as React.CSSProperties,
-    svgIcon: {
-        '--1m6trwb': '0',
-        '--21h8s6': 'var(--token-53318a49-e2d8-4d3b-98d7-8563add13d3d, rgb(56, 56, 61))',
-        '--pgex8v': '1.4',
-        opacity: 1
-    } as React.CSSProperties,
-    changeLogLabel: {
-        '--framer-text-alignment': 'left',
-        '--framer-text-color': 'var(--token-d602a9d1-da3b-45d6-b039-eac0d7c79341, rgb(0, 94, 255))'
-    } as React.CSSProperties
-}
-
 // Changelog data structure
 interface ChangelogEntry {
     date: string
@@ -49,54 +15,54 @@ const changelogData: ChangelogEntry[] = [
         title: 'Introducing Advanced Analytics & Custom Views',
         content: (
             <>
-                <p className="framer-text framer-styles-preset-111x1mv">
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
                     We're excited to roll out powerful new updates designed to give your team deeper
                     insights and more flexibility in managing workflows:
                 </p>
-                <p className="framer-text framer-styles-preset-111x1mv">
-                    <br className="framer-text trailing-break" />
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
+                    <br />
                 </p>
-                <ul className="framer-text">
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            📊 <strong className="framer-text">Advanced Analytics Dashboard</strong>: Dive into detailed reports on task
+                <ul className="text-base font-normal leading-[1.4em] text-[#53535c] text-left list-none pl-0">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            📊 <strong className="font-semibold">Advanced Analytics Dashboard</strong>: Dive into detailed reports on task
                             completion rates, team productivity, and project timelines with customizable data visualizations.
                         </p>
                     </li>
                 </ul>
-                <ul className="framer-text">
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            🔍 <strong className="framer-text">Customizable Views</strong>: Create and save personalized board, timeline, or calendar views
+                <ul className="text-base font-normal leading-[1.4em] text-[#53535c] text-left list-none pl-0">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            🔍 <strong className="font-semibold">Customizable Views</strong>: Create and save personalized board, timeline, or calendar views
                             tailored to your team's unique processes and preferences.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            📅 <strong className="framer-text">Improved Scheduling</strong>: Enhanced date-picker with smart suggestions based on team
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            📅 <strong className="font-semibold">Improved Scheduling</strong>: Enhanced date-picker with smart suggestions based on team
                             availability, reducing scheduling conflicts and missed deadlines.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            🔔 <strong className="framer-text">Notification Overhaul</strong>: Receive real-time updates only for tasks you follow,
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            🔔 <strong className="font-semibold">Notification Overhaul</strong>: Receive real-time updates only for tasks you follow,
                             minimizing noise and keeping you focused.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            🔐 <strong className="framer-text">Security Enhancements</strong>: Strengthened encryption protocols and added two-factor
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            🔐 <strong className="font-semibold">Security Enhancements</strong>: Strengthened encryption protocols and added two-factor
                             authentication for better protection of your organization's data.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
-                            🛠️ <strong className="framer-text">Bug Fixes & Performance Boosts</strong>: General improvements to task assignment
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
+                            🛠️ <strong className="font-semibold">Bug Fixes & Performance Boosts</strong>: General improvements to task assignment
                             speed, reduced loading times, and smoother experience on mobile devices.
                         </p>
                     </li>
                 </ul>
-                <p className="framer-text framer-styles-preset-111x1mv">
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
                     These updates are part of our ongoing commitment to helping you manage tasks smarter
                     and keep teams aligned effortlessly.
                 </p>
@@ -109,31 +75,31 @@ const changelogData: ChangelogEntry[] = [
         title: 'Enhanced Smart Assignment Algorithms',
         content: (
             <>
-                <p className="framer-text framer-styles-preset-111x1mv">
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
                     We've upgraded our task assignment algorithms for even smarter and faster workflow
                     distribution. Enjoy more accurate task suggestions, better workload balancing, and smoother project progress across your team.
                 </p>
-                <p className="framer-text framer-styles-preset-111x1mv">
-                    <br className="framer-text trailing-break" />
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
+                    <br />
                 </p>
-                <ul className="framer-text">
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                <ul className="text-base font-normal leading-[1.4em] text-[#53535c] text-left list-none pl-0">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Algorithms analyze workload patterns to prevent overloads.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Task suggestions now adapt to shifting team priorities.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Improved distribution ensures balanced team collaboration.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Enhanced learning from project history for future assignments.
                         </p>
                     </li>
@@ -147,31 +113,31 @@ const changelogData: ChangelogEntry[] = [
         title: 'Improved Real-Time Notifications',
         content: (
             <>
-                <p className="framer-text framer-styles-preset-111x1mv">
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
                     Stay updated with our revamped real-time notifications. Our new system delivers faster
                     alerts for task updates, assignments, and comments to keep everyone on the same page without delays.
                 </p>
-                <p className="framer-text framer-styles-preset-111x1mv">
-                    <br className="framer-text trailing-break" />
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
+                    <br />
                 </p>
-                <ul className="framer-text">
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                <ul className="text-base font-normal leading-[1.4em] text-[#53535c] text-left list-none pl-0">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Push notifications arrive instantly for all task changes.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Comments now trigger immediate updates for involved members.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Redesigned alerts reduce missed updates.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Priority-based notifications help focus on what matters most.
                         </p>
                     </li>
@@ -185,31 +151,31 @@ const changelogData: ChangelogEntry[] = [
         title: 'New Integrations with Calendar Tools',
         content: (
             <>
-                <p className="framer-text framer-styles-preset-111x1mv">
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
                     We've introduced seamless integrations with major calendar apps to help you schedule
                     tasks and milestones directly from your favorite calendar tools, ensuring deadlines and reminders are always in sync.
                 </p>
-                <p className="framer-text framer-styles-preset-111x1mv">
-                    <br className="framer-text trailing-break" />
+                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left mb-5">
+                    <br />
                 </p>
-                <ul className="framer-text">
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                <ul className="text-base font-normal leading-[1.4em] text-[#53535c] text-left list-none pl-0">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Google Calendar integration supports two-way syncing.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Outlook calendar support for enterprise teams.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Tasks auto-populate calendar events with due dates.
                         </p>
                     </li>
-                    <li data-preset-tag="p" className="framer-text framer-styles-preset-111x1mv">
-                        <p className="framer-text framer-styles-preset-111x1mv">
+                    <li className="mb-5">
+                        <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                             Calendar changes instantly update task schedules.
                         </p>
                     </li>
@@ -221,51 +187,32 @@ const changelogData: ChangelogEntry[] = [
 
 // Reusable ChangelogCard component
 const ChangelogCard = ({ date, time, title, content }: ChangelogEntry) => (
-    <div className="framer-kvak46">
-        <div className="framer-nwgur8" data-framer-name="ChangeLog Card" data-border="true">
-            <div className="framer-d4dem7" data-framer-name="Date &amp; Icon">
-                <div className="framer-bvokts" data-framer-name="Date">
-                    <div className="framer-1rpaqge" data-framer-component-type="RichTextContainer"
-                        style={commonStyles.richTextContainer}>
-                        <p className="framer-text framer-styles-preset-ggytww" data-styles-preset="xhIf5qL2n">
-                            {date}
-                        </p>
-                    </div>
-                    <div className="framer-t9h13m" data-framer-name="5:28 AM"
-                        data-framer-component-type="RichTextContainer"
-                        style={commonStyles.richTextContainer}>
-                        <p className="framer-text framer-styles-preset-kmaoy8"
-                            data-styles-preset="MV92va9oP"
-                            style={commonStyles.changeLogLabel}>
-                            {time}
-                        </p>
-                    </div>
+    <div className="w-full">
+        <div className="flex flex-col gap-6 p-8 bg-white rounded-2xl border border-[#e5e5e8] shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <p className="text-lg md:text-base font-semibold leading-[1.2em] text-[#262626] text-left tracking-normal">
+                        {date}
+                    </p>
+                    <p className="text-sm font-normal leading-[1.3em] text-[#005eff] text-left tracking-[-0.01em]">
+                        {time}
+                    </p>
                 </div>
-                <div className="framer-1adibce" data-framer-name="Icon">
-                    <svg className="framer-2HOUp framer-ydac9y" role="presentation" viewBox="0 0 24 24">
+                <div className="flex items-center gap-2">
+                    <svg className="w-6 h-6 text-[#38383d]" role="presentation" viewBox="0 0 24 24">
                         <use href="#1808785782"></use>
                     </svg>
-                    <div className="framer-42uvv2" data-framer-name="Change Log"
-                        data-framer-component-type="RichTextContainer"
-                        style={commonStyles.richTextContainer}>
-                        <p className="framer-text framer-styles-preset-kmaoy8"
-                            data-styles-preset="MV92va9oP"
-                            style={commonStyles.changeLogLabel}>
-                            Change Log
-                        </p>
-                    </div>
+                    <p className="text-sm font-normal leading-[1.3em] text-[#005eff] text-center tracking-[-0.01em]">
+                        Change Log
+                    </p>
                 </div>
             </div>
-            <div className="framer-1a9sxxk" data-framer-name="Info">
-                <div className="framer-48drle" data-framer-name="Content">
-                    <div className="framer-xok160" data-framer-component-type="RichTextContainer"
-                        style={commonStyles.richTextContainer}>
-                        <h4 className="framer-text framer-styles-preset-15b5etd" data-styles-preset="amESisFWp">
-                            {title}
-                        </h4>
-                    </div>
-                    <div className="framer-19bpcsm" data-framer-component-type="RichTextContainer"
-                        style={commonStyles.richTextContainer}>
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
+                    <h4 className="text-[22px] font-semibold leading-[1.2em] text-[#262626] text-left tracking-normal">
+                        {title}
+                    </h4>
+                    <div className="text-base font-normal leading-[1.4em] text-[#53535c] text-left">
                         {content}
                     </div>
                 </div>
@@ -276,56 +223,35 @@ const ChangelogCard = ({ date, time, title, content }: ChangelogEntry) => (
 
 const Page = () => {
     return (
-        <section className="framer-10hzgzm" data-framer-name="Hero Section" id="hero">
-            <div className="framer-1t98ven" data-framer-name="Container">
-                <div className="framer-1kqptvs" data-framer-appear-id="1kqptvs"
-                    data-framer-name="Heading &amp; Supporting Text"
-                    style={{ opacity: 1, transform: 'none', willChange: 'transform' }}>
-                    <div className="framer-n75euz" data-framer-name="Heading Container" data-border="true">
-                        <div className="framer-1n3w06r-container">
-                            <div className="framer-Fhx2V framer-YF6mi framer-18xhfg8 framer-v-18xhfg8"
-                                data-border="true" data-framer-name="Badge"
-                                style={commonStyles.badge}>
-                                <div className="framer-1l1ajhh" data-framer-name="Icon" style={{ opacity: 1 }}>
-                                    <svg className="framer-DRv45 framer-qgvfsn" role="presentation"
-                                        viewBox="0 0 24 24" style={commonStyles.svgIcon}>
-                                        <use href="#4184916183"></use>
-                                    </svg>
-                                </div>
-                                <div className="framer-1710qob" data-framer-component-type="RichTextContainer"
-                                    style={{ ...commonStyles.richTextContainer, '--extracted-r6o4lv': 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))', '--framer-link-text-color': 'rgb(0, 153, 255)', '--framer-link-text-decoration': 'underline' } as React.CSSProperties}>
-                                    <p className="framer-text framer-styles-preset-kmaoy8"
-                                        data-styles-preset="MV92va9oP"
-                                        style={{ '--framer-text-color': 'var(--extracted-r6o4lv, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38)))' } as React.CSSProperties}>
-                                        Release Notes
-                                    </p>
-                                </div>
+        <section className="flex flex-col items-center justify-start py-20 px-6 w-full" id="hero">
+            <div className="flex flex-col items-center justify-start gap-12 w-full max-w-7xl">
+                <div className="flex flex-col items-center justify-start gap-8 w-full opacity-100">
+                    <div className="flex flex-col items-center justify-start gap-6 w-full">
+                        <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#fafafa] border border-[#e5e5e8] rounded-[17px] shadow-[0px_2px_5px_0px_#f0f1f2]">
+                            <div className="flex items-center justify-center opacity-100">
+                                <svg className="w-6 h-6 text-[#38383d]" role="presentation" viewBox="0 0 24 24">
+                                    <use href="#4184916183"></use>
+                                </svg>
                             </div>
+                            <p className="text-sm font-normal leading-[1.3em] text-[#262626] text-center tracking-[-0.01em]">
+                                Release Notes
+                            </p>
                         </div>
-                        <div className="framer-1mmzazd" data-framer-name="Heading Content">
-                            <div className="framer-1dy02gf" data-framer-name="Container">
-                                <div className="framer-1mbb3cn" data-framer-name="Heading"
-                                    data-framer-component-type="RichTextContainer"
-                                    style={{ ...commonStyles.richTextContainer, flexShrink: 0 }}>
-                                    <h2 className="framer-text framer-styles-preset-199apa9"
-                                        data-styles-preset="Ty6zNsrjE">
-                                        See What's New &amp; Improved
-                                    </h2>
-                                </div>
-                                <div className="framer-1axwxta" data-framer-name="Supporting Text"
-                                    data-framer-component-type="RichTextContainer"
-                                    style={{ ...commonStyles.richTextContainer, flexShrink: 0 }}>
-                                    <p className="framer-text framer-styles-preset-wct5n4"
-                                        data-styles-preset="OvgFe4dMx">
-                                        Stay up to date with the latest updates, enhancements, and fixes — all in one place.
-                                    </p>
-                                </div>
+                        <div className="flex flex-col items-center justify-start gap-4 w-full max-w-3xl">
+                            <div className="flex flex-col items-center justify-start w-full">
+                                <h2 className="text-[50px] md:text-[38px] sm:text-[28px] font-semibold leading-none text-black text-center tracking-[-0.02em]">
+                                    See What's New &amp; Improved
+                                </h2>
+                            </div>
+                            <div className="flex flex-col items-center justify-start w-full">
+                                <p className="text-base font-normal leading-[1.4em] text-[#53535c] text-center tracking-normal">
+                                    Stay up to date with the latest updates, enhancements, and fixes — all in one place.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="framer-ppmv40" data-framer-appear-id="ppmv40"
-                    style={{ opacity: 1, transform: 'none', willChange: 'transform' }}>
+                <div className="flex flex-col items-start justify-start gap-6 w-full opacity-100">
                     {changelogData.map((entry, index) => (
                         <ChangelogCard key={index} {...entry} />
                     ))}

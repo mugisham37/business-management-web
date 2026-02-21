@@ -1,43 +1,5 @@
 import React from 'react'
 
-// Reusable style objects
-const COMMON_STYLES = {
-  richTextContainer: {
-    outline: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    flexShrink: 0,
-    transform: 'none'
-  } as React.CSSProperties,
-  
-  badgeRichText: {
-    outline: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    flexShrink: 0,
-    '--extracted-r6o4lv': 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))',
-    '--framer-link-text-color': 'rgb(0, 153, 255)',
-    '--framer-link-text-decoration': 'underline',
-    transform: 'none',
-    opacity: 1
-  } as React.CSSProperties,
-  
-  buttonRichText: {
-    outline: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    flexShrink: 0,
-    '--extracted-r6o4lv': 'var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))',
-    '--framer-link-text-color': 'rgb(0, 153, 255)',
-    '--framer-link-text-decoration': 'underline',
-    transform: 'none',
-    opacity: 1
-  } as React.CSSProperties
-}
-
 // Form field configuration
 interface FormField {
   label: string
@@ -45,9 +7,6 @@ interface FormField {
   placeholder: string
   type: 'text' | 'textarea'
   required: boolean
-  labelClassName: string
-  labelContainerClassName: string
-  inputWrapperClassName: string
 }
 
 const FORM_FIELDS: FormField[] = [
@@ -56,71 +15,50 @@ const FORM_FIELDS: FormField[] = [
     name: 'First Name',
     placeholder: 'Jane',
     type: 'text',
-    required: true,
-    labelClassName: 'framer-od4cgz',
-    labelContainerClassName: 'framer-151jb9',
-    inputWrapperClassName: 'framer-10yziul'
+    required: true
   },
   {
     label: 'Last Name *',
     name: 'Last Name',
     placeholder: 'Smith',
     type: 'text',
-    required: true,
-    labelClassName: 'framer-pb6l2z',
-    labelContainerClassName: 'framer-n4mf03',
-    inputWrapperClassName: 'framer-11k029n'
+    required: true
   },
   {
     label: 'Email *',
     name: 'Email *',
     placeholder: 'jane@framer.com',
     type: 'text',
-    required: true,
-    labelClassName: 'framer-1r49r81',
-    labelContainerClassName: 'framer-1xqtu8d',
-    inputWrapperClassName: 'framer-bbu85v'
+    required: true
   },
   {
     label: 'Message',
     name: 'Message',
     placeholder: 'Write your message here',
     type: 'textarea',
-    required: true,
-    labelClassName: 'framer-1ib9i91',
-    labelContainerClassName: 'framer-1p5iwjq',
-    inputWrapperClassName: 'framer-k9wiri'
+    required: true
   }
 ]
 
 // Reusable components
-const RichTextHeading: React.FC<{ children: React.ReactNode; className?: string; style?: React.CSSProperties }> = ({ 
+const RichTextHeading: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
   children, 
-  className = 'framer-styles-preset-wct5n4',
-  style 
+  className = ''
 }) => (
-  <h6 
-    className={`framer-text ${className}`}
-    data-styles-preset="OvgFe4dMx"
-    style={style}
-  >
+  <h6 className={`text-base font-normal leading-[1.4em] tracking-normal text-[#38383d] ${className}`}>
     {children}
   </h6>
 )
 
 const FormField: React.FC<{ field: FormField }> = ({ field }) => {
-  const { label, name, placeholder, type, required, labelClassName, labelContainerClassName, inputWrapperClassName } = field
+  const { label, name, placeholder, type, required } = field
   
   return (
-    <label className={labelClassName}>
-      <div 
-        className={labelContainerClassName}
-        data-framer-component-type="RichTextContainer"
-        style={COMMON_STYLES.richTextContainer}
-      >
+    <label className="flex flex-col gap-2">
+      <div className="outline-none flex flex-col justify-start shrink-0">
         <RichTextHeading>{label}</RichTextHeading>
       </div>
-      <div className={`framer-form-text-input framer-form-input-wrapper ${inputWrapperClassName}`}>
+      <div className="w-full">
         {type === 'text' ? (
           <input
             data-1p-ignore="true"
@@ -130,7 +68,7 @@ const FormField: React.FC<{ field: FormField }> = ({ field }) => {
             required={required}
             name={name}
             placeholder={placeholder}
-            className="framer-form-input framer-form-input-empty"
+            className="w-full px-4 py-3 border border-[rgb(229,229,232)] rounded-lg bg-white text-base font-normal text-[#38383d] placeholder:text-[#91919191] focus:outline-none focus:ring-2 focus:ring-[rgb(10,141,255)] focus:border-transparent transition-all"
             defaultValue=""
           />
         ) : (
@@ -141,7 +79,8 @@ const FormField: React.FC<{ field: FormField }> = ({ field }) => {
             required={required}
             name={name}
             placeholder={placeholder}
-            className="framer-form-input"
+            rows={5}
+            className="w-full px-4 py-3 border border-[rgb(229,229,232)] rounded-lg bg-white text-base font-normal text-[#38383d] placeholder:text-[#91919191] focus:outline-none focus:ring-2 focus:ring-[rgb(10,141,255)] focus:border-transparent transition-all resize-none"
           />
         )}
       </div>
@@ -151,92 +90,43 @@ const FormField: React.FC<{ field: FormField }> = ({ field }) => {
 
 const ContactPage = () => {
   return (
-    <section className="framer-2jydna" data-framer-name="Hero Section" id="hero">
-      <div 
-        className="framer-mimb9t"
-        data-framer-appear-id="mimb9t"
-        data-framer-name="Container"
-        style={{ opacity: 1, transform: 'none', willChange: 'transform' }}
-      >
-        <div className="framer-xfl5fh" data-framer-name="Heading &amp; Supporting Text">
-          <div className="framer-1sdkud6" data-framer-name="Heading Container">
-            <div className="framer-u3qv6s-container">
+    <section className="w-full py-20 px-4" id="hero">
+      <div className="max-w-4xl mx-auto opacity-100">
+        <div className="flex flex-col items-center gap-12 mb-12">
+          <div className="flex flex-col items-center gap-8">
+            <div className="inline-flex">
               <div
-                className="framer-Fhx2V framer-YF6mi framer-18xhfg8 framer-v-18xhfg8"
-                data-border="true"
-                data-framer-name="Badge"
-                style={{
-                  '--border-bottom-width': '1px',
-                  '--border-color': 'var(--token-64e377a5-0d6a-419d-892d-eb08deb7230b, rgb(229, 229, 232))',
-                  '--border-left-width': '1px',
-                  '--border-right-width': '1px',
-                  '--border-style': 'solid',
-                  '--border-top-width': '1px',
-                  backgroundColor: 'var(--token-03d81d49-441b-4a27-ac27-adbec865c0a8, rgb(250, 250, 250))',
-                  borderRadius: '17px',
-                  boxShadow: '0px 2px 5px 0px var(--token-01b0806d-1c81-4041-802e-d5d50172987c, rgb(240, 241, 242))',
-                  opacity: 1
-                } as React.CSSProperties}
+                className="flex items-center gap-2 px-4 py-2 bg-[rgb(250,250,250)] border border-[rgb(229,229,232)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]"
               >
-                <div className="framer-1l1ajhh" data-framer-name="Icon" style={{ opacity: 1 }}>
+                <div className="opacity-100">
                   <svg
-                    className="framer-XkeER framer-qgvfsn"
+                    className="w-5 h-5"
                     role="presentation"
                     viewBox="0 0 24 24"
                     style={{
-                      '--1m6trwb': '0',
-                      '--21h8s6': 'var(--token-53318a49-e2d8-4d3b-98d7-8563add13d3d, rgb(56, 56, 61))',
-                      '--pgex8v': '1.4',
+                      fill: 'rgb(56,56,61)',
                       opacity: 1
-                    } as React.CSSProperties}
+                    }}
                   >
                     <use href="#777087443"></use>
                   </svg>
                 </div>
-                <div
-                  className="framer-1710qob"
-                  data-framer-component-type="RichTextContainer"
-                  style={COMMON_STYLES.badgeRichText}
-                >
-                  <p
-                    className="framer-text framer-styles-preset-kmaoy8"
-                    data-styles-preset="MV92va9oP"
-                    style={{
-                      '--framer-text-color': 'var(--extracted-r6o4lv, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38)))'
-                    } as React.CSSProperties}
-                  >
+                <div className="outline-none flex flex-col justify-start shrink-0">
+                  <p className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-[#38383d] text-center">
                     Contact Us
                   </p>
                 </div>
               </div>
             </div>
-            <div className="framer-4xdrs0" data-framer-name="Heading Content">
-              <div className="framer-1yrpysi" data-framer-name="Container">
-                <div
-                  className="framer-1tsw7p6"
-                  data-framer-name="Heading"
-                  data-framer-component-type="RichTextContainer"
-                  style={COMMON_STYLES.richTextContainer}
-                >
-                  <h2
-                    className="framer-text framer-styles-preset-199apa9"
-                    data-styles-preset="Ty6zNsrjE"
-                    style={{ '--framer-text-alignment': 'center' } as React.CSSProperties}
-                  >
+            <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-col items-center">
+                <div className="outline-none flex flex-col justify-start shrink-0">
+                  <h2 className="text-[50px] lg:text-[38px] sm:text-[28px] font-semibold leading-[1em] tracking-[-0.02em] text-black text-center">
                     We'd Love to Hear from You and Connect
                   </h2>
                 </div>
-                <div
-                  className="framer-1tl2748"
-                  data-framer-name="Supporting Text"
-                  data-framer-component-type="RichTextContainer"
-                  style={COMMON_STYLES.richTextContainer}
-                >
-                  <p
-                    className="framer-text framer-styles-preset-wct5n4"
-                    data-styles-preset="OvgFe4dMx"
-                    style={{ '--framer-text-alignment': 'center' } as React.CSSProperties}
-                  >
+                <div className="outline-none flex flex-col justify-start shrink-0 mt-4">
+                  <p className="text-base font-normal leading-[1.4em] tracking-normal text-[#38383d] text-center">
                     We're here to help with any questions about our product, pricing, or partnership opportunities.
                   </p>
                 </div>
@@ -244,41 +134,20 @@ const ContactPage = () => {
             </div>
           </div>
         </div>
-        <form className="framer-1e9er38" data-border="true">
-          <div className="framer-1nejg1j" data-framer-name="Content">
+        <form className="w-full flex flex-col gap-6 p-8 bg-white rounded-2xl border border-[rgb(229,229,232)]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField field={FORM_FIELDS[0]} />
             <FormField field={FORM_FIELDS[1]} />
           </div>
           <FormField field={FORM_FIELDS[2]} />
           <FormField field={FORM_FIELDS[3]} />
-          <div className="framer-dy8cjj-container">
+          <div className="w-full">
             <button
               type="submit"
-              className="framer-Q61OQ framer-YF6mi framer-11bryb1 framer-v-11bryb1"
-              data-framer-name="Default"
-              data-reset="button"
-              tabIndex={0}
-              style={{
-                backgroundColor: 'var(--token-4fb69519-fab9-4e89-9296-e6d87759a143, rgb(10, 141, 255))',
-                height: '100%',
-                width: '100%',
-                borderRadius: '10px',
-                boxShadow: 'rgba(0, 0, 0, 0.1) 0px 1px 3px 0px',
-                opacity: 1
-              }}
+              className="w-full px-6 py-4 bg-[rgb(10,141,255)] hover:bg-[rgb(8,120,220)] rounded-[10px] shadow-[rgba(0,0,0,0.1)_0px_1px_3px_0px] transition-colors duration-200"
             >
-              <div
-                className="framer-17dl7q9"
-                data-framer-component-type="RichTextContainer"
-                style={COMMON_STYLES.buttonRichText}
-              >
-                <p
-                  className="framer-text framer-styles-preset-kmaoy8"
-                  data-styles-preset="MV92va9oP"
-                  style={{
-                    '--framer-text-color': 'var(--extracted-r6o4lv, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)))'
-                  } as React.CSSProperties}
-                >
+              <div className="outline-none flex flex-col justify-start shrink-0">
+                <p className="text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-white text-center">
                   Send Message
                 </p>
               </div>

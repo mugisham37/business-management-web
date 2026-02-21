@@ -43,7 +43,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link href="https://fonts.gstatic.com" rel="preconnect" crossOrigin="anonymous" />
-        <link rel="canonical" href="https://readylaunch.framer.website/" />
         <style dangerouslySetInnerHTML={{__html: `
           :root {
             --token-44021ae2-4cdd-419c-805c-4b1fd642bfaa: rgb(255, 255, 255);
