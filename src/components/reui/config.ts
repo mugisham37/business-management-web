@@ -26,7 +26,7 @@ export type ThemeName = Theme["name"]
 export type BaseColorName = BaseColor["name"]
 
 // Derive font values from registry fonts (e.g., "font-inter" -> "inter").
-const fontValues = fonts.map((f) => f.name.replace("font-", "")) as [
+const fontValues = fonts.map((f: { name: string; label: string }) => f.name.replace("font-", "")) as [
   string,
   ...string[],
 ]
@@ -62,19 +62,22 @@ export type Radius = (typeof RADII)[number]
 
 export type RadiusValue = Radius["name"]
 
+const baseNames = BASES.map((b: Base) => b.name) as [string, ...string[]]
+const styleNames = STYLES.map((s: Style) => s.name) as [string, ...string[]]
+const baseColorNames = BASE_COLORS.map((c: BaseColor) => c.name) as [string, ...string[]]
+const themeNames = THEMES.map((t: Theme) => t.name) as [string, ...string[]]
+
 export const designSystemConfigSchema = z
   .object({
-    base: z.enum(BASES.map((b) => b.name) as [BaseName, ...BaseName[]]),
-    style: z.enum(STYLES.map((s) => s.name) as [StyleName, ...StyleName[]]),
+    base: z.enum(baseNames as [BaseName, ...BaseName[]]),
+    style: z.enum(styleNames as [StyleName, ...StyleName[]]),
     iconLibrary: z.enum(
       Object.keys(iconLibraries) as [IconLibraryName, ...IconLibraryName[]]
     ),
     baseColor: z
-      .enum(
-        BASE_COLORS.map((c) => c.name) as [BaseColorName, ...BaseColorName[]]
-      )
+      .enum(baseColorNames as [BaseColorName, ...BaseColorName[]])
       .default("neutral"),
-    theme: z.enum(THEMES.map((t) => t.name) as [ThemeName, ...ThemeName[]]),
+    theme: z.enum(themeNames as [ThemeName, ...ThemeName[]]),
     font: z.enum(fontValues).default("inter"),
     item: z.string().optional(),
     rtl: z.boolean().default(false),
@@ -99,12 +102,12 @@ export const designSystemConfigSchema = z
   .refine(
     (data) => {
       const availableThemes = getThemesForBaseColor(data.baseColor)
-      return availableThemes.some((t) => t.name === data.theme)
+      return availableThemes.some((t: Theme) => t.name === data.theme)
     },
-    (data) => ({
-      message: `Theme "${data.theme}" is not available for base color "${data.baseColor}"`,
+    {
+      message: "Theme is not available for the selected base color",
       path: ["theme"],
-    })
+    }
   )
 
 export type DesignSystemConfig = z.infer<typeof designSystemConfigSchema>
@@ -296,9 +299,9 @@ export const PRESETS: Preset[] = [
 ]
 
 export function getThemesForBaseColor(baseColorName: string) {
-  const baseColorNames = BASE_COLORS.map((bc) => bc.name)
+  const baseColorNames = BASE_COLORS.map((bc: BaseColor) => bc.name)
 
-  return THEMES.filter((theme) => {
+  return THEMES.filter((theme: Theme) => {
     if (theme.name === baseColorName) {
       return true
     }
@@ -307,19 +310,19 @@ export function getThemesForBaseColor(baseColorName: string) {
 }
 
 export function getBase(name: BaseName) {
-  return BASES.find((base) => base.name === name)
+  return BASES.find((base: Base) => base.name === name)
 }
 
 export function getStyle(name: StyleName) {
-  return STYLES.find((style) => style.name === name)
+  return STYLES.find((style: Style) => style.name === name)
 }
 
 export function getTheme(name: ThemeName) {
-  return THEMES.find((theme) => theme.name === name)
+  return THEMES.find((theme: Theme) => theme.name === name)
 }
 
 export function getBaseColor(name: BaseColorName) {
-  return BASE_COLORS.find((color) => color.name === name)
+  return BASE_COLORS.find((color: BaseColor) => color.name === name)
 }
 
 export function getIconLibrary(name: IconLibraryName) {
@@ -393,11 +396,12 @@ export function buildRegistryBase(config: DesignSystemConfig) {
   const registryTheme = buildRegistryTheme(config)
 
   // Build dependencies.
+  const baseDependencies = (baseItem as any).dependencies ?? []
   const dependencies = [
     `shadcn@${SHADCN_VERSION}`,
     "class-variance-authority",
     "tw-animate-css",
-    ...(baseItem.dependencies ?? []),
+    ...baseDependencies,
     ...iconLibraryItem.packages,
   ]
 
