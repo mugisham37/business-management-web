@@ -1,16 +1,22 @@
 import React from 'react'
+import { Button } from '@/components/reui/button'
+import { Separator } from '@/components/reui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/reui/tooltip'
+import { ButtonGroup } from '@/components/reui/button-group'
 
 // Footer link component
 const FooterLink = ({ href, text }: { href: string; text: string }) => (
   <div className="flex-none h-auto relative whitespace-pre w-auto">
-    <p className="m-0">
-      <a 
-        href={href}
-        className="font-['Switzer',sans-serif] font-normal text-sm tracking-[-0.01em] leading-[1.3] text-[rgb(214,214,214)] no-underline hover:text-white transition-colors"
-      >
+    <Button 
+      variant="link" 
+      size="sm" 
+      asChild
+      className="h-auto p-0 font-['Switzer',sans-serif] font-normal text-sm tracking-[-0.01em] leading-[1.3] text-[rgb(214,214,214)] hover:text-white transition-colors"
+    >
+      <a href={href}>
         {text}
       </a>
-    </p>
+    </Button>
   </div>
 )
 
@@ -35,22 +41,35 @@ const SocialIcon = ({
   size: number;
   children: React.ReactNode 
 }) => (
-  <a 
-    href={href} 
-    target="_blank" 
-    rel="noopener"
-    className="flex items-center justify-center flex-none min-w-0 gap-2.5 h-min overflow-visible p-0 relative no-underline w-min"
-    aria-label={name}
-  >
-    <div 
-      className="flex-none relative"
-      style={{ width: `${size}px`, height: `${size}px`, aspectRatio: '1 / 1' }}
-    >
-      <div className="flex max-w-full max-h-full items-center justify-center h-full w-full">
-        {children}
-      </div>
-    </div>
-  </a>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        asChild
+        className="h-auto w-auto p-0 hover:bg-transparent hover:opacity-80 transition-opacity"
+      >
+        <a 
+          href={href} 
+          target="_blank" 
+          rel="noopener"
+          aria-label={name}
+        >
+          <div 
+            className="flex-none relative"
+            style={{ width: `${size}px`, height: `${size}px`, aspectRatio: '1 / 1' }}
+          >
+            <div className="flex max-w-full max-h-full items-center justify-center h-full w-full">
+              {children}
+            </div>
+          </div>
+        </a>
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p className="text-xs">{name}</p>
+    </TooltipContent>
+  </Tooltip>
 )
 
 const Footer = () => {
@@ -70,8 +89,9 @@ const Footer = () => {
   ]
 
   return (
-    <footer className="flex-none h-auto w-full relative">
-      <div className="bg-black w-full">
+    <TooltipProvider delayDuration={200}>
+      <footer className="flex-none h-auto w-full relative">
+        <div className="bg-black w-full">
         {/* Desktop: w-[1200px] px-[100px] py-[60px] pb-[50px], Tablet: w-[810px] px-10 py-[50px] pb-10, Mobile: w-[390px] px-5 py-[50px] */}
         <div className="flex flex-row flex-nowrap items-center justify-center gap-2.5 h-min overflow-hidden px-5 py-[50px] relative w-[390px] mx-auto sm:w-[390px] sm:px-5 sm:py-[50px] md:w-[810px] md:px-10 md:py-[50px] md:pb-10 lg:w-[1200px] lg:px-[100px] lg:py-[60px] lg:pb-[50px]">
           {/* Inner Container - Desktop: gap-[65px] max-w-[1100px], Tablet: gap-10 max-w-[810px], Mobile: gap-[34px] max-w-none */}
@@ -127,10 +147,13 @@ const Footer = () => {
                 <div className="flex flex-col items-start justify-center flex-none gap-[19px] h-min overflow-visible p-0 relative w-min">
                   <div className="flex flex-col items-start justify-center flex-none gap-[25px] h-min overflow-visible p-0 relative w-min z-[2] md:gap-[14px]">
                     {/* Social Icons - Desktop: gap-[19px], Tablet: gap-[15px], Mobile: gap-[25px] */}
-                    <div className="flex flex-row items-center justify-start flex-none gap-[25px] h-min overflow-visible pt-[2px] p-0 relative w-min md:gap-[15px] lg:gap-[19px]">
+                    <ButtonGroup 
+                      orientation="horizontal" 
+                      className="gap-[25px] pt-[2px] md:gap-[15px] lg:gap-[19px]"
+                    >
                       <SocialIcon 
                         href="https://x.com/greeenyang" 
-                        name="X"
+                        name="X (Twitter)"
                         size={16}
                       >
                         <svg 
@@ -172,7 +195,7 @@ const Footer = () => {
                           <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z" />
                         </svg>
                       </SocialIcon>
-                    </div>
+                    </ButtonGroup>
                   </div>
                 </div>
               </div>
@@ -181,10 +204,7 @@ const Footer = () => {
             {/* Copyright Section */}
             <div className="flex flex-col items-start justify-start flex-none gap-[7px] h-min overflow-visible p-0 relative w-full">
               {/* Divider Line */}
-              <div 
-                className="flex-none h-px overflow-visible relative w-full"
-                style={{ backgroundColor: 'rgb(145, 145, 145)', opacity: 0.7 }}
-              />
+              <Separator className="opacity-70 bg-[rgb(145,145,145)]" />
               {/* Copyright Text */}
               <div className="flex-none h-auto relative w-auto">
                 <div className="font-['Inter',sans-serif] text-xs text-[rgb(145,145,145)] font-normal tracking-[-0.01em] leading-[1.3em]">
@@ -196,6 +216,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+    </TooltipProvider>
   )
 }
 

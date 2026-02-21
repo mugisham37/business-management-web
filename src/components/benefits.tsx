@@ -1,4 +1,6 @@
 import React from 'react'
+import { Badge } from '@/components/reui/badge'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/reui/card'
 
 interface BenefitCardProps {
     iconHref: string;
@@ -41,28 +43,28 @@ const benefitsData: BenefitCardProps[] = [
 
 const BenefitCard: React.FC<BenefitCardProps> = ({ iconHref, title, description }) => {
     return (
-        <div className="w-full border border-[rgb(229,229,232)] bg-white rounded-[10px] shadow-[0px_2px_5px_0px_rgb(248,249,250)] p-6">
-            <div className="flex flex-col gap-4">
-                <div className="w-12 h-12 bg-[rgb(240,248,255)] rounded-lg flex items-center justify-center">
+        <Card className="w-full shadow-[0px_2px_5px_0px_rgb(248,249,250)]">
+            <CardContent className="flex flex-col gap-4 p-6">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                     <svg 
                         role="presentation"
                         viewBox="0 0 24 24"
-                        className="w-6 h-6 stroke-[rgb(66,135,255)]"
+                        className="w-6 h-6 stroke-primary"
                         style={{ strokeWidth: 1.5, fill: 'none' }}
                     >
                         <use href={iconHref}></use>
                     </svg>
                 </div>
                 <div className="flex flex-col gap-2">
-                    <h6 className="font-['Switzer',sans-serif] text-lg font-semibold leading-[1.2] text-[rgb(38,38,38)] text-left m-0">
+                    <CardTitle className="text-lg font-semibold leading-[1.2] text-left m-0">
                         {title}
-                    </h6>
-                    <p className="font-['Switzer',sans-serif] text-base font-normal leading-[1.4] text-[rgb(56,56,61)] text-left opacity-90 m-0">
+                    </CardTitle>
+                    <CardDescription className="text-base font-normal leading-[1.4] text-left opacity-90 m-0">
                         {description}
-                    </p>
+                    </CardDescription>
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 };
 
@@ -72,24 +74,28 @@ const Benefits = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col items-center gap-8 mb-12">
                     <div className="flex flex-col items-center gap-6">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 border border-[rgb(229,229,232)] bg-[rgb(250,250,250)] rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]">
+                        <Badge 
+                            variant="outline" 
+                            size="lg" 
+                            className="gap-2 px-4 py-2 rounded-[17px] shadow-[0px_2px_5px_0px_rgb(240,241,242)]"
+                        >
                             <svg
                                 role="presentation"
                                 viewBox="0 0 24 24"
-                                className="w-5 h-5 stroke-[rgb(56,56,61)]"
+                                className="w-5 h-5 stroke-muted-foreground"
                                 style={{ strokeWidth: 1.4, fill: 'none' }}
                             >
                                 <use href="#3282134952"></use>
                             </svg>
-                            <p className="font-['Switzer',sans-serif] text-sm font-normal leading-[1.3] tracking-[-0.01em] text-[rgb(38,38,38)] m-0">
+                            <span className="text-sm font-normal leading-[1.3] tracking-[-0.01em]">
                                 Why Teams Choose Us
-                            </p>
-                        </div>
+                            </span>
+                        </Badge>
                         <div className="flex flex-col items-center gap-4">
-                            <h2 className="font-['Switzer',sans-serif] text-[50px] font-semibold leading-[1] tracking-[-0.02em] text-black text-center m-0">
+                            <h2 className="text-[50px] font-semibold leading-[1] tracking-[-0.02em] text-foreground text-center m-0">
                                 Boost clarity, speed, and team flow.
                             </h2>
-                            <p className="font-['Switzer',sans-serif] text-base font-normal leading-[1.4] text-[rgb(56,56,61)] text-center max-w-2xl m-0">
+                            <p className="text-base font-normal leading-[1.4] text-muted-foreground text-center max-w-2xl m-0">
                                 Packed with thoughtful features that help teams stay aligned, avoid
                                 confusion, and move fast — without the chaos.
                             </p>

@@ -1,4 +1,8 @@
 import React from 'react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/reui/card'
+import { Badge } from '@/components/reui/badge'
+import { AspectRatio } from '@/components/reui/aspect-ratio'
+import { cn } from '@/lib/utils'
 
 const COMMON_IMAGE_WRAPPER_STYLE: React.CSSProperties = {
   position: "absolute",
@@ -118,43 +122,52 @@ const CARDS_DATA: CardData[] = [
   }
 ];
 
-const CardImage: React.FC<{ imageData: CardData['imageData'] }> = ({ imageData }) => (
-  <div style={COMMON_IMAGE_WRAPPER_STYLE}>
-    <img
-      decoding="async"
-      loading="lazy"
-      width={imageData!.width}
-      height={imageData!.height}
-      sizes={imageData!.sizes}
-      srcSet={imageData!.srcSet}
-      src={imageData!.src}
-      alt=""
-      style={COMMON_IMAGE_STYLE}
-    />
-  </div>
-);
+const CardImage: React.FC<{ imageData: CardData['imageData'] }> = ({ imageData }) => {
+  const aspectRatio = imageData!.width / imageData!.height;
+  
+  return (
+    <div style={COMMON_IMAGE_WRAPPER_STYLE}>
+      <AspectRatio ratio={aspectRatio} className="w-full h-full">
+        <img
+          decoding="async"
+          loading="lazy"
+          width={imageData!.width}
+          height={imageData!.height}
+          sizes={imageData!.sizes}
+          srcSet={imageData!.srcSet}
+          src={imageData!.src}
+          alt=""
+          style={COMMON_IMAGE_STYLE}
+        />
+      </AspectRatio>
+    </div>
+  );
+};
 
-const BentoCard: React.FC<{ card: CardData; index: number }> = ({ card, index }) => (
-  <div 
-    className="flex flex-col items-center justify-center gap-2.5 p-6 bg-[#f8f9fa] border border-[#e5e5e8] rounded-[10px] overflow-hidden"
+const BentoCard: React.FC<{ card: CardData }> = ({ card }) => (
+  <Card 
+    className={cn(
+      "flex flex-col items-center justify-center gap-2.5 p-6 bg-[#f8f9fa] border-[#e5e5e8] rounded-[10px] overflow-hidden",
+      "relative"
+    )}
     style={{ gridArea: card.gridArea }}
   >
     {/* Container */}
     <div className="flex flex-col items-start justify-start gap-5 w-full h-full relative">
       {/* Heading & Supporting Text */}
-      <div className="flex flex-col items-start justify-start gap-2.5 w-full">
+      <CardHeader className="flex flex-col items-start justify-start gap-2.5 w-full p-0">
         {/* Heading */}
-        <h6 className="font-['Switzer'] text-[20px] md:text-[18px] font-semibold leading-[1.2em] text-[#262626] text-left m-0">
+        <CardTitle className="font-['Switzer'] text-[20px] md:text-[18px] font-semibold leading-[1.2em] text-[#262626] text-left m-0">
           {card.heading}
-        </h6>
+        </CardTitle>
         {/* Supporting Text */}
-        <p className="font-['Switzer'] text-base font-normal leading-[1.4em] text-[#53535c] text-left m-0">
+        <CardDescription className="font-['Switzer'] text-base font-normal leading-[1.4em] text-[#53535c] text-left m-0">
           {card.supportingText}
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
       
       {/* Visual Container */}
-      <div className="flex-1 w-full relative overflow-hidden">
+      <CardContent className="flex-1 w-full relative overflow-hidden p-0">
         {card.additionalVisuals ? (
           <div className="absolute inset-0" style={card.visualStyle}>
             {card.additionalVisuals.map((visual, idx) => (
@@ -172,7 +185,7 @@ const BentoCard: React.FC<{ card: CardData; index: number }> = ({ card, index })
             {card.imageData && <CardImage imageData={card.imageData} />}
           </div>
         )}
-      </div>
+      </CardContent>
     </div>
     
     {/* Pattern */}
@@ -195,7 +208,7 @@ const BentoCard: React.FC<{ card: CardData; index: number }> = ({ card, index })
         />
       </div>
     )}
-  </div>
+  </Card>
 );
 
 const bento = () => {
@@ -206,8 +219,12 @@ const bento = () => {
         <div className="flex flex-col items-center justify-center gap-[25px] w-full">
           {/* Badge */}
           <div className="flex items-center justify-center gap-2.5 min-h-[28px] min-w-[115px] overflow-hidden">
-            <div
-              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-[#fafafa] border border-[#e5e5e8] rounded-[17px]"
+            <Badge 
+              variant="outline" 
+              size="default"
+              className={cn(
+                "flex items-center justify-center gap-2 px-3 py-1.5 bg-[#fafafa] border-[#e5e5e8] rounded-[17px]"
+              )}
               style={{
                 boxShadow: "0px 2px 5px 0px #f0f1f2"
               }}
@@ -222,10 +239,10 @@ const bento = () => {
                   <use href="#3205468132"></use>
                 </svg>
               </div>
-              <p className="font-['Switzer'] text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-[#262626] text-center m-0">
+              <span className="font-['Switzer'] text-sm font-normal leading-[1.3em] tracking-[-0.01em] text-[#262626] text-center">
                 Productivity Features
-              </p>
-            </div>
+              </span>
+            </Badge>
           </div>
           
           {/* Heading Content */}
@@ -252,7 +269,7 @@ const bento = () => {
         }}
       >
         {CARDS_DATA.map((card, index) => (
-          <BentoCard key={index} card={card} index={index} />
+          <BentoCard key={index} card={card} />
         ))}
       </div>
     </section>

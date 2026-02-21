@@ -1,4 +1,7 @@
 import React from 'react'
+import { Card, CardContent } from '@/components/reui/card'
+import { Button } from '@/components/reui/button'
+import { AspectRatio } from '@/components/reui/aspect-ratio'
 
 const Cta = () => {
     const imageConfig = {
@@ -21,11 +24,11 @@ const Cta = () => {
                         style={{ willChange: 'transform', opacity: 0, transform: 'translateY(50px)' }}
                     >
                         <div className="flex flex-col items-center justify-center gap-2.5 min-h-min overflow-hidden p-0 relative w-full z-[1]">
-                            <div
+                            <Card
                                 className="flex flex-col sm:flex-row items-center justify-center gap-[15px] sm:gap-0 p-0 sm:pt-2.5 sm:pr-0 sm:pb-0 sm:pl-[45px] lg:pt-2.5 lg:pr-0 lg:pb-0 lg:pl-[50px] lg:gap-[18px] bg-[rgb(248,249,250)] rounded-xl min-h-min overflow-hidden relative w-full z-[1]"
                                 style={{ opacity: 1 }}
                             >
-                                <div
+                                <CardContent
                                     className="flex flex-col items-center sm:items-start lg:items-start justify-start gap-[18px] sm:gap-[22px] lg:gap-[25px] pt-[45px] px-5 pb-0 sm:p-0 lg:p-0 w-full sm:flex-1 sm:min-w-0 min-h-min overflow-hidden relative"
                                     style={{ opacity: 1 }}
                                 >
@@ -69,41 +72,34 @@ const Cta = () => {
                                         </div>
                                     </div>
                                     <div className="flex-none h-auto relative w-auto" style={{ opacity: 1 }}>
-                                        <a
-                                            className="flex flex-row items-center justify-center py-2 px-[18px] gap-2.5 min-h-min min-w-min overflow-hidden relative no-underline cursor-pointer bg-[rgb(38,38,38)] rounded-[20px] shadow-none"
-                                            href="https://www.framer.com?via=green13"
-                                            target="_blank"
-                                            rel="noopener"
-                                            tabIndex={0}
+                                        <Button
+                                            asChild
+                                            className="py-2 px-[18px] bg-[rgb(38,38,38)] rounded-[20px] shadow-none"
                                             style={{
                                                 opacity: 1,
                                                 willChange: 'transform'
                                             }}
                                         >
-                                            <div className="flex flex-row items-center justify-start gap-2 h-6 min-h-min overflow-visible p-0 relative flex-none min-w-min">
-                                                <div className="flex flex-col items-center justify-center gap-2.5 min-h-min min-w-min overflow-visible p-0 relative flex-none">
-                                                    <div className="flex-none h-auto relative whitespace-pre w-auto z-[1]">
-                                                        <p
-                                                            className="m-0 text-center"
-                                                            style={{
-                                                                fontFamily: '"Switzer", sans-serif',
-                                                                fontSize: '14px',
-                                                                fontWeight: 400,
-                                                                lineHeight: '1.3em',
-                                                                letterSpacing: '-0.01em',
-                                                                color: 'rgb(255, 255, 255)',
-                                                                textTransform: 'none',
-                                                                textDecoration: 'none'
-                                                            }}
-                                                        >
-                                                            Book a Demo
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
+                                            <a
+                                                href="https://www.framer.com?via=green13"
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                <span
+                                                    style={{
+                                                        fontFamily: '"Switzer", sans-serif',
+                                                        fontSize: '14px',
+                                                        fontWeight: 400,
+                                                        lineHeight: '1.3em',
+                                                        letterSpacing: '-0.01em'
+                                                    }}
+                                                >
+                                                    Book a Demo
+                                                </span>
+                                            </a>
+                                        </Button>
                                     </div>
-                                </div>
+                                </CardContent>
                                 <div
                                     className="flex flex-row items-center justify-center gap-2.5 h-[234px] sm:h-[282px] lg:h-[290px] min-h-min overflow-visible p-0 relative w-full sm:flex-1 sm:min-w-0 lg:flex-1 lg:min-w-0 rounded-[10px]"
                                     style={{ opacity: 1 }}
@@ -116,10 +112,7 @@ const Cta = () => {
                                             top: 'calc(49.19% - 212px / 2)'
                                         }}
                                     >
-                                        <div
-                                            className="absolute inset-0"
-                                            style={{ borderRadius: 'inherit' }}
-                                        >
+                                        <AspectRatio ratio={imageConfig.width / imageConfig.height}>
                                             <img
                                                 decoding="async"
                                                 loading="lazy"
@@ -129,13 +122,12 @@ const Cta = () => {
                                                 srcSet={`${imageConfig.url}?scale-down-to=512 512w,${imageConfig.url}?scale-down-to=1024 1024w,${imageConfig.url}?scale-down-to=2048 2048w,${imageConfig.url} ${imageConfig.width}w`}
                                                 src={`${imageConfig.url}?scale-down-to=2048`}
                                                 alt={imageConfig.alt}
-                                                className="block w-full h-full object-cover object-center"
-                                                style={{ borderRadius: 'inherit' }}
+                                                className="block w-full h-full object-cover object-center rounded-[inherit]"
                                             />
-                                        </div>
+                                        </AspectRatio>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         </div>
                     </div>
                 </section>

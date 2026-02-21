@@ -1,4 +1,9 @@
 import React from 'react'
+import { Badge } from '@/components/reui/badge'
+import { Button } from '@/components/reui/button'
+import { ButtonGroup } from '@/components/reui/button-group'
+import { Avatar, AvatarImage, AvatarFallback, AvatarGroup } from '@/components/reui/avatar'
+import { AspectRatio } from '@/components/reui/aspect-ratio'
 
 // Font configuration - Add Switzer font
 const fontStyles = `
@@ -73,23 +78,23 @@ const AVATAR_DATA = [
   }
 ]
 
-// Reusable Avatar component
-const Avatar: React.FC<{ data: typeof AVATAR_DATA[0]; index: number }> = ({ data, index }) => (
-  <div className={`relative w-7 h-7 rounded-full overflow-hidden ${index > 0 ? '-ml-2' : ''}`}>
-    <img
-      decoding="async"
+// Reusable Avatar component using reui
+const HeroAvatar: React.FC<{ data: typeof AVATAR_DATA[0]; index: number }> = ({ data, index }) => (
+  <Avatar size="default" className="w-7 h-7">
+    <AvatarImage
+      src={data.src}
+      srcSet={data.srcSet}
       width={data.width}
       height={data.height}
       sizes="28px"
-      srcSet={data.srcSet}
-      src={data.src}
       alt=""
-      className="block w-full h-full rounded-full object-cover object-center"
+      className="object-cover object-center"
     />
-  </div>
+    <AvatarFallback>U</AvatarFallback>
+  </Avatar>
 )
 
-// Reusable Button component
+// Reusable Button component using reui
 interface ButtonProps {
   variant: 'primary' | 'secondary'
   text: string
@@ -100,36 +105,41 @@ const HeroButton: React.FC<ButtonProps> = ({ variant, text, showArrow = false })
   const isPrimary = variant === 'primary'
   
   return (
-    <a
-      href="https://www.framer.com?via=green13"
-      target="_blank"
-      rel="noopener"
+    <Button
+      asChild
+      variant={isPrimary ? 'default' : 'outline'}
+      size="default"
       className={`
-        inline-flex items-center justify-center gap-2
-        rounded-[27px] px-[18px] py-2
+        rounded-[27px] px-[18px] py-2 h-auto
         text-sm font-normal tracking-[-0.01em] leading-[1.3em]
-        transition-all cursor-pointer
+        gap-2
         ${isPrimary 
-          ? 'bg-[#262626] text-white' 
-          : 'bg-white text-[#262626] border border-[#E5E5E8] shadow-[0px_5px_10px_0px_#F8F9FA]'
+          ? 'bg-[#262626] text-white hover:bg-[#262626]/90' 
+          : 'bg-white text-[#262626] border-[#E5E5E8] shadow-[0px_5px_10px_0px_#F8F9FA] hover:bg-gray-50'
         }
       `}
       style={{ fontFamily: 'Switzer, sans-serif' }}
     >
-      <span>{text}</span>
-      {showArrow && (
-        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center" style={{ mask: 'radial-gradient(50% 50%, rgb(0, 0, 0) 97.7319%, rgba(0, 0, 0, 0) 100%)' }}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 256 256"
-            className="w-full h-full"
-            style={{ fill: '#262626' }}
-          >
-            <path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z" />
-          </svg>
-        </div>
-      )}
-    </a>
+      <a
+        href="https://www.framer.com?via=green13"
+        target="_blank"
+        rel="noopener"
+      >
+        <span>{text}</span>
+        {showArrow && (
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center" style={{ mask: 'radial-gradient(50% 50%, rgb(0, 0, 0) 97.7319%, rgba(0, 0, 0, 0) 100%)' }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              className="w-full h-full"
+              style={{ fill: '#262626' }}
+            >
+              <path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z" />
+            </svg>
+          </div>
+        )}
+      </a>
+    </Button>
   )
 }
 
@@ -143,13 +153,12 @@ const hero = () => {
           <div className="flex flex-col items-center gap-8 mb-12">
             {/* Heading Container */}
             <div className="flex flex-col items-center gap-6 w-full">
-              {/* Badge */}
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#FAFAFA] border border-[#E5E5E8] rounded-[17px]"
-                style={{ 
-                  boxShadow: '0px 2px 5px 0px #F0F1F2',
-                  fontFamily: 'Switzer, sans-serif'
-                }}
+              {/* Badge using reui */}
+              <Badge 
+                variant="outline"
+                size="default"
+                className="inline-flex items-center gap-2 px-4 py-2 h-auto bg-[#FAFAFA] border-[#E5E5E8] rounded-[17px] shadow-[0px_2px_5px_0px_#F0F1F2]"
+                style={{ fontFamily: 'Switzer, sans-serif' }}
               >
                 <div className="w-5 h-5">
                   <svg
@@ -161,10 +170,10 @@ const hero = () => {
                     <use href="#1529132500"></use>
                   </svg>
                 </div>
-                <p className="text-sm text-[#262626] font-normal tracking-[-0.01em] leading-[1.3em] m-0">
+                <span className="text-sm text-[#262626] font-normal tracking-[-0.01em] leading-[1.3em]">
                   AI Project Tool
-                </p>
-              </div>
+                </span>
+              </Badge>
 
               {/* Heading Content */}
               <div className="flex flex-col items-center gap-4 max-w-4xl">
@@ -182,8 +191,8 @@ const hero = () => {
                 </p>
               </div>
 
-              {/* Buttons */}
-              <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+              {/* Buttons using reui ButtonGroup */}
+              <ButtonGroup orientation="horizontal" className="flex-wrap justify-center gap-3 mt-4">
                 <HeroButton
                   variant="primary"
                   text="Start Free Trial"
@@ -193,16 +202,16 @@ const hero = () => {
                   variant="secondary"
                   text="Join Waitlist"
                 />
-              </div>
+              </ButtonGroup>
             </div>
 
-            {/* Social Trust */}
+            {/* Social Trust using reui AvatarGroup */}
             <div className="flex flex-col items-center gap-3 mt-4">
-              <div className="flex items-center">
+              <AvatarGroup className="*:data-[slot=avatar]:ring-background *:data-[slot=avatar]:ring-2">
                 {AVATAR_DATA.map((avatar, index) => (
-                  <Avatar key={index} data={avatar} index={index} />
+                  <HeroAvatar key={index} data={avatar} index={index} />
                 ))}
-              </div>
+              </AvatarGroup>
               <p 
                 className="text-sm text-[#38383D] font-normal leading-[1.3em] m-0"
                 style={{ fontFamily: 'Switzer, sans-serif' }}
@@ -212,9 +221,9 @@ const hero = () => {
             </div>
           </div>
 
-          {/* Visual Container */}
+          {/* Visual Container using reui AspectRatio */}
           <div className="relative w-full max-w-5xl mx-auto mt-12">
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-white">
+            <AspectRatio ratio={16 / 9} className="rounded-lg overflow-hidden bg-white">
               <video
                 src="https://framerusercontent.com/assets/jl25p5MbzRr21hTaVDiw9zoPxEk.mp4"
                 loop={true}
@@ -225,7 +234,7 @@ const hero = () => {
                 autoPlay={true}
                 className="w-full h-full object-cover"
               />
-            </div>
+            </AspectRatio>
           </div>
         </div>
       </section>
