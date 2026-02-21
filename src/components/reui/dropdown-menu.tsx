@@ -253,11 +253,13 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
   className,
+  sideOffset = 0,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
+      sideOffset={sideOffset}
       className={cn(
         "cn-dropdown-menu-sub-content cn-menu-target z-50 origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden",
         className
