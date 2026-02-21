@@ -3,8 +3,8 @@
 import * as React from "react"
 import { Menubar as MenubarPrimitive } from "radix-ui"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 function Menubar({
   className,

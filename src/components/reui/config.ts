@@ -5,11 +5,11 @@ import {
 } from "shadcn/icons"
 import { z } from "zod"
 
-import { BASE_COLORS, type BaseColor } from "@/registry/base-colors"
-import { BASES, type Base } from "@/registry/bases"
-import { fonts } from "@/registry/fonts"
-import { STYLES, type Style } from "@/registry/styles"
-import { THEMES, type Theme } from "@/registry/themes"
+import { BASE_COLORS, type BaseColor } from "@/components/reui/registry/base-colors"
+import { BASES, type Base } from "@/components/reui/registry/bases"
+import { fonts } from "@/components/reui/registry/fonts"
+import { STYLES, type Style } from "@/components/reui/registry/styles"
+import { THEMES, type Theme } from "@/components/reui/registry/themes"
 
 const SHADCN_VERSION = "latest"
 

@@ -3,10 +3,10 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
-import { Input } from "@/registry/bases/radix/ui/input"
-import { Textarea } from "@/registry/bases/radix/ui/textarea"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+import { Textarea } from "@/components/reui/registry/bases/radix/ui/textarea"
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (

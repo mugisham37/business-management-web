@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/registry/bases/base/lib/utils"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+import { cn } from "@/components/reui/registry/bases/base/lib/utils"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 const ratingVariants = cva("flex items-center", {
   variants: {

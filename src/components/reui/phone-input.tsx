@@ -10,8 +10,8 @@ import {
 import * as BasePhoneInput from "react-phone-number-input"
 import flags from "react-phone-number-input/flags"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
 import {
   Combobox,
   ComboboxContent,
@@ -22,10 +22,10 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
   ComboboxValue,
-} from "@/registry/bases/radix/ui/combobox"
-import { Input } from "@/registry/bases/radix/ui/input"
-import { ScrollArea } from "@/registry/bases/radix/ui/scroll-area"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+} from "@/components/reui/registry/bases/radix/ui/combobox"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 type PhoneInputSize = "sm" | "default" | "lg"
 

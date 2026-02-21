@@ -2,7 +2,7 @@
 
 import * as ResizablePrimitive from "react-resizable-panels"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
 
 function ResizablePanelGroup({
   className,

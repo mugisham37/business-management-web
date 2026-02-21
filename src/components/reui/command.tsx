@@ -3,19 +3,19 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/registry/bases/radix/ui/dialog"
+} from "@/components/reui/registry/bases/radix/ui/dialog"
 import {
   InputGroup,
   InputGroupAddon,
-} from "@/registry/bases/radix/ui/input-group"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+} from "@/components/reui/registry/bases/radix/ui/input-group"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 function Command({
   className,

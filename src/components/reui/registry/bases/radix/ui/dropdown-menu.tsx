@@ -1,2 +1,2 @@
 // Re-export from the main components directory
-export * from "@/src/components/reui/dropdown-menu"
+export * from "@/components/reui/dropdown-menu"

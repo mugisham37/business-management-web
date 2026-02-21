@@ -10,4 +10,4 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from "@/src/components/reui/dialog"
+} from "@/components/reui/dialog"

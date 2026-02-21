@@ -1,2 +1,2 @@
 // Re-export from the main components directory
-export * from "@/src/components/reui/calendar"
+export * from "@/components/reui/calendar"

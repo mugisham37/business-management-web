@@ -1,2 +1,2 @@
 // Re-export from the main components directory
-export * from "@/src/components/reui/scroll-area"
+export * from "@/components/reui/scroll-area"

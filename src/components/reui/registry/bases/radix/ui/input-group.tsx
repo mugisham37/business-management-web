@@ -6,4 +6,4 @@ export {
   InputGroupInput,
   InputGroupText,
   InputGroupTextarea,
-} from "@/src/components/reui/input-group"
+} from "@/components/reui/input-group"

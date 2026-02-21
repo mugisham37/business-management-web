@@ -45,7 +45,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { Slot } from "radix-ui"
 import { createPortal } from "react-dom"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
 
 interface KanbanContextProps<T> {
   columns: Record<string, T[]>

@@ -13,12 +13,12 @@ import {
 } from "react"
 import { cva } from "class-variance-authority"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
 import {
   ButtonGroup,
   ButtonGroupText,
-} from "@/registry/bases/radix/ui/button-group"
+} from "@/components/reui/registry/bases/radix/ui/button-group"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -30,24 +30,24 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/registry/bases/radix/ui/dropdown-menu"
-import { Input } from "@/registry/bases/radix/ui/input"
+} from "@/components/reui/registry/bases/radix/ui/dropdown-menu"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
-} from "@/registry/bases/radix/ui/input-group"
-import { Kbd } from "@/registry/bases/radix/ui/kbd"
-import { ScrollArea } from "@/registry/bases/radix/ui/scroll-area"
+} from "@/components/reui/registry/bases/radix/ui/input-group"
+import { Kbd } from "@/components/reui/registry/bases/radix/ui/kbd"
+import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/registry/bases/radix/ui/tooltip"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+} from "@/components/reui/registry/bases/radix/ui/tooltip"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 // i18n Configuration Interface
 export interface FilterI18nConfig {

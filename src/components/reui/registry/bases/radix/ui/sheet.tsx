@@ -1,2 +1,2 @@
 // Re-export from the main components directory
-export * from "@/src/components/reui/sheet"
+export * from "@/components/reui/sheet"

@@ -3,17 +3,17 @@
 import { useMemo, useState } from "react"
 import { Column } from "@tanstack/react-table"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Badge } from "@/registry/bases/radix/ui/badge"
-import { Button } from "@/registry/bases/radix/ui/button"
-import { Input } from "@/registry/bases/radix/ui/input"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Badge } from "@/components/reui/registry/bases/radix/ui/badge"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/registry/bases/radix/ui/popover"
-import { Separator } from "@/registry/bases/radix/ui/separator"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+} from "@/components/reui/registry/bases/radix/ui/popover"
+import { Separator } from "@/components/reui/registry/bases/radix/ui/separator"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 interface DataGridColumnFilterProps<TData, TValue> {
   column?: Column<TData, TValue>

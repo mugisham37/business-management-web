@@ -8,7 +8,7 @@ import {
   useMemo,
   useRef,
 } from "react"
-import { useDataGrid } from "@/registry-reui/bases/radix/reui/data-grid/data-grid"
+import { useDataGrid } from "@/components/reui/data-grid/data-grid"
 import {
   DataGridTableBase,
   DataGridTableBody,
@@ -22,7 +22,7 @@ import {
   DataGridTableHeadRowCell,
   DataGridTableHeadRowCellResize,
   DataGridTableRowSpacer,
-} from "@/registry-reui/bases/radix/reui/data-grid/data-grid-table"
+} from "@/components/reui/data-grid/data-grid-table"
 import {
   closestCenter,
   DndContext,
@@ -44,9 +44,9 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { Cell, flexRender, HeaderGroup, Row } from "@tanstack/react-table"
 
-import { cn } from "@/src/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 // Context to share sortable listeners from row to handle
 type SortableContextValue = ReturnType<typeof useSortable>

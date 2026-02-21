@@ -4,25 +4,25 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
-import { useIsMobile } from "@/registry/bases/radix/hooks/use-mobile"
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
-import { Input } from "@/registry/bases/radix/ui/input"
-import { Separator } from "@/registry/bases/radix/ui/separator"
+import { useIsMobile } from "@/components/reui/registry/bases/radix/hooks/use-mobile"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+import { Separator } from "@/components/reui/registry/bases/radix/ui/separator"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/registry/bases/radix/ui/sheet"
-import { Skeleton } from "@/registry/bases/radix/ui/skeleton"
+} from "@/components/reui/registry/bases/radix/ui/sheet"
+import { Skeleton } from "@/components/reui/registry/bases/radix/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/registry/bases/radix/ui/tooltip"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+} from "@/components/reui/registry/bases/radix/ui/tooltip"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7

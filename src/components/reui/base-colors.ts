@@ -1,4 +1,4 @@
-import { THEMES, type Theme } from "@/registry/themes"
+import { THEMES, type Theme } from "@/components/reui/registry/themes"
 
 export const BASE_COLORS = THEMES.filter((theme: Theme) =>
   ["neutral", "stone", "zinc", "gray"].includes(theme.name)

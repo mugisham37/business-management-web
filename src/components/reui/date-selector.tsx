@@ -21,14 +21,14 @@ import {
 import { DayButton } from "react-day-picker"
 import type { DateRange } from "react-day-picker"
 
-import { useIsMobile } from "@/registry/bases/radix/hooks/use-mobile"
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button } from "@/registry/bases/radix/ui/button"
-import { Calendar, CalendarDayButton } from "@/registry/bases/radix/ui/calendar"
-import { Input } from "@/registry/bases/radix/ui/input"
-import { ScrollArea } from "@/registry/bases/radix/ui/scroll-area"
-import { Tabs, TabsList, TabsTrigger } from "@/registry/bases/radix/ui/tabs"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+import { useIsMobile } from "@/components/reui/registry/bases/radix/hooks/use-mobile"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { Calendar, CalendarDayButton } from "@/components/reui/registry/bases/radix/ui/calendar"
+import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
+import { Tabs, TabsList, TabsTrigger } from "@/components/reui/registry/bases/radix/ui/tabs"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 export interface DateSelectorI18nConfig {
   // Labels

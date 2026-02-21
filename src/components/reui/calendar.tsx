@@ -8,9 +8,9 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@/registry/bases/radix/lib/utils"
-import { Button, buttonVariants } from "@/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
+import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { Button, buttonVariants } from "@/components/reui/registry/bases/radix/ui/button"
+import { IconPlaceholder } from "@/components/reui/icon-placeholder"
 
 function Calendar({
   className,

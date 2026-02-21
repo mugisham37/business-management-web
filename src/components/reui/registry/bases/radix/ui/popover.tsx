@@ -1,2 +1,2 @@
 // Re-export from the main components directory
-export * from "@/components/reui/button-group"
+export * from "@/components/reui/popover"

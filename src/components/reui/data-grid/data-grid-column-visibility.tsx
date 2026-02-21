@@ -10,7 +10,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/registry/bases/radix/ui/dropdown-menu"
+} from "@/components/reui/registry/bases/radix/ui/dropdown-menu"
 
 function DataGridColumnVisibility<TData>({
   table,
