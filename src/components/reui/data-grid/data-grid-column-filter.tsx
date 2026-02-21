@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/registry/bases/radix/ui/popover"
 import { Separator } from "@/registry/bases/radix/ui/separator"
-import { IconPlaceholder } from "@/app/(create)/components/icon-placeholder"
+import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
 
 interface DataGridColumnFilterProps<TData, TValue> {
   column?: Column<TData, TValue>

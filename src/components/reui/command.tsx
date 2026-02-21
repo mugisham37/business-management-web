@@ -15,7 +15,7 @@ import {
   InputGroup,
   InputGroupAddon,
 } from "@/registry/bases/radix/ui/input-group"
-import { IconPlaceholder } from "@/app/(create)/components/icon-placeholder"
+import { IconPlaceholder } from "@/src/app/(create)/components/icon-placeholder"
 
 function Command({
   className,
