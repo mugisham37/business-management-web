@@ -1,149 +1,149 @@
 import React from 'react'
 
-const footer = () => {
+const Footer = () => {
   return (
-    <div class="framer-8mybqe-container">
-                <div class="ssr-variant hidden-x4vgtb hidden-c3pthz">
+    <div className="framer-8mybqe-container">
+                <div className="ssr-variant hidden-x4vgtb hidden-c3pthz">
                     <footer
-                        class="framer-bMxRo framer-bXcea framer-udI2x framer-YF6mi framer-Aq11P framer-1buzano framer-v-1j3xc64"
+                        className="framer-bMxRo framer-bXcea framer-udI2x framer-YF6mi framer-Aq11P framer-1buzano framer-v-1j3xc64"
                         data-framer-name="Phone"
-                        style="background-color: var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(0, 0, 0)); width: 100%; opacity: 1;">
-                        <div class="framer-q9q380" data-framer-name="Container" style="opacity: 1;">
-                            <div class="framer-1poscpb" data-framer-name="Logo" style="opacity: 1;"><a
-                                    class="framer-1y36gsa framer-w7hbvp" data-framer-name="Logo" href="./#hero"
-                                    style="opacity: 1;">
-                                    <div class="framer-1fw31y5" data-framer-name="Logo" style="opacity: 1;">
+                        style={{backgroundColor: 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(0, 0, 0))', width: '100%', opacity: 1}}>
+                        <div className="framer-q9q380" data-framer-name="Container" style={{opacity: 1}}>
+                            <div className="framer-1poscpb" data-framer-name="Logo" style={{opacity: 1}}><a
+                                    className="framer-1y36gsa framer-w7hbvp" data-framer-name="Logo" href="./#hero"
+                                    style={{opacity: 1}}>
+                                    <div className="framer-1fw31y5" data-framer-name="Logo" style={{opacity: 1}}>
                                         <div data-framer-component-type="SVG" data-framer-name="Logo"
-                                            class="framer-1du9uol" aria-hidden="true"
-                                            style="image-rendering: pixelated; flex-shrink: 0; opacity: 1;">
-                                            <div class="svgContainer"
-                                                style="width: 100%; height: 100%; aspect-ratio: inherit;"><svg
-                                                    style="width:100%;height:100%;">
+                                            className="framer-1du9uol" aria-hidden="true"
+                                            style={{imageRendering: 'pixelated', flexShrink: 0, opacity: 1}}>
+                                            <div className="svgContainer"
+                                                style={{width: '100%', height: '100%', aspectRatio: 'inherit'}}><svg
+                                                    style={{width:'100%',height:'100%'}}>
                                                     <use href="#svg11630543270"></use>
                                                 </svg></div>
                                         </div>
-                                        <div class="framer-10pgz50" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; --extracted-r6o4lv: var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)); --framer-link-text-color: rgb(0, 153, 255); --framer-link-text-decoration: underline; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-33ymlt"
+                                        <div className="framer-10pgz50" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, ['--extracted-r6o4lv' as any]: 'var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))', ['--framer-link-text-color' as any]: 'rgb(0, 153, 255)', ['--framer-link-text-decoration' as any]: 'underline', transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-33ymlt"
                                                 data-styles-preset="PjvRqItd1"
-                                                style="--framer-text-color: var(--extracted-r6o4lv, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)));">
+                                                style={{['--framer-text-color' as any]: 'var(--extracted-r6o4lv, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)))'}}>
                                                 ReadyLaunch</p>
                                         </div>
                                     </div>
                                 </a>
-                                <div class="framer-bjwf1e" data-framer-name="Item" style="opacity: 1;">
-                                    <div class="framer-cbw0uz" data-framer-name="Services" style="opacity: 1;">
-                                        <div class="framer-1w0fpud" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; --extracted-1w1cjl5: var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)); --framer-link-text-color: rgb(0, 153, 255); --framer-link-text-decoration: underline; transform: none; opacity: 1;">
-                                            <h6 class="framer-text framer-styles-preset-rlw5rm"
+                                <div className="framer-bjwf1e" data-framer-name="Item" style={{opacity: 1}}>
+                                    <div className="framer-cbw0uz" data-framer-name="Services" style={{opacity: 1}}>
+                                        <div className="framer-1w0fpud" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, ['--extracted-1w1cjl5' as any]: 'var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))', ['--framer-link-text-color' as any]: 'rgb(0, 153, 255)', ['--framer-link-text-decoration' as any]: 'underline', transform: 'none', opacity: 1}}>
+                                            <h6 className="framer-text framer-styles-preset-rlw5rm"
                                                 data-styles-preset="ozhLrZjZv"
-                                                style="--framer-text-color: var(--extracted-1w1cjl5, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)));">
+                                                style={{['--framer-text-color' as any]: 'var(--extracted-1w1cjl5, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)))'}}>
                                                 Services</h6>
                                         </div>
-                                        <div class="framer-vlkxy8" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-vlkxy8" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./#bento">Features</a></p>
                                         </div>
-                                        <div class="framer-1oikeln" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1oikeln" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./#benefits">Benefits</a></p>
                                         </div>
-                                        <div class="framer-1a1b5ce" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1a1b5ce" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./#pricing">Pricing</a></p>
                                         </div>
-                                        <div class="framer-xvtr12" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-xvtr12" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./#faq">FAQ</a></p>
                                         </div>
                                     </div>
-                                    <div class="framer-chjevu" data-framer-name="Company" style="opacity: 1;">
-                                        <div class="framer-w80o80" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; --extracted-1w1cjl5: var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)); --framer-link-text-color: rgb(0, 153, 255); --framer-link-text-decoration: underline; transform: none; opacity: 1;">
-                                            <h6 class="framer-text framer-styles-preset-rlw5rm"
+                                    <div className="framer-chjevu" data-framer-name="Company" style={{opacity: 1}}>
+                                        <div className="framer-w80o80" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, ['--extracted-1w1cjl5' as any]: 'var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))', ['--framer-link-text-color' as any]: 'rgb(0, 153, 255)', ['--framer-link-text-decoration' as any]: 'underline', transform: 'none', opacity: 1}}>
+                                            <h6 className="framer-text framer-styles-preset-rlw5rm"
                                                 data-styles-preset="ozhLrZjZv"
-                                                style="--framer-text-color: var(--extracted-1w1cjl5, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)));">
+                                                style={{['--framer-text-color' as any]: 'var(--extracted-1w1cjl5, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)))'}}>
                                                 Company</h6>
                                         </div>
-                                        <div class="framer-1r0okzg" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1r0okzg" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./blog#hero">Blog</a></p>
                                         </div>
-                                        <div class="framer-1prkpwj" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1prkpwj" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./changelog#hero">Changelog</a>
                                             </p>
                                         </div>
-                                        <div class="framer-okc8vv" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-okc8vv" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./privacy-policy#hero">Privacy
                                                     Policy</a></p>
                                         </div>
-                                        <div class="framer-1uh4ttk" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1uh4ttk" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./terms-of-use#hero">Terms of
                                                     Use</a></p>
                                         </div>
-                                        <div class="framer-1sp07lm" data-framer-component-type="RichTextContainer"
-                                            style="outline: none; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; transform: none; opacity: 1;">
-                                            <p class="framer-text framer-styles-preset-kmaoy8"
+                                        <div className="framer-1sp07lm" data-framer-component-type="RichTextContainer"
+                                            style={{outline: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', flexShrink: 0, transform: 'none', opacity: 1}}>
+                                            <p className="framer-text framer-styles-preset-kmaoy8"
                                                 data-styles-preset="MV92va9oP"><a
-                                                    class="framer-text framer-styles-preset-e217d9"
+                                                    className="framer-text framer-styles-preset-e217d9"
                                                     data-styles-preset="jqNJijzVa" href="./contact#hero">Contact Us</a>
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="framer-1ggranz" data-framer-name="Bottom" style="opacity: 1;">
-                                        <div class="framer-eopauh" data-framer-name="Social" style="opacity: 1;">
-                                            <div class="framer-185fiql" data-framer-name="Social" style="opacity: 1;"><a
-                                                    class="framer-1ygqofj framer-w7hbvp" data-framer-name="X"
+                                    <div className="framer-1ggranz" data-framer-name="Bottom" style={{opacity: 1}}>
+                                        <div className="framer-eopauh" data-framer-name="Social" style={{opacity: 1}}>
+                                            <div className="framer-185fiql" data-framer-name="Social" style={{opacity: 1}}><a
+                                                    className="framer-1ygqofj framer-w7hbvp" data-framer-name="X"
                                                     href="https://x.com/greeenyang" target="_blank" rel="noopener"
-                                                    style="opacity: 1;">
-                                                    <div class="framer-71lkop-container" data-framer-name="twitter-x"
-                                                        name="twitter-x" style="opacity: 1;">
+                                                    style={{opacity: 1}}>
+                                                    <div className="framer-71lkop-container" data-framer-name="twitter-x"
+                                                        style={{opacity: 1}}>
                                                         <div aria-hidden="true"
-                                                            style="display: flex; max-width: 100%; max-height: 100%; align-items: center; justify-content: center; height: 100%; width: 100%;">
+                                                            style={{display: 'flex', maxWidth: '100%', maxHeight: '100%', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%'}}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="100%"
                                                                 height="100%"
                                                                 fill="var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))"
-                                                                class="bi bi-twitter-x" viewBox="0 0 16 16">
+                                                                className="bi bi-twitter-x" viewBox="0 0 16 16">
                                                                 <path
                                                                     d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z">
                                                                 </path>
                                                             </svg></div>
                                                     </div>
-                                                </a><a class="framer-27i14p framer-w7hbvp" data-framer-name="Ins"
+                                                </a><a className="framer-27i14p framer-w7hbvp" data-framer-name="Ins"
                                                     href="https://www.framer.com?via=green13" target="_blank"
-                                                    rel="noopener" style="opacity: 1;">
-                                                    <div class="framer-u9qj04-container"
-                                                        data-framer-name="instagram-fill" name="instagram-fill"
-                                                        style="opacity: 1;">
+                                                    rel="noopener" style={{opacity: 1}}>
+                                                    <div className="framer-u9qj04-container"
+                                                        data-framer-name="instagram-fill"
+                                                        style={{opacity: 1}}>
                                                         <div aria-hidden="true"
-                                                            style="display: flex; max-width: 100%; max-height: 100%; align-items: center; justify-content: center; height: 100%; width: 100%;">
+                                                            style={{display: 'flex', maxWidth: '100%', maxHeight: '100%', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%'}}>
                                                             <svg width="100%" height="100%" viewBox="0 0 24 24"
                                                                 fill="var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))"
                                                                 xmlns="http://www.w3.org/2000/svg">
@@ -152,17 +152,17 @@ const footer = () => {
                                                                 </path>
                                                             </svg></div>
                                                     </div>
-                                                </a><a class="framer-1b43ofa framer-w7hbvp" data-framer-name="Youtube"
+                                                </a><a className="framer-1b43ofa framer-w7hbvp" data-framer-name="Youtube"
                                                     href="https://www.framer.com?via=green13" target="_blank"
-                                                    rel="noopener" style="opacity: 1;">
-                                                    <div class="framer-p75o3w-container" data-framer-name="youtube"
-                                                        name="youtube" style="opacity: 1;">
+                                                    rel="noopener" style={{opacity: 1}}>
+                                                    <div className="framer-p75o3w-container" data-framer-name="youtube"
+                                                        style={{opacity: 1}}>
                                                         <div aria-hidden="true"
-                                                            style="display: flex; max-width: 100%; max-height: 100%; align-items: center; justify-content: center; height: 100%; width: 100%;">
+                                                            style={{display: 'flex', maxWidth: '100%', maxHeight: '100%', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%'}}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="100%"
                                                                 height="100%"
                                                                 fill="var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))"
-                                                                class="bi bi-youtube" viewBox="0 0 16 16">
+                                                                className="bi bi-youtube" viewBox="0 0 16 16">
                                                                 <path
                                                                     d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z">
                                                                 </path>
@@ -173,13 +173,13 @@ const footer = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="framer-h44nsj" data-framer-name="Designer Info" style="opacity: 1;">
-                                <div class="framer-jmaay" data-framer-name="Line"
-                                    style="background-color: var(--token-52749bb0-1899-4563-80ac-ac8a27c04772, rgb(145, 145, 145)); opacity: 0.7;">
+                            <div className="framer-h44nsj" data-framer-name="Designer Info" style={{opacity: 1}}>
+                                <div className="framer-jmaay" data-framer-name="Line"
+                                    style={{backgroundColor: 'var(--token-52749bb0-1899-4563-80ac-ac8a27c04772, rgb(145, 145, 145))', opacity: 0.7}}>
                                 </div>
-                                <div class="framer-1t8jhms-container" style="opacity: 1;">
+                                <div className="framer-1t8jhms-container" style={{opacity: 1}}>
                                     <div
-                                        style="font-size: 12px; color: var(--token-52749bb0-1899-4563-80ac-ac8a27c04772, rgb(145, 145, 145)); font-family: Inter, sans-serif; font-style: normal; letter-spacing: -0.01em; line-height: 1.3em;">
+                                        style={{fontSize: '12px', color: 'var(--token-52749bb0-1899-4563-80ac-ac8a27c04772, rgb(145, 145, 145))', fontFamily: 'Inter, sans-serif', fontStyle: 'normal', letterSpacing: '-0.01em', lineHeight: '1.3em'}}>
                                         2026 Copyright © ReadyLaunch. All rights reserved.</div>
                                 </div>
                             </div>
@@ -190,4 +190,4 @@ const footer = () => {
   )
 }
 
-export default footer
+export default Footer
