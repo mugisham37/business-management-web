@@ -62,6 +62,7 @@ export default function RootLayout({
       </head>
       <body className="bg-white"> 
         <div id="main" data-framer-hydrate-v2='{"routeId":"augiA20Il","localeId":"default","breakpoints":[{"hash":"72rtr7","mediaQuery":"(min-width: 1200px)"},{"hash":"187ctmn","mediaQuery":"(min-width: 810px) and (max-width: 1199px)"},{"hash":"unjy5z","mediaQuery":"(max-width: 809px)"},{"hash":"c3pthz","mediaQuery":"(min-width: 1200px)"},{"hash":"x4vgtb","mediaQuery":"(min-width: 810px) and (max-width: 1199px)"},{"hash":"824o0y","mediaQuery":"(max-width: 809px)"}]}' data-framer-ssr-released-at="2025-07-23T07:48:11.716Z" data-framer-page-optimized-at="2025-07-25T14:17:52.852Z" data-framer-generated-page="">
+          <Nav />
           
           <div className="flex flex-col flex-nowrap items-center content-center justify-start gap-0 p-0 relative overflow-visible bg-white w-full h-min" data-layout-template="true" style={{minHeight: '100vh', width: 'auto'}}>
             
@@ -72,7 +73,7 @@ export default function RootLayout({
             <div id="overlay"></div>
             <div className="bg-transparent flex-grow h-0 w-0 relative" style={{margin: '0 0 -0px'}}></div>
             
-            <Nav />
+            
             
             <div className="flex-none h-[130px] max-[809px]:h-[68px] left-0 fixed top-0 w-full z-[9] pointer-events-none" style={{order: 1002}}>
               <div className="contents">
