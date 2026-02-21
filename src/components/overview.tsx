@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react';
 import { AspectRatio } from '@/components/reui/aspect-ratio';
 import { Skeleton } from '@/components/reui/skeleton';
