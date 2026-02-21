@@ -3,7 +3,6 @@ import "./globals.css";
 import Nav from "../components/nav";
 import Cta from "../components/cta";
 import Footer from "../components/footer";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "ReadyLaunch",
@@ -45,25 +44,39 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.gstatic.com" rel="preconnect" crossOrigin="anonymous" />
         <link rel="canonical" href="https://readylaunch.framer.website/" />
+        <style dangerouslySetInnerHTML={{__html: `
+          :root {
+            --token-44021ae2-4cdd-419c-805c-4b1fd642bfaa: rgb(255, 255, 255);
+            --token-d3c732bc-55cf-476f-8dd2-e130b23f6381: rgb(38, 38, 38);
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          #main {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+        `}} />
       </head>
-      <body> 
+      <body className="bg-white"> 
         <div id="main" data-framer-hydrate-v2='{"routeId":"augiA20Il","localeId":"default","breakpoints":[{"hash":"72rtr7","mediaQuery":"(min-width: 1200px)"},{"hash":"187ctmn","mediaQuery":"(min-width: 810px) and (max-width: 1199px)"},{"hash":"unjy5z","mediaQuery":"(max-width: 809px)"},{"hash":"c3pthz","mediaQuery":"(min-width: 1200px)"},{"hash":"x4vgtb","mediaQuery":"(min-width: 810px) and (max-width: 1199px)"},{"hash":"824o0y","mediaQuery":"(max-width: 809px)"}]}' data-framer-ssr-released-at="2025-07-23T07:48:11.716Z" data-framer-page-optimized-at="2025-07-25T14:17:52.852Z" data-framer-generated-page="">
-          <style data-framer-html-style="" dangerouslySetInnerHTML={{__html: `:root body { background: var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)); }`}} />
           
-          <div className="framer-ZwDAi framer-c3pthz" data-layout-template="true" style={{minHeight: '100vh', width: 'auto'}}>
-            <style data-framer-html-style="" dangerouslySetInnerHTML={{__html: `html body { background: var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)); }`}} />
+          <div className="flex flex-col flex-nowrap items-center content-center justify-start gap-0 p-0 relative overflow-visible bg-white w-full h-min" data-layout-template="true" style={{minHeight: '100vh', width: 'auto'}}>
             
-            <div data-framer-root="" className="framer-u74gn framer-3ZFMP framer-ae7Kc framer-YF6mi framer-Qav6c framer-kDqzq framer-72rtr7" style={{minHeight: '100vh', width: 'auto', display: 'contents'}}>
+            <div data-framer-root="" className="flex flex-col flex-nowrap items-center content-center justify-start gap-0 p-0 relative overflow-hidden bg-white w-[1200px] h-min" style={{minHeight: '100vh', width: 'auto', display: 'contents'}}>
               {children}
             </div>
             
             <div id="overlay"></div>
-            <div className="framer-bg86yi"></div>
+            <div className="bg-transparent flex-grow h-0 w-0 relative" style={{margin: '0 0 -0px'}}></div>
             
             <Nav />
             
-            <div className="framer-8bz8u7-container">
-              <div className="ssr-variant hidden-x4vgtb hidden-c3pthz">
+            <div className="flex-none h-[130px] max-[809px]:h-[68px] left-0 fixed top-0 w-full z-[9] pointer-events-none" style={{order: 1002}}>
+              <div className="contents">
                 <div style={{position: 'absolute', inset: '0px', overflow: 'hidden'}}>
                   <div style={{opacity: 1, position: 'absolute', inset: '0px', zIndex: 1, maskImage: 'linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 12.5%, rgb(0, 0, 0) 25%, rgba(0, 0, 0, 0) 37.5%)', borderRadius: '0px', pointerEvents: 'none', backdropFilter: 'blur(0.0390625px)', willChange: 'auto'}}></div>
                   <div style={{opacity: 1, position: 'absolute', inset: '0px', zIndex: 2, maskImage: 'linear-gradient(to top, rgba(0, 0, 0, 0) 12.5%, rgb(0, 0, 0) 25%, rgb(0, 0, 0) 37.5%, rgba(0, 0, 0, 0) 50%)', borderRadius: '0px', pointerEvents: 'none', backdropFilter: 'blur(0.078125px)', willChange: 'auto'}}></div>
