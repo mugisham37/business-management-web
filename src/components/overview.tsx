@@ -63,13 +63,24 @@ const BackgroundImage: React.FC<{ config: ImageConfig }> = ({ config }) => (
 
 const Overview = () => {
   return (
-    <section className="framer-lr7btw" data-framer-name="Overview Section" id="overview">
-      <div className="ssr-variant hidden-187ctmn hidden-72rtr7">
-        <div className="framer-jwkkuz" data-framer-name="Visual" style={{ opacity: 1, transform: 'none' }}>
+    <section 
+      className="relative flex flex-col flex-none flex-nowrap items-center justify-center content-center w-full h-min gap-[23px] overflow-visible px-[100px] pt-10 pb-[50px] z-0 max-[1199px]:max-w-[810px] max-[1199px]:px-10 max-[1199px]:py-0 max-[809px]:px-5 max-[809px]:py-[50px]" 
+      data-framer-name="Overview Section" 
+      id="overview"
+    >
+      <div className="[display:contents]">
+        <div 
+          className="relative flex flex-col flex-none flex-nowrap items-center justify-center content-center w-full h-min max-w-[1100px] min-h-[650px] gap-2.5 overflow-hidden rounded-[15px] px-[50px] pt-[50px] pb-0 z-0 [will-change:var(--framer-will-change-override,transform)] max-[1199px]:h-[467px] max-[1199px]:max-w-[810px] max-[1199px]:min-h-0 max-[1199px]:px-[30px] max-[1199px]:pt-[30px] max-[809px]:h-[380px] max-[809px]:max-w-[580px] max-[809px]:min-h-0 max-[809px]:rounded-[10px] max-[809px]:px-[15px] max-[809px]:pt-[15px]" 
+          data-framer-name="Visual" 
+          style={{ opacity: 1, transform: 'none' }}
+        >
           <BackgroundImage config={images.background} />
-          <div className="framer-1oodw5w" data-framer-name="Image">
+          <div 
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-row flex-none flex-nowrap items-center justify-center content-center w-min h-min min-w-[900px] min-h-[590px] gap-2.5 overflow-hidden p-0 z-0 max-[1199px]:min-w-0 max-[1199px]:min-h-[388px] max-[1199px]:w-full max-[1199px]:overflow-visible max-[809px]:relative max-[809px]:bottom-auto max-[809px]:left-auto max-[809px]:translate-x-0 max-[809px]:min-w-0 max-[809px]:min-h-[308px] max-[809px]:w-full max-[809px]:overflow-visible max-[809px]:z-[1]" 
+            data-framer-name="Image"
+          >
             <div
-              className="framer-13ji8es"
+              className="absolute bottom-0 left-[calc(50%-450px)] flex-none w-[900px] h-[590px] gap-2.5 overflow-hidden rounded-t-[8px] z-0 [will-change:var(--framer-will-change-override,transform)] max-[1199px]:bottom-auto max-[1199px]:top-[calc(43.556701030927854%-219.5px)] max-[1199px]:left-[calc(50%-335px)] max-[1199px]:w-[670px] max-[1199px]:h-[439px] max-[1199px]:rounded-t-[5px] max-[809px]:bottom-auto max-[809px]:top-[calc(51.62337662337665%-186.5px)] max-[809px]:left-[2px] max-[809px]:w-[570px] max-[809px]:h-[373px] max-[809px]:rounded-t-[3px]"
               style={{
                 willChange: 'transform',
                 opacity: 1,

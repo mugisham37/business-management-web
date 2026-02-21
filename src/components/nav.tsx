@@ -1,72 +1,44 @@
 import React from 'react'
 
-// Shared styles
-const commonStyles = {
-    richTextContainer: {
-        outline: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        flexShrink: 0,
-        transform: 'none',
-        opacity: 1
-    } as React.CSSProperties,
-    logoText: {
-        outline: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        flexShrink: 0,
-        '--framer-link-text-color': 'rgb(0, 153, 255)',
-        '--framer-link-text-decoration': 'underline',
-        transform: 'none',
-        opacity: 1
-    } as React.CSSProperties,
-    hamburgerLine: {
-        backgroundColor: 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))',
-        borderRadius: '2px',
-        opacity: 1
-    },
-    svgLogo: {
-        imageRendering: 'pixelated' as const,
-        flexShrink: 0,
-        opacity: 1
-    }
-}
-
 // Menu items configuration
 const menuItems = [
-    { href: './#bento', label: 'Features', className: 'framer-1p0julz' },
-    { href: './blog#hero', label: 'Blog', className: 'framer-163n106' },
-    { href: './changelog#hero', label: 'Changelog', className: 'framer-o66ce6' },
-    { href: './privacy-policy#hero', label: 'Privacy Policy', className: 'framer-18e1rso' },
-    { href: './terms-of-use#hero', label: 'Terms of Use', className: 'framer-6j8c2v' },
-    { href: './contact#hero', label: 'Contact Us', className: 'framer-wlq8v0' }
+    { href: './#bento', label: 'Features' },
+    { href: './blog#hero', label: 'Blog' },
+    { href: './changelog#hero', label: 'Changelog' },
+    { href: './privacy-policy#hero', label: 'Privacy Policy' },
+    { href: './terms-of-use#hero', label: 'Terms of Use' },
+    { href: './contact#hero', label: 'Contact Us' }
 ]
 
 // Logo component (reusable)
 const Logo = () => (
-    <a className="framer-1cjzo3a framer-p63696" data-framer-name="Logo" href="./#hero" style={{ opacity: 1 }}>
-        <div className="framer-sgd7np" data-framer-name="Logo" style={{ opacity: 1 }}>
+    <a 
+        className="flex flex-none flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-start overflow-visible p-0 relative no-underline w-min opacity-100" 
+        href="./#hero"
+    >
+        <div className="flex flex-none flex-row flex-nowrap gap-[7px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
             <div
-                data-framer-component-type="SVG"
-                data-framer-name="Logo"
-                className="framer-1ohfsfr"
+                className="flex-none h-8 relative w-8 shrink-0 opacity-100"
                 aria-hidden="true"
-                style={commonStyles.svgLogo}
+                style={{ imageRendering: 'pixelated' }}
             >
-                <div className="svgContainer" style={{ width: '100%', height: '100%', aspectRatio: 'inherit' }}>
-                    <svg style={{ width: '100%', height: '100%' }}>
+                <div className="w-full h-full" style={{ aspectRatio: 'inherit' }}>
+                    <svg className="w-full h-full">
                         <use href="#svg9326151606"></use>
                     </svg>
                 </div>
             </div>
-            <div
-                className="framer-78ogki"
-                data-framer-component-type="RichTextContainer"
-                style={commonStyles.logoText}
-            >
-                <p className="framer-text framer-styles-preset-33ymlt" data-styles-preset="PjvRqItd1">
+            <div className="flex-none h-auto relative whitespace-pre w-auto flex flex-col justify-start shrink-0 opacity-100">
+                <p 
+                    className="font-['Inter'] text-base font-extrabold text-[#262626] text-left"
+                    style={{ 
+                        letterSpacing: '-0.03em', 
+                        lineHeight: '1.3em',
+                        textTransform: 'none',
+                        textDecoration: 'none',
+                        margin: 0
+                    }}
+                >
                     ReadyLaunch
                 </p>
             </div>
@@ -76,24 +48,33 @@ const Logo = () => (
 
 // Hamburger menu icon
 const HamburgerIcon = () => (
-    <div className="framer-11rauxa" data-framer-name="Icon" data-highlight="true" tabIndex={0} style={{ opacity: 1 }}>
-        <div className="framer-1xlp8vv" style={commonStyles.hamburgerLine}></div>
-        <div
-            className="framer-19861x5"
-            style={{ ...commonStyles.hamburgerLine, transform: 'none', willChange: 'transform' }}
-        ></div>
-        <div
-            className="framer-1inz11v"
-            style={{ ...commonStyles.hamburgerLine, transform: 'none', willChange: 'transform' }}
-        ></div>
+    <div 
+        className="flex flex-none flex-col flex-nowrap gap-1.5 h-[34px] items-center content-center justify-start overflow-visible pt-2 px-0.5 pb-0.5 relative w-[34px] aspect-square cursor-pointer opacity-100" 
+        tabIndex={0}
+    >
+        <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
+        <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
+        <div className="flex-none h-0.5 overflow-hidden relative w-full will-change-transform bg-[#262626] rounded-[2px] opacity-100"></div>
     </div>
 )
 
 // Menu item component
-const MenuItem = ({ href, label, className }: { href: string; label: string; className: string }) => (
-    <div className={className} style={commonStyles.richTextContainer} data-framer-component-type="RichTextContainer">
-        <p className="framer-text framer-styles-preset-1xr3fvf" data-styles-preset="m2bsfzg0F">
-            <a className="framer-text framer-styles-preset-snugd3" data-styles-preset="aNscqUAWr" href={href}>
+const MenuItem = ({ href, label }: { href: string; label: string }) => (
+    <div className="flex-none h-auto relative whitespace-pre w-auto flex flex-col justify-start shrink-0 opacity-100">
+        <p 
+            className="font-['Switzer'] text-sm font-medium text-[#53535c] text-center"
+            style={{
+                letterSpacing: '0em',
+                lineHeight: '1.3em',
+                textTransform: 'none',
+                textDecoration: 'none',
+                margin: 0
+            }}
+        >
+            <a 
+                className="text-[#262626] hover:text-[#38383d] no-underline transition-colors" 
+                href={href}
+            >
                 {label}
             </a>
         </p>
@@ -104,21 +85,18 @@ const Nav = () => {
     return (
         <>
             {/* Mobile Navigation */}
-            <div className="framer-173048b-container" data-framer-layout-hint-center-x="true">
-                <div className="ssr-variant hidden-x4vgtb hidden-c3pthz">
+            <div className="flex-none h-auto md:hidden">
+                <div className="contents">
                     <nav
-                        className="framer-17fFP framer-bXcea framer-EPSpy framer-YbjYQ framer-ae7Kc framer-1ylnvu4 framer-v-rzg46i"
-                        data-framer-name="Phone -Close"
+                        className="flex flex-row flex-nowrap gap-5 h-min items-center content-center justify-center overflow-visible py-[18px] px-5 relative w-[390px] w-full opacity-100"
                         style={{
                             backdropFilter: 'none',
-                            background: 'linear-gradient(180deg, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)) 0%, var(--token-a3f4f8c8-1935-4f74-9fef-7c02dafb6c1f, rgba(0, 0, 0, 0)) 100%)',
-                            width: '100%',
-                            opacity: 1,
+                            background: 'linear-gradient(180deg, rgb(255, 255, 255) 0%, rgba(0, 0, 0, 0) 100%)',
                             willChange: 'auto'
                         }}
                     >
-                        <div className="framer-13ggob1" data-framer-name="Container" style={{ opacity: 1 }}>
-                            <div className="framer-2v0v2m" data-framer-name="Logo" style={{ opacity: 1 }}>
+                        <div className="flex flex-1 flex-row flex-nowrap h-min items-center content-center justify-between overflow-visible p-0 relative w-px z-[1] opacity-100">
+                            <div className="flex flex-none flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-between overflow-visible p-0 relative w-full opacity-100">
                                 <Logo />
                                 <HamburgerIcon />
                             </div>
@@ -128,77 +106,48 @@ const Nav = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="framer-173048b-container" data-framer-layout-hint-center-x="true">
-                <div className="ssr-variant hidden-x4vgtb hidden-824o0y">
+            <div className="flex-none h-auto hidden md:block">
+                <div className="contents">
                     <nav
-                        className="framer-17fFP framer-bXcea framer-EPSpy framer-YbjYQ framer-ae7Kc framer-1ylnvu4 framer-v-1ylnvu4"
-                        data-framer-name="Desktop"
+                        className="flex flex-row flex-nowrap gap-5 h-[70px] items-center content-center justify-center overflow-visible px-10 relative w-[1200px] w-full opacity-100"
                         style={{
                             backdropFilter: 'none',
-                            background: 'linear-gradient(0deg, var(--token-a3f4f8c8-1935-4f74-9fef-7c02dafb6c1f, rgba(0, 0, 0, 0)) 0%, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)) 100%)',
-                            width: '100%',
-                            opacity: 1
+                            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgb(255, 255, 255) 100%)'
                         }}
                     >
-                        <div className="framer-13ggob1" data-framer-name="Container" style={{ opacity: 1 }}>
-                            <div className="framer-2v0v2m" data-framer-name="Logo" style={{ opacity: 1 }}>
+                        <div className="flex flex-1 flex-row flex-nowrap h-min items-center content-center justify-between max-w-[1100px] overflow-visible p-0 relative w-px z-[1] opacity-100">
+                            <div className="flex flex-none flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-start overflow-visible p-0 relative w-min opacity-100">
                                 <Logo />
                             </div>
 
-                            <div className="framer-dldue8" data-framer-name="Menu Item" style={{ opacity: 1 }}>
-                                <div className="framer-118mbmr" data-framer-name="Items" style={{ opacity: 1 }}>
+                            <div className="flex flex-none flex-row flex-nowrap gap-[25px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
+                                <div className="flex flex-none flex-row flex-nowrap gap-[25px] h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
                                     {menuItems.map((item) => (
                                         <MenuItem key={item.href} {...item} />
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="framer-7prfx8-container" style={{ opacity: 1 }}>
+                            <div className="flex-none h-auto relative w-auto opacity-100">
                                 <a
-                                    className="framer-i8Jnw framer-YF6mi framer-1jz64ot framer-v-1alh3iz framer-1jhx1jk"
-                                    data-framer-name="Black"
-                                    data-highlight="true"
-                                    style={{
-                                        '--border-bottom-width': '0px',
-                                        '--border-color': 'rgba(0, 0, 0, 0)',
-                                        '--border-left-width': '0px',
-                                        '--border-right-width': '0px',
-                                        '--border-style': 'solid',
-                                        '--border-top-width': '0px',
-                                        backgroundColor: 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))',
-                                        borderRadius: '20px',
-                                        boxShadow: 'none',
-                                        opacity: 1
-                                    } as React.CSSProperties}
+                                    className="flex flex-row flex-nowrap gap-2.5 h-min items-center content-center justify-center overflow-hidden py-2 px-[18px] relative no-underline w-min cursor-pointer bg-[#262626] rounded-[20px] opacity-100 border-0 shadow-none will-change-transform"
                                     href="https://www.framer.com?via=green13"
                                     target="_blank"
                                     rel="noopener"
                                     tabIndex={0}
                                 >
-                                    <div className="framer-12n0srg" data-framer-name="Container" style={{ opacity: 1 }}>
-                                        <div className="framer-1669q28" data-framer-name="Text" style={{ opacity: 1 }}>
-                                            <div
-                                                className="framer-1fovsuz"
-                                                data-framer-name="Text"
-                                                style={{
-                                                    outline: 'none',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    justifyContent: 'flex-start',
-                                                    flexShrink: 0,
-                                                    '--extracted-r6o4lv': 'var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255))',
-                                                    '--framer-paragraph-spacing': '0px',
-                                                    transform: 'none',
-                                                    opacity: 1
-                                                } as React.CSSProperties}
-                                                data-framer-component-type="RichTextContainer"
-                                            >
+                                    <div className="flex flex-none flex-row flex-nowrap gap-2 h-6 items-center content-center justify-start overflow-visible p-0 relative w-min opacity-100">
+                                        <div className="flex flex-none flex-col flex-nowrap gap-2.5 h-min items-center content-center justify-center overflow-visible p-0 relative w-min opacity-100">
+                                            <div className="flex-none h-auto relative whitespace-pre w-auto z-[1] flex flex-col justify-start shrink-0 opacity-100">
                                                 <p
-                                                    className="framer-text framer-styles-preset-kmaoy8"
-                                                    data-styles-preset="MV92va9oP"
+                                                    className="font-['Switzer'] text-sm font-normal text-white text-center"
                                                     style={{
-                                                        '--framer-text-color': 'var(--extracted-r6o4lv, var(--token-44021ae2-4cdd-419c-805c-4b1fd642bfaa, rgb(255, 255, 255)))'
-                                                    } as React.CSSProperties}
+                                                        letterSpacing: '-0.01em',
+                                                        lineHeight: '1.3em',
+                                                        textTransform: 'none',
+                                                        textDecoration: 'none',
+                                                        margin: 0
+                                                    }}
                                                 >
                                                     Get Started
                                                 </p>

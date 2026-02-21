@@ -280,23 +280,23 @@ const Page = () => {
             <div className="framer-1t98ven" data-framer-name="Container">
                 <div className="framer-1kqptvs" data-framer-appear-id="1kqptvs"
                     data-framer-name="Heading &amp; Supporting Text"
-                    style={{opacity: 1, transform: 'none', willChange: 'transform'}}>
+                    style={{ opacity: 1, transform: 'none', willChange: 'transform' }}>
                     <div className="framer-n75euz" data-framer-name="Heading Container" data-border="true">
                         <div className="framer-1n3w06r-container">
                             <div className="framer-Fhx2V framer-YF6mi framer-18xhfg8 framer-v-18xhfg8"
                                 data-border="true" data-framer-name="Badge"
                                 style={commonStyles.badge}>
-                                <div className="framer-1l1ajhh" data-framer-name="Icon" style={{opacity: 1}}>
+                                <div className="framer-1l1ajhh" data-framer-name="Icon" style={{ opacity: 1 }}>
                                     <svg className="framer-DRv45 framer-qgvfsn" role="presentation"
                                         viewBox="0 0 24 24" style={commonStyles.svgIcon}>
                                         <use href="#4184916183"></use>
                                     </svg>
                                 </div>
                                 <div className="framer-1710qob" data-framer-component-type="RichTextContainer"
-                                    style={{...commonStyles.richTextContainer, '--extracted-r6o4lv': 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))', '--framer-link-text-color': 'rgb(0, 153, 255)', '--framer-link-text-decoration': 'underline'} as React.CSSProperties}>
+                                    style={{ ...commonStyles.richTextContainer, '--extracted-r6o4lv': 'var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38))', '--framer-link-text-color': 'rgb(0, 153, 255)', '--framer-link-text-decoration': 'underline' } as React.CSSProperties}>
                                     <p className="framer-text framer-styles-preset-kmaoy8"
                                         data-styles-preset="MV92va9oP"
-                                        style={{'--framer-text-color': 'var(--extracted-r6o4lv, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38)))'} as React.CSSProperties}>
+                                        style={{ '--framer-text-color': 'var(--extracted-r6o4lv, var(--token-d3c732bc-55cf-476f-8dd2-e130b23f6381, rgb(38, 38, 38)))' } as React.CSSProperties}>
                                         Release Notes
                                     </p>
                                 </div>
@@ -306,7 +306,7 @@ const Page = () => {
                             <div className="framer-1dy02gf" data-framer-name="Container">
                                 <div className="framer-1mbb3cn" data-framer-name="Heading"
                                     data-framer-component-type="RichTextContainer"
-                                    style={{...commonStyles.richTextContainer, flexShrink: 0}}>
+                                    style={{ ...commonStyles.richTextContainer, flexShrink: 0 }}>
                                     <h2 className="framer-text framer-styles-preset-199apa9"
                                         data-styles-preset="Ty6zNsrjE">
                                         See What's New &amp; Improved
@@ -314,7 +314,7 @@ const Page = () => {
                                 </div>
                                 <div className="framer-1axwxta" data-framer-name="Supporting Text"
                                     data-framer-component-type="RichTextContainer"
-                                    style={{...commonStyles.richTextContainer, flexShrink: 0}}>
+                                    style={{ ...commonStyles.richTextContainer, flexShrink: 0 }}>
                                     <p className="framer-text framer-styles-preset-wct5n4"
                                         data-styles-preset="OvgFe4dMx">
                                         Stay up to date with the latest updates, enhancements, and fixes — all in one place.
@@ -325,7 +325,7 @@ const Page = () => {
                     </div>
                 </div>
                 <div className="framer-ppmv40" data-framer-appear-id="ppmv40"
-                    style={{opacity: 1, transform: 'none', willChange: 'transform'}}>
+                    style={{ opacity: 1, transform: 'none', willChange: 'transform' }}>
                     {changelogData.map((entry, index) => (
                         <ChangelogCard key={index} {...entry} />
                     ))}
