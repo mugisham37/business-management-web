@@ -8,7 +8,7 @@ import Hightlight from '../components/hightlight'
 import Pricing from '../components/pricing'
 import Benefits from '../components/benefits'
 import Testimonials from '../components/testimonials'
-import Blog from '../components/blog'
+
 import Faq from '../components/faq'
 
 const page = () => {
@@ -23,7 +23,6 @@ const page = () => {
       <Pricing />
       <Benefits />
       <Testimonials />
-      <Blog />
       <Faq />
     </div>
   )
