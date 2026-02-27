@@ -1,5 +1,5 @@
-import Footer from "@/components/ui/Footer"
-import { Navigation } from "@/components/ui/Navbar"
+import Footer from "@/components/landing/Footer"
+import { Navigation } from "@/components/landing/Navbar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
