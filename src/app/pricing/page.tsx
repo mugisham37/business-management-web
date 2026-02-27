@@ -225,10 +225,10 @@ export default function Pricing() {
         }}
       >
         <Badge>Pricing</Badge>
-        <h1 className="mt-2 inline-block bg-gradient-to-br from-gray-900 to-gray-800 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl dark:from-gray-50 dark:to-gray-300">
+        <h1 className="mt-2 inline-block bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text py-2 text-4xl font-bold tracking-tighter text-transparent sm:text-6xl md:text-6xl">
           Our plans scale with you
         </h1>
-        <p className="mt-6 max-w-2xl text-lg text-gray-700 dark:text-gray-400">
+        <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
           Plans that empower you and your team to ship without friction. Our
           flexible pricing models ensure that efficiency doesn&rsquo;t come at
           the cost of your budget.
@@ -247,7 +247,7 @@ export default function Pricing() {
         <div className="flex items-center justify-center gap-2">
           <Label
             htmlFor="switch"
-            className="text-base font-medium sm:text-sm dark:text-gray-400"
+            className="text-base font-medium text-foreground sm:text-sm"
           >
             Monthly
           </Label>
@@ -262,7 +262,7 @@ export default function Pricing() {
           />
           <Label
             htmlFor="switch"
-            className="text-base font-medium sm:text-sm dark:text-gray-400"
+            className="text-base font-medium text-foreground sm:text-sm"
           >
             Yearly (-20%)
           </Label>
@@ -277,10 +277,10 @@ export default function Pricing() {
                       className="absolute inset-0 flex items-center"
                       aria-hidden="true"
                     >
-                      <div className="w-full border-t border-indigo-600 dark:border-indigo-400" />
+                      <div className="w-full border-t border-primary" />
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="bg-white px-3 text-xs font-medium text-indigo-600 dark:bg-gray-950 dark:text-indigo-400">
+                      <span className="bg-background px-3 text-xs font-medium text-primary">
                         Most popular
                       </span>
                     </div>
@@ -288,27 +288,27 @@ export default function Pricing() {
                 </div>
               ) : (
                 <div className="flex h-4 items-center">
-                  <div className="h-px w-full bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-px w-full bg-border" />
                 </div>
               )}
               <div className="mx-auto max-w-md">
-                <h2 className="mt-6 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                <h2 className="mt-6 text-sm font-semibold text-foreground">
                   {plan.name}
                 </h2>
                 <div className="mt-3 flex items-center gap-x-3">
-                  <span className="text-5xl font-semibold tabular-nums text-gray-900 dark:text-gray-50">
+                  <span className="text-5xl font-semibold tabular-nums text-foreground">
                     {isVariablePrice(plan.price)
                       ? billingFrequency === "monthly"
                         ? plan.price.monthly
                         : plan.price.annually
                       : plan.price}
                   </span>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="text-xs text-muted-foreground">
                     per user <br /> per month
                   </div>
                 </div>
                 <div className="mt-6 flex flex-col justify-between">
-                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                  <p className="text-sm leading-6 text-muted-foreground">
                     {plan.description}
                   </p>
                   <div className="mt-6">
@@ -331,7 +331,7 @@ export default function Pricing() {
                 </div>
                 <ul
                   role="list"
-                  className="mt-8 text-sm text-gray-700 dark:text-gray-400"
+                  className="mt-8 text-sm text-muted-foreground"
                 >
                   {plan.capacity.map((feature, index) => (
                     <li
@@ -340,13 +340,13 @@ export default function Pricing() {
                     >
                       {index === 0 && (
                         <RiUserLine
-                          className="size-4 shrink-0 text-gray-500"
+                          className="size-4 shrink-0 text-muted-foreground"
                           aria-hidden="true"
                         />
                       )}
                       {index === 1 && (
                         <RiCloudLine
-                          className="size-4 shrink-0 text-gray-500"
+                          className="size-4 shrink-0 text-muted-foreground"
                           aria-hidden="true"
                         />
                       )}
@@ -356,7 +356,7 @@ export default function Pricing() {
                 </ul>
                 <ul
                   role="list"
-                  className="mt-4 text-sm text-gray-700 dark:text-gray-400"
+                  className="mt-4 text-sm text-muted-foreground"
                 >
                   {plan.features.map((feature) => (
                     <li
@@ -364,7 +364,7 @@ export default function Pricing() {
                       className="flex items-center gap-x-3 py-1.5"
                     >
                       <RiCheckLine
-                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
+                        className="size-4 shrink-0 text-primary"
                         aria-hidden="true"
                       />
                       <span>{feature}</span>
@@ -394,14 +394,14 @@ export default function Pricing() {
         <div className="mx-auto space-y-8 sm:max-w-md lg:hidden">
           {plans.map((plan) => (
             <div key={plan.name}>
-              <div className="rounded-xl bg-gray-400/5 p-6 ring-1 ring-inset ring-gray-200 dark:ring-gray-800">
+              <div className="rounded-xl bg-muted/50 p-6 ring-1 ring-inset ring-border">
                 <h2
                   id={plan.name}
-                  className="text-base font-semibold leading-6 text-gray-900 dark:text-gray-50"
+                  className="text-base font-semibold leading-6 text-foreground"
                 >
                   {plan.name}
                 </h2>
-                <p className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-normal text-muted-foreground">
                   {isVariablePrice(plan.price)
                     ? `${
                         billingFrequency === "monthly"
@@ -413,14 +413,14 @@ export default function Pricing() {
               </div>
               <ul
                 role="list"
-                className="mt-10 space-y-10 text-sm leading-6 text-gray-900 dark:text-gray-50"
+                className="mt-10 space-y-10 text-sm leading-6 text-foreground"
               >
                 {sections.map((section) => (
                   <li key={section.name}>
                     <h3 className="font-semibold">{section.name}</h3>
                     <ul
                       role="list"
-                      className="mt-2 divide-y divide-gray-200 dark:divide-gray-800"
+                      className="mt-2 divide-y divide-border"
                     >
                       {section.features.map((feature) =>
                         feature.plans[plan.name] ? (
@@ -429,13 +429,13 @@ export default function Pricing() {
                             className="flex gap-x-3 py-2.5"
                           >
                             <RiCheckLine
-                              className="size-5 flex-none text-indigo-600 dark:text-indigo-400"
+                              className="size-5 flex-none text-primary"
                               aria-hidden="true"
                             />
                             <span>
                               {feature.name}{" "}
                               {typeof feature.plans[plan.name] === "string" ? (
-                                <span className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                                <span className="text-sm leading-6 text-muted-foreground">
                                   ({feature.plans[plan.name]})
                                 </span>
                               ) : null}
@@ -456,7 +456,7 @@ export default function Pricing() {
       <section className="mx-auto mt-20">
         <div className="mt-20 hidden sm:mt-28 lg:block">
           <div className="relative">
-            <div className="sticky top-0 z-20 h-28 w-full bg-white dark:bg-gray-950" />
+            <div className="sticky top-0 z-20 h-28 w-full bg-background" />
             <table className="w-full table-fixed border-separate border-spacing-0 text-left">
               <caption className="sr-only">Pricing plan comparison</caption>
               <colgroup>
@@ -469,12 +469,12 @@ export default function Pricing() {
                 <tr>
                   <th
                     scope="col"
-                    className="border-b border-gray-100 bg-white pb-8 dark:border-gray-800 dark:bg-gray-950"
+                    className="border-b border-border/50 bg-background pb-8"
                   >
-                    <div className="font-semibold leading-7 text-gray-900 dark:text-gray-50">
+                    <div className="font-semibold leading-7 text-foreground">
                       Compare prices
                     </div>
-                    <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                    <div className="text-sm font-normal text-muted-foreground">
                       Price per month (billed yearly)
                     </div>
                   </th>
@@ -482,19 +482,19 @@ export default function Pricing() {
                     <th
                       key={plan.name}
                       scope="col"
-                      className="border-b border-gray-100 bg-white px-6 pb-8 lg:px-8 dark:border-gray-800 dark:bg-gray-950"
+                      className="border-b border-border/50 bg-background px-6 pb-8 lg:px-8"
                     >
                       <div
                         className={cx(
                           !plan.isStarter
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-900 dark:text-gray-50",
+                            ? "text-primary"
+                            : "text-foreground",
                           "font-semibold leading-7",
                         )}
                       >
                         {plan.name}
                       </div>
-                      <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                      <div className="text-sm font-normal text-muted-foreground">
                         {isVariablePrice(plan.price)
                           ? `${
                               billingFrequency === "monthly"
@@ -516,7 +516,7 @@ export default function Pricing() {
                         colSpan={4}
                         className={cx(
                           sectionIdx === 0 ? "pt-14" : "pt-10",
-                          "border-b border-gray-100 pb-4 text-base font-semibold leading-6 text-gray-900 dark:border-gray-800 dark:text-gray-50",
+                          "border-b border-border/50 pb-4 text-base font-semibold leading-6 text-foreground",
                         )}
                       >
                         {section.name}
@@ -525,17 +525,17 @@ export default function Pricing() {
                     {section.features.map((feature) => (
                       <tr
                         key={feature.name}
-                        className="transition hover:bg-indigo-50/30 dark:hover:bg-indigo-800/5"
+                        className="transition hover:bg-primary/5"
                       >
                         <th
                           scope="row"
-                          className="flex items-center gap-2 border-b border-gray-100 py-4 text-sm font-normal leading-6 text-gray-900 dark:border-gray-800 dark:text-gray-50"
+                          className="flex items-center gap-2 border-b border-border/50 py-4 text-sm font-normal leading-6 text-foreground"
                         >
                           <span>{feature.name}</span>
                           {feature.tooltip ? (
                             <Tooltip side="right" content={feature.tooltip}>
                               <RiInformationLine
-                                className="size-4 shrink-0 text-gray-700 dark:text-gray-400"
+                                className="size-4 shrink-0 text-muted-foreground"
                                 aria-hidden="true"
                               />
                             </Tooltip>
@@ -544,22 +544,22 @@ export default function Pricing() {
                         {plans.map((plan) => (
                           <td
                             key={plan.name}
-                            className="border-b border-gray-100 px-6 py-4 lg:px-8 dark:border-gray-800"
+                            className="border-b border-border/50 px-6 py-4 lg:px-8"
                           >
                             {typeof feature.plans[plan.name] === "string" ? (
-                              <div className="text-sm leading-6 text-gray-600 dark:text-gray-400">
+                              <div className="text-sm leading-6 text-muted-foreground">
                                 {feature.plans[plan.name]}
                               </div>
                             ) : (
                               <>
                                 {feature.plans[plan.name] === true ? (
                                   <RiCheckLine
-                                    className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
+                                    className="h-5 w-5 text-primary"
                                     aria-hidden="true"
                                   />
                                 ) : (
                                   <RiSubtractLine
-                                    className="h-5 w-5 text-gray-400 dark:text-gray-600"
+                                    className="h-5 w-5 text-muted-foreground/60"
                                     aria-hidden="true"
                                   />
                                 )}
@@ -581,7 +581,7 @@ export default function Pricing() {
                 <tr>
                   <th
                     scope="row"
-                    className="pt-6 text-sm font-normal leading-6 text-gray-900 dark:text-gray-50"
+                    className="pt-6 text-sm font-normal leading-6 text-foreground"
                   >
                     <span className="sr-only">Link to activate plan</span>
                   </th>
@@ -602,7 +602,7 @@ export default function Pricing() {
                         <Button
                           variant="ghost"
                           asChild
-                          className="group bg-transparent px-0 text-base text-indigo-600 hover:bg-transparent dark:bg-transparent dark:text-indigo-400 hover:dark:bg-transparent"
+                          className="group bg-transparent px-0 text-base text-primary hover:bg-transparent dark:bg-transparent hover:dark:bg-transparent"
                         >
                           <Link href={plan.buttonLink}>
                             {plan.buttonText}

@@ -9,6 +9,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -85,6 +86,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -205,6 +207,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -258,6 +261,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -316,6 +320,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -374,6 +379,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <path
@@ -430,6 +436,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <circle cx="16" cy="18" r="14" stroke="currentColor" strokeWidth="4" />
@@ -480,6 +487,7 @@ export const Logos = {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
+      className="text-muted-foreground"
       {...props}
     >
       <rect y="19.2" width="9.59998" height="9.59999" fill="currentColor" />
