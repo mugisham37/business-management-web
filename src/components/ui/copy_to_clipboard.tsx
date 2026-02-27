@@ -1,10 +1,20 @@
 "use client"
 
-import { RiCheckLine, RiFileCopy2Line } from "@remixicon/react"
-import React from "react"
+import * as React from "react"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
+import { cn } from "@/lib/utils"
 
-export default function CopyToClipboard({ code }: { code: string }) {
+interface CopyToClipboardProps {
+  code: string
+  className?: string
+}
+
+export default function CopyToClipboard({ 
+  code, 
+  className 
+}: CopyToClipboardProps) {
   const [copied, setCopied] = React.useState(false)
+
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(code)
@@ -20,13 +30,38 @@ export default function CopyToClipboard({ code }: { code: string }) {
 
   return (
     <button
+      type="button"
       onClick={copyToClipboard}
-      className="select-none rounded border border-white/10 bg-white/20 p-1.5 backdrop-blur-xl"
+      aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
+      className={cn(
+        "select-none rounded-md border p-1.5 transition-all",
+        "border-border/50 bg-muted/50 backdrop-blur",
+        "hover:bg-muted hover:border-border",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        className
+      )}
     >
       {!copied ? (
-        <RiFileCopy2Line aria-hidden="true" className="size-5 text-white" />
+        <IconPlaceholder
+          lucide="CopyIcon"
+          tabler="IconCopy"
+          hugeicons="Copy01Icon"
+          phosphor="CopyIcon"
+          remixicon="RiFileCopy2Line"
+          aria-hidden="true"
+          className="size-5 text-foreground"
+        />
       ) : (
-        <RiCheckLine aria-hidden="true" className="size-5 text-white" />
+        <IconPlaceholder
+          lucide="CheckIcon"
+          tabler="IconCheck"
+          hugeicons="Tick02Icon"
+          phosphor="CheckIcon"
+          remixicon="RiCheckLine"
+          aria-hidden="true"
+          className="size-5 text-foreground"
+        />
       )}
     </button>
   )

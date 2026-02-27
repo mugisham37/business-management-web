@@ -16,7 +16,7 @@ import {
   useState,
 } from "react"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 // Types
 type StepperOrientation = "horizontal" | "vertical"

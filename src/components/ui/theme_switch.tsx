@@ -1,5 +1,5 @@
 "use client"
-import { cx, focusRing } from "@/lib/utils"
+import { cn, focusRing } from "@/lib/utils"
 import * as RadioGroupPrimitives from "@radix-ui/react-radio-group"
 import { RiComputerLine, RiMoonLine, RiSunLine } from "@remixicon/react"
 import { useTheme } from "next-themes"
@@ -14,7 +14,7 @@ const RadioGroup = React.forwardRef<
   return (
     <RadioGroupPrimitives.Root
       ref={forwardedRef}
-      className={cx("grid gap-2", className)}
+      className={cn("grid gap-2", className)}
       {...props}
     />
   )
@@ -31,20 +31,22 @@ const RadioGroupItem = React.forwardRef<
   return (
     <RadioGroupPrimitives.Item
       ref={forwardedRef}
-      className={cx(
+      className={cn(
         "group relative flex size-8 appearance-none items-center justify-center outline-none",
         className,
       )}
       {...props}
     >
       <div
-        className={cx(
+        className={cn(
           // base
-          "flex size-full shrink-0 items-center justify-center rounded-lg text-gray-700 dark:text-gray-400",
+          "flex size-full shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors",
           // background color
           "bg-transparent",
+          // hover
+          "hover:bg-muted/50",
           // checked
-          "group-data-[state=checked]:bg-indigo-50 group-data-[state=checked]:text-indigo-600 dark:group-data-[state=checked]:bg-indigo-500/20 dark:group-data-[state=checked]:text-indigo-300",
+          "group-data-[state=checked]:bg-primary/10 group-data-[state=checked]:text-primary",
           // focus
           focusRing,
         )}

@@ -1,30 +1,95 @@
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "cn-button inline-flex items-center justify-center whitespace-nowrap  transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none group/button select-none",
+  [
+    // base
+    "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg border text-center text-sm font-medium shadow-sm transition-all duration-100 ease-in-out",
+    // disabled
+    "disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
+    // focus
+    "outline outline-offset-2 outline-0 focus-visible:outline-2 outline-ring",
+    // svg handling
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+    // group and selection
+    "group/button select-none",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "cn-button-variant-default",
-        outline: "cn-button-variant-outline",
-        secondary: "cn-button-variant-secondary",
-        ghost: "cn-button-variant-ghost",
-        destructive: "cn-button-variant-destructive",
-        link: "cn-button-variant-link",
+        default: [
+          // border
+          "border-transparent",
+          // colors using CSS variables
+          "bg-primary text-primary-foreground",
+          // hover
+          "hover:bg-primary/90",
+        ].join(" "),
+        primary: [
+          // border
+          "border-transparent",
+          // colors using CSS variables
+          "bg-primary text-primary-foreground",
+          // hover
+          "hover:bg-primary/90",
+        ].join(" "),
+        secondary: [
+          // border
+          "border-border",
+          // colors using CSS variables
+          "bg-secondary text-secondary-foreground",
+          // hover
+          "hover:bg-secondary/80",
+        ].join(" "),
+        outline: [
+          // border
+          "border-border",
+          // colors using CSS variables
+          "bg-background text-foreground",
+          // hover
+          "hover:bg-accent hover:text-accent-foreground",
+        ].join(" "),
+        ghost: [
+          // base
+          "shadow-none",
+          // border
+          "border-transparent",
+          // colors using CSS variables
+          "bg-transparent text-foreground",
+          // hover
+          "hover:bg-accent hover:text-accent-foreground",
+        ].join(" "),
+        link: [
+          // base
+          "shadow-none",
+          // border
+          "border-transparent",
+          // colors using CSS variables
+          "bg-transparent text-primary",
+          // hover
+          "hover:underline",
+        ].join(" "),
+        destructive: [
+          // border
+          "border-transparent",
+          // colors using CSS variables
+          "bg-destructive text-destructive-foreground",
+          // hover
+          "hover:bg-destructive/90",
+        ].join(" "),
       },
       size: {
-        default: "cn-button-size-default",
-        xs: "cn-button-size-xs",
-        sm: "cn-button-size-sm",
-        lg: "cn-button-size-lg",
-        icon: "cn-button-size-icon",
-        "icon-xs": "cn-button-size-icon-xs",
-        "icon-sm": "cn-button-size-icon-sm",
-        "icon-lg": "cn-button-size-icon-lg",
+        default: "h-10 px-4 py-2",
+        xs: "h-7 px-2 text-xs",
+        sm: "h-9 px-3 text-sm",
+        lg: "h-11 px-8 text-base",
+        icon: "h-10 w-10",
+        "icon-xs": "h-7 w-7",
+        "icon-sm": "h-9 w-9",
+        "icon-lg": "h-11 w-11",
       },
     },
     defaultVariants: {
@@ -33,124 +98,6 @@ const buttonVariants = cva(
     },
   }
 )
-
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot.Root : "button"
-
-  return (
-    <Comp
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
-}
-
-export { Button, buttonVariants }
-// Tremor Button [v0.2.0]
-
-import { Slot } from "@radix-ui/react-slot"
-import { RiLoader2Fill } from "@remixicon/react"
-import React from "react"
-import { tv, type VariantProps } from "tailwind-variants"
-
-import { cx, focusRing } from "@/lib/utils"
-
-const buttonVariants = tv({
-  base: [
-    // base
-    "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg border px-3 py-2 text-center text-sm font-medium shadow-sm transition-all duration-100 ease-in-out",
-    // disabled
-    "disabled:pointer-events-none disabled:shadow-none",
-    // focus
-    focusRing,
-  ],
-  variants: {
-    variant: {
-      primary: [
-        // border
-        "border-transparent",
-        // text color
-        "text-white dark:text-white",
-        // background color
-        "bg-indigo-600 dark:bg-indigo-500",
-        // hover color
-        "hover:bg-indigo-700 dark:hover:bg-indigo-400",
-        // disabled
-        "disabled:bg-indigo-100 disabled:text-indigo-400",
-        "disabled:dark:bg-indigo-800 disabled:dark:text-indigo-600",
-      ],
-      secondary: [
-        // border
-        "border-gray-300 dark:border-gray-800",
-        // text color
-        "text-gray-900 dark:text-gray-50",
-        // background color
-        "bg-white dark:bg-gray-950",
-        //hover color
-        "hover:bg-gray-50 dark:hover:bg-gray-900/60",
-        // disabled
-        "disabled:text-gray-400",
-        "disabled:dark:text-gray-600",
-      ],
-      light: [
-        // base
-        "shadow-none",
-        // border
-        "border-transparent",
-        // text color
-        "text-gray-900 dark:text-gray-50",
-        // background color
-        "bg-gray-200 dark:bg-gray-900",
-        // hover color
-        "hover:bg-gray-300/70 dark:hover:bg-gray-800/80",
-        // disabled
-        "disabled:bg-gray-100 disabled:text-gray-400",
-        "disabled:dark:bg-gray-800 disabled:dark:text-gray-600",
-      ],
-      ghost: [
-        // base
-        "shadow-none",
-        // border
-        "border-transparent",
-        // text color
-        "text-gray-900 dark:text-gray-50",
-        // hover color
-        "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800/80",
-        // disabled
-        "disabled:text-gray-400",
-        "disabled:dark:text-gray-600",
-      ],
-      destructive: [
-        // text color
-        "text-white",
-        // border
-        "border-transparent",
-        // background color
-        "bg-red-600 dark:bg-red-700",
-        // hover color
-        "hover:bg-red-700 dark:hover:bg-red-600",
-        // disabled
-        "disabled:bg-red-300 disabled:text-white",
-        "disabled:dark:bg-red-950 disabled:dark:text-red-400",
-      ],
-    },
-  },
-  defaultVariants: {
-    variant: "primary",
-  },
-})
 
 interface ButtonProps
   extends React.ComponentPropsWithoutRef<"button">,
@@ -163,32 +110,53 @@ interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      asChild,
+      className,
+      variant,
+      size,
+      asChild = false,
       isLoading = false,
       loadingText,
-      className,
       disabled,
-      variant,
       children,
       ...props
-    }: ButtonProps,
-    forwardedRef,
+    },
+    ref
   ) => {
-    const Component = asChild ? Slot : "button"
+    const Comp = asChild ? Slot : "button"
+
     return (
-      <Component
-        ref={forwardedRef}
-        className={cx(buttonVariants({ variant }), className)}
+      <Comp
+        ref={ref}
+        className={cn(buttonVariants({ variant, size }), className)}
         disabled={disabled || isLoading}
-        tremor-id="tremor-raw"
+        data-slot="button"
+        data-variant={variant}
+        data-size={size}
         {...props}
       >
         {isLoading ? (
           <span className="pointer-events-none flex shrink-0 items-center justify-center gap-1.5">
-            <RiLoader2Fill
+            <svg
               className="size-4 shrink-0 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
               aria-hidden="true"
-            />
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
             <span className="sr-only">
               {loadingText ? loadingText : "Loading"}
             </span>
@@ -197,9 +165,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           children
         )}
-      </Component>
+      </Comp>
     )
-  },
+  }
 )
 
 Button.displayName = "Button"

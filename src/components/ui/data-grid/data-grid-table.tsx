@@ -1,7 +1,7 @@
 "use client"
 
 import { CSSProperties, Fragment, ReactNode } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
+import { useDataGrid } from "@/components/ui/data-grid/data-grid"
 import {
   Cell,
   Column,
@@ -12,8 +12,8 @@ import {
 } from "@tanstack/react-table"
 import { cva } from "class-variance-authority"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Checkbox } from "@/components/reui/registry/bases/radix/ui/checkbox"
+import { cn } from "@/lib/utils"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const headerCellSpacingVariants = cva("", {
   variants: {

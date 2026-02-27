@@ -42,10 +42,10 @@ import {
   type AnimateLayoutChanges,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Slot } from "radix-ui"
+import { Slot } from "@radix-ui/react-slot"
 import { createPortal } from "react-dom"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface KanbanContextProps<T> {
   columns: Record<string, T[]>
@@ -353,7 +353,7 @@ function Kanban<T>({
     ]
   )
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <KanbanContext.Provider value={contextValue}>
@@ -394,7 +394,7 @@ function KanbanBoard({
   ...props
 }: KanbanBoardProps) {
   const { columnIds } = useContext(KanbanContext)
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <SortableContext items={columnIds} strategy={rectSortingStrategy}>
@@ -446,7 +446,7 @@ function KanbanColumn({
     transform: CSS.Transform.toString(transform),
   } as CSSProperties
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   if (isOverlay) {
     return (
@@ -511,7 +511,7 @@ function KanbanColumnHandle({
   const { attributes, listeners, isDragging, disabled } =
     useContext(ColumnContext)
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp
@@ -569,7 +569,7 @@ function KanbanItem({
     transform: CSS.Transform.toString(transform),
   } as CSSProperties
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   if (isOverlay) {
     return (
@@ -628,7 +628,7 @@ function KanbanItemHandle({
 }: KanbanItemHandleProps) {
   const { listeners, isDragging, disabled } = useContext(ItemContext)
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp
@@ -666,7 +666,7 @@ function KanbanColumnContent({
     [columns, getItemId, value]
   )
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>

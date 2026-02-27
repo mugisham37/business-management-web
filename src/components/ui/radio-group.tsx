@@ -1,53 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
-
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-
-function RadioGroup({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
-  return (
-    <RadioGroupPrimitive.Root
-      data-slot="radio-group"
-      className={cn("cn-radio-group w-full", className)}
-      {...props}
-    />
-  )
-}
-
-function RadioGroupItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
-  return (
-    <RadioGroupPrimitive.Item
-      data-slot="radio-group-item"
-      className={cn(
-        "cn-radio-group-item group/radio-group-item peer relative aspect-square shrink-0 border outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      <RadioGroupPrimitive.Indicator
-        data-slot="radio-group-indicator"
-        className="cn-radio-group-indicator"
-      >
-        <span className="cn-radio-group-indicator-icon" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
-  )
-}
-
-export { RadioGroup, RadioGroupItem }
-// Tremor RadioGroup [v0.0.2]
-
 import * as RadioGroupPrimitives from "@radix-ui/react-radio-group"
-import React from "react"
 
-import { cx, focusRing } from "@/lib/utils"
+import { cn, focusRing } from "@/lib/utils"
 
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitives.Root>,
@@ -56,8 +12,8 @@ const RadioGroup = React.forwardRef<
   return (
     <RadioGroupPrimitives.Root
       ref={forwardedRef}
-      className={cx("grid gap-2", className)}
-      tremor-id="tremor-raw"
+      data-slot="radio-group"
+      className={cn("grid gap-2", className)}
       {...props}
     />
   )
@@ -72,17 +28,18 @@ const RadioGroupIndicator = React.forwardRef<
   return (
     <RadioGroupPrimitives.Indicator
       ref={forwardedRef}
-      className={cx("flex items-center justify-center", className)}
+      data-slot="radio-group-indicator"
+      className={cn("flex items-center justify-center", className)}
       {...props}
     >
       <div
-        className={cx(
+        className={cn(
           // base
           "size-1.5 shrink-0 rounded-full",
           // indicator
-          "bg-white",
+          "bg-primary-foreground",
           // disabled
-          "group-data-[disabled]:bg-gray-400 group-data-[disabled]:dark:bg-gray-500",
+          "group-data-[disabled]:bg-muted-foreground",
         )}
       />
     </RadioGroupPrimitives.Indicator>
@@ -98,26 +55,25 @@ const RadioGroupItem = React.forwardRef<
   return (
     <RadioGroupPrimitives.Item
       ref={forwardedRef}
-      className={cx(
+      data-slot="radio-group-item"
+      className={cn(
         "group relative flex size-4 appearance-none items-center justify-center outline-none",
         className,
       )}
       {...props}
     >
       <div
-        className={cx(
+        className={cn(
           // base
           "flex size-4 shrink-0 items-center justify-center rounded-full border shadow-sm",
           // border color
-          "border-gray-300 dark:border-gray-800",
+          "border-border",
           // background color
-          "bg-white dark:bg-gray-950",
+          "bg-background",
           // checked
-          "group-data-[state=checked]:border-0 group-data-[state=checked]:border-transparent group-data-[state=checked]:bg-indigo-500",
+          "group-data-[state=checked]:border-0 group-data-[state=checked]:border-transparent group-data-[state=checked]:bg-primary",
           // disabled
-          "group-data-[disabled]:border",
-          "group-data-[disabled]:border-gray-300 group-data-[disabled]:bg-gray-100 group-data-[disabled]:text-gray-400",
-          "group-data-[disabled]:dark:border-gray-700 group-data-[disabled]:dark:bg-gray-800",
+          "group-data-[disabled]:border group-data-[disabled]:border-border group-data-[disabled]:bg-muted group-data-[disabled]:text-muted-foreground",
           // focus
           focusRing,
         )}

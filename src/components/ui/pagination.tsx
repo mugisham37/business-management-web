@@ -1,8 +1,8 @@
 import * as React from "react"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -72,7 +72,6 @@ function PaginationPrevious({
   return (
     <PaginationLink
       aria-label="Go to previous page"
-      size="default"
       className={cn("cn-pagination-previous", className)}
       {...props}
     >
@@ -100,7 +99,6 @@ function PaginationNext({
   return (
     <PaginationLink
       aria-label="Go to next page"
-      size="default"
       className={cn("cn-pagination-next", className)}
       {...props}
     >

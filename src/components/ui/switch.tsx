@@ -1,120 +1,54 @@
 "use client"
 
 import * as React from "react"
-import { Switch as SwitchPrimitive } from "radix-ui"
+import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
-function Switch({
-  className,
-  size = "default",
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root> & {
+interface SwitchProps extends React.ComponentProps<typeof SwitchPrimitive.Root> {
   size?: "sm" | "default"
-}) {
+}
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitive.Root>,
+  SwitchProps
+>(({ className, size = "default", ...props }, ref) => {
   return (
     <SwitchPrimitive.Root
+      ref={ref}
       data-slot="switch"
       data-size={size}
       className={cn(
-        "cn-switch peer group/switch relative inline-flex items-center transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        // Base styles
+        "peer group/switch relative inline-flex shrink-0 cursor-pointer items-center rounded-full transition-all outline-none",
+        // Focus ring using global CSS variables
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        // Background colors using CSS variables
+        "bg-muted",
+        // Checked state
+        "data-[state=checked]:bg-primary",
+        // Disabled state
+        "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+        // Size variants
+        size === "default" && "h-5 w-9 p-0.5",
+        size === "sm" && "h-4 w-7 p-0.5",
         className
       )}
       {...props}
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        className="cn-switch-thumb pointer-events-none block ring-0 transition-transform"
+        className={cn(
+          // Base styles
+          "pointer-events-none block rounded-full transition-transform duration-150 ease-in-out",
+          // Background using CSS variables
+          "bg-background shadow-sm",
+          // Size variants
+          size === "default" && "h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0",
+          size === "sm" && "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
+        )}
       />
     </SwitchPrimitive.Root>
-  )
-}
-
-export { Switch }
-// Tremor Switch [v0.0.1]
-
-import * as SwitchPrimitives from "@radix-ui/react-switch"
-import React from "react"
-import { tv, VariantProps } from "tailwind-variants"
-
-import { cx, focusRing } from "@/lib/utils"
-
-const switchVariants = tv({
-  slots: {
-    root: [
-      // base
-      "group relative isolate inline-flex shrink-0 cursor-pointer items-center rounded-full p-0.5 shadow-inner outline-none ring-1 ring-inset transition-all",
-      "bg-gray-200 dark:bg-gray-950",
-      // ring color
-      "ring-black/5 dark:ring-gray-800",
-      // checked
-      "data-[state=checked]:bg-indigo-500 data-[state=checked]:dark:bg-indigo-500",
-      // disabled
-      "data-[disabled]:cursor-default",
-      // disabled checked
-      "data-[disabled]:data-[state=checked]:bg-indigo-200",
-      "data-[disabled]:data-[state=checked]:ring-gray-300",
-      // disabled checked dark
-      "data-[disabled]:data-[state=checked]:dark:ring-gray-900",
-      "data-[disabled]:data-[state=checked]:dark:bg-indigo-900",
-      // disabled unchecked
-      "data-[disabled]:data-[state=unchecked]:ring-gray-300",
-      "data-[disabled]:data-[state=unchecked]:bg-gray-100",
-      // disabled unchecked dark
-      "data-[disabled]:data-[state=unchecked]:dark:ring-gray-700",
-      "data-[disabled]:data-[state=unchecked]:dark:bg-gray-800",
-      focusRing,
-    ],
-    thumb: [
-      // base
-      "pointer-events-none relative inline-block transform appearance-none rounded-full border-none shadow-lg outline-none transition-all duration-150 ease-in-out focus:border-none focus:outline-none focus:outline-transparent",
-      // background color
-      "bg-white dark:bg-gray-50",
-      // disabled
-      "group-data-[disabled]:shadow-none",
-      "group-data-[disabled]:bg-gray-50 group-data-[disabled]:dark:bg-gray-500",
-    ],
-  },
-  variants: {
-    size: {
-      default: {
-        root: "h-5 w-9",
-        thumb:
-          "h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0",
-      },
-      small: {
-        root: "h-4 w-7",
-        thumb:
-          "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0",
-      },
-    },
-  },
-  defaultVariants: {
-    size: "default",
-  },
-})
-
-interface SwitchProps
-  extends Omit<
-      React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>,
-      "asChild"
-    >,
-    VariantProps<typeof switchVariants> {}
-
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  SwitchProps
->(({ className, size, ...props }: SwitchProps, forwardedRef) => {
-  const { root, thumb } = switchVariants({ size })
-  return (
-    <SwitchPrimitives.Root
-      ref={forwardedRef}
-      className={cx(root(), className)}
-      tremor-id="tremor-raw"
-      {...props}
-    >
-      <SwitchPrimitives.Thumb className={cx(thumb())} />
-    </SwitchPrimitives.Root>
   )
 })
 

@@ -10,8 +10,8 @@ import {
 import * as BasePhoneInput from "react-phone-number-input"
 import flags from "react-phone-number-input/flags"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Combobox,
   ComboboxContent,
@@ -22,10 +22,10 @@ import {
   ComboboxSeparator,
   ComboboxTrigger,
   ComboboxValue,
-} from "@/components/reui/registry/bases/radix/ui/combobox"
-import { Input } from "@/components/reui/registry/bases/radix/ui/input"
-import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+} from "@/components/ui/combobox"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 type PhoneInputSize = "sm" | "default" | "lg"
 
@@ -79,7 +79,7 @@ function PhoneInput({
         inputComponent={InputComponent}
         smartCaret={false}
         value={value || undefined}
-        onChange={(value) => onChange?.(value || ("" as BasePhoneInput.Value))}
+        onChange={(value: BasePhoneInput.Value | undefined) => onChange?.(value || ("" as BasePhoneInput.Value))}
         {...props}
       />
     </PhoneInputContext.Provider>
@@ -92,11 +92,9 @@ function InputComponent({ className, ...props }: ComponentProps<typeof Input>) {
   return (
     <Input
       className={cn(
-        "style-vega:rounded-s-none style-maia:rounded-s-none style-nova:rounded-s-none style-lyra:rounded-s-none style-mira:rounded-s-none focus:z-1",
-        variant === "sm" &&
-          "style-vega:h-8 style-maia:h-8 style-nova:h-7 style-lyra:h-7 style-mira:h-6",
-        variant === "lg" &&
-          "style-vega:h-10 style-maia:h-10 style-nova:h-9 style-lyra:h-9 style-mira:h-8",
+        "rounded-s-none focus:z-10",
+        variant === "sm" && "h-8",
+        variant === "lg" && "h-11",
         className
       )}
       {...props}
@@ -131,47 +129,46 @@ function CountrySelect({
 
   return (
     <Combobox
-      items={filteredCountries}
       value={selectedCountry || ""}
-      onValueChange={(country: BasePhoneInput.Country | null) => {
-        if (country) {
-          onChange(country)
+      onValueChange={(country: string | string[]) => {
+        const countryCode = Array.isArray(country) ? country[0] : country
+        if (countryCode) {
+          onChange(countryCode as BasePhoneInput.Country)
         }
       }}
     >
-      <ComboboxTrigger
-        render={
-          <Button
-            variant="outline"
-            size={variant}
-            className={cn(
-              "style-vega:rounded-s-md style-vega:rounded-e-none style-maia:rounded-s-4xl style-maia:rounded-e-none style-nova:rounded-s-lg style-nova:rounded-e-none style-lyra:rounded-s-none style-lyra:rounded-e-none style-mira:rounded-s-md style-mira:rounded-e-none style-vega:shadow-xs style-vega:shadow-black/5 flex gap-1 border-e-0 px-2.5 py-0 leading-none hover:bg-transparent focus:z-10 data-pressed:bg-transparent",
-              disabled && "opacity-50"
-            )}
-            disabled={disabled}
-          >
-            <span className="sr-only">
-              <ComboboxValue />
-            </span>
-            <FlagComponent
-              country={selectedCountry}
-              countryName={selectedCountry}
-            />
-          </Button>
-        }
-      />
+      <Button
+        variant="outline"
+        size={variant}
+        className={cn(
+          "rounded-s-md rounded-e-none flex gap-1 border-e-0 px-2.5 py-0 leading-none hover:bg-transparent focus:z-10",
+          disabled && "opacity-50"
+        )}
+        disabled={disabled}
+        asChild
+      >
+        <ComboboxTrigger>
+          <span className="sr-only">
+            <ComboboxValue />
+          </span>
+          <FlagComponent
+            country={selectedCountry}
+            countryName={selectedCountry}
+          />
+        </ComboboxTrigger>
+      </Button>
       <ComboboxContent
         className={cn(
-          "w-xs *:data-[slot=input-group]:bg-transparent",
+          "w-xs",
           popupClassName
         )}
       >
         <ComboboxInput
           placeholder="e.g. United States"
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
           showTrigger={false}
-          className="border-input focus-visible:border-border rounded-none border-0 px-0 py-2.5 shadow-none ring-0! outline-none! focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="rounded-none border-0 px-0 py-2.5 shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         <ComboboxSeparator />
         <ComboboxEmpty className="px-4 py-2.5 text-sm">
@@ -180,7 +177,7 @@ function CountrySelect({
         <ComboboxList>
           <div className="relative flex max-h-full">
             <div className="flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain">
-              <ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
+              <ScrollArea className="size-full min-h-0">
                 {filteredCountries.map((item: CountryEntry) =>
                   item.value ? (
                     <ComboboxItem
@@ -193,7 +190,7 @@ function CountrySelect({
                         countryName={item.label}
                       />
                       <span className="flex-1 text-sm">{item.label}</span>
-                      <span className="text-foreground/50 text-sm">
+                      <span className="text-muted-foreground text-sm">
                         {`+${BasePhoneInput.getCountryCallingCode(item.value)}`}
                       </span>
                     </ComboboxItem>

@@ -1,7 +1,7 @@
 "use client"
 
 import { CSSProperties, Fragment, useId, useRef } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
+import { useDataGrid } from "@/components/ui/data-grid/data-grid"
 import {
   DataGridTableBase,
   DataGridTableBody,
@@ -16,7 +16,7 @@ import {
   DataGridTableHeadRowCell,
   DataGridTableHeadRowCellResize,
   DataGridTableRowSpacer,
-} from "@/components/reui/data-grid/data-grid-table"
+} from "@/components/ui/data-grid/data-grid-table"
 import {
   closestCenter,
   DndContext,
@@ -42,8 +42,8 @@ import {
   Row,
 } from "@tanstack/react-table"
 
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { Button } from "@/components/ui/button"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function DataGridTableDndHeader<TData>({
   header,
@@ -191,7 +191,7 @@ function DataGridTableDnd<TData>({
           <DataGridTableHead>
             {table
               .getHeaderGroups()
-              .map((headerGroup: HeaderGroup<TData>, index) => {
+              .map((headerGroup: HeaderGroup<TData>, index: number) => {
                 return (
                   <DataGridTableHeadRow headerGroup={headerGroup} key={index}>
                     <SortableContext
@@ -218,9 +218,9 @@ function DataGridTableDnd<TData>({
             {props.loadingMode === "skeleton" &&
             isLoading &&
             pagination?.pageSize ? (
-              Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
+              Array.from({ length: pagination.pageSize }).map((_, rowIndex: number) => (
                 <DataGridTableBodyRowSkeleton key={rowIndex}>
-                  {table.getVisibleFlatColumns().map((column, colIndex) => {
+                  {table.getVisibleFlatColumns().map((column, colIndex: number) => {
                     return (
                       <DataGridTableBodyRowSkeletonCell
                         column={column}

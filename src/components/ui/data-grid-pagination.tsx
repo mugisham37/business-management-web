@@ -1,19 +1,18 @@
 "use client"
 
 import { ReactNode } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
-
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { useDataGrid } from "@/components/ui/data-grid/data-grid"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/reui/registry/bases/radix/ui/select"
-import { Skeleton } from "@/components/reui/registry/bases/radix/ui/skeleton"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+} from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 interface DataGridPaginationProps {
   sizes?: number[]

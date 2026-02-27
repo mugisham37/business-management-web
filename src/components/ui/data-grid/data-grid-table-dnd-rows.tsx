@@ -8,7 +8,7 @@ import {
   useMemo,
   useRef,
 } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
+import { useDataGrid } from "@/components/ui/data-grid/data-grid"
 import {
   DataGridTableBase,
   DataGridTableBody,
@@ -22,7 +22,7 @@ import {
   DataGridTableHeadRowCell,
   DataGridTableHeadRowCellResize,
   DataGridTableRowSpacer,
-} from "@/components/reui/data-grid/data-grid-table"
+} from "@/components/ui/data-grid/data-grid-table"
 import {
   closestCenter,
   DndContext,
@@ -35,7 +35,6 @@ import {
   type DragEndEvent,
   type Modifier,
 } from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
   SortableContext,
   useSortable,
@@ -45,8 +44,41 @@ import { CSS } from "@dnd-kit/utilities"
 import { Cell, flexRender, HeaderGroup, Row } from "@tanstack/react-table"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { Button } from "@/components/ui/button"
+
+// Vertical axis restriction modifier (replaces @dnd-kit/modifiers)
+const restrictToVerticalAxis: Modifier = ({ transform }) => {
+  return {
+    ...transform,
+    x: 0,
+  }
+}
+
+// Grip icon component for drag handle
+function GripHorizontalIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="12" r="1" />
+      <circle cx="9" cy="5" r="1" />
+      <circle cx="9" cy="19" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="15" cy="5" r="1" />
+      <circle cx="15" cy="19" r="1" />
+    </svg>
+  )
+}
 
 // Context to share sortable listeners from row to handle
 type SortableContextValue = ReturnType<typeof useSortable>
@@ -70,13 +102,7 @@ function DataGridTableDndRowHandle({ className }: { className?: string }) {
         )}
         disabled
       >
-        <IconPlaceholder
-          lucide="GripHorizontalIcon"
-          tabler="IconGripHorizontal"
-          hugeicons="DragDropHorizontalIcon"
-          phosphor="DotsSixIcon"
-          remixicon="RiDraggable"
-        />
+        <GripHorizontalIcon />
       </Button>
     )
   }
@@ -92,13 +118,7 @@ function DataGridTableDndRowHandle({ className }: { className?: string }) {
       {...context.attributes}
       {...context.listeners}
     >
-      <IconPlaceholder
-        lucide="GripHorizontalIcon"
-        tabler="IconGripHorizontal"
-        hugeicons="DragDropHorizontalIcon"
-        phosphor="DotsSixIcon"
-        remixicon="RiDraggable"
-      />
+      <GripHorizontalIcon />
     </Button>
   )
 }
@@ -200,14 +220,14 @@ function DataGridTableDndRows<TData>({
           <DataGridTableHead>
             {table
               .getHeaderGroups()
-              .map((headerGroup: HeaderGroup<TData>, index) => {
+              .map((headerGroup: HeaderGroup<TData>, index: number) => {
                 return (
                   <DataGridTableHeadRow headerGroup={headerGroup} key={index}>
-                    {headerGroup.headers.map((header, index) => {
+                    {headerGroup.headers.map((header, headerIndex: number) => {
                       const { column } = header
 
                       return (
-                        <DataGridTableHeadRowCell header={header} key={index}>
+                        <DataGridTableHeadRowCell header={header} key={headerIndex}>
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -236,7 +256,7 @@ function DataGridTableDndRows<TData>({
             pagination?.pageSize ? (
               Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
                 <DataGridTableBodyRowSkeleton key={rowIndex}>
-                  {table.getVisibleFlatColumns().map((column, colIndex) => {
+                  {table.getVisibleFlatColumns().map((column, colIndex: number) => {
                     return (
                       <DataGridTableBodyRowSkeletonCell
                         column={column}

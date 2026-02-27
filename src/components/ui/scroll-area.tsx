@@ -1,55 +1,58 @@
 "use client"
 
 import * as React from "react"
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
-function ScrollArea({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
-  return (
-    <ScrollAreaPrimitive.Root
-      data-slot="scroll-area"
-      className={cn("cn-scroll-area relative", className)}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className="cn-scroll-area-viewport focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode
+}
+
+const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        data-slot="scroll-area"
+        className={cn("relative overflow-auto", className)}
+        {...props}
       >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
-  )
+        <div data-slot="scroll-area-viewport" className="size-full">
+          {children}
+        </div>
+      </div>
+    )
+  }
+)
+ScrollArea.displayName = "ScrollArea"
+
+interface ScrollBarProps extends React.HTMLAttributes<HTMLDivElement> {
+  orientation?: "vertical" | "horizontal"
 }
 
-function ScrollBar({
-  className,
-  orientation = "vertical",
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
-  return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot="scroll-area-scrollbar"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn(
-        "cn-scroll-area-scrollbar flex touch-none p-px transition-colors select-none",
-        className
-      )}
-      {...props}
-    >
-      <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot="scroll-area-thumb"
-        className="cn-scroll-area-thumb bg-border relative flex-1"
-      />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
-  )
-}
+const ScrollBar = React.forwardRef<HTMLDivElement, ScrollBarProps>(
+  ({ className, orientation = "vertical", ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        data-slot="scroll-area-scrollbar"
+        data-orientation={orientation}
+        className={cn(
+          "flex touch-none select-none p-px transition-colors",
+          orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent",
+          orientation === "horizontal" && "h-2.5 w-full border-t border-t-transparent",
+          className
+        )}
+        {...props}
+      >
+        <div
+          data-slot="scroll-area-thumb"
+          className="relative flex-1 rounded-full bg-border"
+        />
+      </div>
+    )
+  }
+)
+ScrollBar.displayName = "ScrollBar"
 
 export { ScrollArea, ScrollBar }

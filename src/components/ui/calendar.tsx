@@ -8,9 +8,9 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button, buttonVariants } from "@/components/reui/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function Calendar({
   className,
@@ -39,7 +39,7 @@ function Calendar({
       captionLayout={captionLayout}
       locale={locale}
       formatters={{
-        formatMonthDropdown: (date) =>
+        formatMonthDropdown: (date: Date) =>
           date.toLocaleString(locale?.code, { month: "short" }),
         ...formatters,
       }}
@@ -134,7 +134,11 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
+        Root: ({ className, rootRef, ...props }: {
+          className?: string
+          rootRef?: React.Ref<HTMLDivElement>
+          [key: string]: any
+        }) => {
           return (
             <div
               data-slot="calendar"
@@ -144,7 +148,11 @@ function Calendar({
             />
           )
         },
-        Chevron: ({ className, orientation, ...props }) => {
+        Chevron: ({ className, orientation, ...props }: {
+          className?: string
+          orientation?: "left" | "right" | "up" | "down"
+          [key: string]: any
+        }) => {
           if (orientation === "left") {
             return (
               <IconPlaceholder
@@ -188,7 +196,10 @@ function Calendar({
         DayButton: ({ ...props }) => (
           <CalendarDayButton locale={locale} {...props} />
         ),
-        WeekNumber: ({ children, ...props }) => {
+        WeekNumber: ({ children, ...props }: {
+          children?: React.ReactNode
+          [key: string]: any
+        }) => {
           return (
             <td {...props}>
               <div className="flex size-(--cell-size) items-center justify-center text-center">

@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { type VariantProps } from "class-variance-authority"
-import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
+import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { toggleVariants } from "@/components/reui/registry/bases/radix/ui/toggle"
+import { cn } from "@/lib/utils"
+import { toggleVariants } from "@/components/ui/toggle"
 
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants> & {
@@ -39,9 +39,15 @@ function ToggleGroup({
       data-size={size}
       data-spacing={spacing}
       data-orientation={orientation}
-      style={{ "--gap": spacing } as React.CSSProperties}
+      style={
+        {
+          "--toggle-group-gap": `${spacing * 0.25}rem`,
+        } as React.CSSProperties
+      }
       className={cn(
-        "cn-toggle-group group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] data-vertical:flex-col data-vertical:items-stretch",
+        "cn-toggle-group group/toggle-group flex w-fit items-center",
+        orientation === "horizontal" ? "flex-row" : "flex-col items-stretch",
+        spacing > 0 && "gap-[var(--toggle-group-gap)]",
         className
       )}
       {...props}
@@ -58,24 +64,41 @@ function ToggleGroup({
 function ToggleGroupItem({
   className,
   children,
-  variant = "default",
-  size = "default",
+  variant,
+  size,
   ...props
 }: React.ComponentProps<typeof ToggleGroupPrimitive.Item> &
   VariantProps<typeof toggleVariants>) {
   const context = React.useContext(ToggleGroupContext)
 
+  const effectiveVariant = context.variant || variant
+  const effectiveSize = context.size || size
+  const isOutline = effectiveVariant === "outline"
+  const hasNoSpacing = context.spacing === 0
+  const isHorizontal = context.orientation === "horizontal"
+
   return (
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
-      data-variant={context.variant || variant}
-      data-size={context.size || size}
+      data-variant={effectiveVariant}
+      data-size={effectiveSize}
       data-spacing={context.spacing}
       className={cn(
-        "cn-toggle-group-item shrink-0 focus:z-10 focus-visible:z-10 group-data-horizontal/toggle-group:data-[spacing=0]:data-[variant=outline]:border-l-0 group-data-vertical/toggle-group:data-[spacing=0]:data-[variant=outline]:border-t-0 group-data-horizontal/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-l group-data-vertical/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-t",
+        "cn-toggle-group-item shrink-0",
+        // Focus handling
+        "focus:z-10 focus-visible:z-10",
+        // Border collapsing for outline variant with no spacing
+        isOutline &&
+          hasNoSpacing &&
+          isHorizontal &&
+          "border-l-0 first:border-l first:rounded-l-md last:rounded-r-md rounded-none",
+        isOutline &&
+          hasNoSpacing &&
+          !isHorizontal &&
+          "border-t-0 first:border-t first:rounded-t-md last:rounded-b-md rounded-none",
         toggleVariants({
-          variant: context.variant || variant,
-          size: context.size || size,
+          variant: effectiveVariant,
+          size: effectiveSize,
         }),
         className
       )}

@@ -10,7 +10,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/reui/registry/bases/radix/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu"
 
 function DataGridColumnVisibility<TData>({
   table,
@@ -39,8 +39,8 @@ function DataGridColumnVisibility<TData>({
                   key={column.id}
                   className="capitalize"
                   checked={column.getIsVisible()}
-                  onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                  onSelect={(event: Event) => event.preventDefault()}
+                  onCheckedChange={(value: boolean) => column.toggleVisibility(!!value)}
                 >
                   {column.columnDef.meta?.headerTitle || column.id}
                 </DropdownMenuCheckboxItem>

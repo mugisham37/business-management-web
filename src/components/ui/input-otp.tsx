@@ -3,8 +3,8 @@
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function InputOTP({
   className,
@@ -48,7 +48,8 @@ function InputOTPSlot({
   index: number
 }) {
   const inputOTPContext = React.useContext(OTPInputContext)
-  const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {}
+  const slot = inputOTPContext.slots[index]
+  const { char, hasFakeCaret, isActive } = slot ?? {}
 
   return (
     <div

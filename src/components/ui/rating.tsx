@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/components/reui/registry/bases/base/lib/utils"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 const ratingVariants = cva("flex items-center", {
   variants: {
@@ -149,7 +149,7 @@ function Rating({
               data-slot="rating-star-filled"
               className={cn(
                 starVariants({ size }),
-                "fill-yellow-400 text-yellow-400"
+                "fill-accent text-accent"
               )}
             />
           </div>

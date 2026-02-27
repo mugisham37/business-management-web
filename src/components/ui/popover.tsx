@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Popover as PopoverPrimitive } from "radix-ui"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 function Popover({
   ...props
@@ -30,7 +30,12 @@ function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "cn-popover-content z-50 w-72 origin-(--radix-popover-content-transform-origin) outline-hidden",
+          "z-50 w-72 rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-md outline-hidden origin-(--radix-popover-content-transform-origin)",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           className
         )}
         {...props}
@@ -49,7 +54,7 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="popover-header"
-      className={cn("cn-popover-header", className)}
+      className={cn("mb-4 space-y-2", className)}
       {...props}
     />
   )
@@ -57,9 +62,9 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return (
-    <div
+    <h2
       data-slot="popover-title"
-      className={cn("cn-popover-title", className)}
+      className={cn("font-semibold text-sm leading-none tracking-tight", className)}
       {...props}
     />
   )
@@ -72,7 +77,7 @@ function PopoverDescription({
   return (
     <p
       data-slot="popover-description"
-      className={cn("cn-popover-description", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   )

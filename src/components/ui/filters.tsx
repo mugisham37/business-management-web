@@ -13,12 +13,12 @@ import {
 } from "react"
 import { cva } from "class-variance-authority"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   ButtonGroup,
   ButtonGroupText,
-} from "@/components/reui/registry/bases/radix/ui/button-group"
+} from "@/components/ui/button-group"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -30,24 +30,25 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/reui/registry/bases/radix/ui/dropdown-menu"
-import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
-} from "@/components/reui/registry/bases/radix/ui/input-group"
-import { Kbd } from "@/components/reui/registry/bases/radix/ui/kbd"
-import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
+} from "@/components/ui/input-group"
+import { Kbd } from "@/components/ui/kbd"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
+  TooltipRoot,
   TooltipTrigger,
-} from "@/components/reui/registry/bases/radix/ui/tooltip"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+} from "@/components/ui/tooltip"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 // i18n Configuration Interface
 export interface FilterI18nConfig {
@@ -359,7 +360,7 @@ function FilterInput<T = unknown>({
       {!isValid && validationMessage && (
         <InputGroupAddon align="inline-end">
           <TooltipProvider>
-            <Tooltip>
+            <TooltipRoot>
               <TooltipTrigger asChild>
                 <InputGroupButton size="icon-xs">
                   <IconPlaceholder
@@ -375,7 +376,7 @@ function FilterInput<T = unknown>({
               <TooltipContent>
                 <p className="text-sm">{validationMessage}</p>
               </TooltipContent>
-            </Tooltip>
+            </TooltipRoot>
           </TooltipProvider>
         </InputGroupAddon>
       )}
@@ -407,12 +408,6 @@ function FilterRemoveButton({
   ...props
 }: FilterRemoveButtonProps) {
   const context = useFilterContext()
-
-  const sizeMap = {
-    sm: "sm" as const,
-    default: "sm" as const,
-    lg: "default" as const,
-  }
 
   return (
     <Button
@@ -774,9 +769,9 @@ function SelectOptionsPopover<T = unknown>({
               "focus-visible:border-border focus-visible:ring-0 focus-visible:ring-offset-0"
             )}
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
+            onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault()
                 if (allFilteredOptions.length > 0) {
@@ -861,7 +856,7 @@ function SelectOptionsPopover<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
+                      onSelect={(e: Event) => {
                         if (isMultiSelect) e.preventDefault()
                       }}
                       onCheckedChange={() => {
@@ -911,7 +906,7 @@ function SelectOptionsPopover<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
+                      onSelect={(e: Event) => {
                         if (isMultiSelect) e.preventDefault()
                       }}
                       onCheckedChange={() => {
@@ -955,7 +950,7 @@ function SelectOptionsPopover<T = unknown>({
   return (
     <DropdownMenu
       open={open}
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         setOpen(open)
         if (!open) {
           setTimeout(() => setSearchInput(""), 200)
@@ -1011,7 +1006,7 @@ function FilterValueSelector<T = unknown>({
 
   if (field.customRenderer) {
     return (
-      <ButtonGroupText className="hover:bg-accent aria-expanded:bg-accent style-vega:bg-background style-vega:dark:bg-input/30 style-nova:bg-background style-nova:dark:bg-input/30 style-lyra:bg-background style-lyra:dark:bg-input/30 style-mira:bg-background style-mira:dark:bg-input/30 text-start whitespace-nowrap outline-hidden">
+      <ButtonGroupText className="hover:bg-accent aria-expanded:bg-accent bg-background text-start whitespace-nowrap outline-hidden">
         {field.customRenderer({ field, values, onChange, operator })}
       </ButtonGroupText>
     )
@@ -1022,7 +1017,7 @@ function FilterValueSelector<T = unknown>({
       <FilterInput
         type="text"
         value={(values[0] as string) || ""}
-        onChange={(e) => onChange([e.target.value] as T[])}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange([e.target.value] as T[])}
         placeholder={field.placeholder}
         pattern={field.pattern}
         field={field}
@@ -1042,6 +1037,7 @@ function FilterValueSelector<T = unknown>({
     <SelectOptionsPopover field={field} values={values} onChange={onChange} />
   )
 }
+
 export interface Filter<T = unknown> {
   id: string
   field: string
@@ -1241,9 +1237,9 @@ function FilterSubmenuContent<T = unknown>({
               "focus-visible:border-border focus-visible:ring-0 focus-visible:ring-offset-0"
             )}
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
+            onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault()
                 if (filteredOptions.length > 0) {
@@ -1289,7 +1285,7 @@ function FilterSubmenuContent<T = unknown>({
           role="listbox"
           id={`${baseId}-listbox`}
           tabIndex={field.searchable === false ? 0 : -1}
-          onKeyDown={(e) => {
+          onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
             if (field.searchable === false) {
               if (e.key === "ArrowDown") {
                 e.preventDefault()
@@ -1353,7 +1349,7 @@ function FilterSubmenuContent<T = unknown>({
                         "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
                         option.className
                       )}
-                      onSelect={(e) => {
+                      onSelect={(e: Event) => {
                         if (isMultiSelect) e.preventDefault()
                       }}
                       onCheckedChange={() =>
@@ -1558,7 +1554,7 @@ export function Filters<T = unknown>({
         {selectableFields.length > 0 && (
           <DropdownMenu
             open={addFilterOpen}
-            onOpenChange={(open) => {
+            onOpenChange={(open: boolean) => {
               setAddFilterOpen(open)
               if (!open) {
                 setMenuSearchInput("")
@@ -1604,9 +1600,9 @@ export function Filters<T = unknown>({
                         "focus-visible:border-border focus-visible:ring-0 focus-visible:ring-offset-0"
                       )}
                       value={menuSearchInput}
-                      onChange={(e) => setMenuSearchInput(e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMenuSearchInput(e.target.value)}
+                      onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === "ArrowDown") {
                           e.preventDefault()
                           if (filteredFields.length > 0) {
@@ -1716,7 +1712,7 @@ export function Filters<T = unknown>({
                             <DropdownMenuSub
                               key={fieldKey}
                               open={openSubMenu === fieldKey}
-                              onOpenChange={(open) => {
+                              onOpenChange={(open: boolean) => {
                                 if (open) {
                                   setOpenSubMenu((prev) =>
                                     prev === fieldKey ? prev : fieldKey
@@ -1843,7 +1839,7 @@ export function Filters<T = unknown>({
           if (!field) return null
           return (
             <ButtonGroup key={filter.id}>
-              <ButtonGroupText className="style-vega:bg-background style-vega:dark:bg-input/30 style-nova:bg-background style-nova:dark:bg-input/30 style-lyra:bg-background style-lyra:dark:bg-input/30 style-mira:bg-background style-mira:dark:bg-input/30">
+              <ButtonGroupText className="bg-background">
                 {field.icon && field.icon}
                 {field.label}
               </ButtonGroupText>

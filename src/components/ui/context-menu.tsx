@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
+import * as ContextMenuPrimitive from "@radix-ui/react-context-menu"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function ContextMenu({
   ...props

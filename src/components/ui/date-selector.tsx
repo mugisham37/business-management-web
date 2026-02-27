@@ -21,14 +21,14 @@ import {
 import { DayButton } from "react-day-picker"
 import type { DateRange } from "react-day-picker"
 
-import { useIsMobile } from "@/components/reui/registry/bases/radix/hooks/use-mobile"
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { Calendar, CalendarDayButton } from "@/components/reui/registry/bases/radix/ui/calendar"
-import { Input } from "@/components/reui/registry/bases/radix/ui/input"
-import { ScrollArea } from "@/components/reui/registry/bases/radix/ui/scroll-area"
-import { Tabs, TabsList, TabsTrigger } from "@/components/reui/registry/bases/radix/ui/tabs"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { useIsMobile } from "@/lib/use-mobile"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 export interface DateSelectorI18nConfig {
   // Labels
@@ -561,7 +561,7 @@ function DateSelectorFilterToggle({
   return (
     <Tabs
       value={value}
-      onValueChange={(newValue) => {
+      onValueChange={(newValue: string) => {
         if (!isDisabled && newValue) {
           onChange(newValue as DateSelectorFilterType)
         }
@@ -654,7 +654,7 @@ function DateSelectorPeriodTabs({
     >
       <Tabs
         value={value}
-        onValueChange={(newValue) => {
+        onValueChange={(newValue: string) => {
           if (newValue) {
             onChange(newValue as DateSelectorPeriodType)
           }

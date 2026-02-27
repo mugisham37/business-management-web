@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/components/reui/registry/bases/base/lib/utils"
+import { cn } from "@/lib/utils"
 
 const frameVariants = cva(
   "relative flex flex-col bg-muted/50 gap-0.75 p-0.75 rounded-(--frame-radius) style-vega:[--frame-radius:var(--radius-lg)] style-nova:[--frame-radius:var(--radius-lg)] style-lyra:[--frame-radius:var(--radius-none)] style-maia:[--frame-radius:var(--radius-2xl)] style-mira:[--frame-radius:var(--radius-md)]",

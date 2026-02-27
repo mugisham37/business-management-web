@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Dialog as SheetPrimitive } from "radix-ui"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -36,7 +36,12 @@ function SheetOverlay({
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
-      className={cn("cn-sheet-overlay fixed inset-0 z-50", className)}
+      className={cn(
+        "cn-sheet-overlay fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        className
+      )}
       {...props}
     />
   )
@@ -52,19 +57,45 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  const sideStyles = {
+    top: "inset-x-0 top-0 border-b",
+    bottom: "inset-x-0 bottom-0 border-t",
+    left: "inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
+    right: "inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
+  }
+
+  const slideAnimations = {
+    top: "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+    bottom: "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+    left: "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+    right: "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+  }
+
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         data-side={side}
-        className={cn("cn-sheet-content", className)}
+        className={cn(
+          "cn-sheet-content fixed z-50 gap-4 bg-card p-6 shadow-lg",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "duration-300",
+          sideStyles[side],
+          slideAnimations[side],
+          className
+        )}
         {...props}
       >
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close data-slot="sheet-close" asChild>
-            <Button variant="ghost" className="cn-sheet-close" size="icon-sm">
+            <Button
+              variant="ghost"
+              className="cn-sheet-close absolute right-4 top-4"
+              size="icon-sm"
+            >
               <IconPlaceholder
                 lucide="XIcon"
                 tabler="IconX"
@@ -85,7 +116,10 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("cn-sheet-header flex flex-col", className)}
+      className={cn(
+        "cn-sheet-header flex flex-col space-y-2 text-center sm:text-left",
+        className
+      )}
       {...props}
     />
   )
@@ -95,7 +129,10 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("cn-sheet-footer mt-auto flex flex-col", className)}
+      className={cn(
+        "cn-sheet-footer mt-auto flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className
+      )}
       {...props}
     />
   )
@@ -108,7 +145,10 @@ function SheetTitle({
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("cn-sheet-title", className)}
+      className={cn(
+        "cn-sheet-title text-lg font-semibold leading-none tracking-tight text-foreground",
+        className
+      )}
       {...props}
     />
   )
@@ -121,7 +161,10 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("cn-sheet-description", className)}
+      className={cn(
+        "cn-sheet-description text-sm text-muted-foreground",
+        className
+      )}
       {...props}
     />
   )

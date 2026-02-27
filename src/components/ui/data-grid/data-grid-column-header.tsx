@@ -1,11 +1,11 @@
 "use client"
 
 import { HTMLAttributes, memo, ReactNode, useMemo } from "react"
-import { useDataGrid } from "@/components/reui/data-grid/data-grid"
+import { useDataGrid } from "@/components/ui/data-grid/data-grid"
 import { Column } from "@tanstack/react-table"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,8 +18,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/reui/registry/bases/radix/ui/dropdown-menu"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+} from "@/components/ui/dropdown-menu"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 interface DataGridColumnHeaderProps<
   TData,

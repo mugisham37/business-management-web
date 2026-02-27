@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Menubar as MenubarPrimitive } from "radix-ui"
+import * as MenubarPrimitive from "@radix-ui/react-menubar"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 function Menubar({
   className,

@@ -4,9 +4,9 @@ import { createContext, ReactNode, useContext, useId } from "react"
 import { NumberField as NumberFieldPrimitive } from "@base-ui/react/number-field"
 import { cva, VariantProps } from "class-variance-authority"
 
-import { cn } from "@/components/reui/registry/bases/base/lib/utils"
-import { Label } from "@/components/reui/registry/bases/base/ui/label"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 const NumberFieldContext = createContext<{
   fieldId: string

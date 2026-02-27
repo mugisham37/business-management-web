@@ -44,10 +44,10 @@ import {
   type AnimateLayoutChanges,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Slot } from "radix-ui"
+import { Slot } from "@radix-ui/react-slot"
 import { createPortal } from "react-dom"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 // Sortable Item Context
 const SortableItemContext = createContext<{
@@ -70,7 +70,7 @@ const SortableInternalContext = createContext<{
   modifiers: undefined,
 })
 
-const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+const animateLayoutChanges: AnimateLayoutChanges = (args: Parameters<AnimateLayoutChanges>[0]) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true })
 
 const dropAnimationConfig: DropAnimation = {
@@ -208,7 +208,7 @@ function Sortable<T>({
     return result
   }, [activeId, children])
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <SortableInternalContext.Provider value={contextValue}>
@@ -269,7 +269,7 @@ function SortableItem({
   const isOverlay = useContext(IsOverlayContext)
 
   if (isOverlay) {
-    const Comp = asChild ? Slot.Root : "div"
+    const Comp = asChild ? Slot : "div"
 
     return (
       <SortableItemContext.Provider
@@ -306,7 +306,7 @@ function SortableItem({
     transform: CSS.Transform.toString(transform),
   } as CSSProperties
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <SortableItemContext.Provider
@@ -347,7 +347,7 @@ function SortableItemHandle({
 }: SortableItemHandleProps) {
   const { listeners, isDragging, disabled } = useContext(SortableItemContext)
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp

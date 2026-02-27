@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+import { Slot } from "@radix-ui/react-slot"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Separator } from "@/components/reui/registry/bases/radix/ui/separator"
+import { cn } from "@/lib/utils"
+import { Separator } from "./separator"
 
 const buttonGroupVariants = cva(
   "cn-button-group flex w-fit items-stretch *:focus-visible:z-10 *:focus-visible:relative [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1 ",
@@ -44,7 +44,7 @@ function ButtonGroupText({
 }: React.ComponentProps<"div"> & {
   asChild?: boolean
 }) {
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp

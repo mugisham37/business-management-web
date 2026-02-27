@@ -1,31 +1,46 @@
 "use client"
 
 import * as React from "react"
-import { Progress as ProgressPrimitive } from "radix-ui"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
-function Progress({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
-  return (
-    <ProgressPrimitive.Root
-      data-slot="progress"
-      className={cn(
-        "cn-progress relative flex w-full items-center overflow-x-hidden",
-        className
-      )}
-      {...props}
-    >
-      <ProgressPrimitive.Indicator
-        data-slot="progress-indicator"
-        className="cn-progress-indicator size-full flex-1 transition-all"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
-    </ProgressPrimitive.Root>
-  )
+interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+  value?: number
+  max?: number
+  indicatorClassName?: string
 }
+
+const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ className, value = 0, max = 100, indicatorClassName, ...props }, ref) => {
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100)
+
+    return (
+      <div
+        ref={ref}
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        data-slot="progress"
+        className={cn(
+          "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
+          className
+        )}
+        {...props}
+      >
+        <div
+          data-slot="progress-indicator"
+          className={cn(
+            "h-full w-full flex-1 bg-primary transition-all duration-300 ease-in-out",
+            indicatorClassName
+          )}
+          style={{ transform: `translateX(-${100 - percentage}%)` }}
+        />
+      </div>
+    )
+  }
+)
+
+Progress.displayName = "Progress"
 
 export { Progress }

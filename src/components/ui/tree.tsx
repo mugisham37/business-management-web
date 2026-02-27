@@ -9,13 +9,26 @@ import {
   HTMLAttributes,
   useContext,
 } from "react"
-import { ItemInstance } from "@headless-tree/core"
-import { Slot } from "radix-ui"
+import { Slot } from "@radix-ui/react-slot"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+import { cn } from "@/lib/utils"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
 
 type ToggleIconType = "chevron" | "plus-minus"
+
+// Minimal interface for tree item instances
+// Compatible with @headless-tree/core if installed
+interface ItemInstance<T = any> {
+  getProps?: () => Record<string, any>
+  getItemMeta: () => { level: number }
+  isFocused?: () => boolean
+  isFolder: () => boolean
+  isSelected?: () => boolean
+  isDragTarget?: () => boolean
+  isMatchingSearch?: () => boolean
+  isExpanded: () => boolean
+  getItemName?: () => string
+}
 
 interface TreeContextValue<T = any> {
   indent: number
@@ -65,7 +78,7 @@ function Tree({
     "--tree-indent": `${indent}px`,
   } as CSSProperties
 
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <TreeContext.Provider value={{ indent, tree, toggleIconType }}>
@@ -140,7 +153,7 @@ function TreeItem<T = any>({
     "aria-expanded": item.isExpanded(),
   }
 
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot : "button"
 
   return (
     <TreeContext.Provider value={{ ...parentContext, currentItem: item }}>
@@ -171,7 +184,7 @@ function TreeItemLabel<T = any>({
     return null
   }
 
-  const Comp = asChild ? Slot.Root : "span"
+  const Comp = asChild ? Slot : "span"
 
   return (
     <Comp

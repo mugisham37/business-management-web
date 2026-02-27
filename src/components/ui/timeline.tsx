@@ -7,9 +7,9 @@ import {
   useContext,
   useState,
 } from "react"
-import { Slot } from "radix-ui"
+import { Slot } from "@radix-ui/react-slot"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
 
 // Types
 type TimelineContextValue = {
@@ -104,7 +104,7 @@ function TimelineDate({
   className,
   ...props
 }: TimelineDateProps) {
-  const Comp = asChild ? Slot.Root : "time"
+  const Comp = asChild ? Slot : "time"
 
   return (
     <Comp
@@ -139,7 +139,7 @@ function TimelineIndicator({
   children,
   ...props
 }: TimelineIndicatorProps) {
-  const Comp = asChild ? Slot.Root : "div"
+  const Comp = asChild ? Slot : "div"
 
   return (
     <Comp

@@ -1,22 +1,28 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Column } from "@tanstack/react-table"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
-import { Badge } from "@/components/reui/registry/bases/radix/ui/badge"
-import { Button } from "@/components/reui/registry/bases/radix/ui/button"
-import { Input } from "@/components/reui/registry/bases/radix/ui/input"
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/reui/registry/bases/radix/ui/popover"
-import { Separator } from "@/components/reui/registry/bases/radix/ui/separator"
-import { IconPlaceholder } from "@/components/reui/icon-placeholder"
+} from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import { IconPlaceholder } from "@/components/ui/icon-placeholder"
+
+// Generic column interface to avoid external dependency
+interface DataGridColumn<TData, TValue> {
+  getFilterValue: () => unknown
+  setFilterValue: (value: unknown) => void
+  getFacetedUniqueValues?: () => Map<string, number>
+}
 
 interface DataGridColumnFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>
+  column?: DataGridColumn<TData, TValue>
   title?: string
   options: {
     label: string
@@ -30,7 +36,7 @@ function DataGridColumnFilter<TData, TValue>({
   title,
   options,
 }: DataGridColumnFilterProps<TData, TValue>) {
-  const facets = column?.getFacetedUniqueValues()
+  const facets = column?.getFacetedUniqueValues?.()
   const selectedValues = new Set(column?.getFilterValue() as string[])
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -94,7 +100,7 @@ function DataGridColumnFilter<TData, TValue>({
           <Input
             placeholder={title}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             className="h-8"
           />
         </div>

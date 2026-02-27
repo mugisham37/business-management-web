@@ -1,16 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { Tooltip as TooltipPrimitive } from "radix-ui"
+import * as TooltipPrimitives from "@radix-ui/react-tooltip"
 
-import { cn } from "@/components/reui/registry/bases/radix/lib/utils"
+import { cn } from "@/lib/utils"
+
+interface TooltipProviderProps
+  extends React.ComponentProps<typeof TooltipPrimitives.Provider> {
+  delayDuration?: number
+}
 
 function TooltipProvider({
-  delayDuration = 0,
+  delayDuration = 150,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
+}: TooltipProviderProps) {
   return (
-    <TooltipPrimitive.Provider
+    <TooltipPrimitives.Provider
       data-slot="tooltip-provider"
       delayDuration={delayDuration}
       {...props}
@@ -18,63 +23,109 @@ function TooltipProvider({
   )
 }
 
-function Tooltip({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+interface TooltipRootProps
+  extends React.ComponentProps<typeof TooltipPrimitives.Root> {}
+
+function TooltipRoot({ ...props }: TooltipRootProps) {
+  return <TooltipPrimitives.Root data-slot="tooltip" {...props} />
 }
 
-function TooltipTrigger({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+interface TooltipTriggerProps
+  extends React.ComponentProps<typeof TooltipPrimitives.Trigger> {
+  asChild?: boolean
 }
 
-function TooltipContent({
-  className,
-  sideOffset = 0,
-  children,
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+function TooltipTrigger({ asChild = false, ...props }: TooltipTriggerProps) {
   return (
-    <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Content
-        data-slot="tooltip-content"
-        sideOffset={sideOffset}
-        className={cn(
-          "cn-tooltip-content bg-foreground text-background z-50 w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin)",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        <TooltipPrimitive.Arrow className="cn-tooltip-arrow bg-foreground fill-foreground z-50 translate-y-[calc(-50%_-_2px)]" />
-      </TooltipPrimitive.Content>
-    </TooltipPrimitive.Portal>
+    <TooltipPrimitives.Trigger
+      data-slot="tooltip-trigger"
+      asChild={asChild}
+      {...props}
+    />
   )
 }
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger }
-// Tremor Tooltip [v0.0.2]
-
-"use client"
-
-import * as TooltipPrimitives from "@radix-ui/react-tooltip"
-import React from "react"
-
-import { cx } from "@/lib/utils"
-
-interface TooltipProps
-  extends Omit<TooltipPrimitives.TooltipContentProps, "content" | "onClick">,
-    Pick<
-      TooltipPrimitives.TooltipProps,
-      "open" | "defaultOpen" | "onOpenChange" | "delayDuration"
-    > {
-  content: React.ReactNode
-  onClick?: React.MouseEventHandler<HTMLButtonElement>
-  side?: "bottom" | "left" | "top" | "right"
+interface TooltipContentProps
+  extends Omit<
+    React.ComponentProps<typeof TooltipPrimitives.Content>,
+    "content"
+  > {
   showArrow?: boolean
+}
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitives.Content>,
+  TooltipContentProps
+>(
+  (
+    {
+      className,
+      sideOffset = 10,
+      side = "top",
+      align = "center",
+      showArrow = true,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <TooltipPrimitives.Portal>
+        <TooltipPrimitives.Content
+          ref={ref}
+          data-slot="tooltip-content"
+          side={side}
+          sideOffset={sideOffset}
+          align={align}
+          className={cn(
+            // base
+            "z-50 max-w-xs select-none rounded-md px-2.5 py-1.5 text-sm leading-5 shadow-md",
+            // colors using CSS variables
+            "bg-popover text-popover-foreground",
+            // border
+            "border border-border",
+            // animation
+            "origin-[--radix-tooltip-content-transform-origin]",
+            "will-change-[transform,opacity]",
+            "data-[side=bottom]:animate-slideDownAndFade",
+            "data-[side=left]:animate-slideLeftAndFade",
+            "data-[side=right]:animate-slideRightAndFade",
+            "data-[side=top]:animate-slideUpAndFade",
+            "data-[state=closed]:animate-hide",
+            className,
+          )}
+          {...props}
+        >
+          {children}
+          {showArrow && (
+            <TooltipPrimitives.Arrow
+              className="fill-popover"
+              width={12}
+              height={7}
+              aria-hidden="true"
+            />
+          )}
+        </TooltipPrimitives.Content>
+      </TooltipPrimitives.Portal>
+    )
+  },
+)
+
+TooltipContent.displayName = "TooltipContent"
+
+// Compound component with simplified API
+interface TooltipProps
+  extends Omit<
+    React.ComponentProps<typeof TooltipPrimitives.Content>,
+    "content"
+  > {
+  content: React.ReactNode
   triggerAsChild?: boolean
+  open?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+  delayDuration?: number
+  showArrow?: boolean
 }
 
 const Tooltip = React.forwardRef<
@@ -84,70 +135,56 @@ const Tooltip = React.forwardRef<
   (
     {
       children,
-      className,
       content,
-      delayDuration,
+      delayDuration = 150,
       defaultOpen,
       open,
-      onClick,
       onOpenChange,
-      showArrow = true,
-      side,
-      sideOffset = 10,
       triggerAsChild = false,
+      showArrow = true,
+      side = "top",
+      sideOffset = 10,
+      className,
       ...props
-    }: TooltipProps,
-    forwardedRef,
+    },
+    ref,
   ) => {
     return (
-      <TooltipPrimitives.Provider delayDuration={150}>
-        <TooltipPrimitives.Root
+      <TooltipProvider delayDuration={delayDuration}>
+        <TooltipRoot
           open={open}
           defaultOpen={defaultOpen}
           onOpenChange={onOpenChange}
           delayDuration={delayDuration}
-          tremor-id="tremor-raw"
         >
-          <TooltipPrimitives.Trigger onClick={onClick} asChild={triggerAsChild}>
-            {children}
-          </TooltipPrimitives.Trigger>
-          <TooltipPrimitives.Portal>
-            <TooltipPrimitives.Content
-              ref={forwardedRef}
-              side={side}
-              sideOffset={sideOffset}
-              align="center"
-              className={cx(
-                // base
-                "max-w-60 select-none rounded-md px-2.5 py-1.5 text-sm leading-5 shadow-md",
-                // text color
-                "text-gray-50 dark:text-gray-900",
-                // background color
-                "bg-gray-900 dark:bg-gray-50",
-                // transition
-                "will-change-[transform,opacity]",
-                "data-[side=bottom]:animate-slideDownAndFade data-[side=left]:animate-slideLeftAndFade data-[side=right]:animate-slideRightAndFade data-[side=top]:animate-slideUpAndFade data-[state=closed]:animate-hide",
-                className,
-              )}
-              {...props}
-            >
-              {content}
-              {showArrow ? (
-                <TooltipPrimitives.Arrow
-                  className="border-none fill-gray-900 dark:fill-gray-50"
-                  width={12}
-                  height={7}
-                  aria-hidden="true"
-                />
-              ) : null}
-            </TooltipPrimitives.Content>
-          </TooltipPrimitives.Portal>
-        </TooltipPrimitives.Root>
-      </TooltipPrimitives.Provider>
+          <TooltipTrigger asChild={triggerAsChild}>{children}</TooltipTrigger>
+          <TooltipContent
+            ref={ref}
+            side={side}
+            sideOffset={sideOffset}
+            showArrow={showArrow}
+            className={className}
+            {...props}
+          >
+            {content}
+          </TooltipContent>
+        </TooltipRoot>
+      </TooltipProvider>
     )
   },
 )
 
 Tooltip.displayName = "Tooltip"
 
-export { Tooltip, type TooltipProps }
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
+  type TooltipProps,
+  type TooltipContentProps,
+  type TooltipProviderProps,
+  type TooltipRootProps,
+  type TooltipTriggerProps,
+}
