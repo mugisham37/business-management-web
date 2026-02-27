@@ -1,7 +1,7 @@
 "use client"
 
-import { Badge, BadgeProps } from "@/components/Badge"
-import { Checkbox } from "@/components/Checkbox"
+import { Badge, BadgeProps } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { statuses } from "@/data/data"
 import { Usage } from "@/data/schema"
 import { formatters } from "@/lib/utils"
@@ -116,15 +116,15 @@ export const columns = [
 
         const getBarClass = (index: number) => {
           if (category === "zero") {
-            return "bg-gray-300 dark:bg-gray-800"
+            return "bg-muted"
           } else if (category === "good") {
-            return "bg-indigo-600 dark:bg-indigo-500"
+            return "bg-primary"
           } else if (category === "ok" && index < 2) {
-            return "bg-indigo-600 dark:bg-indigo-500"
+            return "bg-primary"
           } else if (category === "bad" && index < 1) {
-            return "bg-indigo-600 dark:bg-indigo-500"
+            return "bg-primary"
           }
-          return "bg-gray-300 dark:bg-gray-800"
+          return "bg-muted"
         }
 
         return (

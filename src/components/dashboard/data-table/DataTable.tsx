@@ -5,9 +5,8 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeaderCell,
   TableRow,
-} from "@/components/Table"
+} from "@/components/ui/table"
 import { cx } from "@/lib/utils"
 import * as React from "react"
 
@@ -63,13 +62,13 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="border-y border-gray-200 dark:border-gray-800"
+                  className="border-y border-border"
                 >
                   {headerGroup.headers.map((header) => (
-                    <TableHeaderCell
+                    <th
                       key={header.id}
                       className={cx(
-                        "whitespace-nowrap py-1 text-sm sm:text-xs",
+                        "whitespace-nowrap py-1 text-sm sm:text-xs px-4 text-left align-middle font-medium text-muted-foreground",
                         header.column.columnDef.meta?.className,
                       )}
                     >
@@ -77,7 +76,7 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                         header.column.columnDef.header,
                         header.getContext(),
                       )}
-                    </TableHeaderCell>
+                    </th>
                   ))}
                 </TableRow>
               ))}
@@ -88,21 +87,21 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                   <TableRow
                     key={row.id}
                     onClick={() => row.toggleSelected(!row.getIsSelected())}
-                    className="group select-none hover:bg-gray-50 hover:dark:bg-gray-900"
+                    className="group select-none hover:bg-muted/50"
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <TableCell
                         key={cell.id}
                         className={cx(
                           row.getIsSelected()
-                            ? "bg-gray-50 dark:bg-gray-900"
+                            ? "bg-muted"
                             : "",
-                          "relative whitespace-nowrap py-1 text-gray-600 first:w-10 dark:text-gray-400",
+                          "relative whitespace-nowrap py-1 text-muted-foreground first:w-10",
                           cell.column.columnDef.meta?.className,
                         )}
                       >
                         {index === 0 && row.getIsSelected() && (
-                          <div className="absolute inset-y-0 left-0 w-0.5 bg-indigo-600 dark:bg-indigo-500" />
+                          <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" />
                         )}
                         {flexRender(
                           cell.column.columnDef.cell,

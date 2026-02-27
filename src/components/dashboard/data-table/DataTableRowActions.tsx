@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import { RiMoreFill } from "@remixicon/react"
 import { Row } from "@tanstack/react-table"
 
@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/Dropdown"
+} from "@/components/ui/dropdown-menu"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -23,10 +23,10 @@ export function DataTableRowActions<
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="group aspect-square p-1.5 hover:border hover:border-gray-300 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+          className="group aspect-square p-1.5 hover:border hover:border-border data-[state=open]:border-border data-[state=open]:bg-accent"
         >
           <RiMoreFill
-            className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-data-[state=open]:text-gray-700 group-hover:dark:text-gray-300 group-data-[state=open]:dark:text-gray-300"
+            className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground group-data-[state=open]:text-foreground"
             aria-hidden="true"
           />
         </Button>
@@ -34,7 +34,7 @@ export function DataTableRowActions<
       <DropdownMenuContent align="end" className="min-w-40">
         <DropdownMenuItem>Add</DropdownMenuItem>
         <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600 dark:text-red-500">
+        <DropdownMenuItem className="text-destructive">
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>

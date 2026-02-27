@@ -28,8 +28,8 @@ import {
 } from "@/lib/chartUtils"
 import { useOnWindowResize } from "@/lib/useOnWindowResize"
 import { cx, percentageFormatter } from "@/lib/utils"
-import { Badge } from "./Badge"
-import { getBadgeType } from "./ui/overview/DashboardChartCard"
+import { Badge } from "./badge"
+import { getBadgeType } from "../dashboard/overview/DashboardChartCard"
 
 //#region Legend
 
@@ -53,7 +53,7 @@ const LegendItem = ({
         // base
         "group inline-flex flex-nowrap items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 transition",
         hasOnValueChange
-          ? "bg-transpaent cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          ? "bg-transpaent cursor-pointer hover:bg-muted"
           : "cursor-default",
       )}
       onClick={(e) => {
@@ -74,9 +74,9 @@ const LegendItem = ({
           // base
           "truncate whitespace-nowrap text-xs",
           // text color
-          "text-gray-700 dark:text-gray-300",
+          "text-muted-foreground",
           hasOnValueChange &&
-            "group-hover:text-gray-900 dark:group-hover:text-gray-50",
+            "group-hover:text-foreground",
           activeLegend && activeLegend !== name ? "opacity-40" : "opacity-100",
         )}
       >
@@ -122,8 +122,8 @@ const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
         // base
         "group inline-flex size-5 items-center truncate rounded transition",
         disabled
-          ? "cursor-not-allowed text-gray-400 dark:text-gray-600"
-          : "cursor-pointer text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          ? "cursor-not-allowed text-muted-foreground/50"
+          : "cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
       disabled={disabled}
       onClick={(e) => {
@@ -284,7 +284,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
               // base
               "absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1",
               // background color
-              "bg-white dark:bg-gray-950",
+              "bg-card",
             )}
           >
             <ScrollButton
@@ -365,7 +365,7 @@ const ChartTooltipRow = ({ value, name, color }: ChartTooltipRowProps) => (
           // commmon
           "whitespace-nowrap text-right",
           // text color
-          "text-gray-700 dark:text-gray-300",
+          "text-muted-foreground",
         )}
       >
         {name}
@@ -376,7 +376,7 @@ const ChartTooltipRow = ({ value, name, color }: ChartTooltipRowProps) => (
         // base
         "whitespace-nowrap text-right font-medium tabular-nums",
         // text color
-        "text-gray-900 dark:text-gray-50",
+        "text-foreground",
       )}
     >
       {value}
@@ -387,7 +387,7 @@ const ChartTooltipRow = ({ value, name, color }: ChartTooltipRowProps) => (
 interface ChartTooltipProps {
   active: boolean | undefined
   payload: any
-  label: string
+  label: string | number | undefined
   categoryColors: Map<string, string>
   valueFormatter: (value: number) => string
 }
@@ -413,9 +413,9 @@ const OverviewChartTooltip = ({
           // base
           "rounded-md border text-sm shadow-md",
           // border color
-          "border-gray-200 dark:border-gray-800",
+          "border-border",
           // background color
-          "bg-white dark:bg-gray-950",
+          "bg-card",
         )}
       >
         <div className="flex items-start justify-between gap-2 border-b border-inherit p-2">
@@ -424,7 +424,7 @@ const OverviewChartTooltip = ({
               // base
               "font-medium",
               // text color
-              "text-gray-900 dark:text-gray-50",
+              "text-card-foreground",
             )}
           >
             {title}
@@ -615,7 +615,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
           >
             {showGridLines ? (
               <CartesianGrid
-                className={cx("stroke-gray-200 stroke-1 dark:stroke-gray-800")}
+                className={cx("stroke-border stroke-1")}
                 horizontal={true}
                 vertical={false}
               />
@@ -637,7 +637,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                 // base
                 "text-xs",
                 // text fill
-                "fill-gray-500 dark:fill-gray-500",
+                "fill-muted-foreground",
               )}
               tickLine={false}
               axisLine={false}
@@ -647,7 +647,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                 <Label
                   position="insideBottom"
                   offset={-20}
-                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
+                  className="fill-foreground text-sm font-medium"
                 >
                   {xAxisLabel}
                 </Label>
@@ -667,7 +667,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                 // base
                 "text-xs",
                 // text fill
-                "fill-gray-500 dark:fill-gray-500",
+                "fill-muted-foreground",
               )}
               tickFormatter={valueFormatter}
               allowDecimals={allowDecimals}
@@ -678,7 +678,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                   style={{ textAnchor: "middle" }}
                   angle={-90}
                   offset={-15}
-                  className="fill-gray-800 text-sm font-medium dark:fill-gray-200"
+                  className="fill-foreground text-sm font-medium"
                 >
                   {yAxisLabel}
                 </Label>
@@ -688,7 +688,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
               wrapperStyle={{ outline: "none" }}
               isAnimationActive={true}
               animationDuration={100}
-              cursor={{ stroke: "#d1d5db", strokeWidth: 1 }}
+              cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
               offset={20}
               position={{ y: 0 }}
               content={
@@ -752,7 +752,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                   return (
                     <Dot
                       className={cx(
-                        "stroke-white dark:stroke-gray-950",
+                        "stroke-card",
                         onValueChange ? "cursor-pointer" : "",
                         getColorClassName(
                           categoryColors.get(
@@ -806,7 +806,7 @@ const LineChart = React.forwardRef<HTMLDivElement, LineChartProps>(
                         strokeLinejoin={strokeLinejoin}
                         strokeWidth={strokeWidth}
                         className={cx(
-                          "stroke-white dark:stroke-gray-950",
+                          "stroke-card",
                           onValueChange ? "cursor-pointer" : "",
                           getColorClassName(
                             categoryColors.get(

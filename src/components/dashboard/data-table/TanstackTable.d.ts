@@ -1,8 +1,4 @@
 import "@tanstack/react-table"
 
-declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    className?: string
-    displayName: string
-  }
-}
+// Note: ColumnMeta is now declared in src/components/ui/data-grid/data-grid.tsx
+// to avoid duplicate declarations

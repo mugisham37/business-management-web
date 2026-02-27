@@ -1,55 +1,65 @@
-// Tremor Raw chartColors [v0.0.0]
-
 export type ColorUtility = "bg" | "stroke" | "fill" | "text"
 
 export const chartColors = {
-  blue: {
-    bg: "bg-blue-500",
-    stroke: "stroke-blue-500",
-    fill: "fill-blue-500",
-    text: "text-blue-500",
+  chart1: {
+    bg: "bg-chart-1",
+    stroke: "stroke-chart-1",
+    fill: "fill-chart-1",
+    text: "text-chart-1",
   },
-  emerald: {
-    bg: "bg-emerald-500",
-    stroke: "stroke-emerald-500",
-    fill: "fill-emerald-500",
-    text: "text-emerald-500",
+  chart2: {
+    bg: "bg-chart-2",
+    stroke: "stroke-chart-2",
+    fill: "fill-chart-2",
+    text: "text-chart-2",
   },
-  violet: {
-    bg: "bg-violet-500",
-    stroke: "stroke-violet-500",
-    fill: "fill-violet-500",
-    text: "text-violet-500",
+  chart3: {
+    bg: "bg-chart-3",
+    stroke: "stroke-chart-3",
+    fill: "fill-chart-3",
+    text: "text-chart-3",
   },
-  amber: {
-    bg: "bg-amber-500",
-    stroke: "stroke-amber-500",
-    fill: "fill-amber-500",
-    text: "text-amber-500",
+  chart4: {
+    bg: "bg-chart-4",
+    stroke: "stroke-chart-4",
+    fill: "fill-chart-4",
+    text: "text-chart-4",
   },
-  gray: {
-    bg: "bg-gray-400 dark:bg-gray-600",
-    stroke: "stroke-gray-400 dark:stroke-gray-600",
-    fill: "fill-gray-400 dark:fill-gray-600",
-    text: "text-gray-400 dark:text-gray-600",
+  chart5: {
+    bg: "bg-chart-5",
+    stroke: "stroke-chart-5",
+    fill: "fill-chart-5",
+    text: "text-chart-5",
   },
-  cyan: {
-    bg: "bg-cyan-500",
-    stroke: "stroke-cyan-500",
-    fill: "fill-cyan-500",
-    text: "text-cyan-500",
+  primary: {
+    bg: "bg-primary",
+    stroke: "stroke-primary",
+    fill: "fill-primary",
+    text: "text-primary",
   },
-  indigo: {
-    bg: "bg-indigo-600 dark:bg-indigo-500",
-    stroke: "stroke-indigo-600 dark:stroke-indigo-500",
-    fill: "fill-indigo-600 dark:fill-indigo-500",
-    text: "text-indigo-600 dark:text-indigo-500",
+  secondary: {
+    bg: "bg-secondary",
+    stroke: "stroke-secondary",
+    fill: "fill-secondary",
+    text: "text-secondary",
   },
-  pink: {
-    bg: "bg-pink-500",
-    stroke: "stroke-pink-500",
-    fill: "fill-pink-500",
-    text: "text-pink-500",
+  accent: {
+    bg: "bg-accent",
+    stroke: "stroke-accent",
+    fill: "fill-accent",
+    text: "text-accent",
+  },
+  muted: {
+    bg: "bg-muted",
+    stroke: "stroke-muted",
+    fill: "fill-muted",
+    text: "text-muted",
+  },
+  destructive: {
+    bg: "bg-destructive",
+    stroke: "stroke-destructive",
+    fill: "fill-destructive",
+    text: "text-destructive",
   },
 } as const satisfies {
   [color: string]: {
@@ -63,6 +73,14 @@ export const AvailableChartColors: AvailableChartColorsKeys[] = Object.keys(
   chartColors,
 ) as Array<AvailableChartColorsKeys>
 
+/**
+ * Constructs a map of category names to chart colors
+ * Colors are assigned cyclically if there are more categories than colors
+ * 
+ * @param categories - Array of category names
+ * @param colors - Array of color keys to use
+ * @returns Map of category names to color keys
+ */
 export const constructCategoryColors = (
   categories: string[],
   colors: AvailableChartColorsKeys[],
@@ -74,21 +92,37 @@ export const constructCategoryColors = (
   return categoryColors
 }
 
+/**
+ * Gets the Tailwind class name for a specific color and utility type
+ * Falls back to muted color if the requested color doesn't exist
+ * 
+ * @param color - The chart color key
+ * @param type - The utility type (bg, stroke, fill, or text)
+ * @returns Tailwind class name string
+ */
 export const getColorClassName = (
   color: AvailableChartColorsKeys,
   type: ColorUtility,
 ): string => {
   const fallbackColor = {
-    bg: "bg-gray-500",
-    stroke: "stroke-gray-500",
-    fill: "fill-gray-500",
-    text: "text-gray-500",
+    bg: "bg-muted",
+    stroke: "stroke-muted",
+    fill: "fill-muted",
+    text: "text-muted",
   }
   return chartColors[color]?.[type] ?? fallbackColor[type]
 }
 
 // Tremor Raw getYAxisDomain [v0.0.0]
 
+/**
+ * Calculates the Y-axis domain for charts
+ * 
+ * @param autoMinValue - Whether to automatically calculate minimum value
+ * @param minValue - Optional minimum value override
+ * @param maxValue - Optional maximum value override
+ * @returns Tuple of [minDomain, maxDomain]
+ */
 export const getYAxisDomain = (
   autoMinValue: boolean,
   minValue: number | undefined,
@@ -101,6 +135,14 @@ export const getYAxisDomain = (
 
 // Tremor Raw hasOnlyOneValueForKey [v0.1.0]
 
+/**
+ * Checks if an array of objects has only one unique value for a specific key
+ * Useful for determining if a data series has only a single data point
+ * 
+ * @param array - Array of objects to check
+ * @param keyToCheck - The key to check for uniqueness
+ * @returns True if only one unique value exists for the key
+ */
 export function hasOnlyOneValueForKey(
   array: any[],
   keyToCheck: string,

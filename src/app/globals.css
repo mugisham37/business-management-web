@@ -48,11 +48,12 @@
   --border: oklch(0 0 0);
   --input: oklch(0.5555 0 0);
   --ring: oklch(0.7853 0.1041 274.7134);
-  --chart-1: oklch(0.5106 0.2301 276.9656);
-  --chart-2: oklch(0.7038 0.1230 182.5025);
-  --chart-3: oklch(0.7686 0.1647 70.0804);
-  --chart-4: oklch(0.6559 0.2118 354.3084);
-  --chart-5: oklch(0.7227 0.1920 149.5793);
+  /* Chart colors - Used by chartUtils.ts for data visualization */
+  --chart-1: oklch(0.5106 0.2301 276.9656); /* Primary chart color (purple) */
+  --chart-2: oklch(0.7038 0.1230 182.5025); /* Secondary chart color (cyan) */
+  --chart-3: oklch(0.7686 0.1647 70.0804); /* Tertiary chart color (yellow) */
+  --chart-4: oklch(0.6559 0.2118 354.3084); /* Quaternary chart color (pink) */
+  --chart-5: oklch(0.7227 0.1920 149.5793); /* Quinary chart color (green) */
   --sidebar: oklch(0.9789 0.0082 121.6272);
   --sidebar-foreground: oklch(0 0 0);
   --sidebar-primary: oklch(0.5106 0.2301 276.9656);
@@ -83,11 +84,12 @@
   --border: oklch(0.4459 0 0);
   --input: oklch(1 0 0);
   --ring: oklch(0.6801 0.1583 276.9349);
-  --chart-1: oklch(0.6801 0.1583 276.9349);
-  --chart-2: oklch(0.7845 0.1325 181.9120);
-  --chart-3: oklch(0.8790 0.1534 91.6054);
-  --chart-4: oklch(0.7253 0.1752 349.7607);
-  --chart-5: oklch(0.8003 0.1821 151.7110);
+  /* Chart colors - Dark mode variants */
+  --chart-1: oklch(0.6801 0.1583 276.9349); /* Primary chart color (lighter purple) */
+  --chart-2: oklch(0.7845 0.1325 181.9120); /* Secondary chart color (lighter cyan) */
+  --chart-3: oklch(0.8790 0.1534 91.6054); /* Tertiary chart color (lighter yellow) */
+  --chart-4: oklch(0.7253 0.1752 349.7607); /* Quaternary chart color (lighter pink) */
+  --chart-5: oklch(0.8003 0.1821 151.7110); /* Quinary chart color (lighter green) */
   --sidebar: oklch(0 0 0);
   --sidebar-foreground: oklch(1 0 0);
   --sidebar-primary: oklch(0.6801 0.1583 276.9349);

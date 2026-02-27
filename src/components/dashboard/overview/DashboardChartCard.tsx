@@ -1,6 +1,6 @@
-import { PeriodValue } from "@/app/(main)/overview/page"
-import { Badge } from "@/components/Badge"
-import { LineChart } from "@/components/LineChart"
+import { PeriodValue } from "@/app/dashboard/(main)/overview/page"
+import { Badge } from "@/components/ui/badge"
+import { LineChart } from "@/components/ui/line-chart"
 import { overviews } from "@/data/overview-data"
 import { OverviewData } from "@/data/schema"
 import { cx, formatters, percentageFormatter } from "@/lib/utils"
@@ -26,16 +26,16 @@ const formattingMap = {
   unit: formatters.unit,
 }
 
-export const getBadgeType = (value: number) => {
+export const getBadgeType = (value: number): "primary-light" | "accent-light" | "destructive-light" | "muted-light" => {
   if (value > 0) {
-    return "success"
+    return "primary-light" // success -> primary-light (green-ish)
   } else if (value < 0) {
     if (value < -50) {
-      return "warning"
+      return "accent-light" // warning -> accent-light (yellow-ish)
     }
-    return "error"
+    return "destructive-light" // error -> destructive-light (red)
   } else {
-    return "neutral"
+    return "muted-light" // neutral -> muted-light (gray)
   }
 }
 
@@ -121,7 +121,7 @@ export function ChartCard({
     <div className={cx("transition")}>
       <div className="flex items-center justify-between gap-x-2">
         <div className="flex items-center gap-x-2">
-          <dt className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
+          <dt className="font-bold text-foreground sm:text-sm">
             {title}
           </dt>
           {selectedPeriod !== "no-comparison" && (
@@ -132,11 +132,11 @@ export function ChartCard({
         </div>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
-        <dd className="text-xl text-gray-900 dark:text-gray-50">
+        <dd className="text-xl text-foreground">
           {formatter(value)}
         </dd>
         {selectedPeriod !== "no-comparison" && (
-          <dd className="text-sm text-gray-500">
+          <dd className="text-sm text-muted-foreground">
             from {formatter(previousValue)}
           </dd>
         )}
@@ -145,7 +145,7 @@ export function ChartCard({
         className="mt-6 h-32"
         data={chartData || []}
         index="formattedDate"
-        colors={["indigo", "gray"]}
+        colors={["chart1", "chart2"]}
         startEndOnly={true}
         valueFormatter={(value) => formatter(value as number)}
         showYAxis={false}

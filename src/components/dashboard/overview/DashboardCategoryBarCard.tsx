@@ -1,7 +1,7 @@
-import { Badge } from "@/components/Badge"
+import { Badge } from "@/components/ui/badge"
 import { cx } from "@/lib/utils"
 
-import type { KpiEntryExtended } from "@/app/(main)/overview/page"
+import type { KpiEntryExtended } from "@/app/dashboard/(main)/overview/page"
 
 export type CardProps = {
   title: string
@@ -31,19 +31,19 @@ export function CategoryBarCard({
       <div className="flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-gray-900 sm:text-sm dark:text-gray-50">
+            <h3 className="font-bold text-foreground sm:text-sm">
               {title}
             </h3>
-            <Badge variant="neutral">{change}</Badge>
+            <Badge variant="muted">{change}</Badge>
           </div>
           <p className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl text-gray-900 dark:text-gray-50">
+            <span className="text-xl text-foreground">
               {value}
             </span>
-            <span className="text-sm text-gray-500">{valueDescription}</span>
+            <span className="text-sm text-muted-foreground">{valueDescription}</span>
           </p>
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+            <p className="text-sm font-medium text-foreground">
               {subtitle}
             </p>
             <div className="mt-2 flex items-center gap-0.5">
@@ -63,19 +63,19 @@ export function CategoryBarCard({
                   className={cx(item.color, "size-2.5 rounded-sm")}
                   aria-hidden="true"
                 />
-                <span className="text-gray-900 dark:text-gray-50">
+                <span className="text-foreground">
                   {item.title}
                 </span>
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   ({item.value} / {item.percentage}%)
                 </span>
               </li>
             ))}
           </ul>
         </div>
-        <p className="mt-6 text-xs text-gray-500">
+        <p className="mt-6 text-xs text-muted-foreground">
           {ctaDescription}{" "}
-          <a href={ctaLink} className="text-indigo-600 dark:text-indigo-400">
+          <a href={ctaLink} className="text-primary hover:underline">
             {ctaText}
           </a>
         </p>

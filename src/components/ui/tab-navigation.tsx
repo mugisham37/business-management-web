@@ -13,11 +13,11 @@ function getSubtree(
   if (!asChild)
     return typeof content === "function" ? content(children) : content
 
-  const firstChild = React.Children.only(children) as React.ReactElement
+  const firstChild = React.Children.only(children) as React.ReactElement<any>
   return React.cloneElement(firstChild, {
     children:
       typeof content === "function"
-        ? content(firstChild.props.children)
+        ? content((firstChild.props as any).children)
         : content,
   })
 }
@@ -29,13 +29,13 @@ const TabNavigation = React.forwardRef<
     "orientation" | "defaultValue" | "dir"
   >
 >(({ className, children, ...props }, forwardedRef) => (
-  <NavigationMenuPrimitives.Root ref={forwardedRef} {...props} asChild={false}>
+  <NavigationMenuPrimitives.Root ref={forwardedRef} {...props}>
     <NavigationMenuPrimitives.List
       className={cx(
         // base
         "flex items-center justify-start whitespace-nowrap border-b [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        // border color
-        "border-gray-200 dark:border-gray-800",
+        // border color - uses CSS variable for theming
+        "border-border",
         className,
       )}
     >
@@ -70,18 +70,17 @@ const TabNavigationLink = React.forwardRef<
           className={cx(
             // base
             "-mb-px flex items-center justify-center whitespace-nowrap border-b-2 border-transparent px-3 pb-2 text-sm font-medium transition-all",
-            // text color
-            "text-gray-500 dark:text-gray-500",
-            // hover
-            "group-hover:text-gray-700 group-hover:dark:text-gray-400",
-            // border hover
-            "group-hover:border-gray-300 group-hover:dark:border-gray-400",
-            // selected
-            "group-data-[active]:border-indigo-600 group-data-[active]:text-indigo-600",
-            "group-data-[active]:dark:border-indigo-500 group-data-[active]:dark:text-indigo-500",
-            // disabled
+            // text color - uses muted-foreground for inactive state
+            "text-muted-foreground",
+            // hover - uses foreground color for better contrast
+            "group-hover:text-foreground",
+            // border hover - uses border color with reduced opacity
+            "group-hover:border-border/60",
+            // selected - uses primary color for active state
+            "group-data-[active]:border-primary group-data-[active]:text-primary",
+            // disabled - uses muted color for disabled state
             disabled
-              ? "pointer-events-none text-gray-300 dark:text-gray-700"
+              ? "pointer-events-none text-muted"
               : "",
             focusRing,
             className,

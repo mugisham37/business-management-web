@@ -3,12 +3,12 @@
 import {
   Select,
   SelectContent,
-  SelectItemPeriod,
+  SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 
-import { Label } from "@/components/Label"
+import { Label } from "@/components/ui/label"
 
 import {
   Dialog,
@@ -19,18 +19,41 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog"
+} from "@/components/ui/dialog"
 
-import { PeriodValue } from "@/app/(main)/overview/page"
-import { Button } from "@/components/Button"
-import { Checkbox } from "@/components/Checkbox"
-import { DateRangePicker } from "@/components/DatePicker"
+import { PeriodValue } from "@/app/dashboard/(main)/overview/page"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { DateRangePicker } from "@/components/ui/date-picker"
 import { cx } from "@/lib/utils"
 import { RiSettings5Line } from "@remixicon/react"
-import { eachDayOfInterval, interval, subDays, subYears } from "date-fns"
+import { eachDayOfInterval, format, interval, subDays, subYears } from "date-fns"
 import React from "react"
 import { DateRange } from "react-day-picker"
 import { ChartCard } from "./DashboardChartCard"
+
+// Custom SelectItem that displays period date range
+const SelectItemPeriod = React.forwardRef<
+  React.ElementRef<typeof SelectItem>,
+  React.ComponentPropsWithoutRef<typeof SelectItem> & {
+    period?: DateRange
+  }
+>(({ children, period, ...props }, ref) => {
+  return (
+    <SelectItem ref={ref} {...props}>
+      <div className="flex flex-col">
+        <span>{children}</span>
+        {period?.from && period?.to && (
+          <span className="text-xs text-muted-foreground">
+            {format(period.from, "MMM d, yyyy")} -{" "}
+            {format(period.to, "MMM d, yyyy")}
+          </span>
+        )}
+      </div>
+    </SelectItem>
+  )
+})
+SelectItemPeriod.displayName = "SelectItemPeriod"
 
 type Period = {
   value: PeriodValue
@@ -133,7 +156,7 @@ export function Filterbar({
           fromDate={minDate}
           align="start"
         />
-        <span className="hidden text-sm font-medium text-gray-500 sm:block">
+        <span className="hidden text-sm font-medium text-muted-foreground sm:block">
           compared to
         </span>
         <Select
@@ -189,7 +212,7 @@ export function Filterbar({
                 <Label
                   htmlFor={category.title}
                   key={category.title}
-                  className="relative cursor-pointer rounded-md border border-gray-200 p-4 shadow-sm dark:border-gray-800"
+                  className="relative cursor-pointer rounded-md border border-border p-4 shadow-sm"
                 >
                   <Checkbox
                     id={category.title}

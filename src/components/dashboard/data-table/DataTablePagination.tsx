@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import { cx } from "@/lib/utils"
 import {
   RiArrowLeftDoubleLine,
@@ -55,18 +55,18 @@ export function DataTablePagination<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="text-sm tabular-nums text-gray-500">
+      <div className="text-sm tabular-nums text-muted-foreground">
         {table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s)
         selected.
       </div>
       <div className="flex items-center gap-x-6 lg:gap-x-8">
-        <p className="hidden text-sm tabular-nums text-gray-500 sm:block">
+        <p className="hidden text-sm tabular-nums text-muted-foreground sm:block">
           Showing{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
+          <span className="font-medium text-foreground">
             {firstRowIndex}-{lastRowIndex}
           </span>{" "}
           of{" "}
-          <span className="font-medium text-gray-900 dark:text-gray-50">
+          <span className="font-medium text-foreground">
             {totalRows}
           </span>
         </p>

@@ -10,6 +10,13 @@ export const siteConfig = {
     imprint: "/imprint",
     privacy: "/privacy",
     terms: "/terms",
+    overview: "/dashboard/overview",
+    details: "/dashboard/details",
+    settings: {
+      general: "/dashboard/settings/general",
+      billing: "/dashboard/settings/billing",
+      users: "/dashboard/settings/users",
+    },
   },
 }
 

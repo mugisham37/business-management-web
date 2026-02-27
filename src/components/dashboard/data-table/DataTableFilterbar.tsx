@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Searchbar } from "@/components/Searchbar"
+import { Button } from "@/components/ui/button"
+import { Searchbar } from "@/components/ui/searchbar"
 import { conditions, regions, statuses } from "@/data/data"
 import { formatters } from "@/lib/utils"
 import { RiDownloadLine } from "@remixicon/react"
@@ -70,7 +70,7 @@ export function Filterbar<TData>({ table }: DataTableToolbarProps<TData>) {
           <Button
             variant="ghost"
             onClick={() => table.resetColumnFilters()}
-            className="border border-gray-200 px-2 font-semibold text-indigo-600 sm:border-none sm:py-1 dark:border-gray-800 dark:text-indigo-500"
+            className="border border-border px-2 font-semibold text-primary sm:border-none sm:py-1"
           >
             Clear filters
           </Button>

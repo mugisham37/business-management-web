@@ -13,7 +13,7 @@ import {
   DropdownMenuSubMenuContent,
   DropdownMenuSubMenuTrigger,
   DropdownMenuTrigger,
-} from "@/components/Dropdown"
+} from "@/components/ui/dropdown"
 import {
   RiArrowRightUpLine,
   RiComputerLine,
@@ -33,7 +33,7 @@ export function DropdownUserProfile({
   align = "start",
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme() as { theme: string; setTheme: (theme: string) => void }
   React.useEffect(() => {
     setMounted(true)
   }, [])
@@ -96,21 +96,21 @@ export function DropdownUserProfile({
             <DropdownMenuItem>
               Changelog
               <RiArrowRightUpLine
-                className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
+                className="mb-1 ml-1 size-2.5 shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
             </DropdownMenuItem>
             <DropdownMenuItem>
               Documentation
               <RiArrowRightUpLine
-                className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
+                className="mb-1 ml-1 size-2.5 shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
             </DropdownMenuItem>
             <DropdownMenuItem>
               Join Slack community
               <RiArrowRightUpLine
-                className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
+                className="mb-1 ml-1 size-2.5 shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
             </DropdownMenuItem>

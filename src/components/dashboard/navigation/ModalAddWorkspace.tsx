@@ -1,5 +1,5 @@
-import { Badge } from "@/components/Badge"
-import { Button } from "@/components/Button"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogClose,
@@ -9,22 +9,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog"
-import { DropdownMenuItem } from "@/components/Dropdown"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+} from "@/components/ui/dialog"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   RadioCardGroup,
   RadioCardGroupIndicator,
   RadioCardItem,
-} from "@/components/RadioCard"
+} from "@/components/ui/radio-card"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 
 export const databases: {
   label: string
@@ -68,7 +68,7 @@ export function ModalAddWorkspace({
       <Dialog onOpenChange={onOpenChange}>
         <DialogTrigger className="w-full text-left">
           <DropdownMenuItem
-            onSelect={(event) => {
+            onSelect={(event: Event) => {
               event.preventDefault()
               onSelect && onSelect()
             }}
@@ -140,7 +140,7 @@ export function ModalAddWorkspace({
                       <SelectItem value="us-west-01">us-west-01</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     For best performance, choose a region closest to your
                     application.
                   </p>
@@ -169,7 +169,7 @@ export function ModalAddWorkspace({
                           ) : (
                             <span>{database.label}</span>
                           )}
-                          <p className="mt-1 text-xs text-gray-500">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             1/8 vCPU, 1 GB RAM
                           </p>
                         </div>

@@ -1,14 +1,13 @@
 import { siteConfig } from "@/app/siteConfig"
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import {
   Drawer,
-  DrawerBody,
   DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/Drawer"
+} from "@/components/ui/drawer"
 import { cx, focusRing } from "@/lib/utils"
 import {
   RiHome2Line,
@@ -68,7 +67,7 @@ export default function MobileSidebar() {
           <Button
             variant="ghost"
             aria-label="open sidebar"
-            className="group flex items-center rounded-md p-2 text-sm font-medium hover:bg-gray-100 data-[state=open]:bg-gray-100 data-[state=open]:bg-gray-400/10 hover:dark:bg-gray-400/10"
+            className="group flex items-center rounded-md p-2 text-sm font-medium hover:bg-muted data-[state=open]:bg-muted"
           >
             <RiMenuLine
               className="size-6 shrink-0 sm:size-5"
@@ -80,11 +79,10 @@ export default function MobileSidebar() {
           <DrawerHeader>
             <DrawerTitle>Retail Analytics</DrawerTitle>
           </DrawerHeader>
-          <DrawerBody>
-            <nav
-              aria-label="core mobile navigation links"
-              className="flex flex-1 flex-col space-y-10"
-            >
+          <nav
+            aria-label="core mobile navigation links"
+            className="flex flex-1 flex-col space-y-10"
+          >
               <ul role="list" className="space-y-1.5">
                 {navigation.map((item) => (
                   <li key={item.name}>
@@ -93,9 +91,9 @@ export default function MobileSidebar() {
                         href={item.href}
                         className={cx(
                           isActive(item.href)
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground",
+                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-muted sm:text-sm",
                           focusRing,
                         )}
                       >
@@ -110,7 +108,7 @@ export default function MobileSidebar() {
                 ))}
               </ul>
               <div>
-                <span className="text-sm font-medium leading-6 text-gray-500 sm:text-xs">
+                <span className="text-sm font-medium leading-6 text-muted-foreground sm:text-xs">
                   Shortcuts
                 </span>
                 <ul aria-label="shortcuts" role="list" className="space-y-0.5">
@@ -120,9 +118,9 @@ export default function MobileSidebar() {
                         href={item.href}
                         className={cx(
                           pathname === item.href || pathname.includes(item.href)
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-700 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                            ? "text-primary"
+                            : "text-foreground/70 hover:text-foreground",
+                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 font-medium transition hover:bg-muted sm:text-sm",
                           focusRing,
                         )}
                       >
@@ -137,7 +135,6 @@ export default function MobileSidebar() {
                 </ul>
               </div>
             </nav>
-          </DrawerBody>
         </DrawerContent>
       </Drawer>
     </>

@@ -43,53 +43,18 @@ export const hasErrorInput = [
   // base
   "ring-2",
   // border color
-  "border-red-500 dark:border-red-700",
+  "border-destructive",
   // ring color
-  "ring-red-200 dark:ring-red-700/30",
+  "ring-destructive/20",
 ]
 
-// Tremor Raw cx [v0.0.0]
+// Number formatters
 
-import clsx, { type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cx(...args: ClassValue[]) {
-  return twMerge(clsx(...args))
-}
-
-// Tremor Raw focusInput [v0.0.1]
-
-export const focusInput = [
-  // base
-  "focus:ring-2",
-  // ring color
-  "focus:ring-indigo-200 focus:dark:ring-indigo-700/30",
-  // border color
-  "focus:border-indigo-500 focus:dark:border-indigo-700",
-]
-
-// Tremor Raw focusRing [v0.0.1]
-
-export const focusRing = [
-  // base
-  "outline outline-offset-2 outline-0 focus-visible:outline-2",
-  // outline color
-  "outline-indigo-500 dark:outline-indigo-500",
-]
-
-// Tremor Raw hasErrorInput [v0.0.1]
-
-export const hasErrorInput = [
-  // base
-  "ring-2",
-  // border color
-  "border-red-500 dark:border-red-700",
-  // ring color
-  "ring-red-200 dark:ring-red-700/30",
-]
-
-// Number formatter function
-
+/**
+ * Formats a number with US locale formatting
+ * @param number - The number to format
+ * @param decimals - Number of decimal places (default: 0)
+ */
 export const usNumberformatter = (number: number, decimals = 0) =>
   Intl.NumberFormat("us", {
     minimumFractionDigits: decimals,
@@ -98,6 +63,11 @@ export const usNumberformatter = (number: number, decimals = 0) =>
     .format(Number(number))
     .toString()
 
+/**
+ * Formats a number as a percentage with optional + prefix for positive values
+ * @param number - The number to format (0.5 = 50%)
+ * @param decimals - Number of decimal places (default: 1)
+ */
 export const percentageFormatter = (number: number, decimals = 1) => {
   const formattedNumber = new Intl.NumberFormat("en-US", {
     style: "percent",
@@ -109,6 +79,11 @@ export const percentageFormatter = (number: number, decimals = 1) => {
   return `${symbol}${formattedNumber}`
 }
 
+/**
+ * Formats a number in millions with M suffix
+ * @param number - The number to format
+ * @param decimals - Number of decimal places (default: 1)
+ */
 export const millionFormatter = (number: number, decimals = 1) => {
   const formattedNumber = new Intl.NumberFormat("en-US", {
     style: "decimal",
@@ -117,6 +92,10 @@ export const millionFormatter = (number: number, decimals = 1) => {
   }).format(number)
   return `${formattedNumber}M`
 }
+
+/**
+ * Collection of number formatters for different use cases
+ */
 export const formatters: { [key: string]: any } = {
   currency: (number: number, currency: string = "USD") =>
     new Intl.NumberFormat("en-US", {

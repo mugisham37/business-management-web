@@ -6,7 +6,7 @@ import {
   CommandBarCommand,
   CommandBarSeperator,
   CommandBarValue,
-} from "@/components/CommandBar"
+} from "@/components/ui/command-bar"
 import { RowSelectionState, Table } from "@tanstack/react-table"
 
 type DataTableBulkEditorProps<TData> = {
