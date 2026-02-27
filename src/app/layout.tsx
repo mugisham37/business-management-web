@@ -1,5 +1,3 @@
-import Footer from "@/components/landing/Footer"
-import { Navigation } from "@/components/landing/Navbar"
 import type { Metadata } from "next"
 import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
@@ -58,9 +56,7 @@ export default function RootLayout({
           defaultTheme="system"
           disableTransitionOnChange
         >
-          <Navigation />
           {children}
-          <Footer />
         </ThemeProvider>
       </body>
     </html>

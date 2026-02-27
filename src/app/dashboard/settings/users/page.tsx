@@ -1,21 +1,21 @@
 "use client"
 
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/Dropdown"
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
-import { Tooltip } from "@/components/Tooltip"
-import { ModalAddUser } from "@/components/ui/settings/ModalAddUser"
+} from "@/components/ui/select"
+import { Tooltip } from "@/components/ui/tooltip"
+import { ModalAddUser } from "@/components/dashboard/settings/ModalAddUser"
 import { invitedUsers, roles, users } from "@/data/data"
 import { RiAddLine, RiMore2Fill } from "@remixicon/react"
 
@@ -27,11 +27,11 @@ export default function Users() {
           <div>
             <h3
               id="existing-users"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              className="scroll-mt-10 font-semibold text-foreground"
             >
               Users
             </h3>
-            <p className="text-sm leading-6 text-gray-500">
+            <p className="text-sm leading-6 text-muted-foreground">
               Workspace administrators can add, manage, and remove users.
             </p>
           </div>
@@ -44,7 +44,7 @@ export default function Users() {
         </div>
         <ul
           role="list"
-          className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
+          className="mt-6 divide-y divide-border"
         >
           {users.map((user) => (
             <li
@@ -53,16 +53,16 @@ export default function Users() {
             >
               <div className="flex items-center gap-x-4 truncate">
                 <span
-                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-xs text-gray-700 sm:flex dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
+                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-xs text-card-foreground sm:flex"
                   aria-hidden="true"
                 >
                   {user.initials}
                 </span>
                 <div className="truncate">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {user.name}
                   </p>
-                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -120,10 +120,10 @@ export default function Users() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+                      className="group size-8 hover:border hover:border-border hover:bg-muted data-[state=open]:border-border data-[state=open]:bg-muted"
                     >
                       <RiMore2Fill
-                        className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
+                        className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground"
                         aria-hidden="true"
                       />
                     </Button>
@@ -133,7 +133,7 @@ export default function Users() {
                       View details
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="text-red-600 dark:text-red-500"
+                      className="text-destructive"
                       disabled={user.role === "admin"}
                     >
                       Delete
@@ -148,13 +148,13 @@ export default function Users() {
       <section className="mt-12" aria-labelledby="pending-invitations">
         <h2
           id="pending-invitations"
-          className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+          className="scroll-mt-10 font-semibold text-foreground"
         >
           Pending invitations
         </h2>
         <ul
           role="list"
-          className="mt-6 divide-y divide-gray-200 dark:divide-gray-800"
+          className="mt-6 divide-y divide-border"
         >
           {invitedUsers.map((user) => (
             <li
@@ -163,16 +163,16 @@ export default function Users() {
             >
               <div className="flex items-center gap-x-4">
                 <span
-                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-dashed border-gray-300 bg-white text-xs text-gray-700 sm:flex dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300"
+                  className="hidden size-9 shrink-0 items-center justify-center rounded-full border border-dashed border-border bg-card text-xs text-card-foreground sm:flex"
                   aria-hidden="true"
                 >
                   {user.initials}
                 </span>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                  <p className="text-sm font-medium text-foreground">
                     {user.email}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Expires in {user.expires} days
                   </p>
                 </div>
@@ -198,17 +198,17 @@ export default function Users() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="group size-8 hover:border hover:border-gray-300 hover:bg-gray-50 data-[state=open]:border-gray-300 data-[state=open]:bg-gray-50 hover:dark:border-gray-700 hover:dark:bg-gray-900 data-[state=open]:dark:border-gray-700 data-[state=open]:dark:bg-gray-900"
+                      className="group size-8 hover:border hover:border-border hover:bg-muted data-[state=open]:border-border data-[state=open]:bg-muted"
                     >
                       <RiMore2Fill
-                        className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
+                        className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground"
                         aria-hidden="true"
                       />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-36">
                     <DropdownMenuItem
-                      className="text-red-600 dark:text-red-500"
+                      className="text-destructive"
                       disabled={user.role === "admin"}
                     >
                       Revoke invitation

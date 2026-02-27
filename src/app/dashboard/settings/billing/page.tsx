@@ -1,14 +1,14 @@
 "use client"
 
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
-import { ProgressBar } from "@/components/ProgressBar"
-import { ProgressCircle } from "@/components/ProgressCircle"
-import { Switch } from "@/components/Switch"
-import { cx } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Divider } from "@/components/ui/divider"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { ProgressBar } from "@/components/ui/progress-bar"
+import { ProgressCircle } from "@/components/ui/progress-circle"
+import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 import { RiArrowRightUpLine } from "@remixicon/react"
 import React from "react"
 
@@ -56,16 +56,16 @@ export default function Billing() {
   const [isSpendMgmtEnabled, setIsSpendMgmtEnabled] = React.useState(true)
   return (
     <>
-      <div className="rounded-lg bg-gray-50 p-6 ring-1 ring-inset ring-gray-200 dark:bg-gray-400/10 dark:ring-gray-800">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+      <div className="rounded-lg bg-muted p-6 ring-1 ring-inset ring-border">
+        <h4 className="text-sm font-semibold text-foreground">
           This workspace is currently on free plan
         </h4>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
           Boost your analytics and unlock advanced features with our premium
           plans.{" "}
           <a
             href="#"
-            className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-500"
+            className="inline-flex items-center gap-1 text-primary hover:text-primary/90"
           >
             Compare plans
             <RiArrowRightUpLine
@@ -81,11 +81,11 @@ export default function Billing() {
             <div>
               <h2
                 id="billing-overview"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                className="scroll-mt-10 font-semibold text-foreground"
               >
                 Billing
               </h2>
-              <p className="mt-1 text-sm leading-6 text-gray-500">
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Overview of current billing cycle based on fixed and on-demand
                 charges.
               </p>
@@ -93,16 +93,16 @@ export default function Billing() {
             <div className="md:col-span-2">
               <ul
                 role="list"
-                className="w-full divide-y divide-gray-200 border-b border-gray-200 dark:divide-gray-800 dark:border-gray-800"
+                className="w-full divide-y divide-border border-b border-border"
               >
                 {data.map((item) => (
                   <li key={item.name} className="px-2 py-4 text-sm md:p-4">
                     <div className="w-full">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-gray-900 dark:text-gray-50">
+                        <p className="font-medium text-foreground">
                           {item.name}
                         </p>
-                        <p className="font-medium text-gray-700 dark:text-gray-300">
+                        <p className="font-medium text-foreground/80">
                           {item.value}
                         </p>
                       </div>
@@ -113,7 +113,7 @@ export default function Billing() {
                             className="mt-2 [&>*]:h-1.5"
                           />
                         )}
-                        <p className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                        <p className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                           <span>{item.description}</span>
                           <span>{item.capacity}</span>
                         </p>
@@ -123,7 +123,7 @@ export default function Billing() {
                 ))}
               </ul>
               <div className="px-2 py-4 md:p-4">
-                <p className="flex items-center justify-between text-sm font-medium text-gray-900 dark:text-gray-50">
+                <p className="flex items-center justify-between text-sm font-medium text-foreground">
                   <span>Total for May 24</span>
                   <span className="font-semibold">$280</span>
                 </p>
@@ -138,11 +138,11 @@ export default function Billing() {
               <div>
                 <h2
                   id="cost-spend-control"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Cost spend control
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Set hard caps for on-demand charges.
                 </p>
               </div>
@@ -157,24 +157,24 @@ export default function Billing() {
                     <div>
                       {isSpendMgmtEnabled ? (
                         <>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                          <p className="text-sm font-medium text-foreground">
                             &#36;280 / 350 (62.2&#37;)
                           </p>
                           <Label
                             htmlFor="spend-mgmt"
-                            className="text-gray-500 dark:text-gray-500"
+                            className="text-muted-foreground"
                           >
                             Spend management enabled
                           </Label>
                         </>
                       ) : (
                         <>
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+                          <p className="text-sm font-medium text-foreground">
                             &#36;0 / 0 (0&#37;)
                           </p>
                           <Label
                             htmlFor="spend-mgmt"
-                            className="text-gray-500 dark:text-gray-500"
+                            className="text-muted-foreground"
                           >
                             Spend management disabled
                           </Label>
@@ -192,7 +192,7 @@ export default function Billing() {
                   />
                 </div>
                 <div
-                  className={cx(
+                  className={cn(
                     "transform-gpu transition-all ease-[cubic-bezier(0.16,1,0.3,1.03)] will-change-transform",
                     isSpendMgmtEnabled ? "h-52 md:h-32" : "h-0",
                   )}
@@ -202,7 +202,7 @@ export default function Billing() {
                   }}
                 >
                   <div
-                    className={cx(
+                    className={cn(
                       "animate-slideDownAndFade transition",
                       isSpendMgmtEnabled ? "" : "hidden",
                     )}
@@ -253,35 +253,35 @@ export default function Billing() {
               <div>
                 <h2
                   id="add-ons"
-                  className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+                  className="scroll-mt-10 font-semibold text-foreground"
                 >
                   Add-Ons
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Additional services to boost your services.
                 </p>
               </div>
               <div className="space-y-6 md:col-span-2">
                 <Card className="overflow-hidden p-0">
                   <div className="px-4 pb-6 pt-4">
-                    <span className="text-sm text-gray-500">$25/month</span>
-                    <h4 className="mt-4 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                    <span className="text-sm text-muted-foreground">$25/month</span>
+                    <h4 className="mt-4 text-sm font-semibold text-foreground">
                       Advanced bot protection
                     </h4>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       Safeguard your assets with our cutting-edge bot
                       protection. Our AI solution identifies and mitigates
                       automated traffic to protect your workspace from bad bots.
                     </p>
                   </div>
-                  <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
+                  <div className="flex items-center justify-between border-t border-border bg-muted p-4">
                     <div className="flex items-center gap-3">
                       <Switch id="bot-protection" name="bot-protection" />
                       <Label htmlFor="bot-protection">Activate</Label>
                     </div>
                     <a
                       href="#"
-                      className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-500"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90"
                     >
                       Learn more
                       <RiArrowRightUpLine
@@ -293,23 +293,23 @@ export default function Billing() {
                 </Card>
                 <Card className="overflow-hidden p-0">
                   <div className="px-4 pb-6 pt-4">
-                    <span className="text-sm text-gray-500">$50/month</span>
-                    <h4 className="mt-4 text-sm font-semibold text-gray-900 dark:text-gray-50">
+                    <span className="text-sm text-muted-foreground">$50/month</span>
+                    <h4 className="mt-4 text-sm font-semibold text-foreground">
                       Workspace insights
                     </h4>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                       Real-time analysis of your workspace&#39;s usage, enabling
                       you to make well-informed decisions for optimization.
                     </p>
                   </div>
-                  <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-900 dark:bg-gray-900">
+                  <div className="flex items-center justify-between border-t border-border bg-muted p-4">
                     <div className="flex items-center gap-3">
                       <Switch id="insights" name="insights" />
                       <Label htmlFor="insights">Activate</Label>
                     </div>
                     <a
                       href="#"
-                      className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-500"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90"
                     >
                       Learn more
                       <RiArrowRightUpLine

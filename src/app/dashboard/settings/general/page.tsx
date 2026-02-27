@@ -1,17 +1,17 @@
 "use client"
-import { Button } from "@/components/Button"
-import { Card } from "@/components/Card"
-import { Checkbox } from "@/components/Checkbox"
-import { Divider } from "@/components/Divider"
-import { Input } from "@/components/Input"
-import { Label } from "@/components/Label"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Divider } from "@/components/ui/divider"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select"
+} from "@/components/ui/select"
 import { RiExternalLinkLine } from "@remixicon/react"
 
 import { roles } from "@/data/data"

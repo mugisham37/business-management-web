@@ -243,7 +243,7 @@ export function DataTableFilter<TData, TValue>({
               {(selectedValues as ConditionFilter)?.condition ===
                 "is-between" && (
                 <>
-                  <span className="text-xs font-medium text-muted-foreground">and</span>
+                  <span className="font-medium text-muted-foreground sm:text-xs">and</span>
                   <Input
                     disabled={!(selectedValues as ConditionFilter)?.condition}
                     type="number"

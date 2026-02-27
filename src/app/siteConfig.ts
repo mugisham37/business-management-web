@@ -1,21 +1,31 @@
 export const siteConfig = {
-  name: "Database",
-  url: "https://database.tremor.so",
-  description: "The database for modern applications.",
+  name: "Business Management",
+  url: "https://yourdomain.com",
+  description: "Modern business management platform for growing companies.",
   baseLinks: {
+    // Marketing pages
     home: "/",
     about: "/about",
     changelog: "/changelog",
     pricing: "/pricing",
+    
+    // Legal pages
     imprint: "/imprint",
     privacy: "/privacy",
     terms: "/terms",
-    overview: "/dashboard/overview",
-    details: "/dashboard/details",
-    settings: {
-      general: "/dashboard/settings/general",
-      billing: "/dashboard/settings/billing",
-      users: "/dashboard/settings/users",
+    
+    // Auth
+    auth: "/auth",
+    
+    // Dashboard pages
+    dashboard: {
+      overview: "/dashboard/overview",
+      details: "/dashboard/details",
+      settings: {
+        general: "/dashboard/settings/general",
+        billing: "/dashboard/settings/billing",
+        users: "/dashboard/settings/users",
+      },
     },
   },
 }
