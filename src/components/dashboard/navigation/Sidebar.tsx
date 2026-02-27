@@ -17,11 +17,11 @@ import {
 import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
 
 const navigation = [
-  { name: "Overview", href: siteConfig.baseLinks.overview, icon: RiHome2Line },
-  { name: "Details", href: siteConfig.baseLinks.details, icon: RiListCheck },
+  { name: "Overview", href: siteConfig.baseLinks.dashboard.overview, icon: RiHome2Line },
+  { name: "Details", href: siteConfig.baseLinks.dashboard.details, icon: RiListCheck },
   {
     name: "Settings",
-    href: siteConfig.baseLinks.settings.general,
+    href: siteConfig.baseLinks.dashboard.settings.general,
     icon: RiSettings5Line,
   },
 ] as const
@@ -29,22 +29,22 @@ const navigation = [
 const shortcuts = [
   {
     name: "Add new user",
-    href: "/settings/users",
+    href: "/dashboard/settings/users",
     icon: RiLinkM,
   },
   {
     name: "Workspace usage",
-    href: "/settings/billing#billing-overview",
+    href: "/dashboard/settings/billing#billing-overview",
     icon: RiLinkM,
   },
   {
     name: "Cost spend control",
-    href: "/settings/billing#cost-spend-control",
+    href: "/dashboard/settings/billing#cost-spend-control",
     icon: RiLinkM,
   },
   {
     name: "Overview – Rows written",
-    href: "/overview#usage-overview",
+    href: "/dashboard/overview#usage-overview",
     icon: RiLinkM,
   },
 ] as const
@@ -52,8 +52,8 @@ const shortcuts = [
 export function Sidebar() {
   const pathname = usePathname()
   const isActive = (itemHref: string) => {
-    if (itemHref === siteConfig.baseLinks.settings.general) {
-      return pathname.startsWith("/settings")
+    if (itemHref === siteConfig.baseLinks.dashboard.settings.general) {
+      return pathname.startsWith("/dashboard/settings")
     }
     return pathname === itemHref || pathname.startsWith(itemHref)
   }
