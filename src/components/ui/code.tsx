@@ -1,5 +1,5 @@
 import { cx } from "@/lib/utils"
-import CopyToClipboard from "./copy_to_clipboard"
+import CopyToClipboard from "./copy-to-clipboard"
 
 type Props = {
   code: string
