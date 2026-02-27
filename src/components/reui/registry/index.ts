@@ -1,5 +1,0 @@
-export * from "./base-colors"
-export * from "./bases"
-export * from "./fonts"
-export * from "./styles"
-export * from "./themes"
