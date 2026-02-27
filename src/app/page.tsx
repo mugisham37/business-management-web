@@ -1,31 +1,19 @@
-import React from 'react'
-import Hero from '../components/hero'
-import Overview from '../components/overview'
-import Bento from '../components/bento'
-import Feature from '../components/feature'
-import Metrics from '../components/metrics'
-import Hightlight from '../components/hightlight'
-import Pricing from '../components/pricing'
-import Benefits from '../components/benefits'
-import Testimonials from '../components/testimonials'
+import CodeExample from "@/components/ui/CodeExample"
+import Cta from "@/components/ui/Cta"
+import Features from "@/components/ui/Features"
+import { GlobalDatabase } from "@/components/ui/GlobalDatabase"
+import Hero from "@/components/ui/Hero"
+import LogoCloud from "@/components/ui/LogoCloud"
 
-import Faq from '../components/faq'
-
-const page = () => {
+export default function Home() {
   return (
-    <div>
+    <main className="flex flex-col overflow-hidden">
       <Hero />
-      <Overview />
-      <Bento />
-      <Feature />
-      <Metrics />
-      <Hightlight />
-      <Pricing />
-      <Benefits />
-      <Testimonials />
-      <Faq />
-    </div>
+      <LogoCloud />
+      <GlobalDatabase />
+      <CodeExample />
+      <Features />
+      <Cta />
+    </main>
   )
 }
-
-export default page
