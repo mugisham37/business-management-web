@@ -1,11 +1,11 @@
-import Code from "@/components/Code"
+import Code from "@/components/ui/code"
 import {
   RiLinksLine,
   RiPlugLine,
   RiShieldKeyholeLine,
   RiStackLine,
 } from "@remixicon/react"
-import { Badge } from "../Badge"
+import { Badge } from "../ui/badge"
 import CodeExampleTabs from "./CodeExampleTabs"
 
 const code = `CREATE TABLE Customers (

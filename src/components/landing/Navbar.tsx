@@ -7,7 +7,7 @@ import { RiCloseLine, RiMenuLine } from "@remixicon/react"
 import Link from "next/link"
 import React from "react"
 import { DatabaseLogo } from "../../../public/DatabaseLogo"
-import { Button } from "../Button"
+import { Button } from "../ui/button"
 
 export function Navigation() {
   const scrolled = useScroll(15)
@@ -72,7 +72,7 @@ export function Navigation() {
             <Button>Book demo</Button>
             <Button
               onClick={() => setOpen(!open)}
-              variant="light"
+              variant="ghost"
               className="aspect-square p-2"
             >
               {open ? (
