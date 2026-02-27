@@ -1,7 +1,7 @@
 "use client"
 import * as Tabs from "@radix-ui/react-tabs"
 import { RiCodeSSlashLine, RiShapesLine } from "@remixicon/react"
-import Arrow from "../Arrow"
+import Arrow from "../reui/arrow"
 
 export default function CodeExampleTabs({
   tab1,
