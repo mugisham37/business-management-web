@@ -1,4 +1,5 @@
 import { gql } from '@apollo/client';
+import { AUDIT_LOG_FRAGMENT } from '../fragments';
 
 /**
  * Subscription: OnAuditLogCreated
@@ -8,7 +9,7 @@ import { gql } from '@apollo/client';
  * 
  * Features:
  * - Real-time audit log notifications
- * - Optional filtering by user, resource, or action
+ * - Optional filtering by user, entity type, or action
  * - Includes full audit log details
  * 
  * Requirements: 5.2
@@ -18,42 +19,22 @@ import { gql } from '@apollo/client';
  * const { data, loading, error } = useSubscription({
  *   query: ON_AUDIT_LOG_CREATED,
  *   variables: { 
- *     userId: '123',
- *     resourceType: 'USER'
+ *     filter: {
+ *       userId: '123',
+ *       entityType: 'USER'
+ *     }
  *   },
  *   onData: (data) => {
- *     console.log('New audit log:', data.onAuditLogCreated);
+ *     console.log('New audit log:', data.auditLogCreated);
  *   },
  * });
  * ```
  */
 export const ON_AUDIT_LOG_CREATED = gql`
-  subscription OnAuditLogCreated(
-    $userId: String
-    $resourceType: String
-    $action: String
-    $organizationId: String
-  ) {
-    onAuditLogCreated(
-      userId: $userId
-      resourceType: $resourceType
-      action: $action
-      organizationId: $organizationId
-    ) {
-      id
-      userId
-      action
-      resourceType
-      resourceId
-      oldValue
-      newValue
-      result
-      ipAddress
-      userAgent
-      metadata
-      hierarchyLevel
-      organizationId
-      createdAt
+  ${AUDIT_LOG_FRAGMENT}
+  subscription OnAuditLogCreated($filter: AuditLogFilterInput) {
+    auditLogCreated(filter: $filter) {
+      ...AuditLogFragment
     }
   }
 `;

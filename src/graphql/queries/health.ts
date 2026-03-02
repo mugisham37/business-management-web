@@ -5,6 +5,11 @@ export const HEALTH_CHECK_QUERY = gql`
     health {
       status
       timestamp
+      services {
+        name
+        status
+        responseTime
+      }
     }
   }
 `;
