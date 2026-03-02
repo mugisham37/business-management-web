@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/graphql/*": ["./src/graphql/*"],
+      "@/grpc/*": ["./src/grpc/*"]
     }
   },
   "include": [

@@ -1,0 +1,64 @@
+overwrite: true
+schema: 'http://localhost:3001/graphql'
+documents: 'src/graphql/**/*.ts'
+generates:
+  src/lib/types/generated/graphql.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-react-apollo'
+    config:
+      # Type generation options
+      skipTypename: false
+      withHooks: true
+      withHOC: false
+      withComponent: false
+      
+      # Naming conventions
+      enumsAsTypes: true
+      constEnums: false
+      namingConvention:
+        typeNames: pascal-case#pascalCase
+        enumValues: upper-case#upperCase
+        transformUnderscore: true
+      
+      # React Apollo hooks configuration
+      reactApolloVersion: 3
+      withRefetchFn: true
+      withResultType: true
+      withMutationFn: true
+      
+      # Type safety options
+      avoidOptionals:
+        field: false
+        inputValue: false
+        object: false
+        defaultValue: false
+      
+      # Add JSDoc comments from schema descriptions
+      addDocBlocks: true
+      
+      # Scalars mapping
+      scalars:
+        DateTime: 'string'
+        JSON: 'Record<string, any>'
+        Upload: 'File'
+      
+      # Import types from external files
+      maybeValue: 'T | null'
+      inputMaybeValue: 'T | null | undefined'
+      
+      # Deduplication
+      dedupeOperationSuffix: true
+      omitOperationSuffix: false
+      
+      # Export fragments as separate types
+      exportFragmentSpreadSubTypes: true
+      preResolveTypes: true
+      
+      # Error handling
+      onlyOperationTypes: false
+      
+hooks:
+  afterAllFileWrite:
+    - prettier --write
