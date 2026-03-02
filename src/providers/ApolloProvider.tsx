@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ApolloProvider as BaseApolloProvider } from '@apollo/client';
+import { ApolloProvider as BaseApolloProvider } from '@apollo/client/react';
 import { apolloClient } from '@/lib/api/apollo-client';
 
 /**
