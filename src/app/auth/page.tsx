@@ -1,4 +1,4 @@
-import { AuthOnboarding } from "@/components/ui/auth-onboarding";
+import { AuthOnboarding } from "@/components/auth/auth-onboarding";
 
 export default function AuthPage() {
   return <AuthOnboarding />;

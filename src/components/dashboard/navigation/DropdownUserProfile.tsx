@@ -21,7 +21,9 @@ import {
   RiSunLine,
 } from "@remixicon/react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 import * as React from "react"
+import { useAuth } from "@/lib/hooks/useAuth"
 
 export type DropdownUserProfileProps = {
   children: React.ReactNode
@@ -34,19 +36,34 @@ export function DropdownUserProfile({
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme() as { theme: string; setTheme: (theme: string) => void }
+  const { user, logout } = useAuth()
+  const router = useRouter()
+  
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
+  const handleSignOut = async () => {
+    try {
+      await logout()
+      router.push('/auth')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
   if (!mounted) {
     return null
   }
+  
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent align={align}>
-          <DropdownMenuLabel>emma.stone@acme.com</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {user?.email || 'emma.stone@acme.com'}
+          </DropdownMenuLabel>
           <DropdownMenuGroup>
             <DropdownMenuSubMenu>
               <DropdownMenuSubMenuTrigger>Theme</DropdownMenuSubMenuTrigger>
@@ -117,7 +134,9 @@ export function DropdownUserProfile({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
+              Sign out
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

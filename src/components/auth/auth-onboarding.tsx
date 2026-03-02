@@ -2,13 +2,19 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { OnboardingSteps } from "@/components/ui/onboarding-steps";
-import { OnboardingForm } from "@/components/ui/onboarding-form";
-import { RoleBasedSignIn } from "@/components/ui/role-based-signin";
+import { OnboardingSteps } from "@/components/auth/onboarding-steps";
+import { OnboardingForm } from "@/components/auth/onboarding-form";
+import { RoleBasedSignIn } from "@/components/auth/role-based-signin";
 import { Chrome, Apple } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useOnboardingForm } from "@/lib/hooks/useOnboardingForm";
+import { apolloClient } from "@/lib/api/apollo-client";
+import { REGISTER_FOUNDER_MUTATION } from "@/graphql/mutations/auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type AuthMode = "signin" | "signup";
 
@@ -37,10 +43,25 @@ const itemVariants = {
 };
 
 export function AuthOnboarding() {
+  const router = useRouter();
+  const { login, loginWithPin } = useAuth();
+  const {
+    formData,
+    updateField,
+    updateFields,
+    resetForm,
+    validateStep1,
+    validateStep2,
+    validateStep3,
+    validateStep4,
+    validateAll,
+  } = useOnboardingForm();
+
   const [mode, setMode] = React.useState<AuthMode>("signin");
   const [onboardingStep, setOnboardingStep] = React.useState(0);
   const [isLoadingSignIn, setIsLoadingSignIn] = React.useState(false);
   const [isLoadingSignUp, setIsLoadingSignUp] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Auto-advance preview steps during sign in
   React.useEffect(() => {
@@ -59,43 +80,179 @@ export function AuthOnboarding() {
     }
   }, [mode]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoadingSignIn(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoadingSignIn(false);
-    // Handle sign in logic
-    console.log("Sign in successful - redirect to dashboard");
+  /**
+   * Handle sign-in with email and password
+   */
+  const handleSignIn = async (
+    email: string,
+    password: string,
+    organizationId: string
+  ) => {
+    try {
+      setIsLoadingSignIn(true);
+      setError(null);
+      
+      await login(email, password, organizationId);
+      
+      // Redirect to dashboard on success
+      router.push("/dashboard");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Sign in failed";
+      setError(errorMessage);
+      console.error("Sign in error:", err);
+    } finally {
+      setIsLoadingSignIn(false);
+    }
   };
 
+  /**
+   * Handle sign-in with PIN
+   */
+  const handlePinSignIn = async (
+    email: string,
+    pin: string,
+    organizationId: string
+  ) => {
+    try {
+      setIsLoadingSignIn(true);
+      setError(null);
+      
+      await loginWithPin(email, pin, organizationId);
+      
+      // Redirect to dashboard on success
+      router.push("/dashboard");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "PIN sign in failed";
+      setError(errorMessage);
+      console.error("PIN sign in error:", err);
+    } finally {
+      setIsLoadingSignIn(false);
+    }
+  };
+
+  /**
+   * Handle sign-up (founder registration with organization creation)
+   */
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoadingSignUp(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoadingSignUp(false);
-    // Handle sign up logic
-    console.log("Account created successfully - redirect to dashboard");
+    
+    // Validate all steps are complete
+    if (!validateAll()) {
+      setError("Please complete all onboarding steps");
+      return;
+    }
+
+    // Validate personal info
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setIsLoadingSignUp(true);
+      setError(null);
+
+      // Prepare registration input
+      const input = {
+        // Personal information
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        
+        // Company information
+        companyName: formData.companyName,
+        industry: formData.industry,
+        companySize: formData.companySize,
+        website: formData.website || null,
+        
+        // Role and department
+        role: formData.role,
+        department: formData.department,
+        
+        // Business goals
+        businessGoals: formData.selectedGoals,
+        timeline: formData.timeline,
+        
+        // Preferences
+        currency: formData.currency,
+        timezone: formData.timezone,
+        emailNotifications: formData.emailNotifications,
+        weeklyReports: formData.weeklyReports,
+        marketingUpdates: formData.marketingUpdates,
+      };
+
+      // Call registration mutation
+      const { data } = await apolloClient.mutate<{
+        registerFounder: {
+          accessToken: string;
+          refreshToken: string;
+          user: any;
+          organization: {
+            id: string;
+            name: string;
+          };
+        };
+      }>({
+        mutation: REGISTER_FOUNDER_MUTATION,
+        variables: { input },
+      });
+
+      if (data?.registerFounder) {
+        // Registration successful - tokens are automatically stored by useAuth
+        // Redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        throw new Error("Registration failed - no data returned");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Registration failed";
+      setError(errorMessage);
+      console.error("Sign up error:", err);
+    } finally {
+      setIsLoadingSignUp(false);
+    }
   };
 
   const handleOnboardingNext = () => {
-    if (onboardingStep < 3) {
-      setOnboardingStep((prev) => prev + 1);
-    } else {
-      // Complete onboarding and create account
-      console.log("Onboarding complete - creating account");
-      // This would trigger the sign up form submission
+    // Validate current step before advancing
+    let isValid = true;
+    
+    switch (onboardingStep) {
+      case 0:
+        isValid = validateStep1();
+        if (!isValid) setError("Please complete all company details");
+        break;
+      case 1:
+        isValid = validateStep2();
+        if (!isValid) setError("Please select your role and department");
+        break;
+      case 2:
+        isValid = validateStep3();
+        if (!isValid) setError("Please select at least one goal and timeline");
+        break;
+      case 3:
+        isValid = validateStep4();
+        break;
+    }
+
+    if (isValid) {
+      setError(null);
+      if (onboardingStep < 3) {
+        setOnboardingStep((prev) => prev + 1);
+      }
     }
   };
 
   const handleOnboardingPrev = () => {
     if (onboardingStep > 0) {
+      setError(null);
       setOnboardingStep((prev) => prev - 1);
     }
   };
 
   const handleOnboardingStepChange = (step: number) => {
+    setError(null);
     setOnboardingStep(step);
   };
 
@@ -112,8 +269,14 @@ export function AuthOnboarding() {
             {/* Sign In: Form Left, Onboarding Steps Preview Right */}
             <div className="w-full h-full bg-card flex flex-col items-center justify-center p-8 md:p-12 order-2 lg:order-1">
               <RoleBasedSignIn
-                onSignUp={() => setMode("signup")}
+                onSignUp={() => {
+                  setMode("signup");
+                  setError(null);
+                }}
+                onSignIn={handleSignIn}
+                onPinSignIn={handlePinSignIn}
                 isLoading={isLoadingSignIn}
+                error={error}
               />
             </div>
             <div className="hidden lg:block order-1 lg:order-2">
@@ -132,6 +295,8 @@ export function AuthOnboarding() {
                 onNext={handleOnboardingNext}
                 onPrev={handleOnboardingPrev}
                 onStepChange={handleOnboardingStepChange}
+                formData={formData}
+                onUpdateField={updateField}
               />
             </div>
             <div className="w-full h-full bg-card flex flex-col items-center justify-center p-8 md:p-12 order-1 lg:order-2">
@@ -139,10 +304,15 @@ export function AuthOnboarding() {
                 onSignIn={() => {
                   setMode("signin");
                   setOnboardingStep(0);
+                  setError(null);
+                  resetForm();
                 }}
                 onSubmit={handleSignUp}
                 isLoading={isLoadingSignUp}
                 currentStep={onboardingStep}
+                formData={formData}
+                onUpdateField={updateField}
+                error={error}
               />
             </div>
           </>
@@ -158,11 +328,17 @@ function SignUpForm({
   onSubmit,
   isLoading,
   currentStep,
+  formData,
+  onUpdateField,
+  error,
 }: {
   onSignIn: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
   currentStep: number;
+  formData: any;
+  onUpdateField: (field: string, value: any) => void;
+  error: string | null;
 }) {
   return (
     <motion.div
@@ -183,6 +359,14 @@ function SignUpForm({
       >
         Complete the onboarding to get started
       </motion.p>
+
+      {error && (
+        <motion.div variants={itemVariants} className="mb-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 mb-6">
         <Button variant="outline" type="button">
@@ -210,11 +394,23 @@ function SignUpForm({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName">First Name</Label>
-            <Input id="firstName" type="text" required />
+            <Input
+              id="firstName"
+              type="text"
+              value={formData.firstName || ''}
+              onChange={(e) => onUpdateField('firstName', e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName">Last Name</Label>
-            <Input id="lastName" type="text" required />
+            <Input
+              id="lastName"
+              type="text"
+              value={formData.lastName || ''}
+              onChange={(e) => onUpdateField('lastName', e.target.value)}
+              required
+            />
           </div>
         </div>
         <div className="space-y-2">
@@ -223,12 +419,21 @@ function SignUpForm({
             id="signup-email"
             type="email"
             placeholder="name@example.com"
+            value={formData.email || ''}
+            onChange={(e) => onUpdateField('email', e.target.value)}
             required
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="signup-password">Password</Label>
-          <Input id="signup-password" type="password" required />
+          <Input
+            id="signup-password"
+            type="password"
+            value={formData.password || ''}
+            onChange={(e) => onUpdateField('password', e.target.value)}
+            required
+            minLength={8}
+          />
         </div>
         
         <motion.div 
@@ -246,7 +451,7 @@ function SignUpForm({
           type="submit" 
           className="w-full" 
           isLoading={isLoading}
-          disabled={currentStep < 3}
+          disabled={currentStep < 3 || isLoading}
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </Button>

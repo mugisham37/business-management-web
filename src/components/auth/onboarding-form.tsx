@@ -14,6 +14,8 @@ interface OnboardingFormProps {
   onPrev: () => void;
   onStepChange: (step: number) => void;
   className?: string;
+  formData: any;
+  onUpdateField: (field: string, value: any) => void;
 }
 
 const itemVariants = {
@@ -35,6 +37,8 @@ export function OnboardingForm({
   onPrev,
   onStepChange,
   className,
+  formData,
+  onUpdateField,
 }: OnboardingFormProps) {
   const progress = ((currentStep + 1) / 4) * 100;
 
@@ -86,10 +90,10 @@ export function OnboardingForm({
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
-          {currentStep === 0 && <Step1 key="step1" />}
-          {currentStep === 1 && <Step2 key="step2" />}
-          {currentStep === 2 && <Step3 key="step3" />}
-          {currentStep === 3 && <Step4 key="step4" />}
+          {currentStep === 0 && <Step1 key="step1" formData={formData} onUpdateField={onUpdateField} />}
+          {currentStep === 1 && <Step2 key="step2" formData={formData} onUpdateField={onUpdateField} />}
+          {currentStep === 2 && <Step3 key="step3" formData={formData} onUpdateField={onUpdateField} />}
+          {currentStep === 3 && <Step4 key="step4" formData={formData} onUpdateField={onUpdateField} />}
         </AnimatePresence>
       </div>
 
@@ -118,7 +122,7 @@ export function OnboardingForm({
 }
 
 // Step 1: Company Information
-function Step1() {
+function Step1({ formData, onUpdateField }: { formData: any; onUpdateField: (field: string, value: any) => void }) {
   return (
     <motion.div
       variants={itemVariants}
@@ -144,6 +148,8 @@ function Step1() {
             id="companyName"
             type="text"
             placeholder="Acme Corporation"
+            value={formData.companyName || ''}
+            onChange={(e) => onUpdateField('companyName', e.target.value)}
             required
           />
         </div>
@@ -152,6 +158,8 @@ function Step1() {
           <Label htmlFor="industry">Industry</Label>
           <select
             id="industry"
+            value={formData.industry || ''}
+            onChange={(e) => onUpdateField('industry', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select industry</option>
@@ -169,6 +177,8 @@ function Step1() {
           <Label htmlFor="companySize">Company Size</Label>
           <select
             id="companySize"
+            value={formData.companySize || ''}
+            onChange={(e) => onUpdateField('companySize', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select size</option>
@@ -186,6 +196,8 @@ function Step1() {
             id="website"
             type="url"
             placeholder="https://example.com"
+            value={formData.website || ''}
+            onChange={(e) => onUpdateField('website', e.target.value)}
           />
         </div>
       </div>
@@ -194,7 +206,7 @@ function Step1() {
 }
 
 // Step 2: Team Setup
-function Step2() {
+function Step2({ formData, onUpdateField }: { formData: any; onUpdateField: (field: string, value: any) => void }) {
   return (
     <motion.div
       variants={itemVariants}
@@ -218,6 +230,8 @@ function Step2() {
           <Label htmlFor="role">Your Role</Label>
           <select
             id="role"
+            value={formData.role || ''}
+            onChange={(e) => onUpdateField('role', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select your role</option>
@@ -234,6 +248,8 @@ function Step2() {
           <Label htmlFor="department">Department</Label>
           <select
             id="department"
+            value={formData.department || ''}
+            onChange={(e) => onUpdateField('department', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select department</option>
@@ -279,8 +295,8 @@ function Step2() {
 }
 
 // Step 3: Business Goals
-function Step3() {
-  const [selectedGoals, setSelectedGoals] = React.useState<string[]>([]);
+function Step3({ formData, onUpdateField }: { formData: any; onUpdateField: (field: string, value: any) => void }) {
+  const selectedGoals = formData.selectedGoals || [];
 
   const goals = [
     { id: "revenue", label: "Increase Revenue", icon: "💰" },
@@ -292,11 +308,10 @@ function Step3() {
   ];
 
   const toggleGoal = (goalId: string) => {
-    setSelectedGoals((prev) =>
-      prev.includes(goalId)
-        ? prev.filter((id) => id !== goalId)
-        : [...prev, goalId]
-    );
+    const newGoals = selectedGoals.includes(goalId)
+      ? selectedGoals.filter((id: string) => id !== goalId)
+      : [...selectedGoals, goalId];
+    onUpdateField('selectedGoals', newGoals);
   };
 
   return (
@@ -324,6 +339,7 @@ function Step3() {
             {goals.map((goal) => (
               <button
                 key={goal.id}
+                type="button"
                 onClick={() => toggleGoal(goal.id)}
                 className={cn(
                   "p-4 rounded-lg border-2 transition-all text-left",
@@ -345,6 +361,8 @@ function Step3() {
           <Label htmlFor="timeline">Expected Timeline</Label>
           <select
             id="timeline"
+            value={formData.timeline || ''}
+            onChange={(e) => onUpdateField('timeline', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select timeline</option>
@@ -360,7 +378,7 @@ function Step3() {
 }
 
 // Step 4: Preferences
-function Step4() {
+function Step4({ formData, onUpdateField }: { formData: any; onUpdateField: (field: string, value: any) => void }) {
   return (
     <motion.div
       variants={itemVariants}
@@ -384,6 +402,8 @@ function Step4() {
           <Label htmlFor="currency">Currency</Label>
           <select
             id="currency"
+            value={formData.currency || 'USD'}
+            onChange={(e) => onUpdateField('currency', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="USD">USD - US Dollar</option>
@@ -399,6 +419,8 @@ function Step4() {
           <Label htmlFor="timezone">Timezone</Label>
           <select
             id="timezone"
+            value={formData.timezone || 'UTC'}
+            onChange={(e) => onUpdateField('timezone', e.target.value)}
             className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="UTC">UTC</option>
@@ -418,7 +440,8 @@ function Step4() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                defaultChecked
+                checked={formData.emailNotifications ?? true}
+                onChange={(e) => onUpdateField('emailNotifications', e.target.checked)}
                 className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-ring"
               />
               <span className="text-sm text-foreground">Email notifications</span>
@@ -426,7 +449,8 @@ function Step4() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                defaultChecked
+                checked={formData.weeklyReports ?? true}
+                onChange={(e) => onUpdateField('weeklyReports', e.target.checked)}
                 className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-ring"
               />
               <span className="text-sm text-foreground">Weekly reports</span>
@@ -434,6 +458,8 @@ function Step4() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={formData.marketingUpdates ?? false}
+                onChange={(e) => onUpdateField('marketingUpdates', e.target.checked)}
                 className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-ring"
               />
               <span className="text-sm text-foreground">Marketing updates</span>

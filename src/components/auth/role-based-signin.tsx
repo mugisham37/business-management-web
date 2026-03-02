@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Chrome, Apple, Building2, Users, Briefcase, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,10 +37,13 @@ const itemVariants = {
 
 interface RoleBasedSignInProps {
   onSignUp: () => void;
+  onSignIn: (email: string, password: string, organizationId: string) => Promise<void>;
+  onPinSignIn: (email: string, pin: string, organizationId: string) => Promise<void>;
   isLoading: boolean;
+  error: string | null;
 }
 
-export function RoleBasedSignIn({ onSignUp, isLoading }: RoleBasedSignInProps) {
+export function RoleBasedSignIn({ onSignUp, onSignIn, onPinSignIn, isLoading, error }: RoleBasedSignInProps) {
   const [selectedRole, setSelectedRole] = React.useState<UserRole>(null);
   const [authMethod, setAuthMethod] = React.useState<"password" | "pin">("password");
 
@@ -50,12 +54,6 @@ export function RoleBasedSignIn({ onSignUp, isLoading }: RoleBasedSignInProps) {
   const handleBack = () => {
     setSelectedRole(null);
     setAuthMethod("password");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle authentication based on role
-    console.log(`Signing in as ${selectedRole}`);
   };
 
   return (
@@ -71,31 +69,35 @@ export function RoleBasedSignIn({ onSignUp, isLoading }: RoleBasedSignInProps) {
             key="role-selection"
             onRoleSelect={handleRoleSelect}
             onSignUp={onSignUp}
+            error={error}
           />
         ) : selectedRole === "founder" ? (
           <FounderSignIn
             key="founder-signin"
             onBack={handleBack}
-            onSubmit={handleSubmit}
+            onSubmit={onSignIn}
             isLoading={isLoading}
+            error={error}
           />
         ) : selectedRole === "manager" ? (
           <ManagerSignIn
             key="manager-signin"
             onBack={handleBack}
-            onSubmit={handleSubmit}
+            onSubmit={authMethod === "password" ? onSignIn : onPinSignIn}
             isLoading={isLoading}
             authMethod={authMethod}
             onAuthMethodChange={setAuthMethod}
+            error={error}
           />
         ) : (
           <WorkerSignIn
             key="worker-signin"
             onBack={handleBack}
-            onSubmit={handleSubmit}
+            onSubmit={authMethod === "password" ? onSignIn : onPinSignIn}
             isLoading={isLoading}
             authMethod={authMethod}
             onAuthMethodChange={setAuthMethod}
+            error={error}
           />
         )}
       </AnimatePresence>
@@ -107,9 +109,11 @@ export function RoleBasedSignIn({ onSignUp, isLoading }: RoleBasedSignInProps) {
 function RoleSelection({
   onRoleSelect,
   onSignUp,
+  error,
 }: {
   onRoleSelect: (role: UserRole) => void;
   onSignUp: () => void;
+  error: string | null;
 }) {
   const roles = [
     {
@@ -154,6 +158,14 @@ function RoleSelection({
       >
         Sign in to your account
       </motion.p>
+
+      {error && (
+        <motion.div variants={itemVariants} className="mb-6">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
 
       <motion.div variants={itemVariants} className="mb-6">
         <Label className="mb-3 block text-base">Signing in as:</Label>
@@ -211,11 +223,22 @@ function FounderSignIn({
   onBack,
   onSubmit,
   isLoading,
+  error,
 }: {
   onBack: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (email: string, password: string, organizationId: string) => Promise<void>;
   isLoading: boolean;
+  error: string | null;
 }) {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [organizationId, setOrganizationId] = React.useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(email, password, organizationId);
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -244,6 +267,14 @@ function FounderSignIn({
         </div>
       </motion.div>
 
+      {error && (
+        <motion.div variants={itemVariants} className="mb-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
       <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 mb-6">
         <Button variant="outline" type="button">
           <Chrome className="mr-2 h-4 w-4" />
@@ -266,13 +297,29 @@ function FounderSignIn({
         </div>
       </motion.div>
 
-      <motion.form variants={itemVariants} onSubmit={onSubmit} className="space-y-4">
+      <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="org-id">Organization ID</Label>
+          <Input
+            id="org-id"
+            type="text"
+            placeholder="Enter your organization ID"
+            value={organizationId}
+            onChange={(e) => setOrganizationId(e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            This was provided when you created your organization
+          </p>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="founder-email">Email</Label>
           <Input
             id="founder-email"
             type="email"
             placeholder="founder@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -286,10 +333,16 @@ function FounderSignIn({
               Forgot password?
             </button>
           </div>
-          <Input id="founder-password" type="password" required />
+          <Input
+            id="founder-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
-        <Button type="submit" className="w-full" isLoading={isLoading}>
-          Sign In as Founder
+        <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In as Founder"}
         </Button>
       </motion.form>
     </motion.div>
@@ -303,13 +356,26 @@ function ManagerSignIn({
   isLoading,
   authMethod,
   onAuthMethodChange,
+  error,
 }: {
   onBack: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (email: string, credential: string, organizationId: string) => Promise<void>;
   isLoading: boolean;
   authMethod: "password" | "pin";
   onAuthMethodChange: (method: "password" | "pin") => void;
+  error: string | null;
 }) {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [pin, setPin] = React.useState('');
+  const [organizationId, setOrganizationId] = React.useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const credential = authMethod === "password" ? password : pin;
+    await onSubmit(email, credential, organizationId);
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -338,13 +404,23 @@ function ManagerSignIn({
         </div>
       </motion.div>
 
-      <motion.form variants={itemVariants} onSubmit={onSubmit} className="space-y-4">
+      {error && (
+        <motion.div variants={itemVariants} className="mb-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="org-id">Organization ID</Label>
           <Input
             id="org-id"
             type="text"
             placeholder="ORG-12345"
+            value={organizationId}
+            onChange={(e) => setOrganizationId(e.target.value)}
             required
           />
           <p className="text-xs text-muted-foreground">
@@ -353,38 +429,13 @@ function ManagerSignIn({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="manager-branch">Branch/Department</Label>
-          <select
-            id="manager-branch"
-            className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
-            required
-          >
-            <option value="">Select branch/department</option>
-            <option value="headquarters">Headquarters</option>
-            <option value="sales">Sales Department</option>
-            <option value="operations">Operations</option>
-            <option value="finance">Finance</option>
-            <option value="hr">Human Resources</option>
-            <option value="it">IT Department</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="manager-name">Full Name</Label>
-          <Input
-            id="manager-name"
-            type="text"
-            placeholder="John Doe"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="manager-email">Email</Label>
           <Input
             id="manager-email"
             type="email"
             placeholder="manager@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -425,6 +476,8 @@ function ManagerSignIn({
               id="manager-password"
               type="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           ) : (
@@ -434,13 +487,15 @@ function ManagerSignIn({
               inputMode="numeric"
               maxLength={6}
               placeholder="Enter 6-digit PIN"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
               required
             />
           )}
         </div>
 
-        <Button type="submit" className="w-full" isLoading={isLoading}>
-          Sign In as Manager
+        <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In as Manager"}
         </Button>
       </motion.form>
     </motion.div>
@@ -454,13 +509,26 @@ function WorkerSignIn({
   isLoading,
   authMethod,
   onAuthMethodChange,
+  error,
 }: {
   onBack: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (email: string, credential: string, organizationId: string) => Promise<void>;
   isLoading: boolean;
   authMethod: "password" | "pin";
   onAuthMethodChange: (method: "password" | "pin") => void;
+  error: string | null;
 }) {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [pin, setPin] = React.useState('');
+  const [organizationId, setOrganizationId] = React.useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const credential = authMethod === "password" ? password : pin;
+    await onSubmit(email, credential, organizationId);
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -489,52 +557,40 @@ function WorkerSignIn({
         </div>
       </motion.div>
 
-      <motion.form variants={itemVariants} onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="worker-branch">Branch/Department</Label>
-          <select
-            id="worker-branch"
-            className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
-            required
-          >
-            <option value="">Select your branch/department</option>
-            <option value="headquarters">Headquarters</option>
-            <option value="sales">Sales Department</option>
-            <option value="operations">Operations</option>
-            <option value="finance">Finance</option>
-            <option value="warehouse">Warehouse</option>
-            <option value="customer-service">Customer Service</option>
-          </select>
-        </div>
+      {error && (
+        <motion.div variants={itemVariants} className="mb-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
 
+      <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="worker-manager">Manager/Supervisor</Label>
-          <select
-            id="worker-manager"
-            className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50"
+          <Label htmlFor="worker-org-id">Organization ID</Label>
+          <Input
+            id="worker-org-id"
+            type="text"
+            placeholder="ORG-12345"
+            value={organizationId}
+            onChange={(e) => setOrganizationId(e.target.value)}
             required
-          >
-            <option value="">Select your manager</option>
-            <option value="john-doe">John Doe - Sales Manager</option>
-            <option value="jane-smith">Jane Smith - Operations Manager</option>
-            <option value="mike-johnson">Mike Johnson - Finance Manager</option>
-            <option value="sarah-williams">Sarah Williams - HR Manager</option>
-          </select>
+          />
           <p className="text-xs text-muted-foreground">
-            Select the manager you report to
+            Ask your manager for this ID
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="worker-email">Email (Optional)</Label>
+          <Label htmlFor="worker-email">Email</Label>
           <Input
             id="worker-email"
             type="email"
             placeholder="worker@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
-          <p className="text-xs text-muted-foreground">
-            Or use PIN if you don't have an email
-          </p>
         </div>
 
         <div className="space-y-2">
@@ -573,6 +629,8 @@ function WorkerSignIn({
               id="worker-password"
               type="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           ) : (
@@ -582,13 +640,15 @@ function WorkerSignIn({
               inputMode="numeric"
               maxLength={4}
               placeholder="Enter 4-digit PIN"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
               required
             />
           )}
         </div>
 
-        <Button type="submit" className="w-full" isLoading={isLoading}>
-          Sign In as Worker
+        <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign In as Worker"}
         </Button>
       </motion.form>
     </motion.div>

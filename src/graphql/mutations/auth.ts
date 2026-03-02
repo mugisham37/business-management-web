@@ -67,3 +67,20 @@ export const RESET_PASSWORD_MUTATION = gql`
     }
   }
 `;
+
+export const REGISTER_FOUNDER_MUTATION = gql`
+  ${USER_FRAGMENT}
+  mutation RegisterFounder($input: RegisterFounderInput!) {
+    registerFounder(input: $input) {
+      accessToken
+      refreshToken
+      user {
+        ...UserFragment
+      }
+      organization {
+        id
+        name
+      }
+    }
+  }
+`;

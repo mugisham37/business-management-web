@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { siteConfig } from "./siteConfig"
+import { AppProviders } from "@/providers"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,13 +52,15 @@ export default function RootLayout({
       <body
         className={`${inter.className} min-h-screen scroll-auto antialiased selection:bg-primary/10 selection:text-primary dark:bg-background`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <AppProviders>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </AppProviders>
       </body>
     </html>
   )
