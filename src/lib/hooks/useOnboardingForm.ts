@@ -16,16 +16,16 @@ export interface OnboardingFormData {
   companySize: string;
   website: string;
   
-  // Team Setup (Step 2)
-  role: string;
-  department: string;
-  invitedEmails: string[];
+  // Business Operations (Step 2)
+  businessType: string;
+  primaryActivities: string[];
+  businessStage: string;
   
   // Business Goals (Step 3)
   selectedGoals: string[];
   timeline: string;
   
-  // Preferences (Step 4)
+  // Auto-detected/Default Preferences
   currency: string;
   timezone: string;
   emailNotifications: boolean;
@@ -45,13 +45,13 @@ const initialFormData: OnboardingFormData = {
   industry: '',
   companySize: '',
   website: '',
-  role: '',
-  department: '',
-  invitedEmails: [],
+  businessType: '',
+  primaryActivities: [],
+  businessStage: '',
   selectedGoals: [],
   timeline: '',
   currency: 'USD',
-  timezone: 'UTC',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
   emailNotifications: true,
   weeklyReports: true,
   marketingUpdates: false,
@@ -107,12 +107,13 @@ export function useOnboardingForm() {
   }, [formData]);
 
   /**
-   * Validate step 2 (Team Setup)
+   * Validate step 2 (Business Operations)
    */
   const validateStep2 = useCallback((): boolean => {
     return !!(
-      formData.role &&
-      formData.department
+      formData.businessType &&
+      formData.primaryActivities.length > 0 &&
+      formData.businessStage
     );
   }, [formData]);
 
@@ -124,21 +125,11 @@ export function useOnboardingForm() {
   }, [formData]);
 
   /**
-   * Validate step 4 (Preferences)
-   */
-  const validateStep4 = useCallback((): boolean => {
-    return !!(
-      formData.currency &&
-      formData.timezone
-    );
-  }, [formData]);
-
-  /**
    * Validate all steps
    */
   const validateAll = useCallback((): boolean => {
-    return validateStep1() && validateStep2() && validateStep3() && validateStep4();
-  }, [validateStep1, validateStep2, validateStep3, validateStep4]);
+    return validateStep1() && validateStep2() && validateStep3();
+  }, [validateStep1, validateStep2, validateStep3]);
 
   return {
     formData,
@@ -148,7 +139,6 @@ export function useOnboardingForm() {
     validateStep1,
     validateStep2,
     validateStep3,
-    validateStep4,
     validateAll,
   };
 }

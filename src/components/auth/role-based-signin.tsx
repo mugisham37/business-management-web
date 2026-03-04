@@ -39,11 +39,12 @@ interface RoleBasedSignInProps {
   onSignUp: () => void;
   onSignIn: (email: string, password: string, organizationId: string) => Promise<void>;
   onPinSignIn: (email: string, pin: string, organizationId: string) => Promise<void>;
+  onForgotPassword: () => void;
   isLoading: boolean;
   error: string | null;
 }
 
-export function RoleBasedSignIn({ onSignUp, onSignIn, onPinSignIn, isLoading, error }: RoleBasedSignInProps) {
+export function RoleBasedSignIn({ onSignUp, onSignIn, onPinSignIn, onForgotPassword, isLoading, error }: RoleBasedSignInProps) {
   const [selectedRole, setSelectedRole] = React.useState<UserRole>(null);
   const [authMethod, setAuthMethod] = React.useState<"password" | "pin">("password");
 
@@ -76,6 +77,7 @@ export function RoleBasedSignIn({ onSignUp, onSignIn, onPinSignIn, isLoading, er
             key="founder-signin"
             onBack={handleBack}
             onSubmit={onSignIn}
+            onForgotPassword={onForgotPassword}
             isLoading={isLoading}
             error={error}
           />
@@ -222,11 +224,13 @@ function RoleSelection({
 function FounderSignIn({
   onBack,
   onSubmit,
+  onForgotPassword,
   isLoading,
   error,
 }: {
   onBack: () => void;
   onSubmit: (email: string, password: string, organizationId: string) => Promise<void>;
+  onForgotPassword: () => void;
   isLoading: boolean;
   error: string | null;
 }) {
@@ -328,6 +332,7 @@ function FounderSignIn({
             <Label htmlFor="founder-password">Password</Label>
             <button
               type="button"
+              onClick={onForgotPassword}
               className="text-sm font-medium text-primary hover:underline"
             >
               Forgot password?
