@@ -2,16 +2,16 @@
  * useAuditLogs Hook
  * 
  * React hook for audit log queries.
- * Provides access to audit log data with pagination support.
+ * Provides access to audit log data with server-side pagination support.
  * 
  * Features:
  * - Fetch user audit logs
  * - Fetch organization audit logs
  * - Fetch resource audit logs
- * - Pagination support
+ * - Server-side pagination support (limit/offset)
  * - Centralized error handling
  * 
- * Requirements: 3.7, 3.10
+ * Requirements: 3.7, 3.10, 12.1
  */
 
 import { useState, useCallback } from 'react';
@@ -24,6 +24,7 @@ import {
 } from '@/graphql/queries/audit-logs';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
+import { PaginationParams, PaginationInfo, calculatePaginationInfo } from '@/lib/types/pagination.types';
 
 /**
  * Audit log type
@@ -41,13 +42,16 @@ export interface AuditLog {
 }
 
 /**
- * Pagination parameters
+ * Audit filters input (matches backend AuditFiltersInput)
+ * Requirements: 12.1
  */
-export interface PaginationParams {
-  page?: number;
+export interface AuditFilters {
   limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  offset?: number;
+  action?: string;
+  resourceType?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 /**
@@ -56,20 +60,22 @@ export interface PaginationParams {
 export interface AuditLogsResponse {
   logs: AuditLog[];
   total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
 }
 
 /**
  * Hook return type
- * Requirements: 3.10
+ * Requirements: 3.10, 12.1
  */
 export interface UseAuditLogsReturn {
   // Query data
   userAuditLogs: AuditLogsResponse | undefined;
   organizationAuditLogs: AuditLogsResponse | undefined;
   resourceAuditLogs: AuditLogsResponse | undefined;
+  
+  // Pagination info
+  userLogsPagination: PaginationInfo | undefined;
+  organizationLogsPagination: PaginationInfo | undefined;
+  resourceLogsPagination: PaginationInfo | undefined;
   
   // Loading states
   loading: boolean;
@@ -80,10 +86,10 @@ export interface UseAuditLogsReturn {
   // Error state
   error: AppError | null;
   
-  // Operations
-  getUserAuditLogs: (userId: string, params?: PaginationParams) => Promise<void>;
-  getOrganizationAuditLogs: (params?: PaginationParams) => Promise<void>;
-  getResourceAuditLogs: (resourceType: string, resourceId: string, params?: PaginationParams) => Promise<void>;
+  // Operations with pagination
+  getUserAuditLogs: (userId: string, filters?: AuditFilters) => Promise<void>;
+  getOrganizationAuditLogs: (organizationId: string, filters?: AuditFilters) => Promise<void>;
+  getResourceAuditLogs: (resourceType: string, resourceId: string, filters?: AuditFilters) => Promise<void>;
   refetchUserLogs: () => Promise<void>;
   refetchOrganizationLogs: () => Promise<void>;
   refetchResourceLogs: () => Promise<void>;
@@ -93,27 +99,34 @@ export interface UseAuditLogsReturn {
  * useAuditLogs Hook
  * 
  * @param userId - Optional user ID to fetch user audit logs
+ * @param organizationId - Optional organization ID to fetch organization audit logs
  * @param resourceType - Optional resource type for resource audit logs
  * @param resourceId - Optional resource ID for resource audit logs
+ * @param initialFilters - Optional initial filters including pagination
  * @returns Audit log queries and data
  * 
- * Requirements: 3.7, 3.10
+ * Requirements: 3.7, 3.10, 12.1
  */
 export function useAuditLogs(
   userId?: string,
+  organizationId?: string,
   resourceType?: string,
-  resourceId?: string
+  resourceId?: string,
+  initialFilters?: AuditFilters
 ): UseAuditLogsReturn {
   const [error, setError] = useState<AppError | null>(null);
+  const [userFilters, setUserFilters] = useState<AuditFilters>(initialFilters || { limit: 100, offset: 0 });
+  const [orgFilters, setOrgFilters] = useState<AuditFilters>(initialFilters || { limit: 100, offset: 0 });
+  const [resourceFilters, setResourceFilters] = useState<AuditFilters>(initialFilters || { limit: 100, offset: 0 });
 
-  // Query for user audit logs
+  // Query for user audit logs (Requirements: 12.1)
   const {
     data: userLogsData,
     loading: userLogsLoading,
     error: userLogsError,
     refetch: refetchUserLogsList,
   } = useQuery(GET_USER_AUDIT_LOGS, {
-    variables: { userId },
+    variables: { userId, filters: userFilters },
     skip: !userId,
     fetchPolicy: 'cache-first',
     onError: (err: ApolloError) => {
@@ -122,13 +135,15 @@ export function useAuditLogs(
     },
   });
 
-  // Query for organization audit logs
+  // Query for organization audit logs (Requirements: 12.1)
   const {
     data: organizationLogsData,
     loading: organizationLogsLoading,
     error: organizationLogsError,
     refetch: refetchOrganizationLogsList,
   } = useQuery(GET_ORGANIZATION_AUDIT_LOGS, {
+    variables: { organizationId, filters: orgFilters },
+    skip: !organizationId,
     fetchPolicy: 'cache-first',
     onError: (err: ApolloError) => {
       const appError = errorHandler.handle(err);
@@ -152,55 +167,89 @@ export function useAuditLogs(
     },
   });
 
+  // Calculate pagination info for each query (Requirements: 12.1)
+  const userLogsPagination = userLogsData?.getUserAuditLogs
+    ? calculatePaginationInfo(
+        userLogsData.getUserAuditLogs.total,
+        Math.floor((userFilters.offset || 0) / (userFilters.limit || 100)) + 1,
+        userFilters.limit || 100
+      )
+    : undefined;
+
+  const organizationLogsPagination = organizationLogsData?.getOrganizationAuditLogs
+    ? calculatePaginationInfo(
+        organizationLogsData.getOrganizationAuditLogs.total,
+        Math.floor((orgFilters.offset || 0) / (orgFilters.limit || 100)) + 1,
+        orgFilters.limit || 100
+      )
+    : undefined;
+
+  const resourceLogsPagination = resourceLogsData?.getResourceAuditLogs
+    ? calculatePaginationInfo(
+        resourceLogsData.getResourceAuditLogs.total,
+        Math.floor((resourceFilters.offset || 0) / (resourceFilters.limit || 100)) + 1,
+        resourceFilters.limit || 100
+      )
+    : undefined;
+
   /**
    * Fetch user audit logs with pagination
-   * Requirements: 3.7
+   * Requirements: 3.7, 12.1
    */
   const getUserAuditLogs = useCallback(
-    async (userId: string, params?: PaginationParams): Promise<void> => {
+    async (userId: string, filters?: AuditFilters): Promise<void> => {
       setError(null);
+      if (filters) {
+        setUserFilters(filters);
+      }
       try {
-        await refetchUserLogsList({ userId, ...params });
+        await refetchUserLogsList({ userId, filters: filters || userFilters });
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
         throw appError;
       }
     },
-    [refetchUserLogsList]
+    [refetchUserLogsList, userFilters]
   );
 
   /**
    * Fetch organization audit logs with pagination
-   * Requirements: 3.7
+   * Requirements: 3.7, 12.1
    */
   const getOrganizationAuditLogs = useCallback(
-    async (params?: PaginationParams): Promise<void> => {
+    async (organizationId: string, filters?: AuditFilters): Promise<void> => {
       setError(null);
+      if (filters) {
+        setOrgFilters(filters);
+      }
       try {
-        await refetchOrganizationLogsList(params);
+        await refetchOrganizationLogsList({ organizationId, filters: filters || orgFilters });
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
         throw appError;
       }
     },
-    [refetchOrganizationLogsList]
+    [refetchOrganizationLogsList, orgFilters]
   );
 
   /**
-   * Fetch resource audit logs with pagination
+   * Fetch resource audit logs
    * Requirements: 3.7
    */
   const getResourceAuditLogs = useCallback(
     async (
       resourceType: string,
       resourceId: string,
-      params?: PaginationParams
+      filters?: AuditFilters
     ): Promise<void> => {
       setError(null);
+      if (filters) {
+        setResourceFilters(filters);
+      }
       try {
-        await refetchResourceLogsList({ resourceType, resourceId, ...params });
+        await refetchResourceLogsList({ resourceType, resourceId });
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -232,6 +281,8 @@ export function useAuditLogs(
    * Requirements: 3.7
    */
   const refetchOrganizationLogs = useCallback(async (): Promise<void> => {
+    if (!organizationId) return;
+    
     setError(null);
     try {
       await refetchOrganizationLogsList();
@@ -240,7 +291,7 @@ export function useAuditLogs(
       setError(appError);
       throw appError;
     }
-  }, [refetchOrganizationLogsList]);
+  }, [organizationId, refetchOrganizationLogsList]);
 
   /**
    * Refetch resource audit logs
@@ -278,6 +329,11 @@ export function useAuditLogs(
     userAuditLogs: userLogsData?.getUserAuditLogs,
     organizationAuditLogs: organizationLogsData?.getOrganizationAuditLogs,
     resourceAuditLogs: resourceLogsData?.getResourceAuditLogs,
+    
+    // Pagination info
+    userLogsPagination,
+    organizationLogsPagination,
+    resourceLogsPagination,
     
     // Loading states
     loading,

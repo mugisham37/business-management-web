@@ -174,3 +174,22 @@ export { useProgress, useBatchProgress, useQueryProgress } from './useProgress';
 export type {
   ProgressState,
 } from './useProgress';
+
+// gRPC hooks
+export { useGrpcHealth } from './useGrpcHealth';
+export type { UseGrpcHealthResult } from './useGrpcHealth';
+
+export { useGrpcUser } from './useGrpcUser';
+export type { UseGrpcUserResult } from './useGrpcUser';
+
+export { useGrpcAuthorization } from './useGrpcAuthorization';
+export type { UseGrpcAuthorizationResult } from './useGrpcAuthorization';
+
+// Infinite scroll hook
+export { useInfiniteScroll } from './useInfiniteScroll';
+export type { UseInfiniteScrollOptions, UseInfiniteScrollReturn } from './useInfiniteScroll';
+
+// Debounce hooks
+export { useDebounce } from './useDebounce';
+export { useDebouncedCallback } from './useDebouncedCallback';
+export type { DebouncedFunction } from './useDebouncedCallback';

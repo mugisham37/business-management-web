@@ -8,14 +8,15 @@
  * - Create and update departments
  * - Assign department managers
  * - Fetch departments list
+ * - Client-side pagination and sorting
  * - Optimistic updates for mutations
  * - Automatic cache management
  * - Centralized error handling
  * 
- * Requirements: 3.5, 3.10, 3.11
+ * Requirements: 3.5, 3.10, 3.11, 12.1
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import type { ApolloError, ApolloCache } from '@apollo/client';
 import { GET_DEPARTMENTS } from '@/graphql/queries/departments';
@@ -27,6 +28,13 @@ import {
 import { updateDepartmentsCache, Department } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
+import {
+  PaginationParams,
+  PaginationInfo,
+  calculatePaginationInfo,
+  paginateArray,
+  sortArray,
+} from '@/lib/types/pagination.types';
 
 /**
  * Input types for department operations
@@ -45,11 +53,13 @@ export interface UpdateDepartmentInput {
 
 /**
  * Hook return type
- * Requirements: 3.10
+ * Requirements: 3.10, 12.1
  */
 export interface UseDepartmentsReturn {
   // Query data
   departments: Department[] | undefined;
+  paginatedDepartments: Department[] | undefined;
+  pagination: PaginationInfo | undefined;
   
   // Loading states
   loading: boolean;
@@ -57,6 +67,11 @@ export interface UseDepartmentsReturn {
   
   // Error state
   error: AppError | null;
+  
+  // Pagination controls
+  setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   
   // Operations
   createDepartment: (input: CreateDepartmentInput) => Promise<Department>;
@@ -68,13 +83,22 @@ export interface UseDepartmentsReturn {
 /**
  * useDepartments Hook
  * 
+ * @param initialPagination - Optional initial pagination params
  * @returns Department management operations and data
  * 
- * Requirements: 3.5, 3.10, 3.11
+ * Requirements: 3.5, 3.10, 3.11, 12.1
  */
-export function useDepartments(): UseDepartmentsReturn {
+export function useDepartments(initialPagination?: Partial<PaginationParams>): UseDepartmentsReturn {
   const [error, setError] = useState<AppError | null>(null);
   const [operationLoading, setOperationLoading] = useState(false);
+  
+  // Pagination state (Requirements: 12.1)
+  const [paginationParams, setPaginationParams] = useState<PaginationParams>({
+    page: initialPagination?.page || 1,
+    limit: initialPagination?.limit || 10,
+    sortBy: initialPagination?.sortBy,
+    sortOrder: initialPagination?.sortOrder || 'asc',
+  });
 
   // Query for departments list
   const {
@@ -89,6 +113,51 @@ export function useDepartments(): UseDepartmentsReturn {
       setError(appError);
     },
   });
+
+  // Apply client-side pagination and sorting (Requirements: 12.1)
+  const { paginatedDepartments, pagination } = useMemo(() => {
+    const allDepartments = departmentsData?.getDepartments?.departments || [];
+    const total = departmentsData?.getDepartments?.total || 0;
+
+    // Apply sorting
+    const sortedDepartments = sortArray(
+      allDepartments,
+      paginationParams.sortBy,
+      paginationParams.sortOrder
+    );
+
+    // Apply pagination
+    const paginated = paginateArray(
+      sortedDepartments,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    // Calculate pagination info
+    const paginationInfo = calculatePaginationInfo(
+      total,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    return {
+      paginatedDepartments: paginated,
+      pagination: paginationInfo,
+    };
+  }, [departmentsData, paginationParams]);
+
+  // Pagination controls (Requirements: 12.1)
+  const setPage = useCallback((page: number) => {
+    setPaginationParams((prev) => ({ ...prev, page }));
+  }, []);
+
+  const setPageSize = useCallback((limit: number) => {
+    setPaginationParams((prev) => ({ ...prev, limit, page: 1 }));
+  }, []);
+
+  const setSorting = useCallback((sortBy: string, sortOrder: 'asc' | 'desc') => {
+    setPaginationParams((prev) => ({ ...prev, sortBy, sortOrder }));
+  }, []);
 
   // Mutation for creating department
   const [createDepartmentMutation] = useMutation(CREATE_DEPARTMENT, {
@@ -277,6 +346,8 @@ export function useDepartments(): UseDepartmentsReturn {
   return {
     // Data
     departments: departmentsData?.getDepartments?.departments,
+    paginatedDepartments,
+    pagination,
     
     // Loading states
     loading,
@@ -284,6 +355,11 @@ export function useDepartments(): UseDepartmentsReturn {
     
     // Error state
     error,
+    
+    // Pagination controls
+    setPage,
+    setPageSize,
+    setSorting,
     
     // Operations
     createDepartment,

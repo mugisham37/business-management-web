@@ -9,27 +9,38 @@ import { cache } from '@/lib/cache/apollo-cache-config';
  * - fetchPolicy: How to interact with cache
  * - errorPolicy: How to handle errors
  * 
- * Requirements: 2.1
+ * Performance Optimizations (Requirements: 12.4, 12.8):
+ * - cache-first: Serve from cache before network request
+ * - Request deduplication enabled by default
+ * 
+ * Requirements: 2.1, 12.4, 12.8
  */
 const defaultOptions: DefaultOptions = {
   /**
    * Watch Query Options (useQuery hook)
-   * - cache-and-network: Return cached data immediately, then fetch from network
+   * - cache-first: Return cached data if available, only fetch if not in cache
    * - errorPolicy: 'all' returns both data and errors
+   * 
+   * This provides optimal performance by serving cached data immediately
+   * and only making network requests when necessary.
+   * 
+   * Requirements: 12.4, 12.8
    */
   watchQuery: {
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'cache-first',
     errorPolicy: 'all',
-    nextFetchPolicy: 'cache-first', // After initial fetch, prefer cache
+    nextFetchPolicy: 'cache-first', // Continue using cache-first for subsequent fetches
   },
   
   /**
    * Query Options (client.query)
-   * - network-only: Always fetch from network, update cache
+   * - cache-first: Check cache before network
    * - errorPolicy: 'all' returns both data and errors
+   * 
+   * Requirements: 12.4, 12.8
    */
   query: {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-first',
     errorPolicy: 'all',
   },
   
@@ -50,6 +61,7 @@ const defaultOptions: DefaultOptions = {
  * - Normalized InMemoryCache with type policies
  * - Default options for optimal performance
  * - Request deduplication enabled (default)
+ * - Cache-first fetch policy for performance (Requirements: 12.4, 12.8)
  * 
  * Link Chain Order:
  * RetryLink → ErrorLink → AuthLink → SplitLink → [HttpLink | WsLink]
@@ -62,8 +74,10 @@ const defaultOptions: DefaultOptions = {
  * - WebSocket subscriptions
  * - Normalized caching
  * - Optimistic updates support
+ * - Cache-first queries for performance
+ * - Automatic request deduplication
  * 
- * Requirements: 2.1
+ * Requirements: 2.1, 12.4, 12.5, 12.8
  */
 export const apolloClient = new ApolloClient({
   link: apolloLink,
@@ -74,21 +88,23 @@ export const apolloClient = new ApolloClient({
    * Connection to Redux DevTools
    * Enabled in development for debugging
    */
-  // connectToDevTools: process.env.NODE_ENV === 'development',
+  connectToDevTools: process.env.NODE_ENV === 'development',
   
   /**
-   * Query deduplication
+   * Query deduplication (Requirements: 12.5)
    * Automatically deduplicates identical queries within 10ms window
+   * This prevents multiple identical requests from being sent concurrently
    * Default: true
    */
-  // queryDeduplication: true,
+  queryDeduplication: true,
   
   /**
    * Assume immutable cache
    * Improves performance by assuming cache data is immutable
+   * Enables faster change detection
    * Default: false
    */
-  // assumeImmutableResults: true,
+  assumeImmutableResults: true,
 });
 
 /**

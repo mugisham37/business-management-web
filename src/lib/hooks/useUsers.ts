@@ -8,14 +8,15 @@
  * - Create manager and worker users
  * - Update user information
  * - Fetch single user or list of users
+ * - Client-side pagination and sorting
  * - Optimistic updates for mutations
  * - Automatic cache management
  * - Centralized error handling
  * 
- * Requirements: 3.1, 3.10, 3.11
+ * Requirements: 3.1, 3.10, 3.11, 12.1
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import type { ApolloError, ApolloCache } from '@apollo/client';
 import { GET_USERS, GET_USER } from '@/graphql/queries/users';
@@ -23,6 +24,13 @@ import { CREATE_MANAGER, CREATE_WORKER, UPDATE_USER } from '@/graphql/mutations/
 import { updateUsersCache, updateUserCache, User } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
+import {
+  PaginationParams,
+  PaginationInfo,
+  calculatePaginationInfo,
+  paginateArray,
+  sortArray,
+} from '@/lib/types/pagination.types';
 
 /**
  * Input types for user operations
@@ -67,12 +75,14 @@ export interface CreateUserResponse {
 
 /**
  * Hook return type
- * Requirements: 3.10
+ * Requirements: 3.10, 12.1
  */
 export interface UseUsersReturn {
   // Query data
   users: User[] | undefined;
+  paginatedUsers: User[] | undefined;
   user: User | undefined;
+  pagination: PaginationInfo | undefined;
   
   // Loading states
   loading: boolean;
@@ -81,6 +91,11 @@ export interface UseUsersReturn {
   
   // Error states
   error: AppError | null;
+  
+  // Pagination controls
+  setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   
   // Operations
   createManager: (input: CreateManagerInput) => Promise<CreateUserResponse>;
@@ -94,13 +109,25 @@ export interface UseUsersReturn {
  * useUsers Hook
  * 
  * @param userId - Optional user ID to fetch specific user
+ * @param initialPagination - Optional initial pagination params
  * @returns User management operations and data
  * 
- * Requirements: 3.1, 3.10, 3.11
+ * Requirements: 3.1, 3.10, 3.11, 12.1
  */
-export function useUsers(userId?: string): UseUsersReturn {
+export function useUsers(
+  userId?: string,
+  initialPagination?: Partial<PaginationParams>
+): UseUsersReturn {
   const [error, setError] = useState<AppError | null>(null);
   const [operationLoading, setOperationLoading] = useState(false);
+  
+  // Pagination state (Requirements: 12.1)
+  const [paginationParams, setPaginationParams] = useState<PaginationParams>({
+    page: initialPagination?.page || 1,
+    limit: initialPagination?.limit || 10,
+    sortBy: initialPagination?.sortBy,
+    sortOrder: initialPagination?.sortOrder || 'asc',
+  });
 
   // Query for users list
   const {
@@ -131,6 +158,51 @@ export function useUsers(userId?: string): UseUsersReturn {
       setError(appError);
     },
   });
+
+  // Apply client-side pagination and sorting (Requirements: 12.1)
+  const { paginatedUsers, pagination } = useMemo(() => {
+    const allUsers = usersData?.getUsers?.users || [];
+    const total = usersData?.getUsers?.total || 0;
+
+    // Apply sorting
+    const sortedUsers = sortArray(
+      allUsers,
+      paginationParams.sortBy,
+      paginationParams.sortOrder
+    );
+
+    // Apply pagination
+    const paginated = paginateArray(
+      sortedUsers,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    // Calculate pagination info
+    const paginationInfo = calculatePaginationInfo(
+      total,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    return {
+      paginatedUsers: paginated,
+      pagination: paginationInfo,
+    };
+  }, [usersData, paginationParams]);
+
+  // Pagination controls (Requirements: 12.1)
+  const setPage = useCallback((page: number) => {
+    setPaginationParams((prev) => ({ ...prev, page }));
+  }, []);
+
+  const setPageSize = useCallback((limit: number) => {
+    setPaginationParams((prev) => ({ ...prev, limit, page: 1 }));
+  }, []);
+
+  const setSorting = useCallback((sortBy: string, sortOrder: 'asc' | 'desc') => {
+    setPaginationParams((prev) => ({ ...prev, sortBy, sortOrder }));
+  }, []);
 
   // Mutation for creating manager
   const [createManagerMutation] = useMutation(CREATE_MANAGER, {
@@ -355,7 +427,9 @@ export function useUsers(userId?: string): UseUsersReturn {
   return {
     // Data
     users: usersData?.getUsers?.users,
+    paginatedUsers,
     user: userData?.getUser,
+    pagination,
     
     // Loading states
     loading,
@@ -364,6 +438,11 @@ export function useUsers(userId?: string): UseUsersReturn {
     
     // Error state
     error,
+    
+    // Pagination controls
+    setPage,
+    setPageSize,
+    setSorting,
     
     // Operations
     createManager,

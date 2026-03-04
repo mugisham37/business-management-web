@@ -8,14 +8,15 @@
  * - Create and update branches
  * - Assign branch managers
  * - Fetch branches list
+ * - Client-side pagination and sorting
  * - Optimistic updates for mutations
  * - Automatic cache management
  * - Centralized error handling
  * 
- * Requirements: 3.4, 3.10, 3.11
+ * Requirements: 3.4, 3.10, 3.11, 12.1
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import type { ApolloError, ApolloCache } from '@apollo/client';
 import { GET_BRANCHES } from '@/graphql/queries/branches';
@@ -27,6 +28,13 @@ import {
 import { updateBranchesCache, Branch } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
+import {
+  PaginationParams,
+  PaginationInfo,
+  calculatePaginationInfo,
+  paginateArray,
+  sortArray,
+} from '@/lib/types/pagination.types';
 
 /**
  * Input types for branch operations
@@ -45,11 +53,13 @@ export interface UpdateBranchInput {
 
 /**
  * Hook return type
- * Requirements: 3.10
+ * Requirements: 3.10, 12.1
  */
 export interface UseBranchesReturn {
   // Query data
   branches: Branch[] | undefined;
+  paginatedBranches: Branch[] | undefined;
+  pagination: PaginationInfo | undefined;
   
   // Loading states
   loading: boolean;
@@ -57,6 +67,11 @@ export interface UseBranchesReturn {
   
   // Error state
   error: AppError | null;
+  
+  // Pagination controls
+  setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   
   // Operations
   createBranch: (input: CreateBranchInput) => Promise<Branch>;
@@ -68,13 +83,22 @@ export interface UseBranchesReturn {
 /**
  * useBranches Hook
  * 
+ * @param initialPagination - Optional initial pagination params
  * @returns Branch management operations and data
  * 
- * Requirements: 3.4, 3.10, 3.11
+ * Requirements: 3.4, 3.10, 3.11, 12.1
  */
-export function useBranches(): UseBranchesReturn {
+export function useBranches(initialPagination?: Partial<PaginationParams>): UseBranchesReturn {
   const [error, setError] = useState<AppError | null>(null);
   const [operationLoading, setOperationLoading] = useState(false);
+  
+  // Pagination state (Requirements: 12.1)
+  const [paginationParams, setPaginationParams] = useState<PaginationParams>({
+    page: initialPagination?.page || 1,
+    limit: initialPagination?.limit || 10,
+    sortBy: initialPagination?.sortBy,
+    sortOrder: initialPagination?.sortOrder || 'asc',
+  });
 
   // Query for branches list
   const {
@@ -89,6 +113,51 @@ export function useBranches(): UseBranchesReturn {
       setError(appError);
     },
   });
+
+  // Apply client-side pagination and sorting (Requirements: 12.1)
+  const { paginatedBranches, pagination } = useMemo(() => {
+    const allBranches = branchesData?.getBranches?.branches || [];
+    const total = branchesData?.getBranches?.total || 0;
+
+    // Apply sorting
+    const sortedBranches = sortArray(
+      allBranches,
+      paginationParams.sortBy,
+      paginationParams.sortOrder
+    );
+
+    // Apply pagination
+    const paginated = paginateArray(
+      sortedBranches,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    // Calculate pagination info
+    const paginationInfo = calculatePaginationInfo(
+      total,
+      paginationParams.page,
+      paginationParams.limit
+    );
+
+    return {
+      paginatedBranches: paginated,
+      pagination: paginationInfo,
+    };
+  }, [branchesData, paginationParams]);
+
+  // Pagination controls (Requirements: 12.1)
+  const setPage = useCallback((page: number) => {
+    setPaginationParams((prev) => ({ ...prev, page }));
+  }, []);
+
+  const setPageSize = useCallback((limit: number) => {
+    setPaginationParams((prev) => ({ ...prev, limit, page: 1 }));
+  }, []);
+
+  const setSorting = useCallback((sortBy: string, sortOrder: 'asc' | 'desc') => {
+    setPaginationParams((prev) => ({ ...prev, sortBy, sortOrder }));
+  }, []);
 
   // Mutation for creating branch
   const [createBranchMutation] = useMutation(CREATE_BRANCH, {
@@ -277,6 +346,8 @@ export function useBranches(): UseBranchesReturn {
   return {
     // Data
     branches: branchesData?.getBranches?.branches,
+    paginatedBranches,
+    pagination,
     
     // Loading states
     loading,
@@ -284,6 +355,11 @@ export function useBranches(): UseBranchesReturn {
     
     // Error state
     error,
+    
+    // Pagination controls
+    setPage,
+    setPageSize,
+    setSorting,
     
     // Operations
     createBranch,

@@ -54,3 +54,14 @@ export type {
 // Base components
 export { Skeleton } from './skeleton';
 export { Spinner } from './spinner';
+
+// Infinite scroll components
+export { InfiniteScroll } from './infinite-scroll';
+export type { InfiniteScrollProps } from './infinite-scroll';
+
+export { LoadMoreButton } from './load-more-button';
+export type { LoadMoreButtonProps } from './load-more-button';
+
+// Debounced search input
+export { DebouncedSearchInput } from './debounced-search-input';
+export type { DebouncedSearchInputProps } from './debounced-search-input';

@@ -2,6 +2,10 @@ import { gql } from '@apollo/client';
 
 // User Queries
 
+/**
+ * Get all users
+ * Note: Backend doesn't support pagination yet, so pagination is handled client-side
+ */
 export const GET_USERS = gql`
   query GetUsers {
     getUsers {
