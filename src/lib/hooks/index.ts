@@ -8,12 +8,21 @@
  * - usePermission: Permission checking utilities
  * - useWebSocket: WebSocket connection management
  * - useSubscription: GraphQL subscription hook for real-time updates
+ * - useUsers: User management operations
+ * - usePermissions: Permission management operations
+ * - useOrganization: Organization management operations
+ * - useBranches: Branch management operations
+ * - useDepartments: Department management operations
+ * - useBusinessRules: Business rule management operations
+ * - useAuditLogs: Audit log queries
+ * - useSessions: Session management operations
+ * - useHealthCheck: Health check monitoring
  * 
- * Requirements: 4.2, 4.3, 5.1, 9.1
+ * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 4.2, 4.3, 5.1, 9.1
  * 
  * @example
  * ```typescript
- * import { useAuth, usePermission, useWebSocket, useSubscription } from '@/lib/hooks';
+ * import { useAuth, useUsers, usePermissions } from '@/lib/hooks';
  * 
  * // Authentication
  * function LoginPage() {
@@ -21,24 +30,15 @@
  *   // ...
  * }
  * 
- * // Permission checking
+ * // User management
  * function UserManagement() {
- *   const { allowed } = usePermission('users', 'create');
+ *   const { users, createManager, loading, error } = useUsers();
  *   // ...
  * }
  * 
- * // WebSocket connection
- * function RealtimeFeature() {
- *   const { isConnected, connect } = useWebSocket();
- *   // ...
- * }
- * 
- * // GraphQL subscriptions
- * function AuditLogMonitor() {
- *   const { data, loading, error } = useSubscription({
- *     query: ON_AUDIT_LOG_CREATED,
- *     variables: { userId: '123' },
- *   });
+ * // Permission management
+ * function PermissionManagement() {
+ *   const { permissions, grantPermissions, loading } = usePermissions(userId);
  *   // ...
  * }
  * ```
@@ -63,3 +63,81 @@ export type { UseSubscriptionOptions, UseSubscriptionReturn } from './useSubscri
 // Backend connection hook
 export { useBackendConnection } from './useBackendConnection';
 export type { ConnectionStatus, BackendConnectionState } from './useBackendConnection';
+
+// User management hook
+export { useUsers } from './useUsers';
+export type {
+  UseUsersReturn,
+  CreateManagerInput,
+  CreateWorkerInput,
+  UpdateUserInput,
+  CreateUserResponse,
+} from './useUsers';
+
+// Permission management hook
+export { usePermissions } from './usePermissions';
+export type {
+  UsePermissionsReturn,
+  GrantPermissionsInput,
+  RevokePermissionsInput,
+  PermissionInput,
+  Permission,
+  PermissionSnapshot,
+} from './usePermissions';
+
+// Organization management hook
+export { useOrganization } from './useOrganization';
+export type {
+  UseOrganizationReturn,
+  UpdateOrganizationInput,
+  OrganizationSettings,
+  Organization,
+} from './useOrganization';
+
+// Branch management hook
+export { useBranches } from './useBranches';
+export type {
+  UseBranchesReturn,
+  CreateBranchInput,
+  UpdateBranchInput,
+} from './useBranches';
+
+// Department management hook
+export { useDepartments } from './useDepartments';
+export type {
+  UseDepartmentsReturn,
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
+} from './useDepartments';
+
+// Business rule management hook
+export { useBusinessRules } from './useBusinessRules';
+export type {
+  UseBusinessRulesReturn,
+  CreateBusinessRuleInput,
+  UpdateBusinessRuleInput,
+} from './useBusinessRules';
+
+// Audit logs hook
+export { useAuditLogs } from './useAuditLogs';
+export type {
+  UseAuditLogsReturn,
+  AuditLog,
+  PaginationParams,
+  AuditLogsResponse,
+} from './useAuditLogs';
+
+// Session management hook
+export { useSessions } from './useSessions';
+export type {
+  UseSessionsReturn,
+  Session,
+} from './useSessions';
+
+// Health check hook
+export { useHealthCheck } from './useHealthCheck';
+export type {
+  UseHealthCheckReturn,
+  ComponentHealth,
+  HealthCheckResponse,
+} from './useHealthCheck';
