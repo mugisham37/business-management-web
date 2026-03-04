@@ -9,6 +9,7 @@ import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { config } from '@/lib/config/environment';
 import { tokenManager } from '@/lib/auth/token-manager';
 import { generateCorrelationId } from '@/lib/utils/correlation';
+import { tokenRefreshLink } from './token-refresh-link';
 
 /**
  * HTTP Link for GraphQL queries and mutations
@@ -92,9 +93,8 @@ export const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link
  * Handles GraphQL and network errors
- * - Detects UNAUTHENTICATED errors and triggers token refresh
  * - Logs errors with correlation ID
- * - Redirects to login on authentication failure
+ * - Note: Token refresh is handled by tokenRefreshLink
  * 
  * Requirements: 2.1, 6.1
  */
@@ -105,16 +105,6 @@ export const errorLink = onError((errorResponse) => {
   if (CombinedGraphQLErrors.is(error)) {
     for (const err of error.errors) {
       const code = err.extensions?.code;
-      
-      // Handle authentication errors
-      if (code === 'UNAUTHENTICATED') {
-        // Clear tokens and redirect to login
-        // Token refresh will be handled by the token manager's automatic refresh
-        tokenManager.clearTokens();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-      }
       
       // Log GraphQL errors
       console.error(
@@ -171,12 +161,15 @@ export const retryLink = new RetryLink({
 
 /**
  * Complete Apollo Link Chain
- * Order matters: RetryLink → ErrorLink → AuthLink → SplitLink → [HttpLink | WsLink]
+ * Order matters: RetryLink → TokenRefreshLink → ErrorLink → AuthLink → SplitLink → [HttpLink | WsLink]
  * 
- * Requirements: 2.1
+ * Token refresh happens before error logging to allow retry with new token
+ * 
+ * Requirements: 2.1, 4.12, 7.6, 7.7
  */
 export const apolloLink = from([
   retryLink,
+  tokenRefreshLink,
   errorLink,
   authLink,
   splitLink,
