@@ -1,27 +1,52 @@
 import { gql } from '@apollo/client';
-import { USER_FRAGMENT } from '../fragments';
 
-export const GET_USERS_QUERY = gql`
-  ${USER_FRAGMENT}
-  query GetUsers($filter: UserFilterInput, $limit: Int, $offset: Int) {
-    users(filter: $filter, limit: $limit, offset: $offset) {
-      edges {
-        ...UserFragment
+// User Queries
+
+export const GET_USERS = gql`
+  query GetUsers {
+    getUsers {
+      users {
+        id
+        email
+        firstName
+        lastName
+        hierarchyLevel
+        organizationId
+        branchId
+        departmentId
+        status
+        createdAt
+        updatedAt
       }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        totalCount
-      }
+      total
     }
   }
 `;
 
-export const GET_USER_BY_ID_QUERY = gql`
-  ${USER_FRAGMENT}
-  query GetUserById($id: UUID!) {
-    user(id: $id) {
-      ...UserFragment
+export const GET_USER = gql`
+  query GetUser($userId: String!) {
+    getUser(userId: $userId) {
+      id
+      email
+      firstName
+      lastName
+      hierarchyLevel
+      organizationId
+      branchId
+      departmentId
+      status
+      createdAt
+      updatedAt
+      staffProfile {
+        id
+        fullName
+        employeeCode
+        positionTitle
+        hireDate
+        reportsToUserId
+        createdAt
+        updatedAt
+      }
     }
   }
 `;

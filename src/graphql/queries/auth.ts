@@ -1,26 +1,16 @@
 import { gql } from '@apollo/client';
-import { USER_FRAGMENT } from '../fragments';
 
-export const VALIDATE_SESSION_QUERY = gql`
-  ${USER_FRAGMENT}
-  query ValidateSession {
-    validateSession {
-      isValid
-      user {
-        ...UserFragment
-      }
-    }
-  }
-`;
+// Session Queries
 
-export const GET_ACTIVE_SESSIONS_QUERY = gql`
+export const GET_ACTIVE_SESSIONS = gql`
   query GetActiveSessions {
-    activeSessions {
+    getActiveSessions {
       id
-      deviceInfo
+      userId
+      userAgent
       ipAddress
-      lastActivity
       createdAt
+      expiresAt
     }
   }
 `;

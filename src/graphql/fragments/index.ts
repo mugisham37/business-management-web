@@ -14,3 +14,4 @@ export { BRANCH_FRAGMENT } from './branch';
 export { DEPARTMENT_FRAGMENT } from './department';
 export { BUSINESS_RULE_FRAGMENT } from './business-rule';
 export { AUDIT_LOG_FRAGMENT } from './audit-log';
+export { SESSION_FRAGMENT } from './session';

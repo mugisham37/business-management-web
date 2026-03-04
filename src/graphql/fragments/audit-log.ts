@@ -1,15 +1,20 @@
 import { gql } from '@apollo/client';
 
 export const AUDIT_LOG_FRAGMENT = gql`
-  fragment AuditLogFragment on AuditLog {
+  fragment AuditLogFragment on AuditLogType {
     id
+    organizationId
     userId
     action
-    entityType
-    entityId
-    changes
+    resourceType
+    resourceId
+    result
+    oldValue
+    newValue
+    metadata
+    hierarchyLevel
     ipAddress
     userAgent
-    timestamp
+    createdAt
   }
 `;

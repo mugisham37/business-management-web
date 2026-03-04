@@ -1,11 +1,16 @@
 import { gql } from '@apollo/client';
 import { BUSINESS_RULE_FRAGMENT } from '../fragments';
 
-export const GET_BUSINESS_RULES_QUERY = gql`
+// Business Rule Queries
+
+export const GET_BUSINESS_RULES = gql`
   ${BUSINESS_RULE_FRAGMENT}
-  query GetBusinessRules($filter: BusinessRuleFilterInput) {
-    businessRules(filter: $filter) {
-      ...BusinessRuleFragment
+  query GetBusinessRules($transactionType: String) {
+    getBusinessRules(transactionType: $transactionType) {
+      rules {
+        ...BusinessRuleFragment
+      }
+      total
     }
   }
 `;

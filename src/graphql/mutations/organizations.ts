@@ -1,10 +1,12 @@
 import { gql } from '@apollo/client';
 import { ORGANIZATION_FRAGMENT } from '../fragments';
 
-export const CREATE_ORGANIZATION_MUTATION = gql`
+// Organization Mutations
+
+export const UPDATE_ORGANIZATION = gql`
   ${ORGANIZATION_FRAGMENT}
-  mutation CreateOrganization($input: CreateOrganizationInput!) {
-    createOrganization(input: $input) {
+  mutation UpdateOrganization($input: UpdateOrganizationInput!) {
+    updateOrganization(input: $input) {
       ...OrganizationFragment
     }
   }

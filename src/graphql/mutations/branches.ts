@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 import { BRANCH_FRAGMENT } from '../fragments';
 
-export const CREATE_BRANCH_MUTATION = gql`
+export const CREATE_BRANCH = gql`
   ${BRANCH_FRAGMENT}
   mutation CreateBranch($input: CreateBranchInput!) {
     createBranch(input: $input) {
@@ -10,19 +10,17 @@ export const CREATE_BRANCH_MUTATION = gql`
   }
 `;
 
-export const UPDATE_BRANCH_MUTATION = gql`
+export const UPDATE_BRANCH = gql`
   ${BRANCH_FRAGMENT}
-  mutation UpdateBranch($id: UUID!, $input: UpdateBranchInput!) {
-    updateBranch(id: $id, input: $input) {
+  mutation UpdateBranch($branchId: String!, $input: UpdateBranchInput!) {
+    updateBranch(branchId: $branchId, input: $input) {
       ...BranchFragment
     }
   }
 `;
 
-export const DELETE_BRANCH_MUTATION = gql`
-  mutation DeleteBranch($id: UUID!) {
-    deleteBranch(id: $id) {
-      success
-    }
+export const ASSIGN_BRANCH_MANAGER = gql`
+  mutation AssignBranchManager($branchId: String!, $managerId: String!) {
+    assignBranchManager(branchId: $branchId, managerId: $managerId)
   }
 `;

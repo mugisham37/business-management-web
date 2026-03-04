@@ -1,6 +1,6 @@
 overwrite: true
-schema: 'http://localhost:3001/graphql'
-documents: 'src/graphql/**/*.ts'
+schema: '../server/src/api/graphql/schema.gql'
+documents: null
 generates:
   src/lib/types/generated/graphql.ts:
     plugins:
@@ -58,7 +58,3 @@ generates:
       
       # Error handling
       onlyOperationTypes: false
-      
-hooks:
-  afterAllFileWrite:
-    - prettier --write

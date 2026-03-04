@@ -1,11 +1,16 @@
 import { gql } from '@apollo/client';
 import { BRANCH_FRAGMENT } from '../fragments';
 
-export const GET_BRANCHES_QUERY = gql`
+// Branch Queries
+
+export const GET_BRANCHES = gql`
   ${BRANCH_FRAGMENT}
-  query GetBranches($organizationId: UUID!, $filter: BranchFilterInput) {
-    branches(organizationId: $organizationId, filter: $filter) {
-      ...BranchFragment
+  query GetBranches {
+    getBranches {
+      branches {
+        ...BranchFragment
+      }
+      total
     }
   }
 `;

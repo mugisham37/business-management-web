@@ -1,13 +1,15 @@
 import { gql } from '@apollo/client';
 
 export const BUSINESS_RULE_FRAGMENT = gql`
-  fragment BusinessRuleFragment on BusinessRule {
+  fragment BusinessRuleFragment on BusinessRuleType {
     id
-    name
-    description
-    ruleType
-    conditions
-    actions
+    organizationId
+    ruleName
+    transactionType
+    basedOn
+    thresholdValue
+    appliesToLevel
+    approverLevel
     priority
     isActive
     createdAt

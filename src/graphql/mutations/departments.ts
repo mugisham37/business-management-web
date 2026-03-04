@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 import { DEPARTMENT_FRAGMENT } from '../fragments';
 
-export const CREATE_DEPARTMENT_MUTATION = gql`
+export const CREATE_DEPARTMENT = gql`
   ${DEPARTMENT_FRAGMENT}
   mutation CreateDepartment($input: CreateDepartmentInput!) {
     createDepartment(input: $input) {
@@ -10,19 +10,17 @@ export const CREATE_DEPARTMENT_MUTATION = gql`
   }
 `;
 
-export const UPDATE_DEPARTMENT_MUTATION = gql`
+export const UPDATE_DEPARTMENT = gql`
   ${DEPARTMENT_FRAGMENT}
-  mutation UpdateDepartment($id: UUID!, $input: UpdateDepartmentInput!) {
-    updateDepartment(id: $id, input: $input) {
+  mutation UpdateDepartment($departmentId: String!, $input: UpdateDepartmentInput!) {
+    updateDepartment(departmentId: $departmentId, input: $input) {
       ...DepartmentFragment
     }
   }
 `;
 
-export const DELETE_DEPARTMENT_MUTATION = gql`
-  mutation DeleteDepartment($id: UUID!) {
-    deleteDepartment(id: $id) {
-      success
-    }
+export const ASSIGN_DEPARTMENT_MANAGER = gql`
+  mutation AssignDepartmentManager($departmentId: String!, $managerId: String!) {
+    assignDepartmentManager(departmentId: $departmentId, managerId: $managerId)
   }
 `;

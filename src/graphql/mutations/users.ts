@@ -1,29 +1,65 @@
 import { gql } from '@apollo/client';
-import { USER_FRAGMENT } from '../fragments';
 
-export const CREATE_MANAGER_MUTATION = gql`
-  ${USER_FRAGMENT}
+// User Management Mutations
+
+export const CREATE_MANAGER = gql`
   mutation CreateManager($input: CreateManagerInput!) {
     createManager(input: $input) {
-      ...UserFragment
+      user {
+        id
+        email
+        firstName
+        lastName
+        hierarchyLevel
+        organizationId
+        branchId
+        departmentId
+        status
+        createdAt
+        updatedAt
+      }
+      credentialType
+      temporaryCredential
     }
   }
 `;
 
-export const CREATE_WORKER_MUTATION = gql`
-  ${USER_FRAGMENT}
+export const CREATE_WORKER = gql`
   mutation CreateWorker($input: CreateWorkerInput!) {
     createWorker(input: $input) {
-      ...UserFragment
+      user {
+        id
+        email
+        firstName
+        lastName
+        hierarchyLevel
+        organizationId
+        branchId
+        departmentId
+        status
+        createdAt
+        updatedAt
+      }
+      credentialType
+      temporaryCredential
     }
   }
 `;
 
-export const UPDATE_USER_MUTATION = gql`
-  ${USER_FRAGMENT}
-  mutation UpdateUser($id: UUID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) {
-      ...UserFragment
+export const UPDATE_USER = gql`
+  mutation UpdateUser($userId: String!, $input: UpdateUserManagementInput!) {
+    updateUser(userId: $userId, input: $input) {
+      id
+      email
+      firstName
+      lastName
+      hierarchyLevel
+      organizationId
+      branchId
+      departmentId
+      status
+      createdAt
+      updatedAt
     }
   }
 `;

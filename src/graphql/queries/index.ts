@@ -1,34 +1,38 @@
 /**
  * GraphQL Queries
  * 
- * This module exports all GraphQL query definitions.
+ * This module exports all GraphQL query definitions organized by domain.
  * 
- * Requirements: 2.2
+ * Requirements: 2.2, 2.7
  */
 
-// Authentication queries
-export { VALIDATE_SESSION_QUERY, GET_ACTIVE_SESSIONS_QUERY } from './auth';
+// Session queries
+export { GET_ACTIVE_SESSIONS } from './auth';
 
 // User queries
-export { GET_USERS_QUERY, GET_USER_BY_ID_QUERY } from './users';
+export { GET_USERS, GET_USER } from './users';
 
 // Permission queries
-export { GET_PERMISSIONS_QUERY } from './permissions';
+export { GET_USER_PERMISSIONS, GET_PERMISSION_HISTORY } from './permissions';
 
 // Organization queries
-export { GET_ORGANIZATIONS_QUERY } from './organizations';
+export { GET_ORGANIZATION } from './organizations';
 
 // Branch queries
-export { GET_BRANCHES_QUERY } from './branches';
+export { GET_BRANCHES } from './branches';
 
 // Department queries
-export { GET_DEPARTMENTS_QUERY } from './departments';
+export { GET_DEPARTMENTS } from './departments';
 
 // Business rule queries
-export { GET_BUSINESS_RULES_QUERY } from './business-rules';
+export { GET_BUSINESS_RULES } from './business-rules';
 
 // Audit log queries
-export { GET_AUDIT_LOGS_QUERY, GET_AUDIT_LOG_BY_ID_QUERY } from './audit-logs';
+export {
+  GET_USER_AUDIT_LOGS,
+  GET_ORGANIZATION_AUDIT_LOGS,
+  GET_RESOURCE_AUDIT_LOGS,
+} from './audit-logs';
 
 // Health check query
-export { HEALTH_CHECK_QUERY } from './health';
+export { HEALTH } from './health';

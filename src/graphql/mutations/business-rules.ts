@@ -1,7 +1,9 @@
 import { gql } from '@apollo/client';
 import { BUSINESS_RULE_FRAGMENT } from '../fragments';
 
-export const CREATE_BUSINESS_RULE_MUTATION = gql`
+// Business Rule Mutations
+
+export const CREATE_BUSINESS_RULE = gql`
   ${BUSINESS_RULE_FRAGMENT}
   mutation CreateBusinessRule($input: CreateBusinessRuleInput!) {
     createBusinessRule(input: $input) {
@@ -10,10 +12,10 @@ export const CREATE_BUSINESS_RULE_MUTATION = gql`
   }
 `;
 
-export const UPDATE_BUSINESS_RULE_MUTATION = gql`
+export const UPDATE_BUSINESS_RULE = gql`
   ${BUSINESS_RULE_FRAGMENT}
-  mutation UpdateBusinessRule($id: UUID!, $input: UpdateBusinessRuleInput!) {
-    updateBusinessRule(id: $id, input: $input) {
+  mutation UpdateBusinessRule($ruleId: String!, $input: UpdateBusinessRuleInput!) {
+    updateBusinessRule(ruleId: $ruleId, input: $input) {
       ...BusinessRuleFragment
     }
   }

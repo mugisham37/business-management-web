@@ -1,20 +1,16 @@
 import { gql } from '@apollo/client';
 
 export const USER_FRAGMENT = gql`
-  fragment UserFragment on User {
+  fragment UserFragment on UserManagementType {
     id
     email
     firstName
     lastName
-    phone
-    status
+    hierarchyLevel
     organizationId
     branchId
     departmentId
-    hierarchyLevel
-    permissions {
-      ...PermissionFragment
-    }
+    status
     createdAt
     updatedAt
   }
