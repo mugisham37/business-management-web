@@ -2,10 +2,13 @@ import { GraphQLError } from 'graphql';
 import {
   AppError,
   ErrorCategory,
+  ERROR_CODES,
   AuthenticationError,
   AuthorizationError,
   ValidationError,
   NetworkError,
+  ServerError,
+  UnknownError,
 } from './error-types';
 
 /**
@@ -22,10 +25,53 @@ interface GraphQLErrorResponse {
  */
 class ErrorHandler {
   /**
+   * Main error handling method that routes to specific handlers
+   * @param error - Any error object (GraphQL, gRPC, or generic)
+   * @returns AppError with user-friendly message
+   */
+  handle(error: any): AppError {
+    // Handle GraphQL errors
+    if (error.graphQLErrors || error.networkError) {
+      return this.handleGraphQLError(error);
+    }
+
+    // Handle gRPC errors (identified by numeric code property)
+    if (typeof error.code === 'number') {
+      return this.handleGRPCError(error);
+    }
+
+    // Handle generic errors
+    if (error instanceof Error) {
+      return new UnknownError(
+        error.message,
+        'An unexpected error occurred. Please try again.',
+        error
+      );
+    }
+
+    // Handle unknown error types
+    return new UnknownError(
+      'Unknown error',
+      'An unexpected error occurred. Please try again.',
+      error
+    );
+  }
+
+  /**
    * Handle Apollo GraphQL errors and convert to AppError
    */
   handleGraphQLError(error: GraphQLErrorResponse): AppError {
     const correlationId = this.extractCorrelationId(error);
+
+    // Handle network errors first
+    if (error.networkError) {
+      return new NetworkError(
+        error.networkError.message,
+        'Unable to connect to the server. Please check your internet connection.',
+        error.networkError,
+        { correlationId }
+      );
+    }
 
     // Handle GraphQL errors
     if (error.graphQLErrors && error.graphQLErrors.length > 0) {
@@ -37,6 +83,7 @@ class ErrorHandler {
           return new AuthenticationError(
             gqlError.message,
             'Your session has expired. Please log in again.',
+            gqlError,
             { correlationId }
           );
 
@@ -44,6 +91,7 @@ class ErrorHandler {
           return new AuthorizationError(
             gqlError.message,
             'You do not have permission to perform this action.',
+            gqlError,
             { correlationId }
           );
 
@@ -53,81 +101,135 @@ class ErrorHandler {
             gqlError.message,
             'Please check your input and try again.',
             fieldErrors,
+            gqlError,
+            { correlationId }
+          );
+
+        case 'INTERNAL_SERVER_ERROR':
+          return new ServerError(
+            gqlError.message,
+            'Something went wrong on our end. Please try again later.',
+            gqlError,
             { correlationId }
           );
 
         default:
-          return this.createGenericError(gqlError.message, correlationId);
+          return new UnknownError(
+            gqlError.message,
+            'An unexpected error occurred. Please try again.',
+            gqlError,
+            { correlationId }
+          );
       }
     }
 
-    // Handle network errors
-    if (error.networkError) {
-      return new NetworkError(
-        error.networkError.message,
-        'Unable to connect to the server. Please check your internet connection.',
-        { correlationId }
-      );
-    }
-
-    return this.createGenericError(error.message || 'Unknown error', correlationId);
+    return new UnknownError(
+      error.message || 'Unknown error',
+      'An unexpected error occurred. Please try again.',
+      error,
+      { correlationId }
+    );
   }
 
   /**
    * Handle gRPC errors and convert to AppError
+   * Maps gRPC status codes to user-friendly error messages
    */
   handleGRPCError(error: any): AppError {
     // gRPC status codes mapping
     const grpcStatusCodes = {
-      UNAUTHENTICATED: 16,
-      PERMISSION_DENIED: 7,
+      OK: 0,
+      CANCELLED: 1,
+      UNKNOWN: 2,
       INVALID_ARGUMENT: 3,
-      NOT_FOUND: 5,
-      UNAVAILABLE: 14,
       DEADLINE_EXCEEDED: 4,
-    };
-
-    const errorMap: Record<number, { message: string; category: ErrorCategory }> = {
-      [grpcStatusCodes.UNAUTHENTICATED]: {
-        message: 'Authentication required. Please log in.',
-        category: ErrorCategory.AUTHENTICATION,
-      },
-      [grpcStatusCodes.PERMISSION_DENIED]: {
-        message: 'You do not have permission to perform this action.',
-        category: ErrorCategory.AUTHORIZATION,
-      },
-      [grpcStatusCodes.INVALID_ARGUMENT]: {
-        message: 'Invalid request. Please check your input.',
-        category: ErrorCategory.VALIDATION,
-      },
-      [grpcStatusCodes.NOT_FOUND]: {
-        message: 'The requested resource was not found.',
-        category: ErrorCategory.CLIENT,
-      },
-      [grpcStatusCodes.UNAVAILABLE]: {
-        message: 'Service temporarily unavailable. Please try again.',
-        category: ErrorCategory.NETWORK,
-      },
-      [grpcStatusCodes.DEADLINE_EXCEEDED]: {
-        message: 'Request timed out. Please try again.',
-        category: ErrorCategory.NETWORK,
-      },
+      NOT_FOUND: 5,
+      ALREADY_EXISTS: 6,
+      PERMISSION_DENIED: 7,
+      RESOURCE_EXHAUSTED: 8,
+      FAILED_PRECONDITION: 9,
+      ABORTED: 10,
+      OUT_OF_RANGE: 11,
+      UNIMPLEMENTED: 12,
+      INTERNAL: 13,
+      UNAVAILABLE: 14,
+      DATA_LOSS: 15,
+      UNAUTHENTICATED: 16,
     };
 
     const code = error.code || 0;
-    const mapped = errorMap[code] || {
-      message: 'An unexpected error occurred.',
-      category: ErrorCategory.UNKNOWN,
-    };
 
-    return {
-      category: mapped.category,
-      code: `GRPC_${code}`,
-      message: error.message || 'Unknown gRPC error',
-      userMessage: mapped.message,
-      timestamp: new Date(),
-      context: { grpcCode: code },
-    };
+    // Map gRPC codes to AppError types
+    switch (code) {
+      case grpcStatusCodes.UNAUTHENTICATED:
+        return new AuthenticationError(
+          error.message || 'Authentication required',
+          'Please log in to continue.',
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.PERMISSION_DENIED:
+        return new AuthorizationError(
+          error.message || 'Permission denied',
+          'You do not have permission to perform this action.',
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.INVALID_ARGUMENT:
+      case grpcStatusCodes.OUT_OF_RANGE:
+      case grpcStatusCodes.FAILED_PRECONDITION:
+        return new ValidationError(
+          error.message || 'Invalid request',
+          'Please check your input and try again.',
+          undefined,
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.UNAVAILABLE:
+      case grpcStatusCodes.DEADLINE_EXCEEDED:
+        return new NetworkError(
+          error.message || 'Service unavailable',
+          'Service temporarily unavailable. Please try again.',
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.INTERNAL:
+      case grpcStatusCodes.DATA_LOSS:
+        return new ServerError(
+          error.message || 'Internal server error',
+          'Something went wrong on our end. Please try again later.',
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.NOT_FOUND:
+        return new UnknownError(
+          error.message || 'Resource not found',
+          'The requested resource was not found.',
+          error,
+          { grpcCode: code }
+        );
+
+      case grpcStatusCodes.CANCELLED:
+        return new UnknownError(
+          error.message || 'Operation cancelled',
+          'The operation was cancelled.',
+          error,
+          { grpcCode: code }
+        );
+
+      default:
+        return new UnknownError(
+          error.message || 'Unknown gRPC error',
+          'An unexpected error occurred. Please try again.',
+          error,
+          { grpcCode: code }
+        );
+    }
   }
 
   /**
@@ -155,20 +257,6 @@ class ErrorHandler {
   }
 
   /**
-   * Create a generic error when specific categorization fails
-   */
-  private createGenericError(message: string, correlationId?: string): AppError {
-    return {
-      category: ErrorCategory.UNKNOWN,
-      code: 'UNKNOWN_ERROR',
-      message,
-      userMessage: 'An unexpected error occurred. Please try again.',
-      correlationId,
-      timestamp: new Date(),
-    };
-  }
-
-  /**
    * Log error with context for debugging and monitoring
    */
   logError(error: AppError): void {
@@ -176,6 +264,7 @@ class ErrorHandler {
       category: error.category,
       code: error.code,
       message: error.message,
+      userMessage: error.userMessage,
       correlationId: error.correlationId,
       timestamp: error.timestamp,
       context: error.context,

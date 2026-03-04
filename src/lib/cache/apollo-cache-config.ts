@@ -8,7 +8,7 @@ import { InMemoryCache, TypePolicies } from '@apollo/client';
  * - Field merge strategies
  * - Pagination handling
  * 
- * Requirements: 2.1, 2.3
+ * Requirements: 6.9
  */
 const typePolicies: TypePolicies = {
   Query: {
@@ -17,16 +17,16 @@ const typePolicies: TypePolicies = {
        * Users query with pagination support
        * Merges paginated results for infinite scroll
        */
-      users: {
-        keyArgs: ['filter', 'organizationId'],
+      getUsers: {
+        keyArgs: false, // Don't use any args for cache key
         merge(existing, incoming, { args }) {
           if (!existing) return incoming;
           
-          // If offset is provided, append to existing results (pagination)
-          if (args?.offset) {
+          // If offset/page is provided, append to existing results (pagination)
+          if (args?.page && args.page > 1) {
             return {
               ...incoming,
-              edges: [...(existing.edges || []), ...(incoming.edges || [])],
+              users: [...(existing.users || []), ...(incoming.users || [])],
             };
           }
           
@@ -34,27 +34,90 @@ const typePolicies: TypePolicies = {
           return incoming;
         },
       },
+
+      /**
+       * Single user query
+       * Keyed by userId to cache individual user lookups
+       */
+      getUser: {
+        keyArgs: ['userId'],
+        merge: false,
+      },
       
       /**
        * Permissions query
        * Always replace (no merge) to ensure fresh permission data
+       * Keyed by userId since permissions are user-specific
        */
-      permissions: {
+      getUserPermissions: {
         keyArgs: ['userId'],
         merge: false,
+      },
+
+      /**
+       * Permission history query
+       * Keyed by userId
+       */
+      getPermissionHistory: {
+        keyArgs: ['userId'],
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          // Append new snapshots for pagination
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              snapshots: [...(existing.snapshots || []), ...(incoming.snapshots || [])],
+            };
+          }
+          
+          return incoming;
+        },
       },
       
       /**
        * Audit logs query with pagination support
        * Appends new logs for infinite scroll
        */
-      auditLogs: {
-        keyArgs: ['filter'],
+      getUserAuditLogs: {
+        keyArgs: ['userId'],
         merge(existing, incoming, { args }) {
           if (!existing) return incoming;
           
           // Append new logs for pagination
-          if (args?.offset) {
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              logs: [...(existing.logs || []), ...(incoming.logs || [])],
+            };
+          }
+          
+          return incoming;
+        },
+      },
+
+      getOrganizationAuditLogs: {
+        keyArgs: ['organizationId'],
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              logs: [...(existing.logs || []), ...(incoming.logs || [])],
+            };
+          }
+          
+          return incoming;
+        },
+      },
+
+      getResourceAuditLogs: {
+        keyArgs: ['resourceType', 'resourceId'],
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          if (args?.page && args.page > 1) {
             return {
               ...incoming,
               logs: [...(existing.logs || []), ...(incoming.logs || [])],
@@ -66,38 +129,92 @@ const typePolicies: TypePolicies = {
       },
       
       /**
-       * Organizations query
+       * Organization query
        * Simple replacement strategy
        */
-      organizations: {
+      getOrganization: {
         keyArgs: false,
         merge: false,
       },
       
       /**
        * Branches query
-       * Filtered by organization
+       * Simple replacement strategy
        */
-      branches: {
-        keyArgs: ['organizationId'],
-        merge: false,
+      getBranches: {
+        keyArgs: false,
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          // Support pagination if needed
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              branches: [...(existing.branches || []), ...(incoming.branches || [])],
+            };
+          }
+          
+          return incoming;
+        },
       },
       
       /**
        * Departments query
-       * Filtered by branch
+       * Simple replacement strategy
        */
-      departments: {
-        keyArgs: ['branchId'],
-        merge: false,
+      getDepartments: {
+        keyArgs: false,
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          // Support pagination if needed
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              departments: [...(existing.departments || []), ...(incoming.departments || [])],
+            };
+          }
+          
+          return incoming;
+        },
       },
       
       /**
        * Business rules query
-       * Filtered by organization
+       * Keyed by transactionType filter
        */
-      businessRules: {
-        keyArgs: ['organizationId'],
+      getBusinessRules: {
+        keyArgs: ['transactionType'],
+        merge(existing, incoming, { args }) {
+          if (!existing) return incoming;
+          
+          // Support pagination if needed
+          if (args?.page && args.page > 1) {
+            return {
+              ...incoming,
+              rules: [...(existing.rules || []), ...(incoming.rules || [])],
+            };
+          }
+          
+          return incoming;
+        },
+      },
+
+      /**
+       * Active sessions query
+       * Simple replacement strategy
+       */
+      getActiveSessions: {
+        keyArgs: false,
+        merge: false,
+      },
+
+      /**
+       * Health check query
+       * Always fetch fresh data
+       */
+      health: {
+        keyArgs: false,
         merge: false,
       },
     },
@@ -208,6 +325,30 @@ const typePolicies: TypePolicies = {
   AuditLog: {
     keyFields: ['id'],
   },
+
+  /**
+   * Session entity normalization
+   * Identified by 'id' field
+   */
+  Session: {
+    keyFields: ['id'],
+  },
+
+  /**
+   * Permission Snapshot entity normalization
+   * Identified by 'id' field
+   */
+  PermissionSnapshot: {
+    keyFields: ['id'],
+  },
+
+  /**
+   * Staff Profile entity normalization
+   * Identified by 'id' field
+   */
+  StaffProfile: {
+    keyFields: ['id'],
+  },
 };
 
 /**
@@ -219,7 +360,7 @@ const typePolicies: TypePolicies = {
  * - Pagination support for list queries
  * - Automatic cache updates on mutations
  * 
- * Requirements: 2.1, 2.3
+ * Requirements: 6.9
  */
 export const cache = new InMemoryCache({
   typePolicies,
@@ -235,13 +376,42 @@ export const cache = new InMemoryCache({
   
   /**
    * Data ID from object
-   * Custom function to generate cache IDs
-   * Default uses __typename:id
+   * Custom function to generate cache IDs for normalization
+   * 
+   * This ensures consistent cache keys across the application:
+   * - Uses __typename:id format for entities with id field
+   * - Handles special cases like AuthUserType
+   * 
+   * Requirements: 6.9
    */
   dataIdFromObject(responseObject) {
-    // Use default behavior: __typename:id
-    // Can be customized if needed
-    return undefined;
+    // Handle different typename variations
+    switch (responseObject.__typename) {
+      case 'User':
+      case 'AuthUserType':
+        return `User:${responseObject.id}`;
+      case 'Organization':
+        return `Organization:${responseObject.id}`;
+      case 'Branch':
+        return `Branch:${responseObject.id}`;
+      case 'Department':
+        return `Department:${responseObject.id}`;
+      case 'Permission':
+        return `Permission:${responseObject.id}`;
+      case 'BusinessRule':
+        return `BusinessRule:${responseObject.id}`;
+      case 'AuditLog':
+        return `AuditLog:${responseObject.id}`;
+      case 'Session':
+        return `Session:${responseObject.id}`;
+      case 'PermissionSnapshot':
+        return `PermissionSnapshot:${responseObject.id}`;
+      case 'StaffProfile':
+        return `StaffProfile:${responseObject.id}`;
+      default:
+        // Use default behavior for other types
+        return undefined;
+    }
   },
 });
 

@@ -5,10 +5,22 @@
  * These functions ensure the cache stays synchronized with server state
  * after create, update, and delete operations.
  * 
- * Requirements: 2.3
+ * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
 import { ApolloCache, gql, Reference } from '@apollo/client';
+import { 
+  GET_USERS, 
+  GET_USER 
+} from '@/graphql/queries/users';
+import { 
+  GET_USER_PERMISSIONS, 
+  GET_PERMISSION_HISTORY 
+} from '@/graphql/queries/permissions';
+import { GET_BRANCHES } from '@/graphql/queries/branches';
+import { GET_DEPARTMENTS } from '@/graphql/queries/departments';
+import { GET_BUSINESS_RULES } from '@/graphql/queries/business-rules';
+import { GET_ACTIVE_SESSIONS } from '@/graphql/queries/auth';
 
 /**
  * Type definitions for entities
@@ -99,58 +111,112 @@ export interface AuditLog {
   timestamp: string;
 }
 
+export interface Session {
+  __typename?: 'Session';
+  id: string;
+  userId: string;
+  userAgent?: string;
+  ipAddress?: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface UserPermissions {
+  __typename?: 'UserPermissions';
+  userId: string;
+  fingerprint: string;
+  permissions: Array<{
+    module: string;
+    actions: string[];
+  }>;
+}
+
 /**
  * User Cache Update Functions
+ * Requirements: 6.1, 6.2
  */
 
 /**
- * Updates cache after creating a new user
- * Adds the new user to the users query result
+ * Updates the users list cache after creating a new user
+ * Adds the new user to the GET_USERS query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param newUser - The newly created user
  */
-export const updateCacheAfterCreateUser = (
-  cache: ApolloCache,
+export const updateUsersCache = (
+  cache: ApolloCache<any>,
   newUser: User
 ): void => {
-  cache.modify({
-    fields: {
-      users(existingUsers = { edges: [], pageInfo: {} }) {
-        const newUserRef = cache.writeFragment({
-          data: { ...newUser, __typename: newUser.__typename || 'User' },
-          fragment: gql`
-            fragment NewUser on User {
-              id
-              email
-              firstName
-              lastName
-              hierarchyLevel
-              organizationId
-              branchId
-              departmentId
-              status
-              isActive
-              createdAt
-              updatedAt
-            }
-          `,
-        });
+  try {
+    const existingData = cache.readQuery<{
+      getUsers: { users: User[]; total: number };
+    }>({ query: GET_USERS });
 
-        return {
-          ...existingUsers,
-          edges: [newUserRef, ...(existingUsers.edges || [])],
-        };
-      },
-    },
-  });
+    if (existingData) {
+      cache.writeQuery({
+        query: GET_USERS,
+        data: {
+          getUsers: {
+            users: [newUser, ...existingData.getUsers.users],
+            total: existingData.getUsers.total + 1,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    // Query not in cache yet, skip update
+    console.debug('GET_USERS query not in cache, skipping update');
+  }
 };
 
 /**
- * Updates cache after updating a user
- * Writes the updated user data to the cache
+ * Updates a specific user in the cache
+ * Updates both the GET_USER query and the user reference in GET_USERS
+ * 
+ * @param cache - Apollo cache instance
+ * @param updatedUser - The updated user data
  */
-export const updateCacheAfterUpdateUser = (
-  cache: ApolloCache,
+export const updateUserCache = (
+  cache: ApolloCache<any>,
   updatedUser: User
 ): void => {
+  // Update the specific user query
+  try {
+    cache.writeQuery({
+      query: GET_USER,
+      variables: { userId: updatedUser.id },
+      data: {
+        getUser: updatedUser,
+      },
+    });
+  } catch (error) {
+    console.debug('GET_USER query not in cache, skipping update');
+  }
+
+  // Update the user in the users list
+  try {
+    const existingData = cache.readQuery<{
+      getUsers: { users: User[]; total: number };
+    }>({ query: GET_USERS });
+
+    if (existingData) {
+      cache.writeQuery({
+        query: GET_USERS,
+        data: {
+          getUsers: {
+            users: existingData.getUsers.users.map(user =>
+              user.id === updatedUser.id ? updatedUser : user
+            ),
+            total: existingData.getUsers.total,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.debug('GET_USERS query not in cache, skipping update');
+  }
+
+  // Also update the normalized cache entry
   const typename = updatedUser.__typename || 'User';
   cache.writeFragment({
     id: `${typename}:${updatedUser.id}`,
@@ -165,7 +231,6 @@ export const updateCacheAfterUpdateUser = (
         branchId
         departmentId
         status
-        isActive
         updatedAt
       }
     `,
@@ -178,7 +243,7 @@ export const updateCacheAfterUpdateUser = (
  * Evicts the user from cache and runs garbage collection
  */
 export const updateCacheAfterDeleteUser = (
-  cache: ApolloCache,
+  cache: ApolloCache<any>,
   userId: string,
   typename: string = 'User'
 ): void => {
@@ -188,7 +253,34 @@ export const updateCacheAfterDeleteUser = (
 
 /**
  * Permission Cache Update Functions
+ * Requirements: 6.3
  */
+
+/**
+ * Updates the user permissions cache after granting or revoking permissions
+ * Updates the GET_USER_PERMISSIONS query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param userId - The user ID whose permissions were updated
+ * @param permissions - The updated permissions data
+ */
+export const updateUserPermissionsCache = (
+  cache: ApolloCache<any>,
+  userId: string,
+  permissions: UserPermissions
+): void => {
+  try {
+    cache.writeQuery({
+      query: GET_USER_PERMISSIONS,
+      variables: { userId },
+      data: {
+        getUserPermissions: permissions,
+      },
+    });
+  } catch (error) {
+    console.debug('GET_USER_PERMISSIONS query not in cache, skipping update');
+  }
+};
 
 /**
  * Updates cache after creating a new permission
@@ -324,48 +416,53 @@ export const updateCacheAfterDeleteOrganization = (
 
 /**
  * Branch Cache Update Functions
+ * Requirements: 6.4
  */
 
 /**
- * Updates cache after creating a new branch
+ * Updates the branches list cache after creating or updating a branch
+ * Updates the GET_BRANCHES query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param branch - The branch data (new or updated)
+ * @param isNew - Whether this is a new branch (true) or an update (false)
  */
-export const updateCacheAfterCreateBranch = (
-  cache: ApolloCache,
-  newBranch: Branch
+export const updateBranchesCache = (
+  cache: ApolloCache<any>,
+  branch: Branch,
+  isNew: boolean = true
 ): void => {
-  cache.modify({
-    fields: {
-      branches(existingBranches = []) {
-        const newBranchRef = cache.writeFragment({
-          data: { ...newBranch, __typename: 'Branch' },
-          fragment: gql`
-            fragment NewBranch on Branch {
-              id
-              name
-              organizationId
-              description
-              isActive
-              createdAt
-              updatedAt
-            }
-          `,
-        });
+  try {
+    const existingData = cache.readQuery<{
+      getBranches: { branches: Branch[]; total: number };
+    }>({ query: GET_BRANCHES });
 
-        return [newBranchRef, ...(existingBranches || [])];
-      },
-    },
-  });
-};
+    if (existingData) {
+      const updatedBranches = isNew
+        ? [branch, ...existingData.getBranches.branches]
+        : existingData.getBranches.branches.map(b =>
+            b.id === branch.id ? branch : b
+          );
 
-/**
- * Updates cache after updating a branch
- */
-export const updateCacheAfterUpdateBranch = (
-  cache: ApolloCache,
-  updatedBranch: Branch
-): void => {
+      cache.writeQuery({
+        query: GET_BRANCHES,
+        data: {
+          getBranches: {
+            branches: updatedBranches,
+            total: isNew
+              ? existingData.getBranches.total + 1
+              : existingData.getBranches.total,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.debug('GET_BRANCHES query not in cache, skipping update');
+  }
+
+  // Also update the normalized cache entry
   cache.writeFragment({
-    id: `Branch:${updatedBranch.id}`,
+    id: `Branch:${branch.id}`,
     fragment: gql`
       fragment UpdatedBranch on Branch {
         id
@@ -376,7 +473,7 @@ export const updateCacheAfterUpdateBranch = (
         updatedAt
       }
     `,
-    data: { ...updatedBranch, __typename: 'Branch' },
+    data: { ...branch, __typename: 'Branch' },
   });
 };
 
@@ -393,48 +490,53 @@ export const updateCacheAfterDeleteBranch = (
 
 /**
  * Department Cache Update Functions
+ * Requirements: 6.5
  */
 
 /**
- * Updates cache after creating a new department
+ * Updates the departments list cache after creating or updating a department
+ * Updates the GET_DEPARTMENTS query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param department - The department data (new or updated)
+ * @param isNew - Whether this is a new department (true) or an update (false)
  */
-export const updateCacheAfterCreateDepartment = (
-  cache: ApolloCache,
-  newDepartment: Department
+export const updateDepartmentsCache = (
+  cache: ApolloCache<any>,
+  department: Department,
+  isNew: boolean = true
 ): void => {
-  cache.modify({
-    fields: {
-      departments(existingDepartments = []) {
-        const newDeptRef = cache.writeFragment({
-          data: { ...newDepartment, __typename: 'Department' },
-          fragment: gql`
-            fragment NewDepartment on Department {
-              id
-              name
-              branchId
-              description
-              isActive
-              createdAt
-              updatedAt
-            }
-          `,
-        });
+  try {
+    const existingData = cache.readQuery<{
+      getDepartments: { departments: Department[]; total: number };
+    }>({ query: GET_DEPARTMENTS });
 
-        return [newDeptRef, ...(existingDepartments || [])];
-      },
-    },
-  });
-};
+    if (existingData) {
+      const updatedDepartments = isNew
+        ? [department, ...existingData.getDepartments.departments]
+        : existingData.getDepartments.departments.map(d =>
+            d.id === department.id ? department : d
+          );
 
-/**
- * Updates cache after updating a department
- */
-export const updateCacheAfterUpdateDepartment = (
-  cache: ApolloCache,
-  updatedDepartment: Department
-): void => {
+      cache.writeQuery({
+        query: GET_DEPARTMENTS,
+        data: {
+          getDepartments: {
+            departments: updatedDepartments,
+            total: isNew
+              ? existingData.getDepartments.total + 1
+              : existingData.getDepartments.total,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.debug('GET_DEPARTMENTS query not in cache, skipping update');
+  }
+
+  // Also update the normalized cache entry
   cache.writeFragment({
-    id: `Department:${updatedDepartment.id}`,
+    id: `Department:${department.id}`,
     fragment: gql`
       fragment UpdatedDepartment on Department {
         id
@@ -445,7 +547,7 @@ export const updateCacheAfterUpdateDepartment = (
         updatedAt
       }
     `,
-    data: { ...updatedDepartment, __typename: 'Department' },
+    data: { ...department, __typename: 'Department' },
   });
 };
 
@@ -462,50 +564,59 @@ export const updateCacheAfterDeleteDepartment = (
 
 /**
  * Business Rule Cache Update Functions
+ * Requirements: 6.6
  */
 
 /**
- * Updates cache after creating a new business rule
+ * Updates the business rules list cache after creating or updating a business rule
+ * Updates the GET_BUSINESS_RULES query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param businessRule - The business rule data (new or updated)
+ * @param isNew - Whether this is a new business rule (true) or an update (false)
+ * @param transactionType - Optional transaction type filter used in the query
  */
-export const updateCacheAfterCreateBusinessRule = (
-  cache: ApolloCache,
-  newBusinessRule: BusinessRule
+export const updateBusinessRulesCache = (
+  cache: ApolloCache<any>,
+  businessRule: BusinessRule,
+  isNew: boolean = true,
+  transactionType?: string
 ): void => {
-  cache.modify({
-    fields: {
-      businessRules(existingRules = []) {
-        const newRuleRef = cache.writeFragment({
-          data: { ...newBusinessRule, __typename: 'BusinessRule' },
-          fragment: gql`
-            fragment NewBusinessRule on BusinessRule {
-              id
-              name
-              organizationId
-              ruleType
-              conditions
-              actions
-              isActive
-              createdAt
-              updatedAt
-            }
-          `,
-        });
+  try {
+    const existingData = cache.readQuery<{
+      getBusinessRules: { rules: BusinessRule[]; total: number };
+    }>({ 
+      query: GET_BUSINESS_RULES,
+      variables: transactionType ? { transactionType } : undefined
+    });
 
-        return [newRuleRef, ...(existingRules || [])];
-      },
-    },
-  });
-};
+    if (existingData) {
+      const updatedRules = isNew
+        ? [businessRule, ...existingData.getBusinessRules.rules]
+        : existingData.getBusinessRules.rules.map(r =>
+            r.id === businessRule.id ? businessRule : r
+          );
 
-/**
- * Updates cache after updating a business rule
- */
-export const updateCacheAfterUpdateBusinessRule = (
-  cache: ApolloCache,
-  updatedBusinessRule: BusinessRule
-): void => {
+      cache.writeQuery({
+        query: GET_BUSINESS_RULES,
+        variables: transactionType ? { transactionType } : undefined,
+        data: {
+          getBusinessRules: {
+            rules: updatedRules,
+            total: isNew
+              ? existingData.getBusinessRules.total + 1
+              : existingData.getBusinessRules.total,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.debug('GET_BUSINESS_RULES query not in cache, skipping update');
+  }
+
+  // Also update the normalized cache entry
   cache.writeFragment({
-    id: `BusinessRule:${updatedBusinessRule.id}`,
+    id: `BusinessRule:${businessRule.id}`,
     fragment: gql`
       fragment UpdatedBusinessRule on BusinessRule {
         id
@@ -518,7 +629,7 @@ export const updateCacheAfterUpdateBusinessRule = (
         updatedAt
       }
     `,
-    data: { ...updatedBusinessRule, __typename: 'BusinessRule' },
+    data: { ...businessRule, __typename: 'BusinessRule' },
   });
 };
 
@@ -542,7 +653,7 @@ export const updateCacheAfterDeleteBusinessRule = (
  * Note: Audit logs are typically append-only, so we only have create
  */
 export const updateCacheAfterCreateAuditLog = (
-  cache: ApolloCache,
+  cache: ApolloCache<any>,
   newAuditLog: AuditLog
 ): void => {
   cache.modify({
@@ -575,7 +686,71 @@ export const updateCacheAfterCreateAuditLog = (
 };
 
 /**
+ * Session Cache Update Functions
+ * Requirements: 6.7
+ */
+
+/**
+ * Updates the active sessions cache after revoking a session
+ * Removes the revoked session from the GET_ACTIVE_SESSIONS query result
+ * 
+ * @param cache - Apollo cache instance
+ * @param sessionId - The ID of the revoked session
+ */
+export const updateSessionsCache = (
+  cache: ApolloCache<any>,
+  sessionId: string
+): void => {
+  try {
+    const existingData = cache.readQuery<{
+      getActiveSessions: Session[];
+    }>({ query: GET_ACTIVE_SESSIONS });
+
+    if (existingData) {
+      cache.writeQuery({
+        query: GET_ACTIVE_SESSIONS,
+        data: {
+          getActiveSessions: existingData.getActiveSessions.filter(
+            session => session.id !== sessionId
+          ),
+        },
+      });
+    }
+  } catch (error) {
+    console.debug('GET_ACTIVE_SESSIONS query not in cache, skipping update');
+  }
+
+  // Also evict the session from cache
+  cache.evict({ id: `Session:${sessionId}` });
+  cache.gc();
+};
+
+/**
+ * Clears all sessions from the cache
+ * Used when revoking all sessions
+ * 
+ * @param cache - Apollo cache instance
+ */
+export const clearSessionsCache = (cache: ApolloCache<any>): void => {
+  try {
+    cache.writeQuery({
+      query: GET_ACTIVE_SESSIONS,
+      data: {
+        getActiveSessions: [],
+      },
+    });
+  } catch (error) {
+    console.debug('GET_ACTIVE_SESSIONS query not in cache, skipping update');
+  }
+
+  // Evict all sessions
+  cache.evict({ fieldName: 'getActiveSessions' });
+  cache.gc();
+};
+
+/**
  * Generic cache invalidation utilities
+ * Requirements: 6.8
  */
 
 /**
@@ -583,7 +758,7 @@ export const updateCacheAfterCreateAuditLog = (
  * Useful when you need to refetch data after complex operations
  */
 export const invalidateQueries = (
-  cache: ApolloCache,
+  cache: ApolloCache<any>,
   queryNames: string[]
 ): void => {
   queryNames.forEach(queryName => {
@@ -596,21 +771,25 @@ export const invalidateQueries = (
  * Clears the entire cache
  * Use sparingly - typically only on logout or critical errors
  */
-export const clearCache = (cache: ApolloCache): void => {
+export const clearCache = (cache: ApolloCache<any>): void => {
   cache.evict({});
   cache.gc();
 };
 
 /**
  * Export all cache updater functions
+ * These functions are used by the service layer to keep the cache synchronized
+ * 
+ * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 export const cacheUpdaters = {
-  // User operations
-  createUser: updateCacheAfterCreateUser,
-  updateUser: updateCacheAfterUpdateUser,
+  // User operations (Requirements: 6.1, 6.2)
+  updateUsersCache,
+  updateUserCache,
   deleteUser: updateCacheAfterDeleteUser,
   
-  // Permission operations
+  // Permission operations (Requirements: 6.3)
+  updateUserPermissionsCache,
   createPermission: updateCacheAfterCreatePermission,
   updatePermission: updateCacheAfterUpdatePermission,
   deletePermission: updateCacheAfterDeletePermission,
@@ -620,25 +799,26 @@ export const cacheUpdaters = {
   updateOrganization: updateCacheAfterUpdateOrganization,
   deleteOrganization: updateCacheAfterDeleteOrganization,
   
-  // Branch operations
-  createBranch: updateCacheAfterCreateBranch,
-  updateBranch: updateCacheAfterUpdateBranch,
+  // Branch operations (Requirements: 6.4)
+  updateBranchesCache,
   deleteBranch: updateCacheAfterDeleteBranch,
   
-  // Department operations
-  createDepartment: updateCacheAfterCreateDepartment,
-  updateDepartment: updateCacheAfterUpdateDepartment,
+  // Department operations (Requirements: 6.5)
+  updateDepartmentsCache,
   deleteDepartment: updateCacheAfterDeleteDepartment,
   
-  // Business Rule operations
-  createBusinessRule: updateCacheAfterCreateBusinessRule,
-  updateBusinessRule: updateCacheAfterUpdateBusinessRule,
+  // Business Rule operations (Requirements: 6.6)
+  updateBusinessRulesCache,
   deleteBusinessRule: updateCacheAfterDeleteBusinessRule,
+  
+  // Session operations (Requirements: 6.7)
+  updateSessionsCache,
+  clearSessionsCache,
   
   // Audit Log operations
   createAuditLog: updateCacheAfterCreateAuditLog,
   
-  // Utility operations
+  // Utility operations (Requirements: 6.8)
   invalidateQueries,
   clearCache,
 };
