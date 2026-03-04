@@ -54,7 +54,7 @@ export const ErrorFallback: React.FC<{
         <p className="text-gray-600 dark:text-gray-400">
           {level === 'root'
             ? 'We encountered an unexpected error. Please refresh the page or try again later.'
-            : 'We're sorry for the inconvenience. Please try again.'}
+            : "We're sorry for the inconvenience. Please try again."}
         </p>
 
         {/* Action Buttons */}
