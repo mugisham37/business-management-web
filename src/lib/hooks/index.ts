@@ -193,3 +193,15 @@ export type { UseInfiniteScrollOptions, UseInfiniteScrollReturn } from './useInf
 export { useDebounce } from './useDebounce';
 export { useDebouncedCallback } from './useDebouncedCallback';
 export type { DebouncedFunction } from './useDebouncedCallback';
+
+// Prefetch hooks
+export { usePrefetch, usePrefetchNextPage, usePrefetchOnScroll } from './usePrefetch';
+export type { PrefetchOptions, UsePrefetchReturn } from './usePrefetch';
+
+// Cache TTL hook
+export { useCacheTTL } from './useCacheTTL';
+export type { UseCacheTTLOptions, UseCacheTTLReturn } from './useCacheTTL';
+
+// Performance monitoring hook
+export { usePerformanceMonitoring } from './usePerformanceMonitoring';
+export type { UsePerformanceMonitoringReturn } from './usePerformanceMonitoring';

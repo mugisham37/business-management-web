@@ -88,3 +88,11 @@ export {
   // Grouped exports
   cacheEviction,
 } from './cache-eviction';
+
+// Cache TTL management
+export {
+  TTL_CONFIG as CACHE_TTL_CONFIG,
+  CacheTTLManager,
+  initializeTTLManager,
+  getTTLManager,
+} from './cache-ttl';
