@@ -24,20 +24,20 @@ import { AppError } from '@/lib/errors/error-types';
 /**
  * Component health type
  */
-export interface ComponentHealth {
-  name: string;
-  status: 'healthy' | 'degraded' | 'unhealthy';
-  message?: string;
-  lastCheck: string;
+export interface ServiceHealth {
+  status: string;
+  message?: string | null;
 }
 
 /**
- * Health check response type
+ * Health check response type (aligned with generated HealthCheckResponse)
  */
 export interface HealthCheckResponse {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: string;
   timestamp: string;
-  components: ComponentHealth[];
+  database: ServiceHealth;
+  cache: ServiceHealth;
+  queue: ServiceHealth;
 }
 
 /**

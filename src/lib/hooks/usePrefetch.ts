@@ -14,8 +14,9 @@
  * Requirements: 12.7
  */
 
-import { useCallback, useRef } from 'react';
-import { DocumentNode, OperationVariables, useApolloClient } from '@apollo/client';
+import { useCallback, useRef, useEffect } from 'react';
+import type { DocumentNode, OperationVariables } from '@apollo/client';
+import { useApolloClient } from '@apollo/client/react';
 
 export interface PrefetchOptions {
   /** Delay before prefetching (ms) */
@@ -175,7 +176,7 @@ export function usePrefetchNextPage(
   const { prefetch } = usePrefetch({ delay: 500 });
 
   // Prefetch next page when current page changes
-  useCallback(() => {
+  useEffect(() => {
     if (hasNextPage) {
       const nextPageVariables = {
         ...variables,
@@ -183,7 +184,7 @@ export function usePrefetchNextPage(
       };
       prefetch(query, nextPageVariables);
     }
-  }, [query, currentPage, hasNextPage, variables, prefetch])();
+  }, [query, currentPage, hasNextPage, variables, prefetch]);
 }
 
 /**
@@ -210,7 +211,7 @@ export function usePrefetchOnScroll(
   const { prefetch } = usePrefetch({ delay: 200 });
   const hasPrefetchedRef = useRef(false);
 
-  useCallback(() => {
+  useEffect(() => {
     const handleScroll = () => {
       if (hasPrefetchedRef.current) return;
 
@@ -227,5 +228,5 @@ export function usePrefetchOnScroll(
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [query, variables, threshold, prefetch])();
+  }, [query, variables, threshold, prefetch]);
 }

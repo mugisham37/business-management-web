@@ -348,18 +348,19 @@ export class AuthService {
    * Transform authentication response to application format
    * Requirements: 4.9
    */
-  private transformAuthResponse(data: any): AuthResponse {
+  private transformAuthResponse(data: Record<string, unknown>): AuthResponse {
+    const user = data.user as Record<string, unknown>;
     return {
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      expiresIn: data.expiresIn,
+      accessToken: data.accessToken as string,
+      refreshToken: data.refreshToken as string,
+      expiresIn: data.expiresIn as number,
       user: {
-        id: data.user.id,
-        email: data.user.email,
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        hierarchyLevel: data.user.hierarchyLevel,
-        organizationId: data.user.organizationId,
+        id: user.id as string,
+        email: user.email as string,
+        firstName: user.firstName as string,
+        lastName: user.lastName as string,
+        hierarchyLevel: user.hierarchyLevel as number,
+        organizationId: user.organizationId as string,
       },
     };
   }
@@ -371,13 +372,11 @@ export class AuthService {
  */
 let authServiceInstance: AuthService | null = null;
 
-export const getAuthService = (): AuthService => {
+export const getAuthService = async (): Promise<AuthService> => {
   if (!authServiceInstance) {
     // Import at runtime to avoid circular dependency
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     authServiceInstance = new AuthService(apolloClient);
   }
   return authServiceInstance;
 };
-
-export const authService = getAuthService();

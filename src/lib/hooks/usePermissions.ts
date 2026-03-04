@@ -18,7 +18,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
 
-import type { ApolloCache } from '@apollo/client/cache';
 import { GET_USER_PERMISSIONS, GET_PERMISSION_HISTORY } from '@/graphql/queries/permissions';
 import { GRANT_PERMISSIONS, REVOKE_PERMISSIONS } from '@/graphql/mutations/permissions';
 import type {
@@ -27,7 +26,6 @@ import type {
   GrantPermissionsData,
   RevokePermissionsData,
 } from '@/graphql/types/operations';
-import { updateUserPermissionsCache } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 
@@ -48,30 +46,25 @@ export interface PermissionInput {
   resource: string;
   action: string;
   scope: 'ORGANIZATION' | 'BRANCH' | 'DEPARTMENT' | 'SELF';
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
 }
 
 /**
  * Permission types
+ * Aligned with generated ModulePermissionType
  */
 export interface Permission {
-  id: string;
-  userId: string;
-  resource: string;
-  action: string;
-  scope: string;
-  conditions?: Record<string, any>;
-  grantedAt: string;
-  grantedBy: string;
+  module: string;
+  actions: string[];
 }
 
 export interface PermissionSnapshot {
   id: string;
   userId: string;
-  permissions: Permission[];
   reason: string;
+  fingerprintHash: string;
+  snapshotData: unknown;
   createdAt: string;
-  createdBy: string;
 }
 
 /**
@@ -144,8 +137,8 @@ export function usePermissions(userId?: string): UsePermissionsReturn {
 
   // Mutation for granting permissions
   const [grantPermissionsMutation] = useApolloMutation<GrantPermissionsData>(GRANT_PERMISSIONS, {
-    update: (cache: ApolloCache, { data }: any, { variables }: any) => {
-      if ((data as any)?.grantPermissions && variables?.input?.userId) {
+    update: (_cache, { data }) => {
+      if (data?.grantPermissions) {
         // Refetch permissions to get updated list
         refetchPermissionsList();
       }
@@ -154,8 +147,8 @@ export function usePermissions(userId?: string): UsePermissionsReturn {
 
   // Mutation for revoking permissions
   const [revokePermissionsMutation] = useApolloMutation<RevokePermissionsData>(REVOKE_PERMISSIONS, {
-    update: (cache: ApolloCache, { data }: any, { variables }: any) => {
-      if (data?.revokePermissions && variables?.input?.userId) {
+    update: (_cache, { data }) => {
+      if (data?.revokePermissions) {
         // Refetch permissions to get updated list
         refetchPermissionsList();
       }

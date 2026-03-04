@@ -15,8 +15,8 @@
  */
 
 import { Observable } from '@apollo/client';
-import { onError, ErrorResponse } from '@apollo/client/link/error';
-import { GraphQLError } from 'graphql';
+import { onError } from '@apollo/client/link/error';
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { tokenManager } from '@/lib/auth/token-manager';
 import { REFRESH_TOKEN } from '@/graphql/mutations/auth';
 
@@ -104,14 +104,13 @@ async function refreshAccessToken(): Promise<string> {
  * 
  * Requirements: 4.12, 7.6, 7.7
  */
-export const tokenRefreshLink = onError((errorResponse: ErrorResponse) => {
-  const { graphQLErrors, operation, forward } = errorResponse;
-  
-  if (!graphQLErrors) return;
+export const tokenRefreshLink = onError(({ error, operation, forward }) => {
+  // Only handle GraphQL errors with UNAUTHENTICATED code
+  if (!error || !CombinedGraphQLErrors.is(error)) return;
 
   // Check if any error is an authentication error
-  const hasAuthError = graphQLErrors.some(
-    (err: GraphQLError) => err.extensions?.code === 'UNAUTHENTICATED'
+  const hasAuthError = error.errors.some(
+    (err) => err.extensions?.code === 'UNAUTHENTICATED'
   );
 
   if (!hasAuthError) return;

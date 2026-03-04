@@ -171,7 +171,7 @@ export const selectUserHasModule = (
   module: string
 ) => {
   const permissions = state.permissions.userPermissions[userId];
-  return permissions?.permissions.some((p: any) => p.module === module) ?? false;
+  return permissions?.permissions.some((p) => p.module === module) ?? false;
 };
 
 export const selectUserHasAction = (
@@ -181,13 +181,13 @@ export const selectUserHasAction = (
   action: string
 ) => {
   const permissions = state.permissions.userPermissions[userId];
-  const modulePermission = permissions?.permissions.find((p: any) => p.module === module);
+  const modulePermission = permissions?.permissions.find((p) => p.module === module);
   return modulePermission?.actions.includes(action) ?? false;
 };
 
 export const selectUserModules = (state: RootState, userId: string) => {
   const permissions = state.permissions.userPermissions[userId];
-  return permissions?.permissions.map((p: any) => p.module) ?? [];
+  return permissions?.permissions.map((p) => p.module) ?? [];
 };
 
 export default permissionsSlice.reducer;

@@ -63,23 +63,23 @@ export interface AppError {
   code: string;
   message: string;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp: Date;
   stack?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export class AuthenticationError extends Error implements AppError {
   category = ErrorCategory.AUTHENTICATION;
   code = ERROR_CODES.AUTH_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, userMessage: string, originalError?: any, context?: Record<string, any>) {
+  constructor(message: string, userMessage: string, originalError?: unknown, context?: Record<string, unknown>) {
     super(message);
     this.name = 'AuthenticationError';
     this.userMessage = userMessage;
@@ -95,12 +95,12 @@ export class AuthorizationError extends Error implements AppError {
   category = ErrorCategory.AUTHORIZATION;
   code = ERROR_CODES.PERMISSION_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, userMessage: string, originalError?: any, context?: Record<string, any>) {
+  constructor(message: string, userMessage: string, originalError?: unknown, context?: Record<string, unknown>) {
     super(message);
     this.name = 'AuthorizationError';
     this.userMessage = userMessage;
@@ -116,18 +116,18 @@ export class ValidationError extends Error implements AppError {
   category = ErrorCategory.VALIDATION;
   code = ERROR_CODES.VALIDATION_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   fieldErrors?: Record<string, string[]>;
 
   constructor(
     message: string,
     userMessage: string,
     fieldErrors?: Record<string, string[]>,
-    originalError?: any,
-    context?: Record<string, any>
+    originalError?: unknown,
+    context?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'ValidationError';
@@ -145,12 +145,12 @@ export class NetworkError extends Error implements AppError {
   category = ErrorCategory.NETWORK;
   code = ERROR_CODES.NETWORK_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, userMessage: string, originalError?: any, context?: Record<string, any>) {
+  constructor(message: string, userMessage: string, originalError?: unknown, context?: Record<string, unknown>) {
     super(message);
     this.name = 'NetworkError';
     this.userMessage = userMessage;
@@ -166,12 +166,12 @@ export class ServerError extends Error implements AppError {
   category = ErrorCategory.SERVER;
   code = ERROR_CODES.SERVER_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, userMessage: string, originalError?: any, context?: Record<string, any>) {
+  constructor(message: string, userMessage: string, originalError?: unknown, context?: Record<string, unknown>) {
     super(message);
     this.name = 'ServerError';
     this.userMessage = userMessage;
@@ -187,12 +187,12 @@ export class UnknownError extends Error implements AppError {
   category = ErrorCategory.UNKNOWN;
   code = ERROR_CODES.UNKNOWN_ERROR;
   userMessage: string;
-  originalError?: any;
+  originalError?: unknown;
   correlationId?: string;
   timestamp = new Date();
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 
-  constructor(message: string, userMessage: string, originalError?: any, context?: Record<string, any>) {
+  constructor(message: string, userMessage: string, originalError?: unknown, context?: Record<string, unknown>) {
     super(message);
     this.name = 'UnknownError';
     this.userMessage = userMessage;

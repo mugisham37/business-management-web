@@ -15,7 +15,7 @@ export interface Notification {
 export interface Modal {
   id: string;
   isOpen: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 export interface UIState {
@@ -48,7 +48,7 @@ const uiSlice = createSlice({
   initialState,
   reducers: {
     // Modal actions
-    openModal: (state, action: PayloadAction<{ id: string; data?: any }>) => {
+    openModal: (state, action: PayloadAction<{ id: string; data?: unknown }>) => {
       state.modals[action.payload.id] = {
         id: action.payload.id,
         isOpen: true,
@@ -65,7 +65,7 @@ const uiSlice = createSlice({
     },
     updateModalData: (
       state,
-      action: PayloadAction<{ id: string; data: any }>
+      action: PayloadAction<{ id: string; data: unknown }>
     ) => {
       if (state.modals[action.payload.id]) {
         state.modals[action.payload.id].data = action.payload.data;
@@ -159,7 +159,7 @@ export const selectTheme = (state: RootState) => state.ui.theme;
 
 // Derived selectors
 export const selectActiveNotifications = (state: RootState) =>
-  state.ui.notifications.filter((n: any) => {
+  state.ui.notifications.filter((n) => {
     if (!n.duration) return true;
     return Date.now() - n.timestamp < n.duration;
   });
@@ -167,6 +167,6 @@ export const selectActiveNotifications = (state: RootState) =>
 export const selectNotificationsByType = (
   state: RootState,
   type: NotificationType
-) => state.ui.notifications.filter((n: any) => n.type === type);
+) => state.ui.notifications.filter((n) => n.type === type);
 
 export default uiSlice.reducer;

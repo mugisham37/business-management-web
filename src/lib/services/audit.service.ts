@@ -21,7 +21,6 @@ import {
   GET_RESOURCE_AUDIT_LOGS,
 } from '@/graphql/queries/audit-logs';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import { AuditLog } from '@/lib/cache/cache-updaters';
 
 /**
@@ -163,10 +162,10 @@ export class AuditService {
    * Transform audit logs response to application format
    * Requirements: 4.9
    */
-  private transformAuditLogsResponse(data: any): AuditLogsResponse {
+  private transformAuditLogsResponse(data: Record<string, unknown>): AuditLogsResponse {
     return {
-      logs: data.logs.map((log: any) => this.transformAuditLogResponse(log)),
-      total: data.total,
+      logs: (data.logs as Record<string, unknown>[]).map((log: Record<string, unknown>) => this.transformAuditLogResponse(log)),
+      total: data.total as number,
     };
   }
 
@@ -174,18 +173,18 @@ export class AuditService {
    * Transform single audit log response to application format
    * Requirements: 4.9
    */
-  private transformAuditLogResponse(data: any): AuditLog {
+  private transformAuditLogResponse(data: Record<string, unknown>): AuditLog {
     return {
-      __typename: data.__typename || 'AuditLog',
-      id: data.id,
-      userId: data.userId,
-      action: data.action,
-      entityType: data.entityType,
-      entityId: data.entityId,
-      changes: data.changes,
-      ipAddress: data.ipAddress,
-      userAgent: data.userAgent,
-      timestamp: data.timestamp,
+      __typename: (data.__typename as string) || 'AuditLog',
+      id: data.id as string,
+      userId: data.userId as string,
+      action: data.action as string,
+      entityType: data.entityType as string,
+      entityId: data.entityId as string,
+      changes: data.changes as Record<string, unknown>,
+      ipAddress: data.ipAddress as string,
+      userAgent: data.userAgent as string,
+      timestamp: data.timestamp as string,
     };
   }
 }
@@ -196,12 +195,10 @@ export class AuditService {
  */
 let auditServiceInstance: AuditService | null = null;
 
-export const getAuditService = (): AuditService => {
+export const getAuditService = async (): Promise<AuditService> => {
   if (!auditServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     auditServiceInstance = new AuditService(apolloClient);
   }
   return auditServiceInstance;
 };
-
-export const auditService = getAuditService();

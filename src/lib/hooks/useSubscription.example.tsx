@@ -60,7 +60,7 @@ export function AuditLogMonitor({ userId }: { userId: string }) {
  * Clears permission cache and optionally refreshes token.
  */
 export function PermissionMonitor({ userId }: { userId: string }) {
-  const [permissionHistory, setPermissionHistory] = React.useState<any[]>([]);
+  const [permissionHistory, setPermissionHistory] = React.useState<{ reason: string; changedAt: string; fingerprintChanged?: boolean }[]>([]);
 
   const { data, loading, error } = useSubscription({
     query: ON_PERMISSION_CHANGED,
@@ -276,7 +276,7 @@ export function MultiSubscriptionMonitor({ userId }: { userId: string }) {
  * Accumulate subscription data over time.
  */
 export function AuditLogHistory({ userId }: { userId: string }) {
-  const [logs, setLogs] = React.useState<any[]>([]);
+  const [logs, setLogs] = React.useState<{ id: string; action: string; resourceType: string; result: string; createdAt: string }[]>([]);
 
   const { data, loading, error } = useSubscription({
     query: ON_AUDIT_LOG_CREATED,

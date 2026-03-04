@@ -117,18 +117,18 @@ export const selectUsersError = (state: RootState) => state.users.error;
 
 // Derived selectors
 export const selectUserById = (state: RootState, userId: string) =>
-  state.users.list.find((user: any) => user.id === userId);
+  state.users.list.find((user) => user.id === userId);
 
 export const selectUsersByBranch = (state: RootState, branchId: string) =>
-  state.users.list.filter((user: any) => user.branchId === branchId);
+  state.users.list.filter((user) => user.branchId === branchId);
 
 export const selectUsersByDepartment = (state: RootState, departmentId: string) =>
-  state.users.list.filter((user: any) => user.departmentId === departmentId);
+  state.users.list.filter((user) => user.departmentId === departmentId);
 
 export const selectUsersByHierarchyLevel = (state: RootState, level: string) =>
-  state.users.list.filter((user: any) => user.hierarchyLevel === level);
+  state.users.list.filter((user) => user.hierarchyLevel === level);
 
 export const selectActiveUsers = (state: RootState) =>
-  state.users.list.filter((user: any) => user.status === 'ACTIVE');
+  state.users.list.filter((user) => user.status === 'ACTIVE');
 
 export default usersSlice.reducer;

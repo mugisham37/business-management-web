@@ -78,7 +78,7 @@ export async function withOptimisticUpdate<T, R>(
     // Rollback cache if needed
     if (config.cacheRollback) {
       try {
-        config.cacheRollback(null as any); // Cache will be passed by caller
+        config.cacheRollback(null as unknown as ApolloCache); // Cache will be passed by caller
       } catch (cacheError) {
         console.error('Cache rollback failed:', cacheError);
       }
@@ -153,7 +153,7 @@ export function withOptimisticMutation<TInput, TOutput, TState>(
 
       if (config.cacheRollback) {
         try {
-          config.cacheRollback(null as any);
+          config.cacheRollback(null as unknown as ApolloCache);
         } catch (cacheError) {
           console.error('Cache rollback failed:', cacheError);
         }
@@ -196,7 +196,7 @@ export function withOptimisticMutation<TInput, TOutput, TState>(
 export async function batchOptimisticUpdates<R>(
   dispatch: AppDispatch,
   getState: () => RootState,
-  configs: OptimisticUpdateConfig<any>[],
+  configs: OptimisticUpdateConfig<unknown>[],
   operation: () => Promise<R>
 ): Promise<R> {
   // Capture all previous states
@@ -219,7 +219,7 @@ export async function batchOptimisticUpdates<R>(
 
       if (configs[i].cacheRollback) {
         try {
-          configs[i].cacheRollback!(null as any);
+          configs[i].cacheRollback!(null as unknown as ApolloCache);
         } catch (cacheError) {
           console.error('Cache rollback failed:', cacheError);
         }

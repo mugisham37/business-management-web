@@ -62,7 +62,7 @@ export function syncUsersFromCache(
     if (usersData?.getUsers?.users) {
       dispatch(setUsers(usersData.getUsers.users));
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -84,7 +84,7 @@ export function syncUserFromCache(
     if (userData?.getUser) {
       dispatch(setSelectedUser(userData.getUser));
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -111,7 +111,7 @@ export function syncUserPermissionsFromCache(
         })
       );
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -138,7 +138,7 @@ export function syncPermissionHistoryFromCache(
         })
       );
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -158,7 +158,7 @@ export function syncOrganizationFromCache(
     if (orgData?.getOrganization) {
       dispatch(setOrganization(orgData.getOrganization));
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -178,7 +178,7 @@ export function syncBranchesFromCache(
     if (branchesData?.getBranches?.branches) {
       dispatch(setBranches(branchesData.getBranches.branches));
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }
@@ -198,7 +198,7 @@ export function syncDepartmentsFromCache(
     if (departmentsData?.getDepartments?.departments) {
       dispatch(setDepartments(departmentsData.getDepartments.departments));
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, that's okay
   }
 }

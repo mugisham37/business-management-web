@@ -38,7 +38,6 @@ import {
   GET_DEPARTMENTS,
 } from '@/graphql/queries/departments';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import {
   updateBranchesCache,
   updateDepartmentsCache,
@@ -53,7 +52,7 @@ import {
 export interface UpdateOrganizationInput {
   name?: string;
   description?: string;
-  settings?: any;
+  settings?: unknown;
 }
 
 export interface CreateBranchInput {
@@ -188,7 +187,7 @@ export class OrganizationService {
         mutation: CREATE_BRANCH,
         variables: { input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.createBranch) {
             updateBranchesCache(cache, data.createBranch, true);
           }
@@ -227,7 +226,7 @@ export class OrganizationService {
         mutation: UPDATE_BRANCH,
         variables: { branchId, input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.updateBranch) {
             updateBranchesCache(cache, data.updateBranch, false);
           }
@@ -323,7 +322,7 @@ export class OrganizationService {
         mutation: CREATE_DEPARTMENT,
         variables: { input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.createDepartment) {
             updateDepartmentsCache(cache, data.createDepartment, true);
           }
@@ -362,7 +361,7 @@ export class OrganizationService {
         mutation: UPDATE_DEPARTMENT,
         variables: { departmentId, input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.updateDepartment) {
             updateDepartmentsCache(cache, data.updateDepartment, false);
           }
@@ -534,15 +533,15 @@ export class OrganizationService {
    * Transform organization response to application format
    * Requirements: 4.9
    */
-  private transformOrganizationResponse(data: any): Organization {
+  private transformOrganizationResponse(data: Record<string, unknown>): Organization {
     return {
-      __typename: data.__typename || 'Organization',
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      isActive: data.isActive,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      __typename: (data.__typename as string) || 'Organization',
+      id: data.id as string,
+      name: data.name as string,
+      description: data.description as string,
+      isActive: data.isActive as boolean,
+      createdAt: data.createdAt as string,
+      updatedAt: data.updatedAt as string,
     };
   }
 
@@ -550,16 +549,16 @@ export class OrganizationService {
    * Transform branch response to application format
    * Requirements: 4.9
    */
-  private transformBranchResponse(data: any): Branch {
+  private transformBranchResponse(data: Record<string, unknown>): Branch {
     return {
-      __typename: data.__typename || 'Branch',
-      id: data.id,
-      name: data.name,
-      organizationId: data.organizationId,
-      description: data.description,
-      isActive: data.isActive,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      __typename: (data.__typename as string) || 'Branch',
+      id: data.id as string,
+      name: data.name as string,
+      organizationId: data.organizationId as string,
+      description: data.description as string,
+      isActive: data.isActive as boolean,
+      createdAt: data.createdAt as string,
+      updatedAt: data.updatedAt as string,
     };
   }
 
@@ -567,10 +566,10 @@ export class OrganizationService {
    * Transform branches list response to application format
    * Requirements: 4.9
    */
-  private transformBranchesListResponse(data: any): BranchesListResponse {
+  private transformBranchesListResponse(data: Record<string, unknown>): BranchesListResponse {
     return {
-      branches: data.branches.map((branch: any) => this.transformBranchResponse(branch)),
-      total: data.total,
+      branches: (data.branches as Record<string, unknown>[]).map((branch: Record<string, unknown>) => this.transformBranchResponse(branch)),
+      total: data.total as number,
     };
   }
 
@@ -578,16 +577,16 @@ export class OrganizationService {
    * Transform department response to application format
    * Requirements: 4.9
    */
-  private transformDepartmentResponse(data: any): Department {
+  private transformDepartmentResponse(data: Record<string, unknown>): Department {
     return {
-      __typename: data.__typename || 'Department',
-      id: data.id,
-      name: data.name,
-      branchId: data.branchId,
-      description: data.description,
-      isActive: data.isActive,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      __typename: (data.__typename as string) || 'Department',
+      id: data.id as string,
+      name: data.name as string,
+      branchId: data.branchId as string,
+      description: data.description as string,
+      isActive: data.isActive as boolean,
+      createdAt: data.createdAt as string,
+      updatedAt: data.updatedAt as string,
     };
   }
 
@@ -595,10 +594,10 @@ export class OrganizationService {
    * Transform departments list response to application format
    * Requirements: 4.9
    */
-  private transformDepartmentsListResponse(data: any): DepartmentsListResponse {
+  private transformDepartmentsListResponse(data: Record<string, unknown>): DepartmentsListResponse {
     return {
-      departments: data.departments.map((dept: any) => this.transformDepartmentResponse(dept)),
-      total: data.total,
+      departments: (data.departments as Record<string, unknown>[]).map((dept: Record<string, unknown>) => this.transformDepartmentResponse(dept)),
+      total: data.total as number,
     };
   }
 }
@@ -609,12 +608,10 @@ export class OrganizationService {
  */
 let organizationServiceInstance: OrganizationService | null = null;
 
-export const getOrganizationService = (): OrganizationService => {
+export const getOrganizationService = async (): Promise<OrganizationService> => {
   if (!organizationServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     organizationServiceInstance = new OrganizationService(apolloClient);
   }
   return organizationServiceInstance;
 };
-
-export const organizationService = getOrganizationService();

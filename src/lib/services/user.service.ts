@@ -13,7 +13,7 @@
  * Requirements: 4.2, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, FetchResult } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   CREATE_MANAGER,
   CREATE_WORKER,
@@ -24,7 +24,6 @@ import {
   GET_USER,
 } from '@/graphql/queries/users';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import {
   updateUsersCache,
   updateUserCache,
@@ -41,7 +40,7 @@ export interface CreateManagerInput {
   branchId?: string;
   departmentId?: string;
   phoneNumber?: string;
-  credentialType?: 'PASSWORD' | 'PIN';
+  credentialType?: string;
 }
 
 export interface CreateWorkerInput {
@@ -51,7 +50,7 @@ export interface CreateWorkerInput {
   branchId?: string;
   departmentId?: string;
   phoneNumber?: string;
-  credentialType?: 'PASSWORD' | 'PIN';
+  credentialType?: string;
 }
 
 export interface UpdateUserInput {
@@ -105,7 +104,7 @@ export class UserService {
         mutation: CREATE_MANAGER,
         variables: { input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.createManager?.user) {
             updateUsersCache(cache, data.createManager.user);
           }
@@ -145,7 +144,7 @@ export class UserService {
         mutation: CREATE_WORKER,
         variables: { input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.createWorker?.user) {
             updateUsersCache(cache, data.createWorker.user);
           }
@@ -184,7 +183,7 @@ export class UserService {
         mutation: UPDATE_USER,
         variables: { userId, input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.updateUser) {
             updateUserCache(cache, data.updateUser);
           }
@@ -315,11 +314,11 @@ export class UserService {
    * Transform create user response to application format
    * Requirements: 4.9
    */
-  private transformCreateUserResponse(data: any): CreateUserResponse {
+  private transformCreateUserResponse(data: Record<string, unknown>): CreateUserResponse {
     return {
-      user: this.transformUserResponse(data.user),
-      credentialType: data.credentialType,
-      temporaryCredential: data.temporaryCredential,
+      user: this.transformUserResponse(data.user as Record<string, unknown>),
+      credentialType: data.credentialType as 'PASSWORD' | 'PIN',
+      temporaryCredential: data.temporaryCredential as string,
     };
   }
 
@@ -327,21 +326,21 @@ export class UserService {
    * Transform user response to application format
    * Requirements: 4.9
    */
-  private transformUserResponse(data: any): User {
+  private transformUserResponse(data: Record<string, unknown>): User {
     return {
-      __typename: data.__typename || 'User',
-      id: data.id,
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      hierarchyLevel: data.hierarchyLevel,
-      organizationId: data.organizationId,
-      branchId: data.branchId,
-      departmentId: data.departmentId,
-      status: data.status,
+      __typename: (data.__typename as string) || 'User',
+      id: data.id as string,
+      email: data.email as string,
+      firstName: data.firstName as string,
+      lastName: data.lastName as string,
+      hierarchyLevel: data.hierarchyLevel as number,
+      organizationId: data.organizationId as string,
+      branchId: data.branchId as string,
+      departmentId: data.departmentId as string,
+      status: data.status as string,
       isActive: data.status === 'ACTIVE',
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      createdAt: data.createdAt as string,
+      updatedAt: data.updatedAt as string,
     };
   }
 
@@ -349,10 +348,10 @@ export class UserService {
    * Transform users list response to application format
    * Requirements: 4.9
    */
-  private transformUsersListResponse(data: any): UsersListResponse {
+  private transformUsersListResponse(data: Record<string, unknown>): UsersListResponse {
     return {
-      users: data.users.map((user: any) => this.transformUserResponse(user)),
-      total: data.total,
+      users: (data.users as Record<string, unknown>[]).map((user: Record<string, unknown>) => this.transformUserResponse(user)),
+      total: data.total as number,
     };
   }
 }
@@ -363,12 +362,10 @@ export class UserService {
  */
 let userServiceInstance: UserService | null = null;
 
-export const getUserService = (): UserService => {
+export const getUserService = async (): Promise<UserService> => {
   if (!userServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     userServiceInstance = new UserService(apolloClient);
   }
   return userServiceInstance;
 };
-
-export const userService = getUserService();

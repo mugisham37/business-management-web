@@ -1,8 +1,8 @@
-import { HttpLink, split, from, ApolloLink } from '@apollo/client';
+import { HttpLink, split, from } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
-import { onError, ErrorLink } from '@apollo/client/link/error';
+import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 import { createClient } from 'graphql-ws';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
@@ -99,13 +99,11 @@ export const authLink = setContext(async (_, { headers }) => {
  * Requirements: 2.1, 6.1
  */
 export const errorLink = onError((errorResponse) => {
-  const { error, result, operation } = errorResponse;
+  const { error, operation } = errorResponse;
   
   // Check if it's a GraphQL error
   if (CombinedGraphQLErrors.is(error)) {
     for (const err of error.errors) {
-      const code = err.extensions?.code;
-      
       // Log GraphQL errors
       console.error(
         `[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`,
@@ -143,13 +141,13 @@ export const retryLink = new RetryLink({
   },
   attempts: {
     max: config.retry.maxAttempts,
-    retryIf: (error, _operation) => {
+    retryIf: (error, _) => {
       // Don't retry if no error
       if (!error) return false;
       
       // Don't retry client errors (4xx)
-      const statusCode = (error as any)?.statusCode;
-      if (statusCode && statusCode >= 400 && statusCode < 500) {
+      const statusCode = (error as Record<string, unknown>)?.statusCode;
+      if (statusCode && typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
         return false;
       }
       

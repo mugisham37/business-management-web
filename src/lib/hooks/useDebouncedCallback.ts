@@ -16,6 +16,7 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface DebouncedFunction<T extends (...args: any[]) => any> {
   (...args: Parameters<T>): void;
   cancel: () => void;
@@ -45,6 +46,7 @@ export interface DebouncedFunction<T extends (...args: any[]) => any> {
  * 
  * Requirements: 12.3
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   delay: number = 300

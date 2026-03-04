@@ -16,7 +16,7 @@ import { AppError, UnknownError } from '@/lib/errors/error-types';
 export interface MutationState {
   loading: boolean;
   error: AppError | null;
-  data: any;
+  data: unknown;
 }
 
 /**
@@ -43,7 +43,7 @@ export interface MutationState {
  * );
  * ```
  */
-export function useMutationState<T = any>() {
+export function useMutationState<T = unknown>() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
   const [data, setData] = useState<T | null>(null);
@@ -119,7 +119,7 @@ export function useMutationState<T = any>() {
 export function useConcurrentMutations() {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, AppError>>({});
-  const [results, setResults] = useState<Record<string, any>>({});
+  const [results, setResults] = useState<Record<string, unknown>>({});
 
   const execute = useCallback(
     async <T,>(operationId: string, mutationFn: () => Promise<T>): Promise<T> => {
@@ -167,7 +167,7 @@ export function useConcurrentMutations() {
   );
 
   const getResult = useCallback(
-    (operationId: string): any => {
+    (operationId: string): unknown => {
       return results[operationId];
     },
     [results]
@@ -234,7 +234,7 @@ export function useConcurrentMutations() {
  * );
  * ```
  */
-export function useFormSubmit<T = any>(
+export function useFormSubmit<T = unknown>(
   onSubmit: (data: T) => Promise<void>,
   onSuccess?: () => void,
   onError?: (error: AppError) => void

@@ -36,17 +36,27 @@ import { AppError } from '@/lib/errors/error-types';
  * Input types for business rule operations
  */
 export interface CreateBusinessRuleInput {
+  ruleName: string;
   transactionType: string;
-  conditions: Record<string, any>;
-  actions: Record<string, any>;
+  basedOn: string;
+  thresholdValue: number;
+  appliesToLevel: string;
+  approverLevel: string;
+  conditions: Record<string, unknown>;
+  actions: Record<string, unknown>;
   priority?: number;
   isActive?: boolean;
 }
 
 export interface UpdateBusinessRuleInput {
+  ruleName?: string;
   transactionType?: string;
-  conditions?: Record<string, any>;
-  actions?: Record<string, any>;
+  basedOn?: string;
+  thresholdValue?: number;
+  appliesToLevel?: string;
+  approverLevel?: string;
+  conditions?: Record<string, unknown>;
+  actions?: Record<string, unknown>;
   priority?: number;
   isActive?: boolean;
 }
@@ -109,7 +119,7 @@ export function useBusinessRules(): UseBusinessRulesReturn {
 
   // Mutation for updating business rule
   const [updateBusinessRuleMutation] = useApolloMutation<UpdateBusinessRuleData>(UPDATE_BUSINESS_RULE, {
-    update: (cache: ApolloCache, { data }: any) => {
+    update: (cache: ApolloCache, { data }) => {
       if (data?.updateBusinessRule) {
         updateBusinessRulesCache(cache, data.updateBusinessRule, false);
       }
@@ -191,11 +201,6 @@ export function useBusinessRules(): UseBusinessRulesReturn {
               appliesToLevel: input.appliesToLevel || '',
               approverLevel: input.approverLevel || '',
               priority: input.priority || 0,
-              isActive: input.isActive !== undefined ? input.isActive : true,
-              createdAt: '',
-              updatedAt: new Date().toISOString(),
-            },
-          },
               isActive: input.isActive !== undefined ? input.isActive : true,
               createdAt: '',
               updatedAt: new Date().toISOString(),

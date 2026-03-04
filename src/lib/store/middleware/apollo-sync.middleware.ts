@@ -35,7 +35,7 @@ import {
 export const createApolloSyncMiddleware = (
   apolloClient: ApolloClient
 ): Middleware => {
-  return (store) => (next) => (action: any) => {
+  return (store) => (next) => (action) => {
     // Execute the action first
     const result = next(action);
 
@@ -57,7 +57,7 @@ export const createApolloSyncMiddleware = (
       if (action.type?.startsWith('organizations/')) {
         syncOrganizationsToCache(apolloClient, state);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Log sync errors but don't break the application
       console.error('Apollo cache sync error:', error);
     }
@@ -85,7 +85,7 @@ function syncUsersToCache(apolloClient: ApolloClient, state: RootState) {
           },
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   }
@@ -100,7 +100,7 @@ function syncUsersToCache(apolloClient: ApolloClient, state: RootState) {
           getUser: selectedUser,
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   }
@@ -125,7 +125,7 @@ function syncPermissionsToCache(
           getUserPermissions: permissions,
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   });
@@ -149,7 +149,7 @@ function syncOrganizationsToCache(
           getOrganization: organization,
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   }
@@ -167,7 +167,7 @@ function syncOrganizationsToCache(
           },
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   }
@@ -185,7 +185,7 @@ function syncOrganizationsToCache(
           },
         },
       });
-    } catch (error) {
+    } catch {
       // Query might not be in cache yet, that's okay
     }
   }

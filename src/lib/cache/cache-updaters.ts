@@ -8,7 +8,7 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
-import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
+import { ApolloCache, gql } from '@apollo/client';
 import { 
   GET_USERS, 
   GET_USER 
@@ -60,7 +60,7 @@ export type UserPermissions = UserPermissionsResponse;
  * @param newUser - The newly created user
  */
 export const updateUsersCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   newUser: UserManagementType
 ): void => {
   try {
@@ -79,7 +79,7 @@ export const updateUsersCache = (
         },
       });
     }
-  } catch (error) {
+  } catch {
     // Query not in cache yet, skip update
     console.debug('GET_USERS query not in cache, skipping update');
   }
@@ -93,7 +93,7 @@ export const updateUsersCache = (
  * @param updatedUser - The updated user data
  */
 export const updateUserCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   updatedUser: UserManagementType
 ): void => {
   // Update the specific user query
@@ -105,7 +105,7 @@ export const updateUserCache = (
         getUser: updatedUser,
       },
     });
-  } catch (error) {
+  } catch {
     console.debug('GET_USER query not in cache, skipping update');
   }
 
@@ -120,7 +120,7 @@ export const updateUserCache = (
         query: GET_USERS,
         data: {
           getUsers: {
-            users: existingData.getUsers.users.map((user: any) =>
+            users: existingData.getUsers.users.map((user) =>
               user.id === updatedUser.id ? updatedUser : user
             ),
             total: existingData.getUsers.total,
@@ -128,7 +128,7 @@ export const updateUserCache = (
         },
       });
     }
-  } catch (error) {
+  } catch {
     console.debug('GET_USERS query not in cache, skipping update');
   }
 
@@ -159,7 +159,7 @@ export const updateUserCache = (
  * Evicts the user from cache and runs garbage collection
  */
 export const updateCacheAfterDeleteUser = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   userId: string,
   typename: string = 'UserManagementType'
 ): void => {
@@ -181,7 +181,7 @@ export const updateCacheAfterDeleteUser = (
  * @param permissions - The updated permissions data
  */
 export const updateUserPermissionsCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   userId: string,
   permissions: UserPermissionsResponse
 ): void => {
@@ -193,7 +193,7 @@ export const updateUserPermissionsCache = (
         getUserPermissions: permissions,
       },
     });
-  } catch (error) {
+  } catch {
     console.debug('GET_USER_PERMISSIONS query not in cache, skipping update');
   }
 };
@@ -203,7 +203,7 @@ export const updateUserPermissionsCache = (
  * Note: ModulePermissionType doesn't have an id, so we use module name as identifier
  */
 export const updateCacheAfterCreatePermission = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   newPermission: ModulePermissionType
 ): void => {
   cache.modify({
@@ -229,7 +229,7 @@ export const updateCacheAfterCreatePermission = (
  * Updates cache after updating a permission
  */
 export const updateCacheAfterUpdatePermission = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   updatedPermission: ModulePermissionType
 ): void => {
   cache.writeFragment({
@@ -248,7 +248,7 @@ export const updateCacheAfterUpdatePermission = (
  * Updates cache after deleting a permission
  */
 export const updateCacheAfterDeletePermission = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   module: string
 ): void => {
   cache.evict({ id: `ModulePermissionType:${module}` });
@@ -263,7 +263,7 @@ export const updateCacheAfterDeletePermission = (
  * Updates cache after creating a new organization
  */
 export const updateCacheAfterCreateOrganization = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   newOrganization: OrganizationType
 ): void => {
   cache.modify({
@@ -294,7 +294,7 @@ export const updateCacheAfterCreateOrganization = (
  * Updates cache after updating an organization
  */
 export const updateCacheAfterUpdateOrganization = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   updatedOrganization: OrganizationType
 ): void => {
   cache.writeFragment({
@@ -317,7 +317,7 @@ export const updateCacheAfterUpdateOrganization = (
  * Updates cache after deleting an organization
  */
 export const updateCacheAfterDeleteOrganization = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   organizationId: string
 ): void => {
   cache.evict({ id: `OrganizationType:${organizationId}` });
@@ -338,7 +338,7 @@ export const updateCacheAfterDeleteOrganization = (
  * @param isNew - Whether this is a new branch (true) or an update (false)
  */
 export const updateBranchesCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   branch: BranchType,
   isNew: boolean = true
 ): void => {
@@ -350,7 +350,7 @@ export const updateBranchesCache = (
     if (existingData) {
       const updatedBranches = isNew
         ? [branch, ...existingData.getBranches.branches]
-        : existingData.getBranches.branches.map((b: any) =>
+        : existingData.getBranches.branches.map((b) =>
             b.id === branch.id ? branch : b
           );
 
@@ -366,7 +366,7 @@ export const updateBranchesCache = (
         },
       });
     }
-  } catch (error) {
+  } catch {
     console.debug('GET_BRANCHES query not in cache, skipping update');
   }
 
@@ -393,7 +393,7 @@ export const updateBranchesCache = (
  * Updates cache after deleting a branch
  */
 export const updateCacheAfterDeleteBranch = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   branchId: string
 ): void => {
   cache.evict({ id: `BranchType:${branchId}` });
@@ -414,7 +414,7 @@ export const updateCacheAfterDeleteBranch = (
  * @param isNew - Whether this is a new department (true) or an update (false)
  */
 export const updateDepartmentsCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   department: DepartmentType,
   isNew: boolean = true
 ): void => {
@@ -426,7 +426,7 @@ export const updateDepartmentsCache = (
     if (existingData) {
       const updatedDepartments = isNew
         ? [department, ...existingData.getDepartments.departments]
-        : existingData.getDepartments.departments.map((d: any) =>
+        : existingData.getDepartments.departments.map((d) =>
             d.id === department.id ? department : d
           );
 
@@ -442,7 +442,7 @@ export const updateDepartmentsCache = (
         },
       });
     }
-  } catch (error) {
+  } catch {
     console.debug('GET_DEPARTMENTS query not in cache, skipping update');
   }
 
@@ -469,7 +469,7 @@ export const updateDepartmentsCache = (
  * Updates cache after deleting a department
  */
 export const updateCacheAfterDeleteDepartment = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   departmentId: string
 ): void => {
   cache.evict({ id: `DepartmentType:${departmentId}` });
@@ -491,7 +491,7 @@ export const updateCacheAfterDeleteDepartment = (
  * @param transactionType - Optional transaction type filter used in the query
  */
 export const updateBusinessRulesCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   businessRule: BusinessRuleType,
   isNew: boolean = true,
   transactionType?: string
@@ -507,7 +507,7 @@ export const updateBusinessRulesCache = (
     if (existingData) {
       const updatedRules = isNew
         ? [businessRule, ...existingData.getBusinessRules.rules]
-        : existingData.getBusinessRules.rules.map((r: any) =>
+        : existingData.getBusinessRules.rules.map((r) =>
             r.id === businessRule.id ? businessRule : r
           );
 
@@ -524,7 +524,7 @@ export const updateBusinessRulesCache = (
         },
       });
     }
-  } catch (error) {
+  } catch {
     console.debug('GET_BUSINESS_RULES query not in cache, skipping update');
   }
 
@@ -555,7 +555,7 @@ export const updateBusinessRulesCache = (
  * Updates cache after deleting a business rule
  */
 export const updateCacheAfterDeleteBusinessRule = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   businessRuleId: string
 ): void => {
   cache.evict({ id: `BusinessRuleType:${businessRuleId}` });
@@ -571,7 +571,7 @@ export const updateCacheAfterDeleteBusinessRule = (
  * Note: Audit logs are typically append-only, so we only have create
  */
 export const updateCacheAfterCreateAuditLog = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   newAuditLog: AuditLogType
 ): void => {
   cache.modify({
@@ -621,7 +621,7 @@ export const updateCacheAfterCreateAuditLog = (
  * @param sessionId - The ID of the revoked session
  */
 export const updateSessionsCache = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   sessionId: string
 ): void => {
   try {
@@ -634,12 +634,12 @@ export const updateSessionsCache = (
         query: GET_ACTIVE_SESSIONS,
         data: {
           getActiveSessions: existingData.getActiveSessions.filter(
-            (session: any) => session.id !== sessionId
+            (session) => session.id !== sessionId
           ),
         },
       });
     }
-  } catch (error) {
+  } catch {
     console.debug('GET_ACTIVE_SESSIONS query not in cache, skipping update');
   }
 
@@ -654,7 +654,7 @@ export const updateSessionsCache = (
  * 
  * @param cache - Apollo cache instance
  */
-export const clearSessionsCache = (cache: ApolloCache<NormalizedCacheObject>): void => {
+export const clearSessionsCache = (cache: ApolloCache): void => {
   try {
     cache.writeQuery({
       query: GET_ACTIVE_SESSIONS,
@@ -662,7 +662,7 @@ export const clearSessionsCache = (cache: ApolloCache<NormalizedCacheObject>): v
         getActiveSessions: [],
       },
     });
-  } catch (error) {
+  } catch {
     console.debug('GET_ACTIVE_SESSIONS query not in cache, skipping update');
   }
 
@@ -681,7 +681,7 @@ export const clearSessionsCache = (cache: ApolloCache<NormalizedCacheObject>): v
  * Useful when you need to refetch data after complex operations
  */
 export const invalidateQueries = (
-  cache: ApolloCache<NormalizedCacheObject>,
+  cache: ApolloCache,
   queryNames: string[]
 ): void => {
   queryNames.forEach(queryName => {
@@ -694,7 +694,7 @@ export const invalidateQueries = (
  * Clears the entire cache
  * Use sparingly - typically only on logout or critical errors
  */
-export const clearCache = (cache: ApolloCache<NormalizedCacheObject>): void => {
+export const clearCache = (cache: ApolloCache): void => {
   cache.evict({});
   cache.gc();
 };

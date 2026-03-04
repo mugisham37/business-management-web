@@ -196,24 +196,24 @@ export const selectOrganizationsError = (state: RootState) => state.organization
 
 // Derived selectors
 export const selectBranchById = (state: RootState, branchId: string) =>
-  state.organizations.branches.find((branch: any) => branch.id === branchId);
+  state.organizations.branches.find((branch) => branch.id === branchId);
 
 export const selectDepartmentById = (state: RootState, departmentId: string) =>
-  state.organizations.departments.find((dept: any) => dept.id === departmentId);
+  state.organizations.departments.find((dept) => dept.id === departmentId);
 
 export const selectDepartmentsByBranch = (state: RootState, branchId: string) =>
-  state.organizations.departments.filter((dept: any) => dept.branchId === branchId);
+  state.organizations.departments.filter((dept) => dept.branchId === branchId);
 
 export const selectBranchesWithManager = (state: RootState) =>
-  state.organizations.branches.filter((branch: any) => branch.managerId !== null);
+  state.organizations.branches.filter((branch) => branch.managerId !== null);
 
 export const selectBranchesWithoutManager = (state: RootState) =>
-  state.organizations.branches.filter((branch: any) => branch.managerId === null);
+  state.organizations.branches.filter((branch) => branch.managerId === null);
 
 export const selectDepartmentsWithManager = (state: RootState) =>
-  state.organizations.departments.filter((dept: any) => dept.managerId !== null);
+  state.organizations.departments.filter((dept) => dept.managerId !== null);
 
 export const selectDepartmentsWithoutManager = (state: RootState) =>
-  state.organizations.departments.filter((dept: any) => dept.managerId === null);
+  state.organizations.departments.filter((dept) => dept.managerId === null);
 
 export default organizationsSlice.reducer;

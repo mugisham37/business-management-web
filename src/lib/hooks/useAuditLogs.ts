@@ -45,8 +45,8 @@ export interface AuditLog {
   action: string;
   resourceType: string;
   resourceId: string;
-  changes: Record<string, any>;
-  metadata: Record<string, any>;
+  changes: Record<string, unknown>;
+  metadata: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -176,25 +176,25 @@ export function useAuditLogs(
   }
 
   // Calculate pagination info for each query (Requirements: 12.1)
-  const userLogsPagination = (userLogsData as any)?.getUserAuditLogs
+  const userLogsPagination = userLogsData?.getUserAuditLogs
     ? calculatePaginationInfo(
-        (userLogsData as any).getUserAuditLogs.total,
+        userLogsData.getUserAuditLogs.total,
         Math.floor((userFilters.offset || 0) / (userFilters.limit || 100)) + 1,
         userFilters.limit || 100
       )
     : undefined;
 
-  const organizationLogsPagination = (organizationLogsData as any)?.getOrganizationAuditLogs
+  const organizationLogsPagination = organizationLogsData?.getOrganizationAuditLogs
     ? calculatePaginationInfo(
-        (organizationLogsData as any).getOrganizationAuditLogs.total,
+        organizationLogsData.getOrganizationAuditLogs.total,
         Math.floor((orgFilters.offset || 0) / (orgFilters.limit || 100)) + 1,
         orgFilters.limit || 100
       )
     : undefined;
 
-  const resourceLogsPagination = (resourceLogsData as any)?.getResourceAuditLogs
+  const resourceLogsPagination = resourceLogsData?.getResourceAuditLogs
     ? calculatePaginationInfo(
-        (resourceLogsData as any).getResourceAuditLogs.total,
+        resourceLogsData.getResourceAuditLogs.total,
         Math.floor((resourceFilters.offset || 0) / (resourceFilters.limit || 100)) + 1,
         resourceFilters.limit || 100
       )
@@ -334,9 +334,9 @@ export function useAuditLogs(
 
   return {
     // Data
-    userAuditLogs: (userLogsData as any)?.getUserAuditLogs,
-    organizationAuditLogs: (organizationLogsData as any)?.getOrganizationAuditLogs,
-    resourceAuditLogs: (resourceLogsData as any)?.getResourceAuditLogs,
+    userAuditLogs: userLogsData?.getUserAuditLogs as AuditLogsResponse | undefined,
+    organizationAuditLogs: organizationLogsData?.getOrganizationAuditLogs as AuditLogsResponse | undefined,
+    resourceAuditLogs: resourceLogsData?.getResourceAuditLogs as AuditLogsResponse | undefined,
     
     // Pagination info
     userLogsPagination,

@@ -17,7 +17,6 @@
 import { ApolloClient } from '@apollo/client';
 import { HEALTH } from '@/graphql/queries/health';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 
 /**
  * Response types for health check operations
@@ -85,7 +84,7 @@ export class HealthService {
     try {
       const health = await this.checkHealth();
       return health.status === 'HEALTHY';
-    } catch (error) {
+    } catch {
       // If health check fails, consider backend unhealthy
       return false;
     }
@@ -95,21 +94,24 @@ export class HealthService {
    * Transform health response to application format
    * Requirements: 4.9
    */
-  private transformHealthResponse(data: any): HealthCheckResponse {
+  private transformHealthResponse(data: Record<string, unknown>): HealthCheckResponse {
+    const database = data.database as Record<string, unknown>;
+    const cache = data.cache as Record<string, unknown>;
+    const queue = data.queue as Record<string, unknown>;
     return {
-      status: data.status,
-      timestamp: data.timestamp,
+      status: data.status as HealthCheckResponse['status'],
+      timestamp: data.timestamp as string,
       database: {
-        status: data.database.status,
-        message: data.database.message,
+        status: database.status as ComponentHealth['status'],
+        message: database.message as string | undefined,
       },
       cache: {
-        status: data.cache.status,
-        message: data.cache.message,
+        status: cache.status as ComponentHealth['status'],
+        message: cache.message as string | undefined,
       },
       queue: {
-        status: data.queue.status,
-        message: data.queue.message,
+        status: queue.status as ComponentHealth['status'],
+        message: queue.message as string | undefined,
       },
     };
   }
@@ -121,12 +123,10 @@ export class HealthService {
  */
 let healthServiceInstance: HealthService | null = null;
 
-export const getHealthService = (): HealthService => {
+export const getHealthService = async (): Promise<HealthService> => {
   if (!healthServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     healthServiceInstance = new HealthService(apolloClient);
   }
   return healthServiceInstance;
 };
-
-export const healthService = getHealthService();

@@ -19,7 +19,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
 
-import type { ApolloCache } from '@apollo/client/cache';
 import { GET_USERS, GET_USER } from '@/graphql/queries/users';
 import { CREATE_MANAGER, CREATE_WORKER, UPDATE_USER } from '@/graphql/mutations/users';
 import { updateUsersCache, updateUserCache, User } from '@/lib/cache/cache-updaters';
@@ -47,20 +46,21 @@ export interface CreateManagerInput {
   email: string;
   firstName: string;
   lastName: string;
+  organizationId: string;
+  staffProfile: Record<string, unknown>;
   branchId?: string;
   departmentId?: string;
-  phoneNumber?: string;
-  credentialType?: 'PASSWORD' | 'PIN';
 }
 
 export interface CreateWorkerInput {
   email: string;
   firstName: string;
   lastName: string;
+  organizationId: string;
+  staffProfile: Record<string, unknown>;
+  usePIN?: boolean;
   branchId?: string;
   departmentId?: string;
-  phoneNumber?: string;
-  credentialType?: 'PASSWORD' | 'PIN';
 }
 
 export interface UpdateUserInput {
@@ -77,7 +77,7 @@ export interface UpdateUserInput {
  */
 export interface CreateUserResponse {
   user: User;
-  credentialType: 'PASSWORD' | 'PIN';
+  credentialType: string;
   temporaryCredential: string;
 }
 
@@ -169,7 +169,7 @@ export function useUsers(
 
   // Apply client-side pagination and sorting (Requirements: 12.1)
   const { paginatedUsers, pagination } = useMemo(() => {
-    const allUsers = usersData?.getUsers?.users?.users || [];
+    const allUsers = usersData?.getUsers?.users || [];
     const total = usersData?.getUsers?.total || 0;
 
     // Apply sorting
@@ -214,7 +214,7 @@ export function useUsers(
 
   // Mutation for creating manager
   const [createManagerMutation] = useApolloMutation<CreateManagerData>(CREATE_MANAGER, {
-    update: (cache: ApolloCache, { data }: any) => {
+    update: (cache, { data }) => {
       if (data?.createManager?.user) {
         updateUsersCache(cache, data.createManager.user);
       }
@@ -223,7 +223,7 @@ export function useUsers(
 
   // Mutation for creating worker
   const [createWorkerMutation] = useApolloMutation<CreateWorkerData>(CREATE_WORKER, {
-    update: (cache: ApolloCache, { data }: any) => {
+    update: (cache, { data }) => {
       if (data?.createWorker?.user) {
         updateUsersCache(cache, data.createWorker.user);
       }
@@ -232,7 +232,7 @@ export function useUsers(
 
   // Mutation for updating user
   const [updateUserMutation] = useApolloMutation<UpdateUserData>(UPDATE_USER, {
-    update: (cache: ApolloCache, { data }: any) => {
+    update: (cache, { data }) => {
       if (data?.updateUser) {
         updateUserCache(cache, data.updateUser);
       }
@@ -271,7 +271,7 @@ export function useUsers(
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               },
-              credentialType: input.credentialType || 'PASSWORD',
+              credentialType: 'PASSWORD',
               temporaryCredential: '****',
             },
           },
@@ -310,20 +310,22 @@ export function useUsers(
             createWorker: {
               __typename: 'CreateUserResponse',
               user: {
-                __typename: 'User',
+                __typename: 'UserManagementType',
                 id: `temp-${Date.now()}`,
                 email: input.email,
                 firstName: input.firstName,
                 lastName: input.lastName,
-                hierarchyLevel: 3, // Worker level
-                organizationId: '', // Will be filled by server
+                hierarchyLevel: '3', // Worker level
+                organizationId: input.organizationId,
                 branchId: input.branchId || null,
                 departmentId: input.departmentId || null,
                 status: 'ACTIVE',
+                createdById: null,
+                staffProfile: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               },
-              credentialType: input.credentialType || 'PASSWORD',
+              credentialType: input.usePIN ? 'PIN' : 'PASSWORD',
               temporaryCredential: '****',
             },
           },
@@ -360,14 +362,20 @@ export function useUsers(
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             updateUser: {
-              __typename: 'User',
+              __typename: 'UserManagementType',
               id: userId,
               ...input,
               // These fields won't change, but need to be included
               email: '', // Will be filled from cache
               organizationId: '',
-              hierarchyLevel: 0,
+              hierarchyLevel: '',
+              firstName: input.firstName || '',
+              lastName: input.lastName || '',
               status: input.status || 'ACTIVE',
+              createdById: null,
+              staffProfile: null,
+              branchId: input.branchId || null,
+              departmentId: input.departmentId || null,
               createdAt: '',
               updatedAt: new Date().toISOString(),
             },

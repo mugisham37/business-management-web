@@ -25,7 +25,7 @@ export interface User {
   lastName?: string;
   organizationId: string;
   hierarchyLevel: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

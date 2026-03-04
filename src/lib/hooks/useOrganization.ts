@@ -17,7 +17,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
 
-import type { ApolloCache } from '@apollo/client/cache';
 import { GET_ORGANIZATION } from '@/graphql/queries/organizations';
 import { UPDATE_ORGANIZATION } from '@/graphql/mutations/organizations';
 import type {
@@ -33,15 +32,8 @@ import { AppError } from '@/lib/errors/error-types';
  */
 export interface UpdateOrganizationInput {
   name?: string;
-  settings?: OrganizationSettings;
-}
-
-export interface OrganizationSettings {
-  timezone?: string;
-  currency?: string;
-  dateFormat?: string;
-  language?: string;
-  [key: string]: any;
+  status?: string;
+  type?: string;
 }
 
 /**
@@ -50,8 +42,9 @@ export interface OrganizationSettings {
 export interface Organization {
   id: string;
   name: string;
-  ownerId: string;
-  settings: OrganizationSettings;
+  ownerId?: string | null;
+  type: string;
+  status: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -104,7 +97,7 @@ export function useOrganization(): UseOrganizationReturn {
 
   // Mutation for updating organization
   const [updateOrganizationMutation] = useApolloMutation<UpdateOrganizationData>(UPDATE_ORGANIZATION, {
-    update: (cache: ApolloCache, { data }: any) => {
+    update: (cache, { data }) => {
       if (data?.updateOrganization) {
         updateCacheAfterUpdateOrganization(cache, data.updateOrganization);
       }
@@ -128,14 +121,12 @@ export function useOrganization(): UseOrganizationReturn {
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: currentOrg ? {
             updateOrganization: {
-              __typename: 'Organization',
+              __typename: 'OrganizationType',
               id: currentOrg.id,
               name: input.name || currentOrg.name,
               ownerId: currentOrg.ownerId,
-              settings: {
-                ...currentOrg.settings,
-                ...input.settings,
-              },
+              type: input.type || currentOrg.type,
+              status: input.status || currentOrg.status,
               createdAt: currentOrg.createdAt,
               updatedAt: new Date().toISOString(),
             },
@@ -183,7 +174,7 @@ export function useOrganization(): UseOrganizationReturn {
 
   return {
     // Data
-    organization: organizationData?.getOrganization,
+    organization: organizationData?.getOrganization ?? undefined,
     
     // Loading states
     loading,

@@ -19,7 +19,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
 
-import type { ApolloCache } from '@apollo/client/cache';
 import { GET_BRANCHES } from '@/graphql/queries/branches';
 import {
   CREATE_BRANCH,
@@ -173,28 +172,24 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
   // Mutation for creating branch
   const [createBranchMutation] = useApolloMutation<CreateBranchData>(CREATE_BRANCH, {
     update: (cache, { data }) => {
-      if ((data as any)?.createBranch) {
-        updateBranchesCache(cache, (data as any).createBranch);
+      if (data?.createBranch) {
+        updateBranchesCache(cache, data.createBranch);
       }
     },
   });
 
   // Mutation for updating branch
   const [updateBranchMutation] = useApolloMutation<UpdateBranchData>(UPDATE_BRANCH, {
-    update: (cache: ApolloCache, { data }: any) => {
-      if ((data as any)?.updateBranch) {
-        updateBranchesCache(cache, (data as any).updateBranch, false);
+    update: (cache, { data }) => {
+      if (data?.updateBranch) {
+        updateBranchesCache(cache, data.updateBranch, false);
       }
     },
   });
 
   // Mutation for assigning branch manager
   const [assignBranchManagerMutation] = useApolloMutation<AssignBranchManagerData>(ASSIGN_BRANCH_MANAGER, {
-    update: (cache: ApolloCache, { data }: any) => {
-      if ((data as any)?.assignBranchManager) {
-        updateBranchesCache(cache, (data as any).assignBranchManager, false);
-      }
-    },
+    refetchQueries: [{ query: GET_BRANCHES }],
   });
 
   /**
@@ -225,11 +220,11 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           },
         });
 
-        if (!(data as any)?.createBranch) {
+        if (!data?.createBranch) {
           throw new Error('No data returned from createBranch mutation');
         }
 
-        return (data as any).createBranch;
+        return data.createBranch;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -270,11 +265,11 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           },
         });
 
-        if (!(data as any)?.updateBranch) {
+        if (!data?.updateBranch) {
           throw new Error('No data returned from updateBranch mutation');
         }
 
-        return (data as any).updateBranch;
+        return data.updateBranch;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -304,11 +299,11 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           },
         });
 
-        if ((data as any)?.assignBranchManager === undefined) {
+        if (data?.assignBranchManager === undefined) {
           throw new Error('No data returned from assignBranchManager mutation');
         }
 
-        return (data as any).assignBranchManager;
+        return data.assignBranchManager;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);

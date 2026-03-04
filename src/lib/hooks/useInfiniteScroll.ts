@@ -77,9 +77,10 @@ export function useInfiniteScroll<T>({
         
         // Otherwise, append new data
         // Filter out duplicates based on id if items have id property
-        const newItems = initialData.filter((item: any) => {
-          if (!item.id) return true;
-          return !prev.some((existing: any) => existing.id === item.id);
+        const newItems = initialData.filter((item) => {
+          const rec = item as Record<string, unknown>;
+          if (!rec.id) return true;
+          return !prev.some((existing) => (existing as Record<string, unknown>).id === rec.id);
         });
         
         return [...prev, ...newItems];

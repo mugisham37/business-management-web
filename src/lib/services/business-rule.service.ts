@@ -22,7 +22,6 @@ import {
   GET_BUSINESS_RULES,
 } from '@/graphql/queries/business-rules';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import {
   updateBusinessRulesCache,
   BusinessRule,
@@ -34,16 +33,16 @@ import {
 export interface CreateBusinessRuleInput {
   name: string;
   ruleType: string;
-  conditions?: any;
-  actions?: any;
+  conditions?: unknown;
+  actions?: unknown;
   priority?: number;
   isActive?: boolean;
 }
 
 export interface UpdateBusinessRuleInput {
   name?: string;
-  conditions?: any;
-  actions?: any;
+  conditions?: unknown;
+  actions?: unknown;
   priority?: number;
   isActive?: boolean;
 }
@@ -84,7 +83,7 @@ export class BusinessRuleService {
         mutation: CREATE_BUSINESS_RULE,
         variables: { input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.createBusinessRule) {
             updateBusinessRulesCache(cache, data.createBusinessRule, true);
           }
@@ -125,7 +124,7 @@ export class BusinessRuleService {
         mutation: UPDATE_BUSINESS_RULE,
         variables: { ruleId, input: transformedInput },
         // Update cache after mutation
-        update: (cache: any, { data }: any) => {
+        update: (cache, { data }) => {
           if (data?.updateBusinessRule) {
             updateBusinessRulesCache(cache, data.updateBusinessRule, false);
           }
@@ -221,18 +220,18 @@ export class BusinessRuleService {
    * Transform business rule response to application format
    * Requirements: 4.9
    */
-  private transformBusinessRuleResponse(data: any): BusinessRule {
+  private transformBusinessRuleResponse(data: Record<string, unknown>): BusinessRule {
     return {
-      __typename: data.__typename || 'BusinessRule',
-      id: data.id,
-      name: data.name,
-      organizationId: data.organizationId,
-      ruleType: data.ruleType,
-      conditions: data.conditions,
-      actions: data.actions,
-      isActive: data.isActive,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      __typename: (data.__typename as string) || 'BusinessRule',
+      id: data.id as string,
+      name: data.name as string,
+      organizationId: data.organizationId as string,
+      ruleType: data.ruleType as string,
+      conditions: data.conditions as Record<string, unknown>,
+      actions: data.actions as Record<string, unknown>,
+      isActive: data.isActive as boolean,
+      createdAt: data.createdAt as string,
+      updatedAt: data.updatedAt as string,
     };
   }
 
@@ -240,10 +239,10 @@ export class BusinessRuleService {
    * Transform business rules list response to application format
    * Requirements: 4.9
    */
-  private transformBusinessRulesListResponse(data: any): BusinessRulesListResponse {
+  private transformBusinessRulesListResponse(data: Record<string, unknown>): BusinessRulesListResponse {
     return {
-      rules: data.rules.map((rule: any) => this.transformBusinessRuleResponse(rule)),
-      total: data.total,
+      rules: (data.rules as Record<string, unknown>[]).map((rule: Record<string, unknown>) => this.transformBusinessRuleResponse(rule)),
+      total: data.total as number,
     };
   }
 }
@@ -254,12 +253,10 @@ export class BusinessRuleService {
  */
 let businessRuleServiceInstance: BusinessRuleService | null = null;
 
-export const getBusinessRuleService = (): BusinessRuleService => {
+export const getBusinessRuleService = async (): Promise<BusinessRuleService> => {
   if (!businessRuleServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     businessRuleServiceInstance = new BusinessRuleService(apolloClient);
   }
   return businessRuleServiceInstance;
 };
-
-export const businessRuleService = getBusinessRuleService();

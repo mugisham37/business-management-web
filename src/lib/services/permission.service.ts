@@ -23,7 +23,6 @@ import {
   GET_PERMISSION_HISTORY,
 } from '@/graphql/queries/permissions';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import {
   updateUserPermissionsCache,
   UserPermissions,
@@ -66,7 +65,7 @@ export interface PermissionSnapshot {
   id: string;
   userId: string;
   reason: string;
-  snapshotData: any;
+  snapshotData: unknown;
   fingerprintHash: string;
   createdAt: string;
 }
@@ -242,13 +241,13 @@ export class PermissionService {
    * Transform user permissions response to application format
    * Requirements: 4.9
    */
-  private transformUserPermissionsResponse(data: any): UserPermissionsResponse {
+  private transformUserPermissionsResponse(data: Record<string, unknown>): UserPermissionsResponse {
     return {
-      userId: data.userId,
-      fingerprint: data.fingerprint,
-      permissions: data.permissions.map((perm: any) => ({
-        module: perm.module,
-        actions: perm.actions,
+      userId: data.userId as string,
+      fingerprint: data.fingerprint as string,
+      permissions: (data.permissions as Record<string, unknown>[]).map((perm: Record<string, unknown>) => ({
+        module: perm.module as string,
+        actions: perm.actions as string[],
       })),
     };
   }
@@ -257,17 +256,17 @@ export class PermissionService {
    * Transform permission history response to application format
    * Requirements: 4.9
    */
-  private transformPermissionHistoryResponse(data: any): PermissionHistoryResponse {
+  private transformPermissionHistoryResponse(data: Record<string, unknown>): PermissionHistoryResponse {
     return {
-      userId: data.userId,
-      total: data.total,
-      snapshots: data.snapshots.map((snapshot: any) => ({
-        id: snapshot.id,
-        userId: snapshot.userId,
-        reason: snapshot.reason,
-        snapshotData: snapshot.snapshotData,
-        fingerprintHash: snapshot.fingerprintHash,
-        createdAt: snapshot.createdAt,
+      userId: data.userId as string,
+      total: data.total as number,
+      snapshots: (data.snapshots as Record<string, unknown>[]).map((snapshot: Record<string, unknown>) => ({
+        id: snapshot.id as string,
+        userId: snapshot.userId as string,
+        reason: snapshot.reason as string,
+        snapshotData: snapshot.snapshotData as unknown,
+        fingerprintHash: snapshot.fingerprintHash as string,
+        createdAt: snapshot.createdAt as string,
       })),
     };
   }
@@ -279,12 +278,10 @@ export class PermissionService {
  */
 let permissionServiceInstance: PermissionService | null = null;
 
-export const getPermissionService = (): PermissionService => {
+export const getPermissionService = async (): Promise<PermissionService> => {
   if (!permissionServiceInstance) {
-    const { apolloClient } = require('@/lib/api/apollo-client');
+    const { apolloClient } = await import('@/lib/api/apollo-client');
     permissionServiceInstance = new PermissionService(apolloClient);
   }
   return permissionServiceInstance;
 };
-
-export const permissionService = getPermissionService();

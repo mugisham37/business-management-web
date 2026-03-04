@@ -70,7 +70,7 @@ export function useOnboardingForm() {
    */
   const updateField = useCallback((
     field: string,
-    value: any
+    value: OnboardingFormData[keyof OnboardingFormData]
   ) => {
     setFormData(prev => ({
       ...prev,
