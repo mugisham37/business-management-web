@@ -17,11 +17,19 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_USERS, GET_USER } from '@/graphql/queries/users';
 import { CREATE_MANAGER, CREATE_WORKER, UPDATE_USER } from '@/graphql/mutations/users';
 import { updateUsersCache, updateUserCache, User } from '@/lib/cache/cache-updaters';
+import type {
+  GetUsersData,
+  GetUserData,
+  CreateManagerData,
+  CreateWorkerData,
+  UpdateUserData,
+} from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 import {
@@ -135,12 +143,8 @@ export function useUsers(
     loading: usersLoading,
     error: usersError,
     refetch: refetchUsersList,
-  } = useQuery(GET_USERS, {
+  } = useApolloQuery<GetUsersData>(GET_USERS, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
   // Query for single user (only if userId provided)
@@ -149,19 +153,23 @@ export function useUsers(
     loading: userLoading,
     error: userError,
     refetch: refetchSingleUser,
-  } = useQuery(GET_USER, {
+  } = useApolloQuery<GetUserData>(GET_USER, {
     variables: { userId },
     skip: !userId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
+
+  // Handle query errors
+  if (usersError && !error) {
+    setError(errorHandler.handle(usersError));
+  }
+  if (userError && !error) {
+    setError(errorHandler.handle(userError));
+  }
 
   // Apply client-side pagination and sorting (Requirements: 12.1)
   const { paginatedUsers, pagination } = useMemo(() => {
-    const allUsers = usersData?.getUsers?.users || [];
+    const allUsers = usersData?.getUsers?.users?.users || [];
     const total = usersData?.getUsers?.total || 0;
 
     // Apply sorting
@@ -205,8 +213,8 @@ export function useUsers(
   }, []);
 
   // Mutation for creating manager
-  const [createManagerMutation] = useMutation(CREATE_MANAGER, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [createManagerMutation] = useApolloMutation<CreateManagerData>(CREATE_MANAGER, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.createManager?.user) {
         updateUsersCache(cache, data.createManager.user);
       }
@@ -214,8 +222,8 @@ export function useUsers(
   });
 
   // Mutation for creating worker
-  const [createWorkerMutation] = useMutation(CREATE_WORKER, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [createWorkerMutation] = useApolloMutation<CreateWorkerData>(CREATE_WORKER, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.createWorker?.user) {
         updateUsersCache(cache, data.createWorker.user);
       }
@@ -223,8 +231,8 @@ export function useUsers(
   });
 
   // Mutation for updating user
-  const [updateUserMutation] = useMutation(UPDATE_USER, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [updateUserMutation] = useApolloMutation<UpdateUserData>(UPDATE_USER, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.updateUser) {
         updateUserCache(cache, data.updateUser);
       }
@@ -248,16 +256,18 @@ export function useUsers(
             createManager: {
               __typename: 'CreateUserResponse',
               user: {
-                __typename: 'User',
+                __typename: 'UserManagementType',
                 id: `temp-${Date.now()}`,
                 email: input.email,
                 firstName: input.firstName,
                 lastName: input.lastName,
-                hierarchyLevel: 2, // Manager level
-                organizationId: '', // Will be filled by server
+                hierarchyLevel: '2', // Manager level as string
+                organizationId: input.organizationId,
                 branchId: input.branchId || null,
                 departmentId: input.departmentId || null,
                 status: 'ACTIVE',
+                createdById: null,
+                staffProfile: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
               },

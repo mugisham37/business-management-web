@@ -68,15 +68,12 @@ export class AuditService {
     filters?: AuditFiltersInput
   ): Promise<AuditLogsResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_USER_AUDIT_LOGS,
         variables: { userId, filters },
         fetchPolicy: 'network-only', // Always fetch fresh audit logs
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getUserAuditLogs) {
         throw new Error('No audit logs data returned');
@@ -108,15 +105,12 @@ export class AuditService {
     filters?: AuditFiltersInput
   ): Promise<AuditLogsResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_ORGANIZATION_AUDIT_LOGS,
         variables: { organizationId, filters },
         fetchPolicy: 'network-only',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getOrganizationAuditLogs) {
         throw new Error('No audit logs data returned');
@@ -146,15 +140,12 @@ export class AuditService {
     resourceType: string
   ): Promise<AuditLogsResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_RESOURCE_AUDIT_LOGS,
         variables: { resourceId, resourceType: resourceType.toUpperCase() },
         fetchPolicy: 'network-only',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getResourceAuditLogs) {
         throw new Error('No audit logs data returned');

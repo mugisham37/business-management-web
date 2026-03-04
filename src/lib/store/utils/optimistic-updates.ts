@@ -19,9 +19,9 @@ export interface OptimisticUpdateConfig<T> {
   // Function to get current state snapshot
   getStateSnapshot: (state: RootState) => T;
   // Optional cache update function
-  cacheUpdate?: (cache: ApolloCache<any>) => void;
+  cacheUpdate?: (cache: ApolloCache) => void;
   // Optional cache rollback function
-  cacheRollback?: (cache: ApolloCache<any>) => void;
+  cacheRollback?: (cache: ApolloCache) => void;
 }
 
 /**

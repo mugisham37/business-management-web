@@ -155,9 +155,9 @@ class ResponseValidator {
   ): ValidationResult<{
     items: T[];
     total: number;
-    page: number;
-    limit: number;
-    hasMore: boolean;
+    page?: number;
+    limit?: number;
+    hasMore?: boolean;
   }> {
     const paginatedSchema = z.object({
       items: z.array(itemSchema),
@@ -196,7 +196,7 @@ class ResponseValidator {
       data: dataSchema.nullable(),
       errors: z.array(z.object({
         message: z.string(),
-        extensions: z.record(z.any()).optional(),
+        extensions: z.record(z.string(), z.any()).optional(),
       })).optional(),
     });
     
@@ -258,7 +258,7 @@ class ResponseValidator {
     const errorSchema = z.object({
       message: z.string(),
       code: z.string().optional(),
-      details: z.record(z.any()).optional(),
+      details: z.record(z.string(), z.any()).optional(),
     });
     
     return this.validate(errorSchema, response, 'error response');

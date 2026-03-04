@@ -24,6 +24,15 @@ import {
 import {
   GET_DEPARTMENTS,
 } from '@/graphql/queries/departments';
+import type {
+  GetUsersData,
+  GetUserData,
+  GetUserPermissionsData,
+  GetPermissionHistoryData,
+  GetOrganizationData,
+  GetBranchesData,
+  GetDepartmentsData,
+} from '@/graphql/types/operations';
 
 /**
  * Cache to State Sync Utilities
@@ -41,12 +50,12 @@ import {
  * Sync users from Apollo cache to Redux state
  */
 export function syncUsersFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch
 ) {
   try {
     // Read users list from cache
-    const usersData = apolloClient.cache.readQuery({
+    const usersData = apolloClient.cache.readQuery<GetUsersData>({
       query: GET_USERS,
     });
 
@@ -62,12 +71,12 @@ export function syncUsersFromCache(
  * Sync a specific user from Apollo cache to Redux state
  */
 export function syncUserFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch,
   userId: string
 ) {
   try {
-    const userData = apolloClient.cache.readQuery({
+    const userData = apolloClient.cache.readQuery<GetUserData>({
       query: GET_USER,
       variables: { userId },
     });
@@ -84,12 +93,12 @@ export function syncUserFromCache(
  * Sync user permissions from Apollo cache to Redux state
  */
 export function syncUserPermissionsFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch,
   userId: string
 ) {
   try {
-    const permissionsData = apolloClient.cache.readQuery({
+    const permissionsData = apolloClient.cache.readQuery<GetUserPermissionsData>({
       query: GET_USER_PERMISSIONS,
       variables: { userId },
     });
@@ -111,12 +120,12 @@ export function syncUserPermissionsFromCache(
  * Sync permission history from Apollo cache to Redux state
  */
 export function syncPermissionHistoryFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch,
   userId: string
 ) {
   try {
-    const historyData = apolloClient.cache.readQuery({
+    const historyData = apolloClient.cache.readQuery<GetPermissionHistoryData>({
       query: GET_PERMISSION_HISTORY,
       variables: { userId },
     });
@@ -138,11 +147,11 @@ export function syncPermissionHistoryFromCache(
  * Sync organization from Apollo cache to Redux state
  */
 export function syncOrganizationFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch
 ) {
   try {
-    const orgData = apolloClient.cache.readQuery({
+    const orgData = apolloClient.cache.readQuery<GetOrganizationData>({
       query: GET_ORGANIZATION,
     });
 
@@ -158,11 +167,11 @@ export function syncOrganizationFromCache(
  * Sync branches from Apollo cache to Redux state
  */
 export function syncBranchesFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch
 ) {
   try {
-    const branchesData = apolloClient.cache.readQuery({
+    const branchesData = apolloClient.cache.readQuery<GetBranchesData>({
       query: GET_BRANCHES,
     });
 
@@ -178,11 +187,11 @@ export function syncBranchesFromCache(
  * Sync departments from Apollo cache to Redux state
  */
 export function syncDepartmentsFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch
 ) {
   try {
-    const departmentsData = apolloClient.cache.readQuery({
+    const departmentsData = apolloClient.cache.readQuery<GetDepartmentsData>({
       query: GET_DEPARTMENTS,
     });
 
@@ -201,7 +210,7 @@ export function syncDepartmentsFromCache(
  * from cached GraphQL data.
  */
 export function syncAllFromCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   dispatch: AppDispatch
 ) {
   syncUsersFromCache(apolloClient, dispatch);

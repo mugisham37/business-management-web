@@ -119,16 +119,13 @@ export class OrganizationService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformUpdateOrganizationInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: UPDATE_ORGANIZATION,
         variables: { input: transformedInput },
         // Refetch organization after update
         refetchQueries: [{ query: GET_ORGANIZATION }],
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.updateOrganization) {
         throw new Error('No data returned from updateOrganization mutation');
@@ -155,14 +152,11 @@ export class OrganizationService {
    */
   async getOrganization(): Promise<Organization> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_ORGANIZATION,
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getOrganization) {
         throw new Error('No organization data returned');
@@ -190,7 +184,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformCreateBranchInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: CREATE_BRANCH,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -201,9 +195,6 @@ export class OrganizationService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.createBranch) {
         throw new Error('No data returned from createBranch mutation');
@@ -232,7 +223,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformUpdateBranchInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: UPDATE_BRANCH,
         variables: { branchId, input: transformedInput },
         // Update cache after mutation
@@ -243,9 +234,6 @@ export class OrganizationService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.updateBranch) {
         throw new Error('No data returned from updateBranch mutation');
@@ -272,16 +260,13 @@ export class OrganizationService {
    */
   async assignBranchManager(branchId: string, managerId: string): Promise<boolean> {
     try {
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: ASSIGN_BRANCH_MANAGER,
         variables: { branchId, managerId },
         // Refetch branches after assignment
         refetchQueries: [{ query: GET_BRANCHES }],
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       return data?.assignBranchManager ?? false;
     } catch (error) {
@@ -302,14 +287,11 @@ export class OrganizationService {
    */
   async getBranches(): Promise<BranchesListResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_BRANCHES,
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getBranches) {
         throw new Error('No branches data returned');
@@ -337,7 +319,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformCreateDepartmentInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: CREATE_DEPARTMENT,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -348,9 +330,6 @@ export class OrganizationService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.createDepartment) {
         throw new Error('No data returned from createDepartment mutation');
@@ -379,7 +358,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformUpdateDepartmentInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: UPDATE_DEPARTMENT,
         variables: { departmentId, input: transformedInput },
         // Update cache after mutation
@@ -390,9 +369,6 @@ export class OrganizationService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.updateDepartment) {
         throw new Error('No data returned from updateDepartment mutation');
@@ -419,16 +395,13 @@ export class OrganizationService {
    */
   async assignDepartmentManager(departmentId: string, managerId: string): Promise<boolean> {
     try {
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: ASSIGN_DEPARTMENT_MANAGER,
         variables: { departmentId, managerId },
         // Refetch departments after assignment
         refetchQueries: [{ query: GET_DEPARTMENTS }],
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       return data?.assignDepartmentManager ?? false;
     } catch (error) {
@@ -449,14 +422,11 @@ export class OrganizationService {
    */
   async getDepartments(): Promise<DepartmentsListResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_DEPARTMENTS,
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getDepartments) {
         throw new Error('No departments data returned');

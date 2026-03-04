@@ -55,14 +55,11 @@ export class HealthService {
    */
   async checkHealth(): Promise<HealthCheckResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: HEALTH,
         fetchPolicy: 'network-only', // Always fetch fresh health status
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.health) {
         throw new Error('No health data returned');

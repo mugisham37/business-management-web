@@ -17,8 +17,9 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_DEPARTMENTS } from '@/graphql/queries/departments';
 import {
   CREATE_DEPARTMENT,
@@ -26,6 +27,12 @@ import {
   ASSIGN_DEPARTMENT_MANAGER,
 } from '@/graphql/mutations/departments';
 import { updateDepartmentsCache, Department } from '@/lib/cache/cache-updaters';
+import type {
+  GetDepartmentsData,
+  CreateDepartmentData,
+  UpdateDepartmentData,
+  AssignDepartmentManagerData,
+} from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 import {
@@ -106,13 +113,14 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
     loading: departmentsLoading,
     error: departmentsError,
     refetch: refetchDepartmentsList,
-  } = useQuery(GET_DEPARTMENTS, {
+  } = useApolloQuery<GetDepartmentsData>(GET_DEPARTMENTS, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
+
+  // Handle query errors
+  if (departmentsError && !error) {
+    setError(errorHandler.handle(departmentsError));
+  }
 
   // Apply client-side pagination and sorting (Requirements: 12.1)
   const { paginatedDepartments, pagination } = useMemo(() => {
@@ -160,7 +168,7 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
   }, []);
 
   // Mutation for creating department
-  const [createDepartmentMutation] = useMutation(CREATE_DEPARTMENT, {
+  const [createDepartmentMutation] = useApolloMutation<CreateDepartmentData>(CREATE_DEPARTMENT, {
     update: (cache, { data }) => {
       if (data?.createDepartment) {
         updateDepartmentsCache(cache, data.createDepartment);
@@ -169,8 +177,8 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
   });
 
   // Mutation for updating department
-  const [updateDepartmentMutation] = useMutation(UPDATE_DEPARTMENT, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [updateDepartmentMutation] = useApolloMutation<UpdateDepartmentData>(UPDATE_DEPARTMENT, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.updateDepartment) {
         updateDepartmentsCache(cache, data.updateDepartment, false);
       }
@@ -178,8 +186,8 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
   });
 
   // Mutation for assigning department manager
-  const [assignDepartmentManagerMutation] = useMutation(ASSIGN_DEPARTMENT_MANAGER, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [assignDepartmentManagerMutation] = useApolloMutation<AssignDepartmentManagerData>(ASSIGN_DEPARTMENT_MANAGER, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.assignDepartmentManager) {
         updateDepartmentsCache(cache, data.assignDepartmentManager, false);
       }
@@ -201,13 +209,13 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             createDepartment: {
-              __typename: 'Department',
+              __typename: 'DepartmentType',
               id: `temp-${Date.now()}`,
               name: input.name,
-              organizationId: '', // Will be filled by server
+              code: input.code,
+              organizationId: input.organizationId,
               branchId: input.branchId || null,
-              managerId: input.managerId || null,
-              isActive: true,
+              managerId: null,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
@@ -245,14 +253,13 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             updateDepartment: {
-              __typename: 'Department',
+              __typename: 'DepartmentType',
               id: departmentId,
-              ...input,
-              // These fields won't change, but need to be included
+              name: input.name || '',
+              code: input.code || '',
               organizationId: '',
               managerId: null,
               branchId: input.branchId || null,
-              isActive: input.isActive !== undefined ? input.isActive : true,
               createdAt: '',
               updatedAt: new Date().toISOString(),
             },
@@ -280,35 +287,35 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
    * Requirements: 3.5, 3.11
    */
   const assignDepartmentManager = useCallback(
-    async (departmentId: string, managerId: string): Promise<Department> => {
+    async (departmentId: string, managerId: string): Promise<boolean> => {
       setOperationLoading(true);
       setError(null);
 
       try {
         const { data } = await assignDepartmentManagerMutation({
           variables: { departmentId, managerId },
-          // Optimistic update (Requirements: 3.11)
-          optimisticResponse: {
-            assignDepartmentManager: {
-              __typename: 'Department',
+        });
+
+        if (data?.assignDepartmentManager) {
+          // Update the department in cache with new manager
+          cacheUpdaters.updateDepartmentsCache(
+            client.cache,
+            {
+              __typename: 'DepartmentType',
               id: departmentId,
               managerId,
-              // These fields won't change, but need to be included
               name: '',
+              code: '',
               organizationId: '',
               branchId: null,
-              isActive: true,
               createdAt: '',
               updatedAt: new Date().toISOString(),
             },
-          },
-        });
-
-        if (!data?.assignDepartmentManager) {
-          throw new Error('No data returned from assignDepartmentManager mutation');
+            false // isNew = false (update existing)
+          );
         }
 
-        return data.assignDepartmentManager;
+        return data?.assignDepartmentManager || false;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -317,7 +324,7 @@ export function useDepartments(initialPagination?: Partial<PaginationParams>): U
         setOperationLoading(false);
       }
     },
-    [assignDepartmentManagerMutation]
+    [assignDepartmentManagerMutation, client.cache]
   );
 
   /**

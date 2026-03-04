@@ -15,13 +15,19 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_BUSINESS_RULES } from '@/graphql/queries/business-rules';
 import {
   CREATE_BUSINESS_RULE,
   UPDATE_BUSINESS_RULE,
 } from '@/graphql/mutations/business-rules';
+import type {
+  GetBusinessRulesData,
+  CreateBusinessRuleData,
+  UpdateBusinessRuleData,
+} from '@/graphql/types/operations';
 import { updateBusinessRulesCache, BusinessRule } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
@@ -83,16 +89,17 @@ export function useBusinessRules(): UseBusinessRulesReturn {
     loading: businessRulesLoading,
     error: businessRulesError,
     refetch: refetchBusinessRulesList,
-  } = useQuery(GET_BUSINESS_RULES, {
+  } = useApolloQuery<GetBusinessRulesData>(GET_BUSINESS_RULES, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
+  // Handle query errors
+  if (businessRulesError && !error) {
+    setError(errorHandler.handle(businessRulesError));
+  }
+
   // Mutation for creating business rule
-  const [createBusinessRuleMutation] = useMutation(CREATE_BUSINESS_RULE, {
+  const [createBusinessRuleMutation] = useApolloMutation<CreateBusinessRuleData>(CREATE_BUSINESS_RULE, {
     update: (cache, { data }) => {
       if (data?.createBusinessRule) {
         updateBusinessRulesCache(cache, data.createBusinessRule);
@@ -101,8 +108,8 @@ export function useBusinessRules(): UseBusinessRulesReturn {
   });
 
   // Mutation for updating business rule
-  const [updateBusinessRuleMutation] = useMutation(UPDATE_BUSINESS_RULE, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [updateBusinessRuleMutation] = useApolloMutation<UpdateBusinessRuleData>(UPDATE_BUSINESS_RULE, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.updateBusinessRule) {
         updateBusinessRulesCache(cache, data.updateBusinessRule, false);
       }
@@ -124,14 +131,17 @@ export function useBusinessRules(): UseBusinessRulesReturn {
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             createBusinessRule: {
-              __typename: 'BusinessRule',
+              __typename: 'BusinessRuleType',
               id: `temp-${Date.now()}`,
               organizationId: '', // Will be filled by server
+              ruleName: input.ruleName,
               transactionType: input.transactionType,
-              conditions: input.conditions,
-              actions: input.actions,
+              basedOn: input.basedOn,
+              thresholdValue: input.thresholdValue,
+              appliesToLevel: input.appliesToLevel,
+              approverLevel: input.approverLevel,
               priority: input.priority || 0,
-              isActive: input.isActive !== undefined ? input.isActive : true,
+              isActive: true,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
@@ -169,15 +179,23 @@ export function useBusinessRules(): UseBusinessRulesReturn {
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             updateBusinessRule: {
-              __typename: 'BusinessRule',
+              __typename: 'BusinessRuleType',
               id: ruleId,
               ...input,
               // These fields won't change, but need to be included
               organizationId: '',
+              ruleName: input.ruleName || '',
               transactionType: input.transactionType || '',
-              conditions: input.conditions || {},
-              actions: input.actions || {},
+              basedOn: input.basedOn || '',
+              thresholdValue: input.thresholdValue || 0,
+              appliesToLevel: input.appliesToLevel || '',
+              approverLevel: input.approverLevel || '',
               priority: input.priority || 0,
+              isActive: input.isActive !== undefined ? input.isActive : true,
+              createdAt: '',
+              updatedAt: new Date().toISOString(),
+            },
+          },
               isActive: input.isActive !== undefined ? input.isActive : true,
               createdAt: '',
               updatedAt: new Date().toISOString(),

@@ -80,7 +80,7 @@ export class BusinessRuleService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformCreateBusinessRuleInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: CREATE_BUSINESS_RULE,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -91,9 +91,6 @@ export class BusinessRuleService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.createBusinessRule) {
         throw new Error('No data returned from createBusinessRule mutation');
@@ -124,7 +121,7 @@ export class BusinessRuleService {
     try {
       const transformedInput = this.transformUpdateBusinessRuleInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: UPDATE_BUSINESS_RULE,
         variables: { ruleId, input: transformedInput },
         // Update cache after mutation
@@ -135,9 +132,6 @@ export class BusinessRuleService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.updateBusinessRule) {
         throw new Error('No data returned from updateBusinessRule mutation');
@@ -163,15 +157,12 @@ export class BusinessRuleService {
    */
   async getBusinessRules(transactionType?: string): Promise<BusinessRulesListResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_BUSINESS_RULES,
         variables: transactionType ? { transactionType } : undefined,
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getBusinessRules) {
         throw new Error('No business rules data returned');

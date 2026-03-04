@@ -15,10 +15,15 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_ORGANIZATION } from '@/graphql/queries/organizations';
 import { UPDATE_ORGANIZATION } from '@/graphql/mutations/organizations';
+import type {
+  GetOrganizationData,
+  UpdateOrganizationData,
+} from '@/graphql/types/operations';
 import { updateCacheAfterUpdateOrganization } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
@@ -88,17 +93,18 @@ export function useOrganization(): UseOrganizationReturn {
     loading: organizationLoading,
     error: organizationError,
     refetch: refetchOrganizationData,
-  } = useQuery(GET_ORGANIZATION, {
+  } = useApolloQuery<GetOrganizationData>(GET_ORGANIZATION, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
+  // Handle query errors
+  if (organizationError && !error) {
+    setError(errorHandler.handle(organizationError));
+  }
+
   // Mutation for updating organization
-  const [updateOrganizationMutation] = useMutation(UPDATE_ORGANIZATION, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [updateOrganizationMutation] = useApolloMutation<UpdateOrganizationData>(UPDATE_ORGANIZATION, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.updateOrganization) {
         updateCacheAfterUpdateOrganization(cache, data.updateOrganization);
       }

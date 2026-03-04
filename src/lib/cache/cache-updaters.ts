@@ -8,128 +8,44 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
-import { ApolloCache, gql, Reference } from '@apollo/client';
+import { ApolloCache, gql, NormalizedCacheObject } from '@apollo/client';
 import { 
   GET_USERS, 
   GET_USER 
 } from '@/graphql/queries/users';
 import { 
-  GET_USER_PERMISSIONS, 
-  GET_PERMISSION_HISTORY 
+  GET_USER_PERMISSIONS 
 } from '@/graphql/queries/permissions';
 import { GET_BRANCHES } from '@/graphql/queries/branches';
 import { GET_DEPARTMENTS } from '@/graphql/queries/departments';
 import { GET_BUSINESS_RULES } from '@/graphql/queries/business-rules';
 import { GET_ACTIVE_SESSIONS } from '@/graphql/queries/auth';
+import type {
+  UserManagementType,
+  AuthUserType,
+  BranchType,
+  DepartmentType,
+  BusinessRuleType,
+  OrganizationType,
+  ModulePermissionType,
+  SessionType,
+  AuditLogType,
+  UserPermissionsResponse,
+} from '@/lib/types/generated/graphql';
 
 /**
- * Type definitions for entities
- * These match the GraphQL schema types
+ * Type aliases for cache operations
+ * Using generated types from GraphQL schema
  */
-export interface User {
-  __typename?: 'User' | 'AuthUserType';
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  hierarchyLevel?: number;
-  organizationId?: string;
-  branchId?: string;
-  departmentId?: string;
-  status?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Permission {
-  __typename?: 'Permission';
-  id: string;
-  module: string;
-  action: string;
-  description?: string;
-  hierarchyLevel?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Organization {
-  __typename?: 'Organization';
-  id: string;
-  name: string;
-  description?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Branch {
-  __typename?: 'Branch';
-  id: string;
-  name: string;
-  organizationId: string;
-  description?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Department {
-  __typename?: 'Department';
-  id: string;
-  name: string;
-  branchId: string;
-  description?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface BusinessRule {
-  __typename?: 'BusinessRule';
-  id: string;
-  name: string;
-  organizationId: string;
-  ruleType: string;
-  conditions?: any;
-  actions?: any;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface AuditLog {
-  __typename?: 'AuditLog';
-  id: string;
-  userId: string;
-  action: string;
-  entityType: string;
-  entityId: string;
-  changes?: any;
-  ipAddress?: string;
-  userAgent?: string;
-  timestamp: string;
-}
-
-export interface Session {
-  __typename?: 'Session';
-  id: string;
-  userId: string;
-  userAgent?: string;
-  ipAddress?: string;
-  createdAt: string;
-  expiresAt: string;
-}
-
-export interface UserPermissions {
-  __typename?: 'UserPermissions';
-  userId: string;
-  fingerprint: string;
-  permissions: Array<{
-    module: string;
-    actions: string[];
-  }>;
-}
+export type User = UserManagementType | AuthUserType;
+export type Branch = BranchType;
+export type Department = DepartmentType;
+export type BusinessRule = BusinessRuleType;
+export type Organization = OrganizationType;
+export type Permission = ModulePermissionType;
+export type Session = SessionType;
+export type AuditLog = AuditLogType;
+export type UserPermissions = UserPermissionsResponse;
 
 /**
  * User Cache Update Functions
@@ -144,12 +60,12 @@ export interface UserPermissions {
  * @param newUser - The newly created user
  */
 export const updateUsersCache = (
-  cache: ApolloCache<any>,
-  newUser: User
+  cache: ApolloCache<NormalizedCacheObject>,
+  newUser: UserManagementType
 ): void => {
   try {
     const existingData = cache.readQuery<{
-      getUsers: { users: User[]; total: number };
+      getUsers: { users: UserManagementType[]; total: number };
     }>({ query: GET_USERS });
 
     if (existingData) {
@@ -177,8 +93,8 @@ export const updateUsersCache = (
  * @param updatedUser - The updated user data
  */
 export const updateUserCache = (
-  cache: ApolloCache<any>,
-  updatedUser: User
+  cache: ApolloCache<NormalizedCacheObject>,
+  updatedUser: UserManagementType
 ): void => {
   // Update the specific user query
   try {
@@ -196,7 +112,7 @@ export const updateUserCache = (
   // Update the user in the users list
   try {
     const existingData = cache.readQuery<{
-      getUsers: { users: User[]; total: number };
+      getUsers: { users: UserManagementType[]; total: number };
     }>({ query: GET_USERS });
 
     if (existingData) {
@@ -204,7 +120,7 @@ export const updateUserCache = (
         query: GET_USERS,
         data: {
           getUsers: {
-            users: existingData.getUsers.users.map(user =>
+            users: existingData.getUsers.users.map((user: any) =>
               user.id === updatedUser.id ? updatedUser : user
             ),
             total: existingData.getUsers.total,
@@ -217,7 +133,7 @@ export const updateUserCache = (
   }
 
   // Also update the normalized cache entry
-  const typename = updatedUser.__typename || 'User';
+  const typename = updatedUser.__typename || 'UserManagementType';
   cache.writeFragment({
     id: `${typename}:${updatedUser.id}`,
     fragment: gql`
@@ -243,9 +159,9 @@ export const updateUserCache = (
  * Evicts the user from cache and runs garbage collection
  */
 export const updateCacheAfterDeleteUser = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache<NormalizedCacheObject>,
   userId: string,
-  typename: string = 'User'
+  typename: string = 'UserManagementType'
 ): void => {
   cache.evict({ id: `${typename}:${userId}` });
   cache.gc(); // Garbage collect orphaned references
@@ -265,9 +181,9 @@ export const updateCacheAfterDeleteUser = (
  * @param permissions - The updated permissions data
  */
 export const updateUserPermissionsCache = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache<NormalizedCacheObject>,
   userId: string,
-  permissions: UserPermissions
+  permissions: UserPermissionsResponse
 ): void => {
   try {
     cache.writeQuery({
@@ -284,25 +200,21 @@ export const updateUserPermissionsCache = (
 
 /**
  * Updates cache after creating a new permission
+ * Note: ModulePermissionType doesn't have an id, so we use module name as identifier
  */
 export const updateCacheAfterCreatePermission = (
-  cache: ApolloCache,
-  newPermission: Permission
+  cache: ApolloCache<NormalizedCacheObject>,
+  newPermission: ModulePermissionType
 ): void => {
   cache.modify({
     fields: {
       permissions(existingPermissions = []) {
         const newPermissionRef = cache.writeFragment({
-          data: { ...newPermission, __typename: 'Permission' },
+          data: { ...newPermission, __typename: 'ModulePermissionType' },
           fragment: gql`
-            fragment NewPermission on Permission {
-              id
+            fragment NewPermission on ModulePermissionType {
               module
-              action
-              description
-              hierarchyLevel
-              createdAt
-              updatedAt
+              actions
             }
           `,
         });
@@ -317,22 +229,18 @@ export const updateCacheAfterCreatePermission = (
  * Updates cache after updating a permission
  */
 export const updateCacheAfterUpdatePermission = (
-  cache: ApolloCache,
-  updatedPermission: Permission
+  cache: ApolloCache<NormalizedCacheObject>,
+  updatedPermission: ModulePermissionType
 ): void => {
   cache.writeFragment({
-    id: `Permission:${updatedPermission.id}`,
+    id: `ModulePermissionType:${updatedPermission.module}`,
     fragment: gql`
-      fragment UpdatedPermission on Permission {
-        id
+      fragment UpdatedPermission on ModulePermissionType {
         module
-        action
-        description
-        hierarchyLevel
-        updatedAt
+        actions
       }
     `,
-    data: { ...updatedPermission, __typename: 'Permission' },
+    data: { ...updatedPermission, __typename: 'ModulePermissionType' },
   });
 };
 
@@ -340,10 +248,10 @@ export const updateCacheAfterUpdatePermission = (
  * Updates cache after deleting a permission
  */
 export const updateCacheAfterDeletePermission = (
-  cache: ApolloCache,
-  permissionId: string
+  cache: ApolloCache<NormalizedCacheObject>,
+  module: string
 ): void => {
-  cache.evict({ id: `Permission:${permissionId}` });
+  cache.evict({ id: `ModulePermissionType:${module}` });
   cache.gc();
 };
 
@@ -355,20 +263,21 @@ export const updateCacheAfterDeletePermission = (
  * Updates cache after creating a new organization
  */
 export const updateCacheAfterCreateOrganization = (
-  cache: ApolloCache,
-  newOrganization: Organization
+  cache: ApolloCache<NormalizedCacheObject>,
+  newOrganization: OrganizationType
 ): void => {
   cache.modify({
     fields: {
       organizations(existingOrganizations = []) {
         const newOrgRef = cache.writeFragment({
-          data: { ...newOrganization, __typename: 'Organization' },
+          data: { ...newOrganization, __typename: 'OrganizationType' },
           fragment: gql`
-            fragment NewOrganization on Organization {
+            fragment NewOrganization on OrganizationType {
               id
               name
-              description
-              isActive
+              type
+              status
+              ownerId
               createdAt
               updatedAt
             }
@@ -385,21 +294,22 @@ export const updateCacheAfterCreateOrganization = (
  * Updates cache after updating an organization
  */
 export const updateCacheAfterUpdateOrganization = (
-  cache: ApolloCache,
-  updatedOrganization: Organization
+  cache: ApolloCache<NormalizedCacheObject>,
+  updatedOrganization: OrganizationType
 ): void => {
   cache.writeFragment({
-    id: `Organization:${updatedOrganization.id}`,
+    id: `OrganizationType:${updatedOrganization.id}`,
     fragment: gql`
-      fragment UpdatedOrganization on Organization {
+      fragment UpdatedOrganization on OrganizationType {
         id
         name
-        description
-        isActive
+        type
+        status
+        ownerId
         updatedAt
       }
     `,
-    data: { ...updatedOrganization, __typename: 'Organization' },
+    data: { ...updatedOrganization, __typename: 'OrganizationType' },
   });
 };
 
@@ -407,10 +317,10 @@ export const updateCacheAfterUpdateOrganization = (
  * Updates cache after deleting an organization
  */
 export const updateCacheAfterDeleteOrganization = (
-  cache: ApolloCache,
+  cache: ApolloCache<NormalizedCacheObject>,
   organizationId: string
 ): void => {
-  cache.evict({ id: `Organization:${organizationId}` });
+  cache.evict({ id: `OrganizationType:${organizationId}` });
   cache.gc();
 };
 
@@ -428,19 +338,19 @@ export const updateCacheAfterDeleteOrganization = (
  * @param isNew - Whether this is a new branch (true) or an update (false)
  */
 export const updateBranchesCache = (
-  cache: ApolloCache<any>,
-  branch: Branch,
+  cache: ApolloCache<NormalizedCacheObject>,
+  branch: BranchType,
   isNew: boolean = true
 ): void => {
   try {
     const existingData = cache.readQuery<{
-      getBranches: { branches: Branch[]; total: number };
+      getBranches: { branches: BranchType[]; total: number };
     }>({ query: GET_BRANCHES });
 
     if (existingData) {
       const updatedBranches = isNew
         ? [branch, ...existingData.getBranches.branches]
-        : existingData.getBranches.branches.map(b =>
+        : existingData.getBranches.branches.map((b: any) =>
             b.id === branch.id ? branch : b
           );
 
@@ -462,18 +372,20 @@ export const updateBranchesCache = (
 
   // Also update the normalized cache entry
   cache.writeFragment({
-    id: `Branch:${branch.id}`,
+    id: `BranchType:${branch.id}`,
     fragment: gql`
-      fragment UpdatedBranch on Branch {
+      fragment UpdatedBranch on BranchType {
         id
         name
+        code
         organizationId
-        description
-        isActive
+        address
+        managerId
+        createdAt
         updatedAt
       }
     `,
-    data: { ...branch, __typename: 'Branch' },
+    data: { ...branch, __typename: 'BranchType' },
   });
 };
 
@@ -481,10 +393,10 @@ export const updateBranchesCache = (
  * Updates cache after deleting a branch
  */
 export const updateCacheAfterDeleteBranch = (
-  cache: ApolloCache,
+  cache: ApolloCache<NormalizedCacheObject>,
   branchId: string
 ): void => {
-  cache.evict({ id: `Branch:${branchId}` });
+  cache.evict({ id: `BranchType:${branchId}` });
   cache.gc();
 };
 
@@ -502,19 +414,19 @@ export const updateCacheAfterDeleteBranch = (
  * @param isNew - Whether this is a new department (true) or an update (false)
  */
 export const updateDepartmentsCache = (
-  cache: ApolloCache<any>,
-  department: Department,
+  cache: ApolloCache<NormalizedCacheObject>,
+  department: DepartmentType,
   isNew: boolean = true
 ): void => {
   try {
     const existingData = cache.readQuery<{
-      getDepartments: { departments: Department[]; total: number };
+      getDepartments: { departments: DepartmentType[]; total: number };
     }>({ query: GET_DEPARTMENTS });
 
     if (existingData) {
       const updatedDepartments = isNew
         ? [department, ...existingData.getDepartments.departments]
-        : existingData.getDepartments.departments.map(d =>
+        : existingData.getDepartments.departments.map((d: any) =>
             d.id === department.id ? department : d
           );
 
@@ -536,18 +448,20 @@ export const updateDepartmentsCache = (
 
   // Also update the normalized cache entry
   cache.writeFragment({
-    id: `Department:${department.id}`,
+    id: `DepartmentType:${department.id}`,
     fragment: gql`
-      fragment UpdatedDepartment on Department {
+      fragment UpdatedDepartment on DepartmentType {
         id
         name
+        code
+        organizationId
         branchId
-        description
-        isActive
+        managerId
+        createdAt
         updatedAt
       }
     `,
-    data: { ...department, __typename: 'Department' },
+    data: { ...department, __typename: 'DepartmentType' },
   });
 };
 
@@ -555,10 +469,10 @@ export const updateDepartmentsCache = (
  * Updates cache after deleting a department
  */
 export const updateCacheAfterDeleteDepartment = (
-  cache: ApolloCache,
+  cache: ApolloCache<NormalizedCacheObject>,
   departmentId: string
 ): void => {
-  cache.evict({ id: `Department:${departmentId}` });
+  cache.evict({ id: `DepartmentType:${departmentId}` });
   cache.gc();
 };
 
@@ -577,14 +491,14 @@ export const updateCacheAfterDeleteDepartment = (
  * @param transactionType - Optional transaction type filter used in the query
  */
 export const updateBusinessRulesCache = (
-  cache: ApolloCache<any>,
-  businessRule: BusinessRule,
+  cache: ApolloCache<NormalizedCacheObject>,
+  businessRule: BusinessRuleType,
   isNew: boolean = true,
   transactionType?: string
 ): void => {
   try {
     const existingData = cache.readQuery<{
-      getBusinessRules: { rules: BusinessRule[]; total: number };
+      getBusinessRules: { rules: BusinessRuleType[]; total: number };
     }>({ 
       query: GET_BUSINESS_RULES,
       variables: transactionType ? { transactionType } : undefined
@@ -593,7 +507,7 @@ export const updateBusinessRulesCache = (
     if (existingData) {
       const updatedRules = isNew
         ? [businessRule, ...existingData.getBusinessRules.rules]
-        : existingData.getBusinessRules.rules.map(r =>
+        : existingData.getBusinessRules.rules.map((r: any) =>
             r.id === businessRule.id ? businessRule : r
           );
 
@@ -616,20 +530,24 @@ export const updateBusinessRulesCache = (
 
   // Also update the normalized cache entry
   cache.writeFragment({
-    id: `BusinessRule:${businessRule.id}`,
+    id: `BusinessRuleType:${businessRule.id}`,
     fragment: gql`
-      fragment UpdatedBusinessRule on BusinessRule {
+      fragment UpdatedBusinessRule on BusinessRuleType {
         id
-        name
+        ruleName
         organizationId
-        ruleType
-        conditions
-        actions
+        transactionType
+        basedOn
+        thresholdValue
+        appliesToLevel
+        approverLevel
+        priority
         isActive
+        createdAt
         updatedAt
       }
     `,
-    data: { ...businessRule, __typename: 'BusinessRule' },
+    data: { ...businessRule, __typename: 'BusinessRuleType' },
   });
 };
 
@@ -637,10 +555,10 @@ export const updateBusinessRulesCache = (
  * Updates cache after deleting a business rule
  */
 export const updateCacheAfterDeleteBusinessRule = (
-  cache: ApolloCache,
+  cache: ApolloCache<NormalizedCacheObject>,
   businessRuleId: string
 ): void => {
-  cache.evict({ id: `BusinessRule:${businessRuleId}` });
+  cache.evict({ id: `BusinessRuleType:${businessRuleId}` });
   cache.gc();
 };
 
@@ -653,25 +571,30 @@ export const updateCacheAfterDeleteBusinessRule = (
  * Note: Audit logs are typically append-only, so we only have create
  */
 export const updateCacheAfterCreateAuditLog = (
-  cache: ApolloCache<any>,
-  newAuditLog: AuditLog
+  cache: ApolloCache<NormalizedCacheObject>,
+  newAuditLog: AuditLogType
 ): void => {
   cache.modify({
     fields: {
       auditLogs(existingLogs = { logs: [], pageInfo: {} }) {
         const newLogRef = cache.writeFragment({
-          data: { ...newAuditLog, __typename: 'AuditLog' },
+          data: { ...newAuditLog, __typename: 'AuditLogType' },
           fragment: gql`
-            fragment NewAuditLog on AuditLog {
+            fragment NewAuditLog on AuditLogType {
               id
               userId
               action
-              entityType
-              entityId
-              changes
+              resourceType
+              resourceId
+              result
+              metadata
+              oldValue
+              newValue
               ipAddress
               userAgent
-              timestamp
+              hierarchyLevel
+              organizationId
+              createdAt
             }
           `,
         });
@@ -698,12 +621,12 @@ export const updateCacheAfterCreateAuditLog = (
  * @param sessionId - The ID of the revoked session
  */
 export const updateSessionsCache = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache<NormalizedCacheObject>,
   sessionId: string
 ): void => {
   try {
     const existingData = cache.readQuery<{
-      getActiveSessions: Session[];
+      getActiveSessions: SessionType[];
     }>({ query: GET_ACTIVE_SESSIONS });
 
     if (existingData) {
@@ -711,7 +634,7 @@ export const updateSessionsCache = (
         query: GET_ACTIVE_SESSIONS,
         data: {
           getActiveSessions: existingData.getActiveSessions.filter(
-            session => session.id !== sessionId
+            (session: any) => session.id !== sessionId
           ),
         },
       });
@@ -721,7 +644,7 @@ export const updateSessionsCache = (
   }
 
   // Also evict the session from cache
-  cache.evict({ id: `Session:${sessionId}` });
+  cache.evict({ id: `SessionType:${sessionId}` });
   cache.gc();
 };
 
@@ -731,7 +654,7 @@ export const updateSessionsCache = (
  * 
  * @param cache - Apollo cache instance
  */
-export const clearSessionsCache = (cache: ApolloCache<any>): void => {
+export const clearSessionsCache = (cache: ApolloCache<NormalizedCacheObject>): void => {
   try {
     cache.writeQuery({
       query: GET_ACTIVE_SESSIONS,
@@ -758,7 +681,7 @@ export const clearSessionsCache = (cache: ApolloCache<any>): void => {
  * Useful when you need to refetch data after complex operations
  */
 export const invalidateQueries = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache<NormalizedCacheObject>,
   queryNames: string[]
 ): void => {
   queryNames.forEach(queryName => {
@@ -771,7 +694,7 @@ export const invalidateQueries = (
  * Clears the entire cache
  * Use sparingly - typically only on logout or critical errors
  */
-export const clearCache = (cache: ApolloCache<any>): void => {
+export const clearCache = (cache: ApolloCache<NormalizedCacheObject>): void => {
   cache.evict({});
   cache.gc();
 };

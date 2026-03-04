@@ -101,7 +101,7 @@ export class UserService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformCreateUserInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: CREATE_MANAGER,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -112,9 +112,6 @@ export class UserService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.createManager) {
         throw new Error('No data returned from createManager mutation');
@@ -144,7 +141,7 @@ export class UserService {
     try {
       const transformedInput = this.transformCreateUserInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: CREATE_WORKER,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -155,9 +152,6 @@ export class UserService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.createWorker) {
         throw new Error('No data returned from createWorker mutation');
@@ -186,7 +180,7 @@ export class UserService {
     try {
       const transformedInput = this.transformUpdateUserInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: UPDATE_USER,
         variables: { userId, input: transformedInput },
         // Update cache after mutation
@@ -197,9 +191,6 @@ export class UserService {
         },
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.updateUser) {
         throw new Error('No data returned from updateUser mutation');
@@ -225,15 +216,12 @@ export class UserService {
    */
   async getUser(userId: string): Promise<User> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_USER,
         variables: { userId },
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getUser) {
         throw new Error('User not found');
@@ -258,14 +246,11 @@ export class UserService {
    */
   async getUsers(): Promise<UsersListResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_USERS,
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getUsers) {
         throw new Error('No data returned from getUsers query');

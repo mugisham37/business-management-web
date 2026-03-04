@@ -33,9 +33,9 @@ import {
  * Requirements: 5.6, 5.7
  */
 export const createApolloSyncMiddleware = (
-  apolloClient: ApolloClient<any>
-): Middleware<{}, RootState> => {
-  return (store) => (next) => (action) => {
+  apolloClient: ApolloClient
+): Middleware => {
+  return (store) => (next) => (action: any) => {
     // Execute the action first
     const result = next(action);
 
@@ -44,17 +44,17 @@ export const createApolloSyncMiddleware = (
 
     try {
       // Sync users state to cache
-      if (action.type.startsWith('users/')) {
+      if (action.type?.startsWith('users/')) {
         syncUsersToCache(apolloClient, state);
       }
 
       // Sync permissions state to cache
-      if (action.type.startsWith('permissions/')) {
+      if (action.type?.startsWith('permissions/')) {
         syncPermissionsToCache(apolloClient, state);
       }
 
       // Sync organizations state to cache
-      if (action.type.startsWith('organizations/')) {
+      if (action.type?.startsWith('organizations/')) {
         syncOrganizationsToCache(apolloClient, state);
       }
     } catch (error) {
@@ -69,7 +69,7 @@ export const createApolloSyncMiddleware = (
 /**
  * Sync users state to Apollo cache
  */
-function syncUsersToCache(apolloClient: ApolloClient<any>, state: RootState) {
+function syncUsersToCache(apolloClient: ApolloClient, state: RootState) {
   const { list, selectedUser } = state.users;
 
   // Update users list cache
@@ -110,7 +110,7 @@ function syncUsersToCache(apolloClient: ApolloClient<any>, state: RootState) {
  * Sync permissions state to Apollo cache
  */
 function syncPermissionsToCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   state: RootState
 ) {
   const { userPermissions } = state.permissions;
@@ -135,7 +135,7 @@ function syncPermissionsToCache(
  * Sync organizations state to Apollo cache
  */
 function syncOrganizationsToCache(
-  apolloClient: ApolloClient<any>,
+  apolloClient: ApolloClient,
   state: RootState
 ) {
   const { organization, branches, departments } = state.organizations;

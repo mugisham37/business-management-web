@@ -15,16 +15,25 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery } from '@apollo/client';
-import type { ApolloError } from '@apollo/client';
+import { useQuery as useApolloQuery } from '@apollo/client/react';
+
 import {
   GET_USER_AUDIT_LOGS,
   GET_ORGANIZATION_AUDIT_LOGS,
   GET_RESOURCE_AUDIT_LOGS,
 } from '@/graphql/queries/audit-logs';
+import type {
+  GetUserAuditLogsData,
+  GetOrganizationAuditLogsData,
+  GetResourceAuditLogsData,
+} from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
-import { PaginationParams, PaginationInfo, calculatePaginationInfo } from '@/lib/types/pagination.types';
+import type { PaginationParams, PaginationInfo } from '@/lib/types/pagination.types';
+import { calculatePaginationInfo } from '@/lib/types/pagination.types';
+
+// Re-export for convenience
+export type { PaginationParams };
 
 /**
  * Audit log type
@@ -125,14 +134,10 @@ export function useAuditLogs(
     loading: userLogsLoading,
     error: userLogsError,
     refetch: refetchUserLogsList,
-  } = useQuery(GET_USER_AUDIT_LOGS, {
+  } = useApolloQuery<GetUserAuditLogsData>(GET_USER_AUDIT_LOGS, {
     variables: { userId, filters: userFilters },
     skip: !userId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
   // Query for organization audit logs (Requirements: 12.1)
@@ -141,14 +146,10 @@ export function useAuditLogs(
     loading: organizationLogsLoading,
     error: organizationLogsError,
     refetch: refetchOrganizationLogsList,
-  } = useQuery(GET_ORGANIZATION_AUDIT_LOGS, {
+  } = useApolloQuery<GetOrganizationAuditLogsData>(GET_ORGANIZATION_AUDIT_LOGS, {
     variables: { organizationId, filters: orgFilters },
     skip: !organizationId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
   // Query for resource audit logs
@@ -157,36 +158,43 @@ export function useAuditLogs(
     loading: resourceLogsLoading,
     error: resourceLogsError,
     refetch: refetchResourceLogsList,
-  } = useQuery(GET_RESOURCE_AUDIT_LOGS, {
+  } = useApolloQuery<GetResourceAuditLogsData>(GET_RESOURCE_AUDIT_LOGS, {
     variables: { resourceType, resourceId },
     skip: !resourceType || !resourceId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
+  // Handle query errors
+  if (userLogsError && !error) {
+    setError(errorHandler.handle(userLogsError));
+  }
+  if (organizationLogsError && !error) {
+    setError(errorHandler.handle(organizationLogsError));
+  }
+  if (resourceLogsError && !error) {
+    setError(errorHandler.handle(resourceLogsError));
+  }
+
   // Calculate pagination info for each query (Requirements: 12.1)
-  const userLogsPagination = userLogsData?.getUserAuditLogs
+  const userLogsPagination = (userLogsData as any)?.getUserAuditLogs
     ? calculatePaginationInfo(
-        userLogsData.getUserAuditLogs.total,
+        (userLogsData as any).getUserAuditLogs.total,
         Math.floor((userFilters.offset || 0) / (userFilters.limit || 100)) + 1,
         userFilters.limit || 100
       )
     : undefined;
 
-  const organizationLogsPagination = organizationLogsData?.getOrganizationAuditLogs
+  const organizationLogsPagination = (organizationLogsData as any)?.getOrganizationAuditLogs
     ? calculatePaginationInfo(
-        organizationLogsData.getOrganizationAuditLogs.total,
+        (organizationLogsData as any).getOrganizationAuditLogs.total,
         Math.floor((orgFilters.offset || 0) / (orgFilters.limit || 100)) + 1,
         orgFilters.limit || 100
       )
     : undefined;
 
-  const resourceLogsPagination = resourceLogsData?.getResourceAuditLogs
+  const resourceLogsPagination = (resourceLogsData as any)?.getResourceAuditLogs
     ? calculatePaginationInfo(
-        resourceLogsData.getResourceAuditLogs.total,
+        (resourceLogsData as any).getResourceAuditLogs.total,
         Math.floor((resourceFilters.offset || 0) / (resourceFilters.limit || 100)) + 1,
         resourceFilters.limit || 100
       )
@@ -326,9 +334,9 @@ export function useAuditLogs(
 
   return {
     // Data
-    userAuditLogs: userLogsData?.getUserAuditLogs,
-    organizationAuditLogs: organizationLogsData?.getOrganizationAuditLogs,
-    resourceAuditLogs: resourceLogsData?.getResourceAuditLogs,
+    userAuditLogs: (userLogsData as any)?.getUserAuditLogs,
+    organizationAuditLogs: (organizationLogsData as any)?.getOrganizationAuditLogs,
+    resourceAuditLogs: (resourceLogsData as any)?.getResourceAuditLogs,
     
     // Pagination info
     userLogsPagination,

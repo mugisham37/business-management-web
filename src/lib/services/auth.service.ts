@@ -13,7 +13,7 @@
  * Requirements: 4.1, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, FetchResult } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   REGISTER_OWNER,
   LOGIN,
@@ -23,7 +23,6 @@ import {
   CHANGE_PASSWORD,
 } from '@/graphql/mutations/auth';
 import { errorHandler } from '@/lib/errors/error-handler';
-import { AppError } from '@/lib/errors/error-types';
 import { tokenManager } from '@/lib/auth/token-manager';
 
 /**
@@ -104,14 +103,10 @@ export class AuthService {
       // Transform input if needed (Requirements: 4.8)
       const transformedInput = this.transformRegisterOwnerInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ registerOwner: AuthResponse }>({
         mutation: REGISTER_OWNER,
         variables: { input: transformedInput },
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.registerOwner) {
         throw new Error('No data returned from registerOwner mutation');
@@ -145,14 +140,10 @@ export class AuthService {
     try {
       const transformedInput = this.transformLoginInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ login: AuthResponse }>({
         mutation: LOGIN,
         variables: { input: transformedInput },
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.login) {
         throw new Error('No data returned from login mutation');
@@ -185,14 +176,10 @@ export class AuthService {
     try {
       const transformedInput = this.transformLoginWithPinInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ loginWithPin: AuthResponse }>({
         mutation: LOGIN_WITH_PIN,
         variables: { input: transformedInput },
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.loginWithPin) {
         throw new Error('No data returned from loginWithPin mutation');
@@ -223,14 +210,10 @@ export class AuthService {
    */
   async refreshToken(input: RefreshTokenInput): Promise<AuthResponse> {
     try {
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ refreshToken: AuthResponse }>({
         mutation: REFRESH_TOKEN,
         variables: { input },
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.refreshToken) {
         throw new Error('No data returned from refreshToken mutation');
@@ -264,13 +247,9 @@ export class AuthService {
    */
   async logout(): Promise<boolean> {
     try {
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ logout: boolean }>({
         mutation: LOGOUT,
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       // Clear tokens regardless of server response
       tokenManager.clearTokens();
@@ -304,14 +283,10 @@ export class AuthService {
     try {
       const transformedInput = this.transformChangePasswordInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ changePassword: boolean }>({
         mutation: CHANGE_PASSWORD,
         variables: { input: transformedInput },
       });
-
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       return data?.changePassword ?? false;
     } catch (error) {

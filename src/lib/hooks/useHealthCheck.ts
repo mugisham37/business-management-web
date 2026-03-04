@@ -14,9 +14,10 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery } from '@apollo/client';
-import type { ApolloError } from '@apollo/client';
+import { useQuery as useApolloQuery } from '@apollo/client/react';
+
 import { HEALTH } from '@/graphql/queries/health';
+import type { HealthData } from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 
@@ -78,13 +79,9 @@ export function useHealthCheck(pollInterval?: number): UseHealthCheckReturn {
     refetch,
     startPolling,
     stopPolling,
-  } = useQuery(HEALTH, {
+  } = useApolloQuery<HealthData>(HEALTH, {
     fetchPolicy: 'network-only', // Always fetch fresh health data
     pollInterval: pollInterval || 0, // Optional polling
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
   /**

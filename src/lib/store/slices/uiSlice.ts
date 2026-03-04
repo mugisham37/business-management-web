@@ -159,7 +159,7 @@ export const selectTheme = (state: RootState) => state.ui.theme;
 
 // Derived selectors
 export const selectActiveNotifications = (state: RootState) =>
-  state.ui.notifications.filter((n) => {
+  state.ui.notifications.filter((n: any) => {
     if (!n.duration) return true;
     return Date.now() - n.timestamp < n.duration;
   });
@@ -167,6 +167,6 @@ export const selectActiveNotifications = (state: RootState) =>
 export const selectNotificationsByType = (
   state: RootState,
   type: NotificationType
-) => state.ui.notifications.filter((n) => n.type === type);
+) => state.ui.notifications.filter((n: any) => n.type === type);
 
 export default uiSlice.reducer;

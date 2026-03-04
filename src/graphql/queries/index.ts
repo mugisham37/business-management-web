@@ -35,4 +35,4 @@ export {
 } from './audit-logs';
 
 // Health check query
-export { HEALTH } from './health';
+export { HEALTH, HEALTH as HEALTH_CHECK_QUERY } from './health';

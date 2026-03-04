@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useApolloClient, DocumentNode, OperationVariables } from '@apollo/client';
+import { DocumentNode, OperationVariables, useApolloClient } from '@apollo/client';
 
 export interface PrefetchOptions {
   /** Delay before prefetching (ms) */
@@ -117,7 +117,7 @@ export function usePrefetch(options: PrefetchOptions = {}): UsePrefetchReturn {
           .then(() => {
             prefetchedRef.current.add(cacheKey);
           })
-          .catch((error) => {
+          .catch((error: Error) => {
             console.error('Prefetch failed:', error);
           });
       }, delay);

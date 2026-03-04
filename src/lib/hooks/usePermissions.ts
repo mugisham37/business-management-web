@@ -16,10 +16,17 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_USER_PERMISSIONS, GET_PERMISSION_HISTORY } from '@/graphql/queries/permissions';
 import { GRANT_PERMISSIONS, REVOKE_PERMISSIONS } from '@/graphql/mutations/permissions';
+import type {
+  GetUserPermissionsData,
+  GetPermissionHistoryData,
+  GrantPermissionsData,
+  RevokePermissionsData,
+} from '@/graphql/types/operations';
 import { updateUserPermissionsCache } from '@/lib/cache/cache-updaters';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
@@ -109,14 +116,10 @@ export function usePermissions(userId?: string): UsePermissionsReturn {
     loading: permissionsLoading,
     error: permissionsError,
     refetch: refetchPermissionsList,
-  } = useQuery(GET_USER_PERMISSIONS, {
+  } = useApolloQuery<GetUserPermissionsData>(GET_USER_PERMISSIONS, {
     variables: { userId },
     skip: !userId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
   // Query for permission history
@@ -125,20 +128,24 @@ export function usePermissions(userId?: string): UsePermissionsReturn {
     loading: historyLoading,
     error: historyError,
     refetch: refetchHistoryList,
-  } = useQuery(GET_PERMISSION_HISTORY, {
+  } = useApolloQuery<GetPermissionHistoryData>(GET_PERMISSION_HISTORY, {
     variables: { userId },
     skip: !userId,
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
+  // Handle query errors
+  if (permissionsError && !error) {
+    setError(errorHandler.handle(permissionsError));
+  }
+  if (historyError && !error) {
+    setError(errorHandler.handle(historyError));
+  }
+
   // Mutation for granting permissions
-  const [grantPermissionsMutation] = useMutation(GRANT_PERMISSIONS, {
-    update: (cache: ApolloCache<any>, { data }: any, { variables }: any) => {
-      if (data?.grantPermissions && variables?.input?.userId) {
+  const [grantPermissionsMutation] = useApolloMutation<GrantPermissionsData>(GRANT_PERMISSIONS, {
+    update: (cache: ApolloCache, { data }: any, { variables }: any) => {
+      if ((data as any)?.grantPermissions && variables?.input?.userId) {
         // Refetch permissions to get updated list
         refetchPermissionsList();
       }
@@ -146,8 +153,8 @@ export function usePermissions(userId?: string): UsePermissionsReturn {
   });
 
   // Mutation for revoking permissions
-  const [revokePermissionsMutation] = useMutation(REVOKE_PERMISSIONS, {
-    update: (cache: ApolloCache<any>, { data }: any, { variables }: any) => {
+  const [revokePermissionsMutation] = useApolloMutation<RevokePermissionsData>(REVOKE_PERMISSIONS, {
+    update: (cache: ApolloCache, { data }: any, { variables }: any) => {
       if (data?.revokePermissions && variables?.input?.userId) {
         // Refetch permissions to get updated list
         refetchPermissionsList();

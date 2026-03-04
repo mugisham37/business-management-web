@@ -90,7 +90,7 @@ export const isCacheEntryExpired = (queryName: string): boolean => {
  * 
  * @param cache - Apollo cache instance
  */
-export const evictExpiredEntries = (cache: ApolloCache<any>): void => {
+export const evictExpiredEntries = (cache: ApolloCache): void => {
   const expiredQueries: string[] = [];
   
   cacheMetadata.forEach((metadata, queryName) => {
@@ -119,7 +119,7 @@ export const evictExpiredEntries = (cache: ApolloCache<any>): void => {
  * @param entityType - The entity type to evict (e.g., 'User', 'Branch')
  */
 export const evictEntityType = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache,
   entityType: string
 ): void => {
   // Evict all entities of this type
@@ -165,7 +165,7 @@ const getRelatedQueries = (entityType: string): string[] => {
  * @param pattern - Regex pattern to match query names
  */
 export const evictByPattern = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache,
   pattern: RegExp
 ): void => {
   const matchingQueries: string[] = [];
@@ -195,7 +195,7 @@ export const evictByPattern = (
  * @param userId - Optional user ID to evict specific user data
  */
 export const evictUserData = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache,
   userId?: string
 ): void => {
   if (userId) {
@@ -222,7 +222,7 @@ export const evictUserData = (
  * 
  * @param cache - Apollo cache instance
  */
-export const evictOrganizationData = (cache: ApolloCache<any>): void => {
+export const evictOrganizationData = (cache: ApolloCache): void => {
   evictEntityType(cache, 'Organization');
   evictEntityType(cache, 'Branch');
   evictEntityType(cache, 'Department');
@@ -239,7 +239,7 @@ export const evictOrganizationData = (cache: ApolloCache<any>): void => {
  * @returns Cleanup function to stop the interval
  */
 export const startCacheCleanup = (
-  cache: ApolloCache<any>,
+  cache: ApolloCache,
   intervalMs: number = 5 * 60 * 1000
 ): (() => void) => {
   const intervalId = setInterval(() => {

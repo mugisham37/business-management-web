@@ -17,15 +17,23 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_BRANCHES } from '@/graphql/queries/branches';
 import {
   CREATE_BRANCH,
   UPDATE_BRANCH,
   ASSIGN_BRANCH_MANAGER,
 } from '@/graphql/mutations/branches';
-import { updateBranchesCache, Branch } from '@/lib/cache/cache-updaters';
+import { updateBranchesCache } from '@/lib/cache/cache-updaters';
+import type { BranchType } from '@/lib/types/generated/graphql';
+import type {
+  GetBranchesData,
+  CreateBranchData,
+  UpdateBranchData,
+  AssignBranchManagerData,
+} from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 import {
@@ -41,14 +49,16 @@ import {
  */
 export interface CreateBranchInput {
   name: string;
+  code: string;
+  organizationId: string;
   address?: string;
   managerId?: string;
 }
 
 export interface UpdateBranchInput {
   name?: string;
+  code?: string;
   address?: string;
-  isActive?: boolean;
 }
 
 /**
@@ -57,8 +67,8 @@ export interface UpdateBranchInput {
  */
 export interface UseBranchesReturn {
   // Query data
-  branches: Branch[] | undefined;
-  paginatedBranches: Branch[] | undefined;
+  branches: BranchType[] | undefined;
+  paginatedBranches: BranchType[] | undefined;
   pagination: PaginationInfo | undefined;
   
   // Loading states
@@ -74,9 +84,9 @@ export interface UseBranchesReturn {
   setSorting: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   
   // Operations
-  createBranch: (input: CreateBranchInput) => Promise<Branch>;
-  updateBranch: (branchId: string, input: UpdateBranchInput) => Promise<Branch>;
-  assignBranchManager: (branchId: string, managerId: string) => Promise<Branch>;
+  createBranch: (input: CreateBranchInput) => Promise<BranchType>;
+  updateBranch: (branchId: string, input: UpdateBranchInput) => Promise<BranchType>;
+  assignBranchManager: (branchId: string, managerId: string) => Promise<boolean>;
   refetchBranches: () => Promise<void>;
 }
 
@@ -106,13 +116,14 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
     loading: branchesLoading,
     error: branchesError,
     refetch: refetchBranchesList,
-  } = useQuery(GET_BRANCHES, {
+  } = useApolloQuery<GetBranchesData>(GET_BRANCHES, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
+
+  // Handle query errors
+  if (branchesError && !error) {
+    setError(errorHandler.handle(branchesError));
+  }
 
   // Apply client-side pagination and sorting (Requirements: 12.1)
   const { paginatedBranches, pagination } = useMemo(() => {
@@ -160,28 +171,28 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
   }, []);
 
   // Mutation for creating branch
-  const [createBranchMutation] = useMutation(CREATE_BRANCH, {
+  const [createBranchMutation] = useApolloMutation<CreateBranchData>(CREATE_BRANCH, {
     update: (cache, { data }) => {
-      if (data?.createBranch) {
-        updateBranchesCache(cache, data.createBranch);
+      if ((data as any)?.createBranch) {
+        updateBranchesCache(cache, (data as any).createBranch);
       }
     },
   });
 
   // Mutation for updating branch
-  const [updateBranchMutation] = useMutation(UPDATE_BRANCH, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
-      if (data?.updateBranch) {
-        updateBranchesCache(cache, data.updateBranch, false);
+  const [updateBranchMutation] = useApolloMutation<UpdateBranchData>(UPDATE_BRANCH, {
+    update: (cache: ApolloCache, { data }: any) => {
+      if ((data as any)?.updateBranch) {
+        updateBranchesCache(cache, (data as any).updateBranch, false);
       }
     },
   });
 
   // Mutation for assigning branch manager
-  const [assignBranchManagerMutation] = useMutation(ASSIGN_BRANCH_MANAGER, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
-      if (data?.assignBranchManager) {
-        updateBranchesCache(cache, data.assignBranchManager, false);
+  const [assignBranchManagerMutation] = useApolloMutation<AssignBranchManagerData>(ASSIGN_BRANCH_MANAGER, {
+    update: (cache: ApolloCache, { data }: any) => {
+      if ((data as any)?.assignBranchManager) {
+        updateBranchesCache(cache, (data as any).assignBranchManager, false);
       }
     },
   });
@@ -191,7 +202,7 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
    * Requirements: 3.4, 3.11
    */
   const createBranch = useCallback(
-    async (input: CreateBranchInput): Promise<Branch> => {
+    async (input: CreateBranchInput): Promise<BranchType> => {
       setOperationLoading(true);
       setError(null);
 
@@ -201,24 +212,24 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             createBranch: {
-              __typename: 'Branch',
+              __typename: 'BranchType',
               id: `temp-${Date.now()}`,
               name: input.name,
-              organizationId: '', // Will be filled by server
+              code: input.code,
+              organizationId: input.organizationId,
               managerId: input.managerId || null,
               address: input.address || null,
-              isActive: true,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
           },
         });
 
-        if (!data?.createBranch) {
+        if (!(data as any)?.createBranch) {
           throw new Error('No data returned from createBranch mutation');
         }
 
-        return data.createBranch;
+        return (data as any).createBranch;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -235,7 +246,7 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
    * Requirements: 3.4, 3.11
    */
   const updateBranch = useCallback(
-    async (branchId: string, input: UpdateBranchInput): Promise<Branch> => {
+    async (branchId: string, input: UpdateBranchInput): Promise<BranchType> => {
       setOperationLoading(true);
       setError(null);
 
@@ -245,25 +256,25 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
             updateBranch: {
-              __typename: 'Branch',
+              __typename: 'BranchType',
               id: branchId,
-              ...input,
+              name: input.name || '',
+              code: input.code || '',
+              address: input.address || null,
               // These fields won't change, but need to be included
               organizationId: '',
               managerId: null,
-              address: input.address || null,
-              isActive: input.isActive !== undefined ? input.isActive : true,
               createdAt: '',
               updatedAt: new Date().toISOString(),
             },
           },
         });
 
-        if (!data?.updateBranch) {
+        if (!(data as any)?.updateBranch) {
           throw new Error('No data returned from updateBranch mutation');
         }
 
-        return data.updateBranch;
+        return (data as any).updateBranch;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -280,7 +291,7 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
    * Requirements: 3.4, 3.11
    */
   const assignBranchManager = useCallback(
-    async (branchId: string, managerId: string): Promise<Branch> => {
+    async (branchId: string, managerId: string): Promise<boolean> => {
       setOperationLoading(true);
       setError(null);
 
@@ -289,26 +300,15 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
           variables: { branchId, managerId },
           // Optimistic update (Requirements: 3.11)
           optimisticResponse: {
-            assignBranchManager: {
-              __typename: 'Branch',
-              id: branchId,
-              managerId,
-              // These fields won't change, but need to be included
-              name: '',
-              organizationId: '',
-              address: null,
-              isActive: true,
-              createdAt: '',
-              updatedAt: new Date().toISOString(),
-            },
+            assignBranchManager: true,
           },
         });
 
-        if (!data?.assignBranchManager) {
+        if ((data as any)?.assignBranchManager === undefined) {
           throw new Error('No data returned from assignBranchManager mutation');
         }
 
-        return data.assignBranchManager;
+        return (data as any).assignBranchManager;
       } catch (err) {
         const appError = errorHandler.handle(err);
         setError(appError);
@@ -346,7 +346,7 @@ export function useBranches(initialPagination?: Partial<PaginationParams>): UseB
   return {
     // Data
     branches: branchesData?.getBranches?.branches,
-    paginatedBranches,
+    paginatedBranches: paginatedBranches as BranchType[],
     pagination,
     
     // Loading states

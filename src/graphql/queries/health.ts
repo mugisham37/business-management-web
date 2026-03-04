@@ -2,7 +2,7 @@ import { gql } from '@apollo/client';
 
 // Health Check Query
 
-export const HEALTH = gql`
+export const HEALTH_CHECK_QUERY = gql`
   query Health {
     health {
       status
@@ -22,3 +22,6 @@ export const HEALTH = gql`
     }
   }
 `;
+
+// Alias for backward compatibility
+export const HEALTH = HEALTH_CHECK_QUERY;

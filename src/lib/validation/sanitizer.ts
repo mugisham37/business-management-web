@@ -64,7 +64,10 @@ export function sanitizeString(
     return '';
   }
   
-  const config: DOMPurify.Config = {};
+  const config: {
+    ALLOWED_TAGS?: string[];
+    ALLOWED_ATTR?: string[];
+  } = {};
   
   if (options.allowHtml && options.allowedTags) {
     config.ALLOWED_TAGS = options.allowedTags;
@@ -78,7 +81,7 @@ export function sanitizeString(
     config.ALLOWED_ATTR = [];
   }
   
-  return DOMPurify.sanitize(input, config);
+  return DOMPurify.sanitize(input, config) as string;
 }
 
 /**

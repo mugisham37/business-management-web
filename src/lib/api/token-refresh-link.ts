@@ -7,7 +7,7 @@
  * Features:
  * - Detects token expiry errors
  * - Automatically refreshes access token
- * - Retries failed operation with new token
+ * Retries failed operation with new token
  * - Prevents multiple concurrent refresh requests
  * - Redirects to login on refresh failure
  * 
@@ -15,7 +15,8 @@
  */
 
 import { Observable } from '@apollo/client';
-import { onError } from '@apollo/client/link/error';
+import { onError, ErrorResponse } from '@apollo/client/link/error';
+import { GraphQLError } from 'graphql';
 import { tokenManager } from '@/lib/auth/token-manager';
 import { REFRESH_TOKEN } from '@/graphql/mutations/auth';
 
@@ -103,18 +104,20 @@ async function refreshAccessToken(): Promise<string> {
  * 
  * Requirements: 4.12, 7.6, 7.7
  */
-export const tokenRefreshLink = onError(({ graphQLErrors, operation, forward }) => {
+export const tokenRefreshLink = onError((errorResponse: ErrorResponse) => {
+  const { graphQLErrors, operation, forward } = errorResponse;
+  
   if (!graphQLErrors) return;
 
   // Check if any error is an authentication error
   const hasAuthError = graphQLErrors.some(
-    (err: any) => err.extensions?.code === 'UNAUTHENTICATED'
+    (err: GraphQLError) => err.extensions?.code === 'UNAUTHENTICATED'
   );
 
   if (!hasAuthError) return;
 
   // Return an observable that handles token refresh and retry
-  return new Observable(observer => {
+  return new Observable((observer) => {
     // If already refreshing, queue this request
     if (isRefreshing) {
       pendingRequests.push(() => {

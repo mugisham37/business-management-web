@@ -101,7 +101,7 @@ export class PermissionService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformPermissionsInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: GRANT_PERMISSIONS,
         variables: { input: transformedInput },
         // Refetch user permissions after granting
@@ -113,9 +113,6 @@ export class PermissionService {
         ],
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       return data?.grantPermissions ?? false;
     } catch (error) {
@@ -140,7 +137,7 @@ export class PermissionService {
     try {
       const transformedInput = this.transformPermissionsInput(input);
 
-      const { data, errors } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate({
         mutation: REVOKE_PERMISSIONS,
         variables: { input: transformedInput },
         // Refetch user permissions after revoking
@@ -152,9 +149,6 @@ export class PermissionService {
         ],
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       return data?.revokePermissions ?? false;
     } catch (error) {
@@ -176,15 +170,12 @@ export class PermissionService {
    */
   async getUserPermissions(userId: string): Promise<UserPermissionsResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_USER_PERMISSIONS,
         variables: { userId },
         fetchPolicy: 'cache-first',
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getUserPermissions) {
         throw new Error('No permissions data returned');
@@ -211,15 +202,12 @@ export class PermissionService {
    */
   async getPermissionHistory(userId: string): Promise<PermissionHistoryResponse> {
     try {
-      const { data, errors } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query({
         query: GET_PERMISSION_HISTORY,
         variables: { userId },
         fetchPolicy: 'network-only', // Always fetch fresh history
       });
 
-      if (errors && errors.length > 0) {
-        throw errors[0];
-      }
 
       if (!data?.getPermissionHistory) {
         throw new Error('No permission history data returned');

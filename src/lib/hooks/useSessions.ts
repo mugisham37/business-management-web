@@ -16,11 +16,17 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import type { ApolloError, ApolloCache } from '@apollo/client';
+import { useQuery as useApolloQuery, useMutation as useApolloMutation } from '@apollo/client/react';
+
+import type { ApolloCache } from '@apollo/client/cache';
 import { GET_ACTIVE_SESSIONS } from '@/graphql/queries/auth';
 import { REVOKE_SESSION, REVOKE_ALL_SESSIONS } from '@/graphql/mutations/sessions';
 import { updateSessionsCache } from '@/lib/cache/cache-updaters';
+import type {
+  GetActiveSessionsData,
+  RevokeSessionData,
+  RevokeAllSessionsData,
+} from '@/graphql/types/operations';
 import { errorHandler } from '@/lib/errors/error-handler';
 import { AppError } from '@/lib/errors/error-types';
 
@@ -74,17 +80,18 @@ export function useSessions(): UseSessionsReturn {
     loading: sessionsLoading,
     error: sessionsError,
     refetch: refetchSessionsList,
-  } = useQuery(GET_ACTIVE_SESSIONS, {
+  } = useApolloQuery<GetActiveSessionsData>(GET_ACTIVE_SESSIONS, {
     fetchPolicy: 'cache-first',
-    onError: (err: ApolloError) => {
-      const appError = errorHandler.handle(err);
-      setError(appError);
-    },
   });
 
+  // Handle query errors
+  if (sessionsError && !error) {
+    setError(errorHandler.handle(sessionsError));
+  }
+
   // Mutation for revoking single session
-  const [revokeSessionMutation] = useMutation(REVOKE_SESSION, {
-    update: (cache: ApolloCache<any>, { data }: any, { variables }: any) => {
+  const [revokeSessionMutation] = useApolloMutation<RevokeSessionData>(REVOKE_SESSION, {
+    update: (cache: ApolloCache, { data }: any, { variables }: any) => {
       if (data?.revokeSession && variables?.sessionId) {
         // Remove session from cache
         updateSessionsCache(cache, variables.sessionId);
@@ -93,8 +100,8 @@ export function useSessions(): UseSessionsReturn {
   });
 
   // Mutation for revoking all sessions
-  const [revokeAllSessionsMutation] = useMutation(REVOKE_ALL_SESSIONS, {
-    update: (cache: ApolloCache<any>, { data }: any) => {
+  const [revokeAllSessionsMutation] = useApolloMutation<RevokeAllSessionsData>(REVOKE_ALL_SESSIONS, {
+    update: (cache: ApolloCache, { data }: any) => {
       if (data?.revokeAllSessions) {
         // Clear all sessions from cache
         const { clearSessionsCache } = require('@/lib/cache/cache-updaters');

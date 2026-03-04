@@ -61,11 +61,11 @@ interface CacheEntry {
  * Requirements: 12.9
  */
 export class CacheTTLManager {
-  private client: ApolloClient<any>;
+  private client: ApolloClient;
   private entries: Map<string, CacheEntry>;
   private refreshIntervals: Map<string, NodeJS.Timeout>;
 
-  constructor(client: ApolloClient<any>) {
+  constructor(client: ApolloClient) {
     this.client = client;
     this.entries = new Map();
     this.refreshIntervals = new Map();
@@ -272,7 +272,7 @@ let ttlManagerInstance: CacheTTLManager | null = null;
  * @param client - Apollo Client instance
  * @returns TTL manager instance
  */
-export function initializeTTLManager(client: ApolloClient<any>): CacheTTLManager {
+export function initializeTTLManager(client: ApolloClient): CacheTTLManager {
   if (!ttlManagerInstance) {
     ttlManagerInstance = new CacheTTLManager(client);
   }

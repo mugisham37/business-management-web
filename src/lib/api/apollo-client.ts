@@ -85,12 +85,6 @@ export const apolloClient = new ApolloClient({
   defaultOptions,
   
   /**
-   * Connection to Redux DevTools
-   * Enabled in development for debugging
-   */
-  connectToDevTools: process.env.NODE_ENV === 'development',
-  
-  /**
    * Query deduplication (Requirements: 12.5)
    * Automatically deduplicates identical queries within 10ms window
    * This prevents multiple identical requests from being sent concurrently
