@@ -8,5 +8,6 @@
 
 export { ApolloProvider } from './ApolloProvider';
 export { AppProviders } from './AppProviders';
+export { ConnectionProvider } from './ConnectionProvider';
 export { AuthProvider, useAuth } from '@/lib/hooks/useAuth';
 export type { AuthState, AuthContextValue, User } from '@/lib/hooks/useAuth';

@@ -59,3 +59,7 @@ export type { UseWebSocketReturn } from './useWebSocket';
 // Subscription hook
 export { useSubscription } from './useSubscription';
 export type { UseSubscriptionOptions, UseSubscriptionReturn } from './useSubscription';
+
+// Backend connection hook
+export { useBackendConnection } from './useBackendConnection';
+export type { ConnectionStatus, BackendConnectionState } from './useBackendConnection';
