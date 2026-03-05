@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,9 @@ import { Chrome, Apple, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useOnboardingForm } from "@/lib/hooks/useOnboardingForm";
+import type { OnboardingFormData } from "@/lib/hooks/useOnboardingForm";
 import { apolloClient } from "@/lib/api/apollo-client";
-import { REGISTER_FOUNDER_MUTATION } from "@/graphql/mutations/auth";
+import { REGISTER_OWNER } from "@/graphql/mutations/auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type AuthMode = "signin" | "signup" | "forgot-password";
@@ -50,7 +51,6 @@ export function AuthOnboarding() {
   const {
     formData,
     updateField,
-    updateFields,
     resetForm,
     validateStep1,
     validateStep2,
@@ -231,21 +231,28 @@ export function AuthOnboarding() {
 
       // Call registration mutation
       const { data } = await apolloClient.mutate<{
-        registerFounder: {
+        registerOwner: {
           accessToken: string;
           refreshToken: string;
-          user: any;
+          user: {
+            id: string;
+            email: string;
+            firstName: string | null;
+            lastName: string | null;
+            hierarchyLevel: string;
+            organizationId: string;
+          };
           organization: {
             id: string;
             name: string;
           };
         };
       }>({
-        mutation: REGISTER_FOUNDER_MUTATION,
+        mutation: REGISTER_OWNER,
         variables: { input },
       });
 
-      if (data?.registerFounder) {
+      if (data?.registerOwner) {
         // Registration successful - tokens are automatically stored by useAuth
         // Redirect to dashboard
         router.push("/dashboard");
@@ -335,7 +342,7 @@ export function AuthOnboarding() {
         <PasswordResetContainer onBackToSignIn={handleBackToSignIn} />
       ) : (
         <motion.div
-          className="w-full max-w-6xl min-h-[700px] grid grid-cols-1 lg:grid-cols-2 rounded-2xl overflow-hidden shadow-xl border border-border"
+          className="w-full max-w-6xl min-h-175 grid grid-cols-1 lg:grid-cols-2 rounded-2xl overflow-hidden shadow-xl border border-border"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -343,7 +350,7 @@ export function AuthOnboarding() {
           {mode === "signin" ? (
             <>
               {/* Sign In: Form on mobile/tablet, both on desktop */}
-              <div className="w-full min-h-[700px] bg-card flex flex-col items-center justify-center p-8 md:p-12">
+              <div className="w-full min-h-175 bg-card flex flex-col items-center justify-center p-8 md:p-12">
                 <RoleBasedSignIn
                   onSignUp={() => {
                     setMode("signup");
@@ -357,7 +364,7 @@ export function AuthOnboarding() {
                 />
               </div>
               {/* Preview: Hidden on mobile/tablet, visible on desktop */}
-              <div className="hidden lg:block min-h-[700px]">
+              <div className="hidden lg:block min-h-175">
                 <OnboardingSteps 
                   currentStep={onboardingStep}
                   isPreview={true}
@@ -367,7 +374,7 @@ export function AuthOnboarding() {
           ) : (
           <>
             {/* Mobile: Show either onboarding OR signup form */}
-            <div className="md:hidden w-full min-h-[700px]">
+            <div className="md:hidden w-full min-h-175">
               {!showMobileSignup ? (
                 <OnboardingForm
                   currentStep={onboardingStep}
@@ -380,7 +387,7 @@ export function AuthOnboarding() {
                   isMobile={isMobile}
                 />
               ) : (
-                <div className="bg-card flex flex-col items-center justify-center p-8 min-h-[700px]">
+                <div className="bg-card flex flex-col items-center justify-center p-8 min-h-175">
                   <MobileSignUpForm
                     onBack={() => setShowMobileSignup(false)}
                     onSignIn={() => {
@@ -401,7 +408,7 @@ export function AuthOnboarding() {
             </div>
 
             {/* Desktop: Show onboarding form on left */}
-            <div className="hidden md:block w-full min-h-[700px]">
+            <div className="hidden md:block w-full min-h-175">
               <OnboardingForm
                 currentStep={onboardingStep}
                 onNext={handleOnboardingNext}
@@ -415,7 +422,7 @@ export function AuthOnboarding() {
             </div>
 
             {/* Desktop: Show signup form on right */}
-            <div className="hidden md:flex w-full min-h-[700px] bg-card flex-col items-center justify-center p-8 md:p-12">
+            <div className="hidden md:flex w-full min-h-175 bg-card flex-col items-center justify-center p-8 md:p-12">
               <SignUpForm
                 onSignIn={() => {
                   setMode("signin");
@@ -425,11 +432,9 @@ export function AuthOnboarding() {
                 }}
                 onSubmit={handleSignUp}
                 isLoading={isLoadingSignUp}
-                currentStep={onboardingStep}
                 formData={formData}
                 onUpdateField={updateField}
                 error={error}
-                isStepValid={isCurrentStepValid}
                 isOnboardingComplete={onboardingStep === 2 && isCurrentStepValid}
               />
             </div>
@@ -476,21 +481,17 @@ function SignUpForm({
   onSignIn,
   onSubmit,
   isLoading,
-  currentStep,
   formData,
   onUpdateField,
   error,
-  isStepValid,
   isOnboardingComplete,
 }: {
   onSignIn: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
-  currentStep: number;
-  formData: any;
-  onUpdateField: (field: string, value: any) => void;
+  formData: OnboardingFormData;
+  onUpdateField: (field: string, value: string | string[] | boolean) => void;
   error: string | null;
-  isStepValid: boolean;
   isOnboardingComplete: boolean;
 }) {
   const [touchedFields, setTouchedFields] = React.useState<Set<string>>(new Set());
@@ -502,13 +503,13 @@ function SignUpForm({
     setTouchedFields(prev => new Set(prev).add(field));
   };
 
-  const isFieldInvalid = (field: string, value: any) => {
+  const isFieldInvalid = (field: string, value: string | string[] | boolean | undefined) => {
     if (!isOnboardingComplete) return false; // Don't show errors until onboarding is complete
     if (field === 'email') {
-      return touchedFields.has(field) && (!value || !value.includes('@'));
+      return touchedFields.has(field) && (typeof value !== 'string' || !value.includes('@'));
     }
     if (field === 'password') {
-      return touchedFields.has(field) && (!value || value.length < 8);
+      return touchedFields.has(field) && (typeof value !== 'string' || value.length < 8);
     }
     return touchedFields.has(field) && !value;
   };
@@ -871,8 +872,8 @@ function MobileSignUpForm({
   onSignIn: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
-  formData: any;
-  onUpdateField: (field: string, value: any) => void;
+  formData: OnboardingFormData;
+  onUpdateField: (field: string, value: string | string[] | boolean) => void;
   error: string | null;
 }) {
   const [touchedFields, setTouchedFields] = React.useState<Set<string>>(new Set());
@@ -884,12 +885,12 @@ function MobileSignUpForm({
     setTouchedFields(prev => new Set(prev).add(field));
   };
 
-  const isFieldInvalid = (field: string, value: any) => {
+  const isFieldInvalid = (field: string, value: string | string[] | boolean | undefined) => {
     if (field === 'email') {
-      return touchedFields.has(field) && (!value || !value.includes('@'));
+      return touchedFields.has(field) && (typeof value !== 'string' || !value.includes('@'));
     }
     if (field === 'password') {
-      return touchedFields.has(field) && (!value || value.length < 8);
+      return touchedFields.has(field) && (typeof value !== 'string' || value.length < 8);
     }
     return touchedFields.has(field) && !value;
   };
