@@ -14,7 +14,7 @@
  * Requirements: 4.6, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   GET_USER_AUDIT_LOGS,
   GET_ORGANIZATION_AUDIT_LOGS,
@@ -48,7 +48,7 @@ export interface AuditLogsResponse {
  */
 export class AuditService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**
@@ -67,7 +67,7 @@ export class AuditService {
     filters?: AuditFiltersInput
   ): Promise<AuditLogsResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getUserAuditLogs: Record<string, unknown> }>({
         query: GET_USER_AUDIT_LOGS,
         variables: { userId, filters },
         fetchPolicy: 'network-only', // Always fetch fresh audit logs
@@ -104,7 +104,7 @@ export class AuditService {
     filters?: AuditFiltersInput
   ): Promise<AuditLogsResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getOrganizationAuditLogs: Record<string, unknown> }>({
         query: GET_ORGANIZATION_AUDIT_LOGS,
         variables: { organizationId, filters },
         fetchPolicy: 'network-only',
@@ -139,7 +139,7 @@ export class AuditService {
     resourceType: string
   ): Promise<AuditLogsResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getResourceAuditLogs: Record<string, unknown> }>({
         query: GET_RESOURCE_AUDIT_LOGS,
         variables: { resourceId, resourceType: resourceType.toUpperCase() },
         fetchPolicy: 'network-only',

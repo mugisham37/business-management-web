@@ -14,7 +14,7 @@
  * Requirements: 4.4, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   UPDATE_ORGANIZATION,
 } from '@/graphql/mutations/organizations';
@@ -100,7 +100,7 @@ export interface DepartmentsListResponse {
  */
 export class OrganizationService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**
@@ -118,7 +118,7 @@ export class OrganizationService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformUpdateOrganizationInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ updateOrganization: Record<string, unknown> }>({
         mutation: UPDATE_ORGANIZATION,
         variables: { input: transformedInput },
         // Refetch organization after update
@@ -151,7 +151,7 @@ export class OrganizationService {
    */
   async getOrganization(): Promise<Organization> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getOrganization: Record<string, unknown> }>({
         query: GET_ORGANIZATION,
         fetchPolicy: 'cache-first',
       });
@@ -183,7 +183,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformCreateBranchInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ createBranch: Branch }>({
         mutation: CREATE_BRANCH,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -222,7 +222,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformUpdateBranchInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ updateBranch: Branch }>({
         mutation: UPDATE_BRANCH,
         variables: { branchId, input: transformedInput },
         // Update cache after mutation
@@ -259,7 +259,7 @@ export class OrganizationService {
    */
   async assignBranchManager(branchId: string, managerId: string): Promise<boolean> {
     try {
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ assignBranchManager: boolean }>({
         mutation: ASSIGN_BRANCH_MANAGER,
         variables: { branchId, managerId },
         // Refetch branches after assignment
@@ -286,7 +286,7 @@ export class OrganizationService {
    */
   async getBranches(): Promise<BranchesListResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getBranches: Record<string, unknown> }>({
         query: GET_BRANCHES,
         fetchPolicy: 'cache-first',
       });
@@ -318,7 +318,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformCreateDepartmentInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ createDepartment: Department }>({
         mutation: CREATE_DEPARTMENT,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -357,7 +357,7 @@ export class OrganizationService {
     try {
       const transformedInput = this.transformUpdateDepartmentInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ updateDepartment: Department }>({
         mutation: UPDATE_DEPARTMENT,
         variables: { departmentId, input: transformedInput },
         // Update cache after mutation
@@ -394,7 +394,7 @@ export class OrganizationService {
    */
   async assignDepartmentManager(departmentId: string, managerId: string): Promise<boolean> {
     try {
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ assignDepartmentManager: boolean }>({
         mutation: ASSIGN_DEPARTMENT_MANAGER,
         variables: { departmentId, managerId },
         // Refetch departments after assignment
@@ -421,7 +421,7 @@ export class OrganizationService {
    */
   async getDepartments(): Promise<DepartmentsListResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getDepartments: Record<string, unknown> }>({
         query: GET_DEPARTMENTS,
         fetchPolicy: 'cache-first',
       });
@@ -538,6 +538,7 @@ export class OrganizationService {
       __typename: 'OrganizationType' as const,
       id: data.id as string,
       name: data.name as string,
+      type: (data.type as string) || '',
       status: (data.status as string) || 'ACTIVE',
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
@@ -580,6 +581,7 @@ export class OrganizationService {
       __typename: 'DepartmentType' as const,
       id: data.id as string,
       name: data.name as string,
+      organizationId: data.organizationId as string,
       branchId: (data.branchId as string) ?? null,
       code: (data.code as string) || '',
       createdAt: data.createdAt as string,

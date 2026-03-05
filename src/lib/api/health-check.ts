@@ -1,4 +1,4 @@
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import { HEALTH_CHECK_QUERY } from '@/graphql/queries/health';
 
 /**
@@ -47,7 +47,7 @@ export interface HealthCheckResult {
  * Requirements: 2.1
  */
 export async function checkBackendHealth(
-  client: ApolloClient<NormalizedCacheObject>,
+  client: ApolloClient,
   timeoutMs: number = 5000
 ): Promise<HealthCheckResult> {
   try {
@@ -57,7 +57,7 @@ export async function checkBackendHealth(
     });
 
     // Execute health check query with timeout
-    const queryPromise = client.query({
+    const queryPromise = client.query<{ health: HealthCheckResponse }>({
       query: HEALTH_CHECK_QUERY,
       fetchPolicy: 'network-only', // Always fetch fresh data
       errorPolicy: 'all', // Return both data and errors

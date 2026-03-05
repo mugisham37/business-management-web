@@ -111,19 +111,21 @@ export function useSubscription<TData = unknown, TVariables = unknown>(
     
     if (!client) {
       const connectionError = new Error('WebSocket not connected. Call wsConnectionManager.connect() first.');
-      setError(connectionError);
-      setLoading(false);
       
       if (callbacksRef.current.onError) {
         callbacksRef.current.onError(connectionError);
       }
       
-      return;
+      // Defer state update to avoid synchronous setState in effect
+      const timerId = setTimeout(() => {
+        if (isMountedRef.current) {
+          setError(connectionError);
+          setLoading(false);
+        }
+      }, 0);
+      
+      return () => clearTimeout(timerId);
     }
-
-    // Reset state when starting new subscription
-    setLoading(true);
-    setError(null);
 
     // Subscribe to GraphQL subscription
     const unsubscribe = client.subscribe<TData>(

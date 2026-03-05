@@ -13,7 +13,7 @@
  * Requirements: 4.1, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   REGISTER_OWNER,
   LOGIN,
@@ -85,7 +85,7 @@ export interface RegisterOwnerResponse extends AuthResponse {
  */
 export class AuthService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**

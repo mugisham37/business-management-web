@@ -13,7 +13,8 @@
  * Requirements: 4.2, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
+import type { UserManagementType } from '@/lib/types/generated/graphql';
 import {
   CREATE_MANAGER,
   CREATE_WORKER,
@@ -82,7 +83,7 @@ export interface UsersListResponse {
  */
 export class UserService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**
@@ -100,7 +101,7 @@ export class UserService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformCreateUserInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ createManager: { user: UserManagementType } }>({
         mutation: CREATE_MANAGER,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -140,7 +141,7 @@ export class UserService {
     try {
       const transformedInput = this.transformCreateUserInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ createWorker: { user: UserManagementType } }>({
         mutation: CREATE_WORKER,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -179,7 +180,7 @@ export class UserService {
     try {
       const transformedInput = this.transformUpdateUserInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ updateUser: UserManagementType }>({
         mutation: UPDATE_USER,
         variables: { userId, input: transformedInput },
         // Update cache after mutation
@@ -215,7 +216,7 @@ export class UserService {
    */
   async getUser(userId: string): Promise<User> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getUser: Record<string, unknown> }>({
         query: GET_USER,
         variables: { userId },
         fetchPolicy: 'cache-first',
@@ -245,7 +246,7 @@ export class UserService {
    */
   async getUsers(): Promise<UsersListResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getUsers: Record<string, unknown> }>({
         query: GET_USERS,
         fetchPolicy: 'cache-first',
       });

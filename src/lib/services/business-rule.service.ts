@@ -13,7 +13,7 @@
  * Requirements: 4.5, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   CREATE_BUSINESS_RULE,
   UPDATE_BUSINESS_RULE,
@@ -61,7 +61,7 @@ export interface BusinessRulesListResponse {
  */
 export class BusinessRuleService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**
@@ -79,7 +79,7 @@ export class BusinessRuleService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformCreateBusinessRuleInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ createBusinessRule: BusinessRule }>({
         mutation: CREATE_BUSINESS_RULE,
         variables: { input: transformedInput },
         // Update cache after mutation
@@ -120,7 +120,7 @@ export class BusinessRuleService {
     try {
       const transformedInput = this.transformUpdateBusinessRuleInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ updateBusinessRule: BusinessRule }>({
         mutation: UPDATE_BUSINESS_RULE,
         variables: { ruleId, input: transformedInput },
         // Update cache after mutation
@@ -156,7 +156,7 @@ export class BusinessRuleService {
    */
   async getBusinessRules(transactionType?: string): Promise<BusinessRulesListResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getBusinessRules: Record<string, unknown> }>({
         query: GET_BUSINESS_RULES,
         variables: transactionType ? { transactionType } : undefined,
         fetchPolicy: 'cache-first',

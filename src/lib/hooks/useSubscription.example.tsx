@@ -17,13 +17,48 @@ import { tokenManager } from '@/lib/auth/token-manager';
 import { sessionManager } from '@/lib/auth/session-manager';
 import { permissionChecker } from '@/lib/auth/permission-checker';
 
+// Subscription data types matching GraphQL schema
+interface AuditLogSubscriptionData {
+  auditLogCreated: {
+    id: string;
+    action: string;
+    resourceType: string;
+    result: string;
+    createdAt: string;
+  };
+}
+
+interface PermissionChangedData {
+  onPermissionChanged: {
+    userId: string;
+    permissions: { module: string; actions: string[] }[];
+    fingerprint: string;
+    fingerprintChanged: boolean;
+    reason: string;
+    changedAt: string;
+    changedBy: string;
+  };
+}
+
+interface SessionRevokedData {
+  onSessionRevoked: {
+    userId: string;
+    sessionId: string;
+    reason: string;
+    revokedAt: string;
+    revokedBy: string;
+    affectedSessions: string[];
+    message: string;
+  };
+}
+
 /**
  * Example 1: Basic Audit Log Subscription
  * 
  * Subscribe to new audit logs and display them in real-time.
  */
 export function AuditLogMonitor({ userId }: { userId: string }) {
-  const { data, loading, error } = useSubscription({
+  const { data, loading, error } = useSubscription<AuditLogSubscriptionData>({
     query: ON_AUDIT_LOG_CREATED,
     variables: { userId },
   });
@@ -40,7 +75,7 @@ export function AuditLogMonitor({ userId }: { userId: string }) {
     return <div>Waiting for audit logs...</div>;
   }
 
-  const auditLog = data.onAuditLogCreated;
+  const auditLog = data.auditLogCreated;
 
   return (
     <div className="audit-log-entry">
@@ -62,7 +97,7 @@ export function AuditLogMonitor({ userId }: { userId: string }) {
 export function PermissionMonitor({ userId }: { userId: string }) {
   const [permissionHistory, setPermissionHistory] = React.useState<{ reason: string; changedAt: string; fingerprintChanged?: boolean }[]>([]);
 
-  const { data, loading, error } = useSubscription({
+  const { loading, error } = useSubscription<PermissionChangedData>({
     query: ON_PERMISSION_CHANGED,
     variables: { userId },
     onData: (data) => {
@@ -123,7 +158,7 @@ export function PermissionMonitor({ userId }: { userId: string }) {
  * Implements multi-tab synchronization.
  */
 export function SessionMonitor({ userId }: { userId: string }) {
-  const { data, loading, error } = useSubscription({
+  useSubscription<SessionRevokedData>({
     query: ON_SESSION_REVOKED,
     variables: { userId },
     onData: (data) => {
@@ -169,7 +204,7 @@ export function ConditionalAuditLogMonitor() {
     }
   }, []);
 
-  const { data, loading, error } = useSubscription({
+  const { data, loading, error } = useSubscription<AuditLogSubscriptionData>({
     query: ON_AUDIT_LOG_CREATED,
     variables: { userId: userId || '' },
     skip: !isAuthenticated || !userId, // Skip if not authenticated
@@ -190,7 +225,7 @@ export function ConditionalAuditLogMonitor() {
   return (
     <div>
       {data ? (
-        <div>Latest: {data.onAuditLogCreated.action}</div>
+        <div>Latest: {data.auditLogCreated.action}</div>
       ) : (
         <div>Waiting for audit logs...</div>
       )}
@@ -205,19 +240,19 @@ export function ConditionalAuditLogMonitor() {
  */
 export function MultiSubscriptionMonitor({ userId }: { userId: string }) {
   // Subscribe to audit logs
-  const auditLogs = useSubscription({
+  const auditLogs = useSubscription<AuditLogSubscriptionData>({
     query: ON_AUDIT_LOG_CREATED,
     variables: { userId },
   });
 
   // Subscribe to permission changes
-  const permissions = useSubscription({
+  const permissions = useSubscription<PermissionChangedData>({
     query: ON_PERMISSION_CHANGED,
     variables: { userId },
   });
 
   // Subscribe to session revocations
-  const sessions = useSubscription({
+  const sessions = useSubscription<SessionRevokedData>({
     query: ON_SESSION_REVOKED,
     variables: { userId },
   });
@@ -247,7 +282,7 @@ export function MultiSubscriptionMonitor({ userId }: { userId: string }) {
       <section>
         <h3>Latest Audit Log</h3>
         {auditLogs.data ? (
-          <p>{auditLogs.data.onAuditLogCreated.action}</p>
+          <p>{auditLogs.data.auditLogCreated.action}</p>
         ) : (
           <p>No audit logs yet</p>
         )}
@@ -278,12 +313,12 @@ export function MultiSubscriptionMonitor({ userId }: { userId: string }) {
 export function AuditLogHistory({ userId }: { userId: string }) {
   const [logs, setLogs] = React.useState<{ id: string; action: string; resourceType: string; result: string; createdAt: string }[]>([]);
 
-  const { data, loading, error } = useSubscription({
+  const { loading, error } = useSubscription<AuditLogSubscriptionData>({
     query: ON_AUDIT_LOG_CREATED,
     variables: { userId },
     onData: (data) => {
       // Add new log to the beginning of the array
-      setLogs(prev => [data.onAuditLogCreated, ...prev].slice(0, 50)); // Keep last 50
+      setLogs(prev => [data.auditLogCreated, ...prev].slice(0, 50)); // Keep last 50
     },
   });
 

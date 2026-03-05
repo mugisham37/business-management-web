@@ -13,7 +13,7 @@
  * Requirements: 4.3, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient } from '@apollo/client';
 import {
   GRANT_PERMISSIONS,
   REVOKE_PERMISSIONS,
@@ -23,10 +23,6 @@ import {
   GET_PERMISSION_HISTORY,
 } from '@/graphql/queries/permissions';
 import { errorHandler } from '@/lib/errors/error-handler';
-import {
-  updateUserPermissionsCache,
-  UserPermissions,
-} from '@/lib/cache/cache-updaters';
 
 /**
  * Input types for permission operations
@@ -82,7 +78,7 @@ export interface PermissionHistoryResponse {
  */
 export class PermissionService {
   constructor(
-    private apolloClient: ApolloClient<NormalizedCacheObject>
+    private apolloClient: ApolloClient
   ) {}
 
   /**
@@ -100,7 +96,7 @@ export class PermissionService {
       // Transform input (Requirements: 4.8)
       const transformedInput = this.transformPermissionsInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ grantPermissions: boolean }>({
         mutation: GRANT_PERMISSIONS,
         variables: { input: transformedInput },
         // Refetch user permissions after granting
@@ -136,7 +132,7 @@ export class PermissionService {
     try {
       const transformedInput = this.transformPermissionsInput(input);
 
-      const { data } = await this.apolloClient.mutate({
+      const { data } = await this.apolloClient.mutate<{ revokePermissions: boolean }>({
         mutation: REVOKE_PERMISSIONS,
         variables: { input: transformedInput },
         // Refetch user permissions after revoking
@@ -169,7 +165,7 @@ export class PermissionService {
    */
   async getUserPermissions(userId: string): Promise<UserPermissionsResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getUserPermissions: Record<string, unknown> }>({
         query: GET_USER_PERMISSIONS,
         variables: { userId },
         fetchPolicy: 'cache-first',
@@ -201,7 +197,7 @@ export class PermissionService {
    */
   async getPermissionHistory(userId: string): Promise<PermissionHistoryResponse> {
     try {
-      const { data } = await this.apolloClient.query({
+      const { data } = await this.apolloClient.query<{ getPermissionHistory: Record<string, unknown> }>({
         query: GET_PERMISSION_HISTORY,
         variables: { userId },
         fetchPolicy: 'network-only', // Always fetch fresh history
