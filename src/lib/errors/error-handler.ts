@@ -1,8 +1,6 @@
 import { GraphQLError } from 'graphql';
 import {
   AppError,
-  ErrorCategory,
-  ERROR_CODES,
   AuthenticationError,
   AuthorizationError,
   ValidationError,
@@ -29,15 +27,15 @@ class ErrorHandler {
    * @param error - Any error object (GraphQL, gRPC, or generic)
    * @returns AppError with user-friendly message
    */
-  handle(error: any): AppError {
+  handle(error: unknown): AppError {
     // Handle GraphQL errors
-    if (error.graphQLErrors || error.networkError) {
-      return this.handleGraphQLError(error);
+    if (error && typeof error === 'object' && ('graphQLErrors' in error || 'networkError' in error)) {
+      return this.handleGraphQLError(error as GraphQLErrorResponse);
     }
 
     // Handle gRPC errors (identified by numeric code property)
-    if (typeof error.code === 'number') {
-      return this.handleGRPCError(error);
+    if (error && typeof error === 'object' && 'code' in error && typeof (error as { code: unknown }).code === 'number') {
+      return this.handleGRPCError(error as { code: number; message?: string; details?: string });
     }
 
     // Handle generic errors
@@ -135,7 +133,7 @@ class ErrorHandler {
    * Handle gRPC errors and convert to AppError
    * Maps gRPC status codes to user-friendly error messages
    */
-  handleGRPCError(error: any): AppError {
+  handleGRPCError(error: { code: number; message?: string; details?: string }): AppError {
     // gRPC status codes mapping
     const grpcStatusCodes = {
       OK: 0,

@@ -253,12 +253,12 @@ class ResponseValidator {
   validateError(response: unknown): ValidationResult<{
     message: string;
     code?: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   }> {
     const errorSchema = z.object({
       message: z.string(),
       code: z.string().optional(),
-      details: z.record(z.string(), z.any()).optional(),
+      details: z.record(z.string(), z.unknown()).optional(),
     });
     
     return this.validate(errorSchema, response, 'error response');
@@ -398,8 +398,8 @@ export async function validateWithRetry<T>(
  */
 export function createValidationLink<T>(schema: z.ZodSchema<T>) {
   return {
-    request: (operation: any, forward: any) => {
-      return forward(operation).map((response: any) => {
+    request: (operation: { operationName?: string }, forward: (op: unknown) => { map: (fn: (response: { data?: unknown }) => { data?: unknown }) => unknown }) => {
+      return forward(operation).map((response: { data?: unknown }) => {
         if (response.data) {
           const result = responseValidator.validate(
             schema,
@@ -454,7 +454,7 @@ export function useValidatedFetch<T>(
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<ValidationError | null>(null);
   
-  const fetch = async () => {
+  const fetchData = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -478,17 +478,17 @@ export function useValidatedFetch<T>(
     } finally {
       setLoading(false);
     }
-  };
+  }, [schema, fetchFn]);
   
   React.useEffect(() => {
-    fetch();
-  }, []);
+    fetchData();
+  }, [fetchData]);
   
   return {
     data,
     loading,
     error,
-    refetch: fetch,
+    refetch: fetchData,
   };
 }
 

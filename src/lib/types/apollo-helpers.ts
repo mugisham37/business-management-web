@@ -22,6 +22,14 @@ import type {
   PermissionSnapshotType,
   HealthCheckResponse,
   CreateUserResponse,
+  CreateBranchInput,
+  UpdateBranchInput,
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
+  CreateBusinessRuleInput,
+  UpdateBusinessRuleInput,
+  UpdateOrganizationInput,
+  ModulePermissionInput,
 } from '@/lib/types/generated/graphql';
 
 /**
@@ -84,8 +92,8 @@ export interface UseUsersReturn {
   user?: UserManagementType;
   loading: boolean;
   error?: Error;
-  createUser: (input: any) => Promise<CreateUserResponse>;
-  updateUser: (userId: string, input: any) => Promise<UserManagementType>;
+  createUser: (input: Record<string, unknown>) => Promise<CreateUserResponse>;
+  updateUser: (userId: string, input: Record<string, unknown>) => Promise<UserManagementType>;
   deleteUser: (userId: string) => Promise<boolean>;
   refetch: () => void;
 }
@@ -101,8 +109,8 @@ export interface UseBranchesReturn {
   loading: boolean;
   branchesLoading: boolean;
   error?: Error;
-  createBranch: (input: any) => Promise<BranchType>;
-  updateBranch: (branchId: string, input: any) => Promise<BranchType>;
+  createBranch: (input: CreateBranchInput) => Promise<BranchType>;
+  updateBranch: (branchId: string, input: UpdateBranchInput) => Promise<BranchType>;
   assignManager: (branchId: string, managerId: string) => Promise<boolean>;
   refetch: () => void;
 }
@@ -112,8 +120,8 @@ export interface UseDepartmentsReturn {
   paginatedDepartments: DepartmentType[];
   loading: boolean;
   error?: Error;
-  createDepartment: (input: any) => Promise<DepartmentType>;
-  updateDepartment: (departmentId: string, input: any) => Promise<DepartmentType>;
+  createDepartment: (input: CreateDepartmentInput) => Promise<DepartmentType>;
+  updateDepartment: (departmentId: string, input: UpdateDepartmentInput) => Promise<DepartmentType>;
   assignManager: (departmentId: string, managerId: string) => Promise<boolean>;
   refetch: () => void;
 }
@@ -122,8 +130,8 @@ export interface UseBusinessRulesReturn {
   businessRules?: BusinessRuleType[];
   loading: boolean;
   error?: Error;
-  createBusinessRule: (input: any) => Promise<BusinessRuleType>;
-  updateBusinessRule: (ruleId: string, input: any) => Promise<BusinessRuleType>;
+  createBusinessRule: (input: CreateBusinessRuleInput) => Promise<BusinessRuleType>;
+  updateBusinessRule: (ruleId: string, input: UpdateBusinessRuleInput) => Promise<BusinessRuleType>;
   refetch: () => void;
 }
 
@@ -131,7 +139,7 @@ export interface UseOrganizationReturn {
   organization?: OrganizationType;
   loading: boolean;
   error?: Error;
-  updateOrganization: (input: any) => Promise<OrganizationType>;
+  updateOrganization: (input: UpdateOrganizationInput) => Promise<OrganizationType>;
   refetch: () => void;
 }
 
@@ -140,7 +148,7 @@ export interface UsePermissionsReturn {
   permissionHistory?: PermissionSnapshotType[];
   loading: boolean;
   error?: Error;
-  grantPermissions: (userId: string, permissions: any[]) => Promise<boolean>;
+  grantPermissions: (userId: string, permissions: ModulePermissionInput[]) => Promise<boolean>;
   revokePermissions: (userId: string, modules: string[]) => Promise<boolean>;
   refetch: () => void;
 }

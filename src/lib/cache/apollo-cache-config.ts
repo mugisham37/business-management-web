@@ -265,7 +265,8 @@ const typePolicies: TypePolicies = {
        * Merge by reference
        */
       branches: {
-        merge(existing = [], incoming) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        merge(_existing: unknown[] = [], incoming: unknown[]) {
           return incoming;
         },
       },
@@ -284,7 +285,8 @@ const typePolicies: TypePolicies = {
        * Merge by reference
        */
       departments: {
-        merge(existing = [], incoming) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        merge(_existing: unknown[] = [], incoming: unknown[]) {
           return incoming;
         },
       },
@@ -303,7 +305,8 @@ const typePolicies: TypePolicies = {
        * Merge by reference
        */
       users: {
-        merge(existing = [], incoming) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        merge(_existing: unknown[] = [], incoming: unknown[]) {
           return incoming;
         },
       },

@@ -10,7 +10,6 @@
 // Auth Service
 export {
   AuthService,
-  authService,
   getAuthService,
   type RegisterOwnerInput,
   type LoginInput,
@@ -24,7 +23,6 @@ export {
 // User Service
 export {
   UserService,
-  userService,
   getUserService,
   type CreateManagerInput,
   type CreateWorkerInput,
@@ -36,7 +34,6 @@ export {
 // Permission Service
 export {
   PermissionService,
-  permissionService,
   getPermissionService,
   type GrantPermissionsInput,
   type RevokePermissionsInput,
@@ -49,7 +46,6 @@ export {
 // Organization Service
 export {
   OrganizationService,
-  organizationService,
   getOrganizationService,
   type UpdateOrganizationInput,
   type CreateBranchInput,
@@ -63,7 +59,6 @@ export {
 // Business Rule Service
 export {
   BusinessRuleService,
-  businessRuleService,
   getBusinessRuleService,
   type CreateBusinessRuleInput,
   type UpdateBusinessRuleInput,
@@ -73,7 +68,6 @@ export {
 // Audit Service
 export {
   AuditService,
-  auditService,
   getAuditService,
   type AuditFiltersInput,
   type AuditLogsResponse,
@@ -82,7 +76,6 @@ export {
 // Health Service
 export {
   HealthService,
-  healthService,
   getHealthService,
   type ComponentHealth,
   type HealthCheckResponse,

@@ -1,3 +1,4 @@
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { HEALTH_CHECK_QUERY } from '@/graphql/queries/health';
 
 /**
@@ -46,7 +47,7 @@ export interface HealthCheckResult {
  * Requirements: 2.1
  */
 export async function checkBackendHealth(
-  client: any,
+  client: ApolloClient<NormalizedCacheObject>,
   timeoutMs: number = 5000
 ): Promise<HealthCheckResult> {
   try {

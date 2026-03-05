@@ -190,12 +190,12 @@ export function createCSRFLink() {
   // This will be imported from @apollo/client in the actual implementation
   // For now, we'll provide the factory function
   return {
-    request: (operation: any, forward: any) => {
+    request: (operation: { query: { definitions: Array<{ kind: string; operation?: string }> }; setContext: (fn: (ctx: { headers?: Record<string, string> }) => { headers: Record<string, string> }) => void }, forward: (op: unknown) => unknown) => {
       // Add CSRF token to mutation operations
-      if (operation.query.definitions.some((def: any) => 
+      if (operation.query.definitions.some((def: { kind: string; operation?: string }) => 
         def.kind === 'OperationDefinition' && def.operation === 'mutation'
       )) {
-        operation.setContext(({ headers = {} }: any) => ({
+        operation.setContext(({ headers = {} }: { headers?: Record<string, string> }) => ({
           headers: {
             ...headers,
             ...csrfProtection.getHeaders(),
@@ -255,10 +255,10 @@ export function useCSRFToken() {
  * </form>
  * ```
  */
-export function withCSRFProtection<T extends (...args: any[]) => any>(
+export function withCSRFProtection<T extends (...args: unknown[]) => unknown>(
   handler: T
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     // Ensure CSRF token is generated
     csrfProtection.getToken();
     return handler(...args);

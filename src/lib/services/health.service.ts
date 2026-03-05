@@ -14,7 +14,7 @@
  * Requirements: 4.7, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import { HEALTH } from '@/graphql/queries/health';
 import { errorHandler } from '@/lib/errors/error-handler';
 
@@ -40,7 +40,7 @@ export interface HealthCheckResponse {
  */
 export class HealthService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**

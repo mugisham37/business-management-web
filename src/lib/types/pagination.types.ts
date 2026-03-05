@@ -66,12 +66,12 @@ export function sortArray<T>(
   if (!sortBy) return items;
 
   return [...items].sort((a, b) => {
-    const aValue = (a as any)[sortBy];
-    const bValue = (b as any)[sortBy];
+    const aValue = (a as Record<string, unknown>)[sortBy];
+    const bValue = (b as Record<string, unknown>)[sortBy];
 
     if (aValue === bValue) return 0;
 
-    const comparison = aValue < bValue ? -1 : 1;
+    const comparison = String(aValue) < String(bValue) ? -1 : 1;
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 }

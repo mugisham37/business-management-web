@@ -141,12 +141,12 @@ export const retryLink = new RetryLink({
   },
   attempts: {
     max: config.retry.maxAttempts,
-    retryIf: (error, _) => {
+    retryIf: (error) => {
       // Don't retry if no error
       if (!error) return false;
       
       // Don't retry client errors (4xx)
-      const statusCode = (error as Record<string, unknown>)?.statusCode;
+      const statusCode = (error as unknown as Record<string, unknown>)?.statusCode;
       if (statusCode && typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
         return false;
       }

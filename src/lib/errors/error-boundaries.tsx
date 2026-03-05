@@ -26,7 +26,7 @@ export const ErrorFallback: React.FC<{
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   return (
-    <div className="flex min-h-[400px] w-full flex-col items-center justify-center p-8">
+    <div className="flex min-h-100 w-full flex-col items-center justify-center p-8">
       <div className="max-w-md space-y-4 text-center">
         {/* Error Icon */}
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">

@@ -21,7 +21,7 @@ export interface SessionEvent {
   type: SessionEventType;
   sessionId: string;
   timestamp: number;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 /**
@@ -94,8 +94,11 @@ class SessionManager {
       
       case 'token_refresh':
         // Sync new tokens across tabs
-        if (event.data?.accessToken) {
-          tokenManager.setTokens(event.data.accessToken, event.data.refreshToken);
+        if (event.data?.accessToken && typeof event.data.accessToken === 'string') {
+          tokenManager.setTokens(
+            event.data.accessToken,
+            event.data.refreshToken as string
+          );
         }
         break;
       
@@ -112,7 +115,7 @@ class SessionManager {
    * @param type - Type of session event
    * @param data - Optional data to include with the event
    */
-  broadcastEvent(type: SessionEventType, data?: any): void {
+  broadcastEvent(type: SessionEventType, data?: Record<string, unknown>): void {
     if (!this.broadcastChannel) return;
 
     const event: SessionEvent = {

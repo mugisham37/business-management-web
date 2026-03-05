@@ -13,7 +13,7 @@
  * Requirements: 4.2, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   CREATE_MANAGER,
   CREATE_WORKER,
@@ -82,7 +82,7 @@ export interface UsersListResponse {
  */
 export class UserService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**
@@ -328,17 +328,16 @@ export class UserService {
    */
   private transformUserResponse(data: Record<string, unknown>): User {
     return {
-      __typename: (data.__typename as string) || 'User',
+      __typename: ((data.__typename as string) || 'UserManagementType') as 'UserManagementType',
       id: data.id as string,
       email: data.email as string,
       firstName: data.firstName as string,
       lastName: data.lastName as string,
-      hierarchyLevel: data.hierarchyLevel as number,
+      hierarchyLevel: String(data.hierarchyLevel),
       organizationId: data.organizationId as string,
-      branchId: data.branchId as string,
-      departmentId: data.departmentId as string,
+      branchId: (data.branchId as string) ?? null,
+      departmentId: (data.departmentId as string) ?? null,
       status: data.status as string,
-      isActive: data.status === 'ACTIVE',
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
     };

@@ -1,4 +1,4 @@
-import { configureStore, Tuple } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import usersReducer from './slices/usersSlice';
 import permissionsReducer from './slices/permissionsSlice';
 import organizationsReducer from './slices/organizationsSlice';

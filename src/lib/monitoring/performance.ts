@@ -11,12 +11,16 @@
  * Requirements: 8.1, 12.10
  */
 
+interface PerformanceEventTiming extends PerformanceEntry {
+  processingStart: number;
+}
+
 interface PerformanceMetric {
   name: string;
   value: number;
   unit: 'ms' | 'bytes' | 'count' | 'percent';
   timestamp: Date;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 interface MetricSummary {
@@ -197,10 +201,11 @@ class PerformanceMonitor {
     try {
       new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry) => {
+          const timing = entry as PerformanceEventTiming;
           this.recordMetric({
             name: 'fid',
-            value: entry.processingStart - entry.startTime,
+            value: timing.processingStart - timing.startTime,
             unit: 'ms',
             timestamp: new Date(),
           });
@@ -216,9 +221,9 @@ class PerformanceMonitor {
       let clsValue = 0;
       new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry & { hadRecentInput?: boolean; value?: number }) => {
           if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+            clsValue += entry.value || 0;
           }
         });
         this.recordMetric({

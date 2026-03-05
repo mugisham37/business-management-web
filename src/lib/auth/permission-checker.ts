@@ -1,4 +1,4 @@
-import { tokenManager, TokenPayload } from './token-manager';
+import { tokenManager } from './token-manager';
 
 /**
  * Permission Module Types

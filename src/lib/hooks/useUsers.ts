@@ -446,7 +446,7 @@ export function useUsers(
     // Data
     users: usersData?.getUsers?.users,
     paginatedUsers,
-    user: userData?.getUser,
+    user: userData?.getUser ?? undefined,
     pagination,
     
     // Loading states

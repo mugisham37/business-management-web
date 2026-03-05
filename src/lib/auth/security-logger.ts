@@ -94,7 +94,7 @@ export interface SecurityEvent {
   /**
    * Additional context
    */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   
   /**
    * IP address (if available)

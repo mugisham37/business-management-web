@@ -260,12 +260,12 @@ export class RateLimitError extends Error {
  * }
  * ```
  */
-export function createRateLimitedFunction<T extends (...args: any[]) => any>(
+export function createRateLimitedFunction<T extends (...args: unknown[]) => unknown>(
   fn: T,
   key: string,
   config: RateLimitConfig
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     const result = rateLimiter.check(key, config);
     
     if (!result.allowed) {
@@ -299,13 +299,13 @@ export function createRateLimitedFunction<T extends (...args: any[]) => any>(
  */
 export function rateLimit(key: string, config: RateLimitConfig) {
   return function (
-    target: any,
+    _target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value;
     
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const result = rateLimiter.check(key, config);
       
       if (!result.allowed) {
@@ -436,9 +436,10 @@ export async function fetchWithRateLimit(
  * });
  * ```
  */
-export function createRateLimitLink(config: RateLimitConfig = DEFAULT_RATE_LIMITS.mutation) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function createRateLimitLink(_config: RateLimitConfig = DEFAULT_RATE_LIMITS.mutation) {
   return {
-    request: (operation: any, forward: any) => {
+    request: (operation: { query: { definitions: Array<{ operation?: string }> }; operationName?: string }, forward: (op: unknown) => unknown) => {
       const operationType = operation.query.definitions[0]?.operation || 'query';
       const operationName = operation.operationName || 'unknown';
       const key = `${operationType}:${operationName}`;

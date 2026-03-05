@@ -13,7 +13,7 @@
  * Requirements: 4.5, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   CREATE_BUSINESS_RULE,
   UPDATE_BUSINESS_RULE,
@@ -61,7 +61,7 @@ export interface BusinessRulesListResponse {
  */
 export class BusinessRuleService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**
@@ -222,14 +222,17 @@ export class BusinessRuleService {
    */
   private transformBusinessRuleResponse(data: Record<string, unknown>): BusinessRule {
     return {
-      __typename: (data.__typename as string) || 'BusinessRule',
+      __typename: 'BusinessRuleType' as const,
       id: data.id as string,
-      name: data.name as string,
+      ruleName: (data.ruleName ?? data.name) as string,
       organizationId: data.organizationId as string,
-      ruleType: data.ruleType as string,
-      conditions: data.conditions as Record<string, unknown>,
-      actions: data.actions as Record<string, unknown>,
-      isActive: data.isActive as boolean,
+      transactionType: (data.transactionType ?? data.ruleType) as string,
+      appliesToLevel: (data.appliesToLevel as string) || '',
+      approverLevel: (data.approverLevel as string) || '',
+      basedOn: (data.basedOn as string) || '',
+      thresholdValue: (data.thresholdValue as number) || 0,
+      priority: (data.priority as number) || 0,
+      isActive: (data.isActive as boolean) ?? true,
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
     };

@@ -7,7 +7,7 @@
  * Requirements: 8.6
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppError, UnknownError } from '@/lib/errors/error-types';
 
 /**
@@ -80,7 +80,11 @@ export function useOptimisticUpdate<T>(initialData: T | null = null) {
   });
 
   const stateRef = useRef(state);
-  stateRef.current = state;
+
+  // Keep ref in sync with state via effect
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   /**
    * Execute mutation with optimistic update

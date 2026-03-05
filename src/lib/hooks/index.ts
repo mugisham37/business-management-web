@@ -90,7 +90,6 @@ export { useOrganization } from './useOrganization';
 export type {
   UseOrganizationReturn,
   UpdateOrganizationInput,
-  OrganizationSettings,
   Organization,
 } from './useOrganization';
 
@@ -138,7 +137,7 @@ export type {
 export { useHealthCheck } from './useHealthCheck';
 export type {
   UseHealthCheckReturn,
-  ComponentHealth,
+  ServiceHealth,
   HealthCheckResponse,
 } from './useHealthCheck';
 

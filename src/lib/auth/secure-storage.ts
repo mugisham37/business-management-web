@@ -306,7 +306,8 @@ export function getRecommendedStrategy(): StorageStrategy {
  * 
  * @param storage - SecureStorage instance to validate
  */
-export function validateStorageSecurity(storage: SecureStorage): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function validateStorageSecurity(_storage: SecureStorage): void {
   const support = checkStorageSupport();
   const isProduction = process.env.NODE_ENV === 'production';
   

@@ -14,7 +14,7 @@
  * Requirements: 4.6, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   GET_USER_AUDIT_LOGS,
   GET_ORGANIZATION_AUDIT_LOGS,
@@ -48,7 +48,7 @@ export interface AuditLogsResponse {
  */
 export class AuditService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**
@@ -175,16 +175,15 @@ export class AuditService {
    */
   private transformAuditLogResponse(data: Record<string, unknown>): AuditLog {
     return {
-      __typename: (data.__typename as string) || 'AuditLog',
+      __typename: 'AuditLogType' as const,
       id: data.id as string,
-      userId: data.userId as string,
+      userId: (data.userId as string) ?? null,
       action: data.action as string,
-      entityType: data.entityType as string,
-      entityId: data.entityId as string,
-      changes: data.changes as Record<string, unknown>,
-      ipAddress: data.ipAddress as string,
-      userAgent: data.userAgent as string,
-      timestamp: data.timestamp as string,
+      resourceType: (data.resourceType ?? data.entityType) as string,
+      result: (data.result as string) || 'SUCCESS',
+      ipAddress: (data.ipAddress as string) ?? null,
+      userAgent: (data.userAgent as string) ?? null,
+      createdAt: (data.createdAt ?? data.timestamp) as string,
     };
   }
 }

@@ -74,11 +74,11 @@ export interface UseSubscriptionReturn<TData> {
  * });
  * ```
  */
-export function useSubscription<TData = any, TVariables = any>(
+export function useSubscription<TData = unknown, TVariables = unknown>(
   options: UseSubscriptionOptions<TData, TVariables>
 ): UseSubscriptionReturn<TData> {
   const [data, setData] = useState<TData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!options.skip);
   const [error, setError] = useState<Error | null>(null);
   
   // Use ref to track if component is mounted
@@ -103,7 +103,6 @@ export function useSubscription<TData = any, TVariables = any>(
   useEffect(() => {
     // Skip subscription if skip option is true
     if (options.skip) {
-      setLoading(false);
       return;
     }
 

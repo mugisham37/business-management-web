@@ -96,7 +96,7 @@ export const millionFormatter = (number: number, decimals = 1) => {
 /**
  * Collection of number formatters for different use cases
  */
-export const formatters: { [key: string]: any } = {
+export const formatters: { [key: string]: (number: number, currency?: string) => string } = {
   currency: (number: number, currency: string = "USD") =>
     new Intl.NumberFormat("en-US", {
       style: "currency",

@@ -117,13 +117,13 @@ class LogFilter {
     let filtered = text;
     
     // Apply pattern-based filtering
-    for (const [name, pattern] of Object.entries(SENSITIVE_PATTERNS)) {
+    for (const pattern of Object.values(SENSITIVE_PATTERNS)) {
       filtered = filtered.replace(pattern, this.config.redactedText || REDACTED);
     }
     
     // Apply custom patterns
     if (this.config.customPatterns) {
-      for (const [name, pattern] of Object.entries(this.config.customPatterns)) {
+      for (const pattern of Object.values(this.config.customPatterns)) {
         filtered = filtered.replace(pattern, this.config.redactedText || REDACTED);
       }
     }
@@ -137,7 +137,7 @@ class LogFilter {
    * @param obj - Object to filter
    * @returns Filtered object
    */
-  filterObject<T extends Record<string, any>>(obj: T): T {
+  filterObject<T extends Record<string, unknown>>(obj: T): T {
     if (!this.config.enabled) {
       return obj;
     }
@@ -146,7 +146,7 @@ class LogFilter {
       return obj;
     }
     
-    const filtered: Record<string, any> = {};
+    const filtered: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(obj)) {
       // Check if field is sensitive
@@ -159,7 +159,7 @@ class LogFilter {
           typeof item === 'object' ? this.filterObject(item) : item
         );
       } else if (value && typeof value === 'object') {
-        filtered[key] = this.filterObject(value);
+        filtered[key] = this.filterObject(value as Record<string, unknown>);
       } else {
         filtered[key] = value;
       }
@@ -183,7 +183,7 @@ class LogFilter {
       if (typeof item === 'string') {
         return this.filterString(item) as T;
       } else if (item && typeof item === 'object') {
-        return this.filterObject(item as Record<string, any>) as T;
+        return this.filterObject(item as Record<string, unknown>) as T;
       }
       return item;
     });
@@ -234,12 +234,12 @@ export const logFilter = new LogFilter();
  * // Output: User data: { email: '[REDACTED]', password: '[REDACTED]' }
  * ```
  */
-export function safeLog(...args: any[]): void {
+export function safeLog(...args: unknown[]): void {
   const filtered = args.map((arg) => {
     if (typeof arg === 'string') {
       return logFilter.filterString(arg);
     } else if (arg && typeof arg === 'object') {
-      return logFilter.filterObject(arg);
+      return logFilter.filterObject(arg as Record<string, unknown>);
     }
     return arg;
   });
@@ -252,12 +252,12 @@ export function safeLog(...args: any[]): void {
  * 
  * @param args - Arguments to log
  */
-export function safeError(...args: any[]): void {
+export function safeError(...args: unknown[]): void {
   const filtered = args.map((arg) => {
     if (typeof arg === 'string') {
       return logFilter.filterString(arg);
     } else if (arg && typeof arg === 'object') {
-      return logFilter.filterObject(arg);
+      return logFilter.filterObject(arg as Record<string, unknown>);
     }
     return arg;
   });
@@ -270,12 +270,12 @@ export function safeError(...args: any[]): void {
  * 
  * @param args - Arguments to log
  */
-export function safeWarn(...args: any[]): void {
+export function safeWarn(...args: unknown[]): void {
   const filtered = args.map((arg) => {
     if (typeof arg === 'string') {
       return logFilter.filterString(arg);
     } else if (arg && typeof arg === 'object') {
-      return logFilter.filterObject(arg);
+      return logFilter.filterObject(arg as Record<string, unknown>);
     }
     return arg;
   });
@@ -288,12 +288,12 @@ export function safeWarn(...args: any[]): void {
  * 
  * @param args - Arguments to log
  */
-export function safeInfo(...args: any[]): void {
+export function safeInfo(...args: unknown[]): void {
   const filtered = args.map((arg) => {
     if (typeof arg === 'string') {
       return logFilter.filterString(arg);
     } else if (arg && typeof arg === 'object') {
-      return logFilter.filterObject(arg);
+      return logFilter.filterObject(arg as Record<string, unknown>);
     }
     return arg;
   });
@@ -323,27 +323,27 @@ export function createSafeLogger(config?: Partial<LogFilterConfig>) {
   const filter = new LogFilter(config);
   
   return {
-    log: (...args: any[]) => {
+    log: (...args: unknown[]) => {
       const filtered = args.map((arg) =>
-        typeof arg === 'object' ? filter.filterObject(arg) : filter.filterString(String(arg))
+        typeof arg === 'object' && arg !== null ? filter.filterObject(arg as Record<string, unknown>) : filter.filterString(String(arg))
       );
       console.log(...filtered);
     },
-    error: (...args: any[]) => {
+    error: (...args: unknown[]) => {
       const filtered = args.map((arg) =>
-        typeof arg === 'object' ? filter.filterObject(arg) : filter.filterString(String(arg))
+        typeof arg === 'object' && arg !== null ? filter.filterObject(arg as Record<string, unknown>) : filter.filterString(String(arg))
       );
       console.error(...filtered);
     },
-    warn: (...args: any[]) => {
+    warn: (...args: unknown[]) => {
       const filtered = args.map((arg) =>
-        typeof arg === 'object' ? filter.filterObject(arg) : filter.filterString(String(arg))
+        typeof arg === 'object' && arg !== null ? filter.filterObject(arg as Record<string, unknown>) : filter.filterString(String(arg))
       );
       console.warn(...filtered);
     },
-    info: (...args: any[]) => {
+    info: (...args: unknown[]) => {
       const filtered = args.map((arg) =>
-        typeof arg === 'object' ? filter.filterObject(arg) : filter.filterString(String(arg))
+        typeof arg === 'object' && arg !== null ? filter.filterObject(arg as Record<string, unknown>) : filter.filterString(String(arg))
       );
       console.info(...filtered);
     },
@@ -378,10 +378,10 @@ export function overrideConsole(): void {
   console.info = safeInfo;
   
   // Store original methods for debugging if needed
-  (console as any)._originalLog = originalLog;
-  (console as any)._originalError = originalError;
-  (console as any)._originalWarn = originalWarn;
-  (console as any)._originalInfo = originalInfo;
+  (console as unknown as Record<string, unknown>)._originalLog = originalLog;
+  (console as unknown as Record<string, unknown>)._originalError = originalError;
+  (console as unknown as Record<string, unknown>)._originalWarn = originalWarn;
+  (console as unknown as Record<string, unknown>)._originalInfo = originalInfo;
 }
 
 /**
@@ -389,10 +389,11 @@ export function overrideConsole(): void {
  * Useful for debugging in production
  */
 export function restoreConsole(): void {
-  if ((console as any)._originalLog) {
-    console.log = (console as any)._originalLog;
-    console.error = (console as any)._originalError;
-    console.warn = (console as any)._originalWarn;
-    console.info = (console as any)._originalInfo;
+  const c = console as unknown as Record<string, unknown>;
+  if (c._originalLog) {
+    console.log = c._originalLog as typeof console.log;
+    console.error = c._originalError as typeof console.error;
+    console.warn = c._originalWarn as typeof console.warn;
+    console.info = c._originalInfo as typeof console.info;
   }
 }

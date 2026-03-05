@@ -13,7 +13,7 @@
  * Requirements: 4.1, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   REGISTER_OWNER,
   LOGIN,
@@ -85,7 +85,7 @@ export interface RegisterOwnerResponse extends AuthResponse {
  */
 export class AuthService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**
@@ -348,19 +348,18 @@ export class AuthService {
    * Transform authentication response to application format
    * Requirements: 4.9
    */
-  private transformAuthResponse(data: Record<string, unknown>): AuthResponse {
-    const user = data.user as Record<string, unknown>;
+  private transformAuthResponse(data: AuthResponse): AuthResponse {
     return {
-      accessToken: data.accessToken as string,
-      refreshToken: data.refreshToken as string,
-      expiresIn: data.expiresIn as number,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      expiresIn: data.expiresIn,
       user: {
-        id: user.id as string,
-        email: user.email as string,
-        firstName: user.firstName as string,
-        lastName: user.lastName as string,
-        hierarchyLevel: user.hierarchyLevel as number,
-        organizationId: user.organizationId as string,
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        hierarchyLevel: data.user.hierarchyLevel,
+        organizationId: data.user.organizationId,
       },
     };
   }

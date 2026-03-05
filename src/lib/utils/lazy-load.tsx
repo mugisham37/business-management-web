@@ -15,7 +15,7 @@
 
 'use client';
 
-import { lazy, Suspense, ComponentType, ReactNode } from 'react';
+import React, { lazy, Suspense, ComponentType, ReactNode } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -77,6 +77,7 @@ export function TableSkeletonFallback() {
  * 
  * Requirements: 12.6
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoad<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   fallback: ReactNode = <DefaultLoadingFallback />
@@ -111,14 +112,15 @@ export function lazyLoad<T extends ComponentType<any>>(
  * 
  * Requirements: 12.6
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoadNamed<T extends ComponentType<any>>(
-  importFn: () => Promise<any>,
+  importFn: () => Promise<Record<string, ComponentType>>,
   exportName: string,
   fallback: ReactNode = <DefaultLoadingFallback />
 ): ComponentType<React.ComponentProps<T>> {
   const LazyComponent = lazy(async () => {
-    const module = await importFn();
-    return { default: module[exportName] };
+    const importedModule = await importFn();
+    return { default: importedModule[exportName] };
   });
 
   return function LazyLoadedComponent(props: React.ComponentProps<T>) {
@@ -148,7 +150,7 @@ export function lazyLoadNamed<T extends ComponentType<any>>(
  * 
  * Requirements: 12.7
  */
-export function preloadComponent(importFn: () => Promise<any>): void {
+export function preloadComponent(importFn: () => Promise<unknown>): void {
   importFn().catch((error) => {
     console.error('Failed to preload component:', error);
   });
@@ -172,6 +174,7 @@ export function preloadComponent(importFn: () => Promise<any>): void {
  * 
  * Requirements: 12.6
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoadWithRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   retries: number = 3,

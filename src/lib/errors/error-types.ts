@@ -86,7 +86,7 @@ export class AuthenticationError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }
@@ -107,7 +107,7 @@ export class AuthorizationError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }
@@ -136,7 +136,7 @@ export class ValidationError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }
@@ -157,7 +157,7 @@ export class NetworkError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }
@@ -178,7 +178,7 @@ export class ServerError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }
@@ -199,7 +199,7 @@ export class UnknownError extends Error implements AppError {
     this.originalError = originalError;
     this.context = context;
     if (context?.correlationId) {
-      this.correlationId = context.correlationId;
+      this.correlationId = context.correlationId as string;
     }
   }
 }

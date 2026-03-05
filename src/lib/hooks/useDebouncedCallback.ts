@@ -14,7 +14,7 @@
  * Requirements: 12.3
  */
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useMemo } from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface DebouncedFunction<T extends (...args: any[]) => any> {
@@ -67,23 +67,19 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     }
   }, []);
 
-  // Debounced function
-  const debouncedCallback = useCallback(
-    (...args: Parameters<T>) => {
-      // Cancel any pending timeout
+  // Create debounced function with cancel method using useMemo
+  const debouncedCallback = useMemo(() => {
+    const fn = ((...args: Parameters<T>) => {
       cancel();
-
-      // Set up new timeout
       timeoutRef.current = setTimeout(() => {
         callbackRef.current(...args);
         timeoutRef.current = null;
       }, delay);
-    },
-    [delay, cancel]
-  ) as DebouncedFunction<T>;
+    }) as DebouncedFunction<T>;
 
-  // Attach cancel method
-  debouncedCallback.cancel = cancel;
+    fn.cancel = cancel;
+    return fn;
+  }, [delay, cancel]);
 
   // Clean up on unmount
   useEffect(() => {

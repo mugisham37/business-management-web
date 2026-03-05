@@ -7,7 +7,7 @@
  * Requirements: 8.3
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppError, UnknownError } from '@/lib/errors/error-types';
 
 /**
@@ -18,7 +18,7 @@ export type OperationStatus = 'idle' | 'pending' | 'success' | 'error';
 /**
  * Operation state
  */
-export interface Operation<T = any> {
+export interface Operation<T = unknown> {
   id: string;
   status: OperationStatus;
   loading: boolean;
@@ -59,12 +59,14 @@ export interface Operation<T = any> {
  * ));
  * ```
  */
-export function useOperationQueue<T = any>() {
+export function useOperationQueue<T = unknown>() {
   const [operations, setOperations] = useState<Record<string, Operation<T>>>({});
   const operationsRef = useRef<Record<string, Operation<T>>>({});
 
-  // Keep ref in sync with state
-  operationsRef.current = operations;
+  // Keep ref in sync with state via effect
+  useEffect(() => {
+    operationsRef.current = operations;
+  }, [operations]);
 
   /**
    * Execute an operation

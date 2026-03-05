@@ -14,7 +14,7 @@
  * Requirements: 4.4, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   UPDATE_ORGANIZATION,
 } from '@/graphql/mutations/organizations';
@@ -100,7 +100,7 @@ export interface DepartmentsListResponse {
  */
 export class OrganizationService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**
@@ -535,11 +535,10 @@ export class OrganizationService {
    */
   private transformOrganizationResponse(data: Record<string, unknown>): Organization {
     return {
-      __typename: (data.__typename as string) || 'Organization',
+      __typename: 'OrganizationType' as const,
       id: data.id as string,
       name: data.name as string,
-      description: data.description as string,
-      isActive: data.isActive as boolean,
+      status: (data.status as string) || 'ACTIVE',
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
     };
@@ -551,12 +550,11 @@ export class OrganizationService {
    */
   private transformBranchResponse(data: Record<string, unknown>): Branch {
     return {
-      __typename: (data.__typename as string) || 'Branch',
+      __typename: 'BranchType' as const,
       id: data.id as string,
       name: data.name as string,
       organizationId: data.organizationId as string,
-      description: data.description as string,
-      isActive: data.isActive as boolean,
+      code: (data.code as string) || '',
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
     };
@@ -579,12 +577,11 @@ export class OrganizationService {
    */
   private transformDepartmentResponse(data: Record<string, unknown>): Department {
     return {
-      __typename: (data.__typename as string) || 'Department',
+      __typename: 'DepartmentType' as const,
       id: data.id as string,
       name: data.name as string,
-      branchId: data.branchId as string,
-      description: data.description as string,
-      isActive: data.isActive as boolean,
+      branchId: (data.branchId as string) ?? null,
+      code: (data.code as string) || '',
       createdAt: data.createdAt as string,
       updatedAt: data.updatedAt as string,
     };

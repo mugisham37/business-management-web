@@ -132,9 +132,6 @@ export function useWebSocket(): UseWebSocketReturn {
       setState(newState);
     });
 
-    // Sync initial state
-    setState(wsConnectionManager.getState());
-
     // Cleanup subscription on unmount
     return () => {
       unsubscribe();

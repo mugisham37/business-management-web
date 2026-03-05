@@ -18,7 +18,7 @@ interface TraceSpan {
   endTime?: number;
   duration?: number;
   correlationId: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 class RequestTracer {
@@ -60,7 +60,7 @@ class RequestTracer {
    * @param spanId - The span ID returned from startSpan()
    * @param attributes - Optional attributes to attach to the span
    */
-  endSpan(spanId: string, attributes?: Record<string, any>): void {
+  endSpan(spanId: string, attributes?: Record<string, unknown>): void {
     const span = this.spans.get(spanId);
     if (!span) {
       console.warn(`[Trace] Span not found: ${spanId}`);

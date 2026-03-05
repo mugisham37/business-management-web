@@ -31,14 +31,14 @@ import { AppError } from '@/lib/errors/error-types';
 
 /**
  * Session type
+ * Aligned with generated SessionType from GraphQL schema
  */
 export interface Session {
   id: string;
-  userId: string;
-  deviceInfo: string;
   ipAddress: string;
-  lastActivity: string;
+  userAgent: string;
   expiresAt: string;
+  createdAt: string;
 }
 
 /**

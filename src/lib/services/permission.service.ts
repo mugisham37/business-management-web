@@ -13,7 +13,7 @@
  * Requirements: 4.3, 4.8, 4.9, 4.10
  */
 
-import { ApolloClient } from '@apollo/client';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client';
 import {
   GRANT_PERMISSIONS,
   REVOKE_PERMISSIONS,
@@ -82,7 +82,7 @@ export interface PermissionHistoryResponse {
  */
 export class PermissionService {
   constructor(
-    private apolloClient: ApolloClient
+    private apolloClient: ApolloClient<NormalizedCacheObject>
   ) {}
 
   /**

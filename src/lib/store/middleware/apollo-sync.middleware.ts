@@ -42,19 +42,22 @@ export const createApolloSyncMiddleware = (
     // Sync state to Apollo cache after action completes
     const state = store.getState();
 
+    // Type guard: Redux actions always have a `type` string property
+    const actionType = (action as { type?: string }).type;
+
     try {
       // Sync users state to cache
-      if (action.type?.startsWith('users/')) {
+      if (actionType?.startsWith('users/')) {
         syncUsersToCache(apolloClient, state);
       }
 
       // Sync permissions state to cache
-      if (action.type?.startsWith('permissions/')) {
+      if (actionType?.startsWith('permissions/')) {
         syncPermissionsToCache(apolloClient, state);
       }
 
       // Sync organizations state to cache
-      if (action.type?.startsWith('organizations/')) {
+      if (actionType?.startsWith('organizations/')) {
         syncOrganizationsToCache(apolloClient, state);
       }
     } catch (error: unknown) {
