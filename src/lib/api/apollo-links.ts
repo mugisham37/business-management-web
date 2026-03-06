@@ -10,6 +10,7 @@ import { config } from '@/lib/config/environment';
 import { tokenManager } from '@/lib/auth/token-manager';
 import { generateCorrelationId } from '@/lib/utils/correlation';
 import { tokenRefreshLink } from './token-refresh-link';
+import { apolloLoggingLink } from './apollo-logging-link';
 
 /**
  * HTTP Link for GraphQL queries and mutations
@@ -93,32 +94,14 @@ export const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link
  * Handles GraphQL and network errors
- * - Logs errors with correlation ID
- * - Note: Token refresh is handled by tokenRefreshLink
+ * - Note: Detailed logging is now handled by apolloLoggingLink
+ * - This link is kept for backward compatibility and additional error handling
  * 
  * Requirements: 2.1, 6.1
  */
 export const errorLink = onError((errorResponse) => {
-  const { error, operation } = errorResponse;
-  
-  // Check if it's a GraphQL error
-  if (CombinedGraphQLErrors.is(error)) {
-    for (const err of error.errors) {
-      // Log GraphQL errors
-      console.error(
-        `[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`,
-        {
-          correlationId: err.extensions?.correlationId,
-          code: err.extensions?.code,
-        }
-      );
-    }
-  } else {
-    // Network or other errors
-    console.error('[Network error]:', error, {
-      operation: operation.operationName,
-    });
-  }
+  // Error logging is now handled by apolloLoggingLink
+  // This link can be used for additional error handling if needed
 });
 
 /**
@@ -159,13 +142,16 @@ export const retryLink = new RetryLink({
 
 /**
  * Complete Apollo Link Chain
- * Order matters: RetryLink → TokenRefreshLink → ErrorLink → AuthLink → SplitLink → [HttpLink | WsLink]
+ * Order matters: 
+ * LoggingLink → RetryLink → TokenRefreshLink → ErrorLink → AuthLink → SplitLink → [HttpLink | WsLink]
  * 
+ * Logging happens first to capture all operations with full context
  * Token refresh happens before error logging to allow retry with new token
  * 
- * Requirements: 2.1, 4.12, 7.6, 7.7
+ * Requirements: 2.1, 4.12, 7.6, 7.7, 8.3
  */
 export const apolloLink = from([
+  apolloLoggingLink,
   retryLink,
   tokenRefreshLink,
   errorLink,

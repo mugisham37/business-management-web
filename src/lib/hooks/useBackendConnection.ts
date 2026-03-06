@@ -169,14 +169,19 @@ export function useBackendConnection(config: UseBackendConnectionConfig = {}) {
   }, [checkOnMount, performHealthCheck]);
 
   /**
-   * Auto-retry when disconnected
+   * Auto-retry when disconnected, but stop when connected
    */
   useEffect(() => {
+    // Only schedule retry if disconnected and not checking
     if (!state.isHealthy && state.status !== 'checking') {
       scheduleRetry();
+    } else if (state.isHealthy && retryTimeoutRef.current) {
+      // Clear retry timeout when connected
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
     }
 
-    // Cleanup timeout on unmount or when connected
+    // Cleanup timeout on unmount
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);

@@ -118,7 +118,7 @@ export function ConnectionProvider({
    */
   const connection = useBackendConnection({
     checkOnMount,
-    retryInterval: 10000, // Retry every 10 seconds
+    retryInterval: 30000, // Retry every 30 seconds instead of 10
     maxRetries: Infinity, // Keep retrying
     onStatusChange: handleStatusChange,
   });

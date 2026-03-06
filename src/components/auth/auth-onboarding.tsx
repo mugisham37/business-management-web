@@ -199,29 +199,28 @@ export function AuthOnboarding() {
 
       // Prepare registration input
       const input = {
-        // Personal information
+        // Personal Information
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         
-        // Company information
-        companyName: formData.companyName,
+        // Organization Information (renamed to match backend)
+        organizationName: formData.companyName,
         industry: formData.industry,
         companySize: formData.companySize,
         website: formData.website || null,
         
-        // Business operations (auto-set role as owner)
-        role: 'owner',
+        // Business Operations
         businessType: formData.businessType,
         primaryActivities: formData.primaryActivities,
         businessStage: formData.businessStage,
         
-        // Business goals
+        // Business Goals
         businessGoals: formData.selectedGoals,
         timeline: formData.timeline,
         
-        // Auto-detected preferences
+        // Preferences
         currency: formData.currency,
         timezone: formData.timezone,
         emailNotifications: formData.emailNotifications,
@@ -234,6 +233,7 @@ export function AuthOnboarding() {
         registerOwner: {
           accessToken: string;
           refreshToken: string;
+          expiresIn: number;
           user: {
             id: string;
             email: string;
@@ -241,10 +241,6 @@ export function AuthOnboarding() {
             lastName: string | null;
             hierarchyLevel: string;
             organizationId: string;
-          };
-          organization: {
-            id: string;
-            name: string;
           };
         };
       }>({
@@ -254,15 +250,39 @@ export function AuthOnboarding() {
 
       if (data?.registerOwner) {
         // Registration successful - tokens are automatically stored by useAuth
+        console.log("✅ Registration successful:", {
+          userId: data.registerOwner.user.id,
+          organizationId: data.registerOwner.user.organizationId,
+          email: data.registerOwner.user.email,
+        });
+        
         // Redirect to dashboard
         router.push("/dashboard");
       } else {
         throw new Error("Registration failed - no data returned");
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Registration failed";
+    } catch (err: any) {
+      // Enhanced error handling with GraphQL error extraction
+      let errorMessage = "Registration failed";
+      
+      if (err.graphQLErrors?.length > 0) {
+        errorMessage = err.graphQLErrors[0].message;
+        console.error("GraphQL Error:", err.graphQLErrors[0]);
+      } else if (err.networkError) {
+        errorMessage = "Network error - please check your connection";
+        console.error("Network Error:", err.networkError);
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      console.error("Sign up error details:", {
+        message: errorMessage,
+        graphQLErrors: err.graphQLErrors,
+        networkError: err.networkError,
+        fullError: err,
+      });
+      
       setError(errorMessage);
-      console.error("Sign up error:", err);
     } finally {
       setIsLoadingSignUp(false);
     }

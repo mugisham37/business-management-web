@@ -1,11 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ApolloProvider } from './ApolloProvider';
 import { AuthProvider } from '@/lib/hooks/useAuth';
 import { RootErrorBoundary } from '@/lib/errors/error-boundaries';
-import { ToastProvider, Toaster } from '@/components/ui/sonner';
+import { ToastProvider, Toaster, useToast } from '@/components/ui/sonner';
 import { ConnectionProvider } from './ConnectionProvider';
+import { logger } from '@/lib/logging/logger.service';
+
+/**
+ * Logger Initializer Component
+ * 
+ * Initializes the logger with the toast handler from the ToastProvider context.
+ * This must be a child of ToastProvider to access the useToast hook.
+ */
+function LoggerInitializer({ children }: { children: React.ReactNode }) {
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    // Set the toast handler for the logger
+    logger.setToastHandler((options) => {
+      addToast(options);
+    });
+  }, [addToast]);
+
+  return <>{children}</>;
+}
 
 /**
  * AppProviders Component
@@ -17,9 +37,10 @@ import { ConnectionProvider } from './ConnectionProvider';
  * Provider Nesting Order (outer to inner):
  * 1. RootErrorBoundary - Catches and handles application-level errors
  * 2. ToastProvider - Provides toast notification system
- * 3. ApolloProvider - Provides GraphQL client for data fetching
- * 4. ConnectionProvider - Monitors backend connection health
- * 5. AuthProvider - Provides authentication state and methods
+ * 3. LoggerInitializer - Initializes logger with toast handler
+ * 4. ApolloProvider - Provides GraphQL client for data fetching
+ * 5. ConnectionProvider - Monitors backend connection health
+ * 6. AuthProvider - Provides authentication state and methods
  * 
  * Features:
  * - Centralized provider configuration
@@ -28,6 +49,7 @@ import { ConnectionProvider } from './ConnectionProvider';
  * - Toast notifications for user feedback
  * - Backend health monitoring with automatic reconnection
  * - GraphQL and authentication context available throughout app
+ * - Integrated logging with toast notifications
  * 
  * Requirements: 2.1, 4.2, 6.2
  * 
@@ -51,13 +73,15 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <RootErrorBoundary>
       <ToastProvider>
-        <ApolloProvider>
-          <ConnectionProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </ConnectionProvider>
-        </ApolloProvider>
+        <LoggerInitializer>
+          <ApolloProvider>
+            <ConnectionProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </ConnectionProvider>
+          </ApolloProvider>
+        </LoggerInitializer>
         <Toaster position="top-right" />
       </ToastProvider>
     </RootErrorBoundary>

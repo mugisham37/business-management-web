@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { gql } from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = T | null | undefined;
@@ -17,7 +16,7 @@ export type Scalars = {
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
+  JSON: { input: Record<string, any>; output: Record<string, any>; }
 };
 
 export type AuditFiltersInput = {
@@ -468,13 +467,24 @@ export type RefreshTokenInput = {
 };
 
 export type RegisterOwnerInput = {
+  businessGoals: Array<Scalars['String']['input']>;
+  businessStage: Scalars['String']['input'];
+  businessType: Scalars['String']['input'];
+  companySize: Scalars['String']['input'];
+  currency: Scalars['String']['input'];
   email: Scalars['String']['input'];
+  emailNotifications: Scalars['Boolean']['input'];
   firstName: Scalars['String']['input'];
+  industry: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
+  marketingUpdates: Scalars['Boolean']['input'];
   organizationName: Scalars['String']['input'];
-  organizationSettings?: InputMaybe<Scalars['String']['input']>;
-  organizationType: Scalars['String']['input'];
   password: Scalars['String']['input'];
+  primaryActivities: Array<Scalars['String']['input']>;
+  timeline: Scalars['String']['input'];
+  timezone: Scalars['String']['input'];
+  website?: InputMaybe<Scalars['String']['input']>;
+  weeklyReports: Scalars['Boolean']['input'];
 };
 
 export type RevokePermissionsInput = {

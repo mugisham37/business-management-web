@@ -8,18 +8,24 @@
  * - Response data
  * - Execution time
  * - Correlation ID
+ * - Toast notifications for errors
+ * - Health check filtering
  * 
  * Note: This module provides logging utilities that can be used
  * to wrap gRPC client calls for comprehensive logging.
+ * 
+ * Requirements: 2.1, 6.1
  */
 
 import { generateCorrelationId } from '@/lib/utils/correlation';
+import { logger } from '@/lib/logging/logger.service';
 
 export interface LoggingConfig {
   logRequests: boolean;
   logResponses: boolean;
   logErrors: boolean;
   logTiming: boolean;
+  showToasts: boolean;
   sanitizeFields?: string[]; // Fields to redact from logs
 }
 
@@ -28,6 +34,7 @@ export const DEFAULT_LOGGING_CONFIG: LoggingConfig = {
   logResponses: true,
   logErrors: true,
   logTiming: true,
+  showToasts: true,
   sanitizeFields: ['password', 'token', 'access_token', 'refresh_token', 'secret'],
 };
 
@@ -43,15 +50,23 @@ export function logGRPCRequest(
   const loggingConfig = { ...DEFAULT_LOGGING_CONFIG, ...config };
   const correlationId = generateCorrelationId();
 
-  if (loggingConfig.logRequests) {
+  // Create child logger for gRPC
+  const grpcLogger = logger.createChildLogger('gRPC');
+  grpcLogger.setCorrelationId(correlationId);
+
+  // Check if this is a health check
+  const isHealthCheck = grpcLogger.isHealthCheck(method);
+
+  if (loggingConfig.logRequests && !isHealthCheck) {
     const sanitizedRequest = sanitizeData(request, loggingConfig.sanitizeFields);
-    console.log('[gRPC Request]', {
-      service,
-      method,
-      correlationId,
-      request: sanitizedRequest,
-      timestamp: new Date().toISOString(),
-    });
+    grpcLogger.info(
+      `→ gRPC ${service}.${method}`,
+      {
+        service,
+        method,
+        request: sanitizedRequest,
+      },
+    );
   }
 
   return correlationId;
@@ -71,26 +86,24 @@ export function logGRPCResponse(
   const loggingConfig = { ...DEFAULT_LOGGING_CONFIG, ...config };
   const duration = Date.now() - startTime;
 
-  if (loggingConfig.logResponses) {
-    const sanitizedResponse = sanitizeData(response, loggingConfig.sanitizeFields);
-    console.log('[gRPC Response]', {
-      service,
-      method,
-      correlationId,
-      response: sanitizedResponse,
-      duration: `${duration}ms`,
-      timestamp: new Date().toISOString(),
-    });
-  }
+  // Create child logger for gRPC
+  const grpcLogger = logger.createChildLogger('gRPC');
+  grpcLogger.setCorrelationId(correlationId);
 
-  if (loggingConfig.logTiming) {
-    console.log('[gRPC Success]', {
-      service,
-      method,
-      correlationId,
-      duration: `${duration}ms`,
-      status: 'OK',
-    });
+  // Check if this is a health check
+  const isHealthCheck = grpcLogger.isHealthCheck(method);
+
+  if (loggingConfig.logResponses && !isHealthCheck) {
+    const sanitizedResponse = sanitizeData(response, loggingConfig.sanitizeFields);
+    grpcLogger.info(
+      `← gRPC ${service}.${method} - Success (${duration}ms)`,
+      {
+        service,
+        method,
+        response: sanitizedResponse,
+        duration: `${duration}ms`,
+      },
+    );
   }
 }
 
@@ -108,17 +121,36 @@ export function logGRPCError(
   const loggingConfig = { ...DEFAULT_LOGGING_CONFIG, ...config };
   const duration = Date.now() - startTime;
 
+  // Create child logger for gRPC
+  const grpcLogger = logger.createChildLogger('gRPC');
+  grpcLogger.setCorrelationId(correlationId);
+
+  // Check if this is a health check
+  const isHealthCheck = grpcLogger.isHealthCheck(method);
+
   if (loggingConfig.logErrors) {
-    console.error('[gRPC Error]', {
-      service,
-      method,
-      correlationId,
-      duration: `${duration}ms`,
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      timestamp: new Date().toISOString(),
-    });
+    if (isHealthCheck) {
+      // Just log health check errors, no toast
+      grpcLogger.error(
+        `✗ gRPC ${service}.${method} - Failed (${duration}ms)`,
+        error,
+      );
+    } else {
+      // Log and show toast for non-health-check errors
+      if (loggingConfig.showToasts) {
+        grpcLogger.errorWithToast(
+          `✗ gRPC ${service}.${method} - Failed (${duration}ms)`,
+          'gRPC Error',
+          error.message || 'gRPC call failed',
+          error,
+        );
+      } else {
+        grpcLogger.error(
+          `✗ gRPC ${service}.${method} - Failed (${duration}ms)`,
+          error,
+        );
+      }
+    }
   }
 }
 
@@ -184,12 +216,14 @@ export async function withLogging<T>(
 /**
  * Production-safe logging configuration
  * Only logs errors and timing, not request/response data
+ * Disables toasts in production
  */
 export const PRODUCTION_LOGGING_CONFIG: LoggingConfig = {
   logRequests: false,
   logResponses: false,
   logErrors: true,
   logTiming: true,
+  showToasts: false,
   sanitizeFields: ['password', 'token', 'access_token', 'refresh_token', 'secret'],
 };
 
@@ -201,5 +235,3 @@ export function getLoggingConfig(): LoggingConfig {
     ? PRODUCTION_LOGGING_CONFIG
     : DEFAULT_LOGGING_CONFIG;
 }
-
-
