@@ -355,6 +355,109 @@ export function extractFieldErrors(
 
 
 /**
+ * Extract server-provided context from GraphQL error
+ */
+export function extractServerContext(graphQLError: any): {
+  suggestion?: string;
+  action?: string;
+  alternatives?: string[];
+  context?: Record<string, any>;
+} {
+  const extensions = graphQLError?.extensions || {};
+  
+  return {
+    suggestion: extensions.suggestion,
+    action: extensions.action,
+    alternatives: extensions.alternatives,
+    context: {
+      email: extensions.email,
+      organizationName: extensions.organizationName,
+      currentBranch: extensions.currentBranch,
+      currentDepartment: extensions.currentDepartment,
+      currentLength: extensions.currentLength,
+      requiredLength: extensions.requiredLength,
+      missing: extensions.missing,
+      minutesRemaining: extensions.minutesRemaining,
+      unlockTime: extensions.unlockTime,
+      failedAttempts: extensions.failedAttempts,
+      examples: extensions.examples,
+      allowed: extensions.allowed,
+      requirement: extensions.requirement,
+      hasLetters: extensions.hasLetters,
+      hasSpecialChars: extensions.hasSpecialChars,
+      allowedRange: extensions.allowedRange,
+    },
+  };
+}
+
+/**
+ * Enhance user info with server-provided context
+ */
+export function enhanceWithServerContext(
+  baseInfo: ErrorUserInfo,
+  serverContext: ReturnType<typeof extractServerContext>,
+): ErrorUserInfo {
+  const enhanced = { ...baseInfo };
+
+  // Use server suggestion if available (add to beginning of suggestions)
+  if (serverContext.suggestion) {
+    if (!enhanced.suggestions) {
+      enhanced.suggestions = [];
+    }
+    // Add server suggestion first if not already present
+    if (!enhanced.suggestions.includes(serverContext.suggestion)) {
+      enhanced.suggestions.unshift(serverContext.suggestion);
+    }
+  }
+
+  // Add alternatives if provided
+  if (serverContext.alternatives && Array.isArray(serverContext.alternatives)) {
+    if (!enhanced.suggestions) {
+      enhanced.suggestions = [];
+    }
+    // Add alternatives that aren't already in suggestions
+    serverContext.alternatives.forEach(alt => {
+      if (!enhanced.suggestions!.includes(alt)) {
+        enhanced.suggestions!.push(alt);
+      }
+    });
+  }
+
+  // Enhance description with context
+  if (serverContext.context) {
+    const ctx = serverContext.context;
+
+    // Add time remaining for locked accounts
+    if (ctx.minutesRemaining !== undefined && ctx.unlockTime) {
+      enhanced.description = `${enhanced.description} Your account will unlock in ${ctx.minutesRemaining} minute${ctx.minutesRemaining > 1 ? 's' : ''} at ${ctx.unlockTime}.`;
+    }
+
+    // Add current vs required for validation errors
+    if (ctx.currentLength !== undefined && ctx.requiredLength !== undefined) {
+      enhanced.description = `${enhanced.description} You entered ${ctx.currentLength} character${ctx.currentLength > 1 ? 's' : ''}, but need ${ctx.requiredLength}.`;
+    }
+
+    // Add examples if provided
+    if (ctx.examples && Array.isArray(ctx.examples)) {
+      if (!enhanced.suggestions) {
+        enhanced.suggestions = [];
+      }
+      enhanced.suggestions.push(`Examples: ${ctx.examples.join(', ')}`);
+    }
+
+    // Add allowed characters for special character requirements
+    if (ctx.allowed) {
+      if (!enhanced.suggestions) {
+        enhanced.suggestions = [];
+      }
+      enhanced.suggestions.push(`Allowed characters: ${ctx.allowed}`);
+    }
+  }
+
+  return enhanced;
+}
+
+/**
  * Generate context-aware suggestions based on field name and value
  */
 export function generateContextualSuggestions(

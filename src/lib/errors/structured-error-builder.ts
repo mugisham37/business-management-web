@@ -19,6 +19,8 @@ import {
   generateContextualSuggestions,
   generateContextualDescription,
   generateContextualTitle,
+  extractServerContext,
+  enhanceWithServerContext,
 } from './error-message-mapper';
 
 interface GraphQLErrorResponse {
@@ -115,6 +117,9 @@ function buildGraphQLError(
   const category = categorizeGraphQLError(errorCode);
   const severity = determineSeverity(category, statusCode);
 
+  // Extract server-provided context
+  const serverContext = extractServerContext(primaryError);
+
   // Extract field information from Prisma errors
   const { fieldName, fieldValue } = extractFieldInfo(primaryError, context);
 
@@ -133,6 +138,9 @@ function buildGraphQLError(
     // Fallback to pattern matching
     userInfo = mapErrorToUserInfo(primaryError.message, errorCode);
   }
+
+  // Enhance with server-provided context
+  userInfo = enhanceWithServerContext(userInfo, serverContext);
 
   // Add field-specific errors if available
   const fieldErrors = extractFieldErrors(primaryError);
